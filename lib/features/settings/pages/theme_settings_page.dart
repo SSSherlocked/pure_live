@@ -99,10 +99,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                 onTap: () => Get.to(() => const RoomCardSettingsPage()),
               ),
             ),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("grid_spacing_settings")),
-          context.buildModernCard([
             context.buildTile(
               icon: Remix.arrow_left_right_line,
               title: i18n("cross_axis_spacing"),
@@ -115,11 +111,7 @@ class ThemeSettingsPage extends GetView<SettingsService> {
               subtitle: i18n("main_axis_spacing_subtitle"),
               onTap: () => showMainAxisSpacingDialog(context),
             ),
-          ]),
-          if (Get.width > 680) ...[
-            const SizedBox(height: 20),
-            context.buildGroupTitle(i18n("page_settings")),
-            context.buildModernCard([
+            if (Get.width > 680)
               context.buildTile(
                 icon: Remix.pages_line,
                 title: i18n('page_settings'),
@@ -127,21 +119,9 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => Get.to(() => const PageSettingsPage()),
               ),
-            ]),
-          ],
-
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("localization_settings")),
-          context.buildModernCard([
-            context.buildTile(
-              icon: Remix.global_line,
-              title: i18n("change_language"),
-              subtitle: i18n("change_language_subtitle"),
-              onTap: () => showLanguageSelecterDialog(context),
-            ),
           ]),
           const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("font_family_settings")),
+          context.buildGroupTitle(i18n("font_group_settings")),
           context.buildModernCard([
             Obx(
               () => context.buildTile(
@@ -152,18 +132,12 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                 onTap: () => Get.to(() => const FontFamilyManagerPage()),
               ),
             ),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("text_size_settings")),
-          context.buildModernCard([
             context.buildTile(
               icon: Remix.font_size,
               title: i18n("font_settings_title"),
               subtitle: i18n("font_settings_desc"),
               onTap: () => Get.to(() => const FontSettingsPage()),
             ),
-            const SizedBox(height: 20),
-
             Obx(
               () => context.buildSliderTile(
                 context,
@@ -245,20 +219,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
         Get.changeTheme(darkTheme);
       },
     );
-  }
-
-  Future<void> showLanguageSelecterDialog(BuildContext pageContext) async {
-    final value = await showDialog<String>(
-      context: pageContext,
-      builder: (context) => ThemeChoiceDialog<String>(
-        title: i18n('change_language'),
-        value: SettingsService.to.theme.resolvedLanguageName,
-        items: {for (final name in AppConsts.languages.keys) name: name},
-      ),
-    );
-    if (value != null && pageContext.mounted) {
-      await SettingsService.to.theme.changeLanguage(value, pageContext);
-    }
   }
 
   Future<void> showCrossAxisSpacingDialog(BuildContext context) {
@@ -543,5 +503,20 @@ class _ThemeSpacingDialogState extends State<ThemeSpacingDialog> {
         ),
       ),
     );
+  }
+}
+
+/// Picks the app language; shared by the 通用 settings page.
+Future<void> showLanguageSelectDialog(BuildContext pageContext) async {
+  final value = await showDialog<String>(
+    context: pageContext,
+    builder: (context) => ThemeChoiceDialog<String>(
+      title: i18n('change_language'),
+      value: SettingsService.to.theme.resolvedLanguageName,
+      items: {for (final name in AppConsts.languages.keys) name: name},
+    ),
+  );
+  if (value != null && pageContext.mounted) {
+    await SettingsService.to.theme.changeLanguage(value, pageContext);
   }
 }

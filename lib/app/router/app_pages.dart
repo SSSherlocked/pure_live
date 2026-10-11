@@ -6,7 +6,6 @@ import 'package:pure_live/features/about/about_page.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_page.dart';
 import 'package:pure_live/domains/live/presentation/search/search_page.dart';
 import 'package:pure_live/features/settings/pages/cache_data_settings_page.dart';
-import 'package:pure_live/features/splash/splash_screen.dart';
 import 'package:pure_live/features/version/version_page.dart';
 import 'package:pure_live/features/web_dav/web_dav_page.dart';
 import 'package:pure_live/features/toolbox/toolbox_page.dart';
@@ -38,7 +37,6 @@ import 'package:pure_live/domains/account/presentation/account/douyin/douyin_coo
 import 'package:pure_live/domains/account/presentation/account/kuaishou/kuaishou_cookie_page.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/record_settings/record_settings_page.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/local_player/local_video_player_page.dart';
-import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 
 class AppPages {
   AppPages._();
@@ -159,51 +157,6 @@ class AppPages {
 
     GetPage(name: RoutePath.kWebDavPage, page: _smoothPage(WebDavPage.new), bindings: [WebDavBinding()]),
 
-    GetPage(
-      name: RoutePath.kSplash,
-      page: () {
-        final bool isDarkMode = Get.isDarkMode;
-
-        final LinearGradient bgGradient = isDarkMode
-            ? const LinearGradient(
-                colors: [Color(0xFF0D1B2A), Color(0xFF1B263B), Color(0xFF141E27)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : const LinearGradient(
-                colors: [Color(0xFFE0F7FA), Color(0xFFB2EBF2), Color(0xFF80DEEA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              );
-
-        final Color textColor = isDarkMode ? Colors.white70 : Colors.black54;
-
-        return SplashScreen(
-          bgGradient: bgGradient,
-          logo: Image.asset('assets/icons/icon.png', width: 150),
-          showTextLogo: true,
-          logoText: i18n("welcome_use"),
-          textStyle: AppTextStyles.t20.copyWith(fontWeight: FontWeight.bold, color: textColor),
-          loaderType: LoaderType.progressBar,
-          onNextPressed: () async {
-            // Spend a small, bounded part of the existing launch transition on
-            // the already-running favourite verification. Fast networks enter
-            // Home with a settled grid; slow platforms never hold the splash
-            // beyond this budget and finish in the background.
-            if (Get.isRegistered<FavoriteController>()) {
-              try {
-                await Future.any<void>([
-                  Get.find<FavoriteController>().refreshPersistedRoomsOnStartup(),
-                  Future<void>.delayed(const Duration(milliseconds: 350)),
-                ]);
-              } catch (_) {}
-            }
-            Get.offAllNamed(RoutePath.kInitial);
-          },
-          duration: const Duration(seconds: 1),
-        );
-      },
-    ),
     // VersionPage
     GetPage(name: RoutePath.kVersionPage, page: _smoothPage(() => const VersionPage()), bindings: [VersionBinding()]),
     GetPage(name: RoutePath.kRecordPage, page: _smoothPage(() => const RecorderPage()), bindings: [RecorderBinding()]),

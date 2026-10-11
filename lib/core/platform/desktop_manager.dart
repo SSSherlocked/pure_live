@@ -281,17 +281,6 @@ class CustomTitleBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final LinearGradient bgGradient = isDark
-        ? const LinearGradient(
-            colors: [Color(0xFF0D1B2A), Color(0xFF1B263B), Color(0xFF141E27)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )
-        : const LinearGradient(
-            colors: [Color(0xFFE8FAFC), Color(0xFFC8F1F5), Color(0xFF9BE7F0)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          );
 
     return Obx(() {
       final isFullscreen = GlobalPlayerService.instance.player.isWindowFullscreen.value;
@@ -303,8 +292,6 @@ class CustomTitleBar extends StatelessWidget {
       final bool wallpaperBehind = !isFullscreen && AppCanvasScope.ownedByBackgroundOf(context);
       final bgColor = wallpaperBehind ? titleBarColor.withValues(alpha: kWallpaperSurfaceOpacity) : titleBarColor;
       final iconColor = isFullscreen || isDark ? Colors.white.withValues(alpha: 0.75) : Colors.black;
-      final currentRoute = RouteObserverController.to.currentRoute.value;
-      final currentRouteIskSplash = currentRoute == RoutePath.kSplash;
       final currentSize = SettingsService.to.window.windowSize.value;
       final showSizeText = SettingsService.to.window.isTracking.value;
       // Styles come from the theme captured above, not from `AppTextStyles`:
@@ -324,10 +311,7 @@ class CustomTitleBar extends StatelessWidget {
 
       return Container(
         height: 32,
-        decoration: BoxDecoration(
-          gradient: currentRouteIskSplash ? bgGradient : null,
-          color: currentRouteIskSplash ? null : bgColor,
-        ),
+        decoration: BoxDecoration(color: bgColor),
         child: Row(
           children: [
             Expanded(
@@ -719,7 +703,7 @@ mixin DesktopWindowMixin<T extends StatefulWidget> on State<T> implements Window
     }
   }
 
-  /// Resolves once the app navigator is past the splash route. A share that
+  /// Resolves once the app navigator has its first route. A share that
   /// cold-starts the app arrives before routes exist.
   Future<void> waitForShareNavigator() => _waitForShareCommandNavigator();
 
@@ -730,7 +714,7 @@ mixin DesktopWindowMixin<T extends StatefulWidget> on State<T> implements Window
       final currentRoute = Get.isRegistered<RouteObserverController>()
           ? RouteObserverController.to.currentRoute.value
           : '';
-      if (navigatorContext != null && currentRoute.isNotEmpty && currentRoute != RoutePath.kSplash) {
+      if (navigatorContext != null && currentRoute.isNotEmpty) {
         return navigatorContext;
       }
       await Future<void>.delayed(const Duration(milliseconds: 50));

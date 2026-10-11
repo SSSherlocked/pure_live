@@ -24,7 +24,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          // Look and navigation, folded in from the settings home page.
+          context.buildGroupTitle(i18n("theme_group")),
           context.buildModernCard([
             context.buildTile(
               icon: Remix.palette_line,
@@ -94,61 +94,12 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 value: SettingsService.to.app.enableNewWindowPlay,
                 icon: Icons.add_to_photos_outlined,
               ),
-            context.buildSwitchTile(
-              title: i18n('splash_animation'),
-              subtitle: i18n("splash_animation_subtitle"),
-              value: SettingsService.to.app.showSplashPage,
-              icon: Remix.rocket_2_line,
+            context.buildTile(
+              icon: Remix.global_line,
+              title: i18n("change_language"),
+              subtitle: i18n("change_language_subtitle"),
+              onTap: () => showLanguageSelectDialog(context),
             ),
-            context.buildSwitchTile(
-              title: i18n('enable_auto_check_update'),
-              subtitle: "",
-              value: SettingsService.to.app.enableAutoCheckUpdate,
-              icon: Remix.refresh_line,
-            ),
-            context.buildSwitchTile(
-              title: i18n('use_github_origin_for_updates'),
-              subtitle: i18n('use_github_origin_for_updates_desc'),
-              value: SettingsService.to.app.useGitHubOriginForUpdates,
-              icon: Remix.github_line,
-              isLong: true,
-            ),
-            context.buildSwitchTile(
-              title: i18n('enable_countdown_close'),
-              subtitle: i18n('enable_countdown_close_subtitle'),
-              value: SettingsService.to.exit.enableAutoShutDownTime,
-              icon: Remix.timer_line,
-            ),
-            Obx(() {
-              final bool isEnabled = SettingsService.to.exit.enableAutoShutDownTime.v;
-              final int configMinutes = SettingsService.to.exit.autoShutDownTime.v;
-
-              return StreamBuilder<int>(
-                key: ValueKey('${isEnabled}_$configMinutes'),
-                stream: SettingsService.to.exit.stopWatchTimer.rawTime,
-                builder: (context, snapshot) {
-                  final int value = snapshot.data ?? 0;
-                  String subtitleText = "";
-
-                  if (!isEnabled || value == 0) {
-                    subtitleText = "$configMinutes ${i18n('minutes')}";
-                  } else {
-                    final displayTime = StopWatchTimer.getDisplayTime(value, hours: true, milliSecond: false);
-                    subtitleText = "${i18n('remaining_time')}: $displayTime";
-                  }
-
-                  return context.buildTile(
-                    iconWidget: AnimatedTimerIcon(enabled: isEnabled, remainingMs: value, totalMinutes: configMinutes),
-
-                    title: i18n('countdown_duration'),
-                    subtitle: subtitleText,
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => _showCountdownDurationDialog(context),
-                  );
-                },
-              );
-            }),
-
             if (Platform.isWindows) ...[
               Obx(() {
                 final startup = SettingsService.to.startup;
@@ -194,6 +145,62 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 icon: Remix.error_warning_line,
               ),
             ],
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("timer_settings")),
+          context.buildModernCard([
+            context.buildSwitchTile(
+              title: i18n('enable_countdown_close'),
+              subtitle: i18n('enable_countdown_close_subtitle'),
+              value: SettingsService.to.exit.enableAutoShutDownTime,
+              icon: Remix.timer_line,
+            ),
+            Obx(() {
+              final bool isEnabled = SettingsService.to.exit.enableAutoShutDownTime.v;
+              final int configMinutes = SettingsService.to.exit.autoShutDownTime.v;
+
+              return StreamBuilder<int>(
+                key: ValueKey('${isEnabled}_$configMinutes'),
+                stream: SettingsService.to.exit.stopWatchTimer.rawTime,
+                builder: (context, snapshot) {
+                  final int value = snapshot.data ?? 0;
+                  String subtitleText = "";
+
+                  if (!isEnabled || value == 0) {
+                    subtitleText = "$configMinutes ${i18n('minutes')}";
+                  } else {
+                    final displayTime = StopWatchTimer.getDisplayTime(value, hours: true, milliSecond: false);
+                    subtitleText = "${i18n('remaining_time')}: $displayTime";
+                  }
+
+                  return context.buildTile(
+                    iconWidget: AnimatedTimerIcon(enabled: isEnabled, remainingMs: value, totalMinutes: configMinutes),
+
+                    title: i18n('countdown_duration'),
+                    subtitle: subtitleText,
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _showCountdownDurationDialog(context),
+                  );
+                },
+              );
+            }),
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("software_update")),
+          context.buildModernCard([
+            context.buildSwitchTile(
+              title: i18n('enable_auto_check_update'),
+              subtitle: "",
+              value: SettingsService.to.app.enableAutoCheckUpdate,
+              icon: Remix.refresh_line,
+            ),
+            context.buildSwitchTile(
+              title: i18n('use_github_origin_for_updates'),
+              subtitle: i18n('use_github_origin_for_updates_desc'),
+              value: SettingsService.to.app.useGitHubOriginForUpdates,
+              icon: Remix.github_line,
+              isLong: true,
+            ),
           ]),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("danmaku_settings")),

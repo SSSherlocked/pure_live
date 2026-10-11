@@ -1,5 +1,4 @@
 class RoutePath {
-  static const kSplash = "/splash";
 
   static const kInitial = "/home";
 

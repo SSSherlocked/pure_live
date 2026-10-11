@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
 import 'package:pure_live/domains/wallpaper/presentation/wallpaper_page.dart';
@@ -193,6 +194,34 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 icon: Remix.error_warning_line,
               ),
             ],
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("danmaku_settings")),
+          context.buildModernCard([
+            Obx(
+              () => context.buildSwitchTile(
+                title: i18n('show_danmaku'),
+                subtitle: i18n('show_danmaku_subtitle'),
+                value: SettingsService.to.danmaku.hideDanmaku.v ? true.obs : false.obs,
+                icon: Remix.chat_smile_2_line,
+                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
+              ),
+            ),
+            Obx(
+              () => context.buildTile(
+                icon: Remix.font_size,
+                title: i18n("change_danmaku_font_family"),
+                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
+                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
+              ),
+            ),
+
+            context.buildTile(
+              icon: Remix.filter_2_line,
+              title: i18n("danmaku_filter"),
+              subtitle: "",
+              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
+            ),
           ]),
           const SizedBox(height: 32),
         ],

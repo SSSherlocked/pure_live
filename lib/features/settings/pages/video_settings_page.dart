@@ -5,7 +5,6 @@ import 'package:pure_live/features/settings/pages/player_kernel_settings_page.da
 import 'package:pure_live/core/player/kernel/player_consts.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:pure_live/core/player/core/live_audio_service.dart';
-import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
 import 'package:pure_live/core/config/app_settings_controller.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/features/settings/pages/portrait_live_settings_page.dart';
@@ -328,35 +327,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               ),
           ]),
 
-          const SizedBox(height: 20),
-
-          context.buildGroupTitle(i18n("danmaku_settings")),
-          context.buildModernCard([
-            Obx(
-              () => context.buildSwitchTile(
-                title: i18n('show_danmaku'),
-                subtitle: i18n('show_danmaku_subtitle'),
-                value: SettingsService.to.danmaku.hideDanmaku.v ? true.obs : false.obs,
-                icon: Remix.chat_smile_2_line,
-                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
-              ),
-            ),
-            Obx(
-              () => context.buildTile(
-                icon: Remix.font_size,
-                title: i18n("change_danmaku_font_family"),
-                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
-                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
-              ),
-            ),
-
-            context.buildTile(
-              icon: Remix.filter_2_line,
-              title: i18n("danmaku_filter"),
-              subtitle: "",
-              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
-            ),
-          ]),
           const SizedBox(height: 32),
         ],
       ),

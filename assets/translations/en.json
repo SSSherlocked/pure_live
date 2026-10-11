@@ -1242,7 +1242,7 @@
   "room_card_show_avatar": "Show anchor avatar",
   "room_card_show_avatar_subtitle": "Keep the anchor identity image beside the room title",
   "room_card_show_anchor": "Show anchor name",
-  "room_card_show_anchor_subtitle": "Show the anchor name below the room title",
+  "room_card_show_anchor_subtitle": "Show the streamer name below the cover, or above the title in compact rows",
   "room_card_show_platform": "Show platform badge",
   "room_card_show_platform_subtitle": "Choose automatic display for spacious cards, always show it on the cover, or hide it",
   "room_card_platform_automatic": "Automatic",

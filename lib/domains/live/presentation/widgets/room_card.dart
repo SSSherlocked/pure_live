@@ -604,42 +604,44 @@ class RoomCard extends StatelessWidget {
                               ),
                           ],
                         ),
-                        // Below the cover: avatar and streamer name, with the
-                        // platform and audience on the same row.
-                        Container(
-                          key: const ValueKey('room-card-anchor-row'),
-                          height: RoomCardLayoutMetrics.coverCaptionHeight(
-                            appearance: config,
-                            dense: dense,
-                            textScaler: MediaQuery.textScalerOf(context),
-                          ),
-                          padding: EdgeInsets.symmetric(horizontal: dense ? 10 : 12),
-                          alignment: Alignment.center,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              if (config.showAvatar) ...[
-                                KeyedSubtree(
-                                  key: const ValueKey('room-card-avatar'),
-                                  child: CommonAvatar(avatarUrl: room.avatar, fallbackName: room.nick, dense: dense),
-                                ),
-                                SizedBox(width: dense ? 8 : 10),
-                              ],
-                              Expanded(
-                                child: Text(
-                                  room.nick ?? '',
-                                  key: const ValueKey('room-card-anchor-name'),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: (dense ? AppTextStyles.t13 : AppTextStyles.t15).copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white : Colors.black87,
+                        // Below the cover: avatar and streamer name. Hiding
+                        // both drops the row and the card ends at the cover.
+                        if (config.showAvatar || config.showAnchorName)
+                          Container(
+                            key: const ValueKey('room-card-anchor-row'),
+                            height: RoomCardLayoutMetrics.coverCaptionHeight(
+                              appearance: config,
+                              dense: dense,
+                              textScaler: MediaQuery.textScalerOf(context),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: dense ? 10 : 12),
+                            alignment: Alignment.center,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (config.showAvatar) ...[
+                                  KeyedSubtree(
+                                    key: const ValueKey('room-card-avatar'),
+                                    child: CommonAvatar(avatarUrl: room.avatar, fallbackName: room.nick, dense: dense),
                                   ),
-                                ),
-                              ),
-                            ],
+                                  SizedBox(width: dense ? 8 : 10),
+                                ],
+                                if (config.showAnchorName)
+                                  Expanded(
+                                    child: Text(
+                                      room.nick ?? '',
+                                      key: const ValueKey('room-card-anchor-name'),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: (dense ? AppTextStyles.t13 : AppTextStyles.t15).copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     ),
             ),

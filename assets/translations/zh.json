@@ -1242,7 +1242,7 @@
   "room_card_show_avatar": "显示主播头像",
   "room_card_show_avatar_subtitle": "在房间标题旁保留主播身份图片",
   "room_card_show_anchor": "显示主播名称",
-  "room_card_show_anchor_subtitle": "在房间标题下方显示主播名称",
+  "room_card_show_anchor_subtitle": "在封面下方或紧凑行标题上方显示主播名称",
   "room_card_show_platform": "显示平台徽章",
   "room_card_show_platform_subtitle": "可让宽卡片自动显示、始终在封面显示或保持隐藏",
   "room_card_platform_automatic": "自动",

@@ -44,6 +44,7 @@ abstract final class RoomCardLayoutMetrics {
     required bool dense,
     TextScaler textScaler = TextScaler.noScaling,
   }) {
+    if (!appearance.showAvatar && !appearance.showAnchorName) return 0;
     final baseCaptionHeight = dense ? 50.0 : 58.0;
     final avatarHeight = appearance.showAvatar ? (dense ? 34.0 : 40.0) : 0.0;
     final lineHeight = textScaler.scale(dense ? 13 : 15) * 1.3;

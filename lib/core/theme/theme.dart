@@ -22,10 +22,14 @@ String? resolveAppFontFamily({
   required String selectedName,
   required Iterable<String> customFonts,
   required bool isWindows,
+  bool isMacOS = false,
 }) {
   if (customFonts.contains(selectedName)) {
     return selectedName;
   }
+  // macOS keeps the system font (SF with PingFang for CJK): Impeller draws
+  // the bundled MI Sans with broken, overlapping CJK glyphs there.
+  if (isMacOS) return null;
   return 'MI_Sans_Regular';
 }
 
@@ -48,6 +52,7 @@ class MyTheme {
       selectedName: selectedName,
       customFonts: customFonts,
       isWindows: PlatformUtils.isWindows,
+      isMacOS: PlatformUtils.isMacOS,
     );
   }
 

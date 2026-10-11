@@ -23,5 +23,5 @@ A third-party live stream aggregator built with Flutter.
 
 本项目 Fork 自 [liuchuancong/pure_live](https://github.com/liuchuancong/pure_live)（原作者 [@liuchuancong](https://github.com/liuchuancong)，协助开发者 [@RebornQ](https://github.com/RebornQ) · [@wzgrx](https://github.com/wzgrx)），依 AGPL-3.0 许可证继续开发。代码参考：
 
-- [dart_simple_live](https://github.com/xiaoyaocz/dart_simple_live)
+- [dart_simple_live](https://github.com/xiaoyaocz/dart_simple_live)（应用图标亦取自该项目）
 - [pure_live (Jackiu1997)](https://github.com/Jackiu1997/pure_live)

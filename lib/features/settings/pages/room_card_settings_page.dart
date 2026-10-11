@@ -65,7 +65,6 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       ),
       body: SettingsContentWidth(child: Obx(() {
         final config = controller.configFor(_viewport);
-        final preset = controller.presetFor(_viewport);
         return ListView(
           key: const ValueKey('room-card-settings-scroll'),
           physics: const PureLiveScrollPhysics(),
@@ -100,23 +99,46 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
               ),
             ),
             const SizedBox(height: 20),
-            context.buildGroupTitle(i18n('room_card_presets')),
-            Wrap(
-              key: const ValueKey('room-card-preset-selector'),
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _presetChip(controller, preset, RoomCardPreset.compact, i18n('room_card_preset_compact')),
-                _presetChip(controller, preset, RoomCardPreset.standard, i18n('room_card_preset_standard')),
-                _presetChip(controller, preset, RoomCardPreset.detailed, i18n('room_card_preset_detailed')),
-                if (preset == RoomCardPreset.custom)
-                  Chip(
-                    key: const ValueKey('room-card-custom-preset'),
-                    avatar: const Icon(Remix.edit_line, size: 18),
-                    label: Text(i18n('room_card_preset_custom')),
-                  ),
-              ],
-            ),
+            context.buildGroupTitle(i18n('room_card_appearance')),
+            context.buildModernCard([
+              _layoutMode(controller, config),
+              // Card size: automatic (scales with the window) or a fixed width
+              // per device class; the grid then only changes its column count.
+              context.buildTile(
+                icon: Remix.aspect_ratio_line,
+                title: i18n('room_card_fixed_width'),
+                subtitle: i18n('room_card_fixed_width_subtitle'),
+                trailing: Switch(
+                  key: ValueKey('room-card-fixed-width-${_viewport.name}'),
+                  value: controller.cardWidthFor(_viewport) > 0,
+                  onChanged: (on) => controller.cardWidthRxFor(_viewport).v = on
+                      ? RoomCardSettingsController.defaultFixedCardWidth
+                      : RoomCardSettingsController.autoCardWidth,
+                ),
+              ),
+              if (controller.cardWidthFor(_viewport) > 0)
+                context.buildSliderTile(
+                  context,
+                  icon: Remix.ruler_line,
+                  title: i18n('room_card_width'),
+                  value: controller.cardWidthFor(_viewport),
+                  min: RoomCardSettingsController.minCardWidth,
+                  max: RoomCardSettingsController.maxCardWidth,
+                  displayValue: controller.cardWidthFor(_viewport).toStringAsFixed(0),
+                  onChanged: (value) => controller.cardWidthRxFor(_viewport).v = value.roundToDouble(),
+                ),
+              context.buildSliderTile(
+                context,
+                icon: Remix.rounded_corner,
+                title: i18n('room_card_corner_radius'),
+                subtitle: i18n('room_card_corner_radius_subtitle'),
+                value: config.cornerRadius,
+                min: RoomCardAppearance.minCornerRadius,
+                max: RoomCardAppearance.maxCornerRadius,
+                displayValue: config.cornerRadius.toStringAsFixed(0),
+                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(cornerRadius: value)),
+              ),
+            ]),
             const SizedBox(height: 20),
             context.buildGroupTitle(i18n('room_card_visible_content')),
             context.buildModernCard([
@@ -150,47 +172,6 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(showReplayBadge: value)),
               ),
             ]),
-            const SizedBox(height: 20),
-            context.buildGroupTitle(i18n('room_card_appearance')),
-            context.buildModernCard([
-              _layoutMode(controller, config),
-              context.buildSliderTile(
-                context,
-                icon: Remix.rounded_corner,
-                title: i18n('room_card_corner_radius'),
-                subtitle: i18n('room_card_corner_radius_subtitle'),
-                value: config.cornerRadius,
-                min: RoomCardAppearance.minCornerRadius,
-                max: RoomCardAppearance.maxCornerRadius,
-                displayValue: config.cornerRadius.toStringAsFixed(0),
-                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(cornerRadius: value)),
-              ),
-              // Card size: automatic (scales with the window) or a fixed width
-              // per device class; the grid then only changes its column count.
-              context.buildTile(
-                icon: Remix.aspect_ratio_line,
-                title: i18n('room_card_fixed_width'),
-                subtitle: i18n('room_card_fixed_width_subtitle'),
-                trailing: Switch(
-                  key: ValueKey('room-card-fixed-width-${_viewport.name}'),
-                  value: controller.cardWidthFor(_viewport) > 0,
-                  onChanged: (on) => controller.cardWidthRxFor(_viewport).v = on
-                      ? RoomCardSettingsController.defaultFixedCardWidth
-                      : RoomCardSettingsController.autoCardWidth,
-                ),
-              ),
-              if (controller.cardWidthFor(_viewport) > 0)
-                context.buildSliderTile(
-                  context,
-                  icon: Remix.ruler_line,
-                  title: i18n('room_card_width'),
-                  value: controller.cardWidthFor(_viewport),
-                  min: RoomCardSettingsController.minCardWidth,
-                  max: RoomCardSettingsController.maxCardWidth,
-                  displayValue: controller.cardWidthFor(_viewport).toStringAsFixed(0),
-                  onChanged: (value) => controller.cardWidthRxFor(_viewport).v = value.roundToDouble(),
-                ),
-            ]),
             const SizedBox(height: 16),
             Text(
               i18n('room_card_settings_scope_hint'),
@@ -210,20 +191,6 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       label: Text(label),
       selected: _viewport == viewport,
       onSelected: (_) => setState(() => _viewport = viewport),
-    );
-  }
-
-  Widget _presetChip(
-    RoomCardSettingsController controller,
-    RoomCardPreset current,
-    RoomCardPreset preset,
-    String label,
-  ) {
-    return ChoiceChip(
-      key: ValueKey('room-card-preset-${preset.storageKey}'),
-      label: Text(label),
-      selected: current == preset,
-      onSelected: (_) => controller.applyPreset(_viewport, preset),
     );
   }
 

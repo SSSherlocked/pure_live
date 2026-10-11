@@ -308,7 +308,8 @@ class RoomCard extends StatelessWidget {
     final canShowMetrics = availableWidth >= minimumMetricWidth && textScale < 1.8;
     final children = <Widget>[];
 
-    if (canShowMetrics && (config.showPlatformBadge || showAutomaticPlatformBadge)) {
+    // "Always" forces the tag at any width; "automatic" yields to the title.
+    if (config.showPlatformBadge || (canShowMetrics && showAutomaticPlatformBadge)) {
       children.add(_buildCompactPlatformBadge(isDark));
     }
     if (canShowMetrics) {

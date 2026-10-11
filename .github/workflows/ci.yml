@@ -27,7 +27,16 @@ jobs:
             --env-files .env,.env.prod \
             --class-name AppConfig
       - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        shell: bash
+        run: |
+          set +e -o pipefail
+          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee analyze.log
+          status=${PIPESTATUS[0]}
+          # Surface errors as annotations so they can be read without the log.
+          grep -E '^\s*error ' analyze.log | head -n 30 | while IFS= read -r line; do
+            echo "::error title=flutter analyze::${line}"
+          done
+          exit "$status"
       - name: Test
         run: flutter test --concurrency=12
 

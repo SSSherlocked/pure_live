@@ -6,7 +6,6 @@ import 'iptv_programme_policy.dart';
 
 import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:media_core/media_core.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flame_barrage/flame_barrage.dart';
@@ -47,7 +46,10 @@ class PlatformHelper {
   static bool get isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
   static bool get supportsBrightness => Platform.isAndroid || Platform.isIOS;
   static bool get supportsVolumeController => Platform.isAndroid || Platform.isIOS;
-  static bool get supportsBatteryMonitoring => Platform.isAndroid || Platform.isIOS;
+  // Desktops are queried too: a laptop shows its battery, a machine without
+  // one reports none and the readout hides.
+  static bool get supportsBatteryMonitoring =>
+      Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 }
 
 class DanmakuManager {
@@ -803,7 +805,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   void initBattery() {
     if (!PlatformHelper.supportsBatteryMonitoring) return;
     // Phones and tablets always have one; desktops must report a real state.
-    if (PlatformUtils.isMobile) hasBattery.value = true;
+    if ((Platform.isAndroid || Platform.isIOS)) hasBattery.value = true;
 
     unawaited(
       _battery.batteryState
@@ -818,21 +820,24 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         .then((value) {
           if (_isDisposed) return;
           if (value < 0 || value > 100) {
-            if (!PlatformUtils.isMobile) hasBattery.value = false;
+            if (!(Platform.isAndroid || Platform.isIOS)) hasBattery.value = false;
             return;
           }
           batteryLevel.value = value;
         })
         .catchError((Object _) {
-          if (!_isDisposed && !PlatformUtils.isMobile) hasBattery.value = false;
+          if (!_isDisposed && !(Platform.isAndroid || Platform.isIOS)) hasBattery.value = false;
         });
 
-    final batterySub = _battery.onBatteryStateChanged.listen((BatteryState state) async {
-      try {
-        final value = await _battery.batteryLevel;
-        if (!_isDisposed && value >= 0 && value <= 100) batteryLevel.value = value;
-      } catch (_) {}
-    });
+    final batterySub = _battery.onBatteryStateChanged.listen(
+      (BatteryState state) async {
+        try {
+          final value = await _battery.batteryLevel;
+          if (!_isDisposed && value >= 0 && value <= 100) batteryLevel.value = value;
+        } catch (_) {}
+      },
+      onError: (Object _) {},
+    );
     _addSubscription(batterySub);
   }
 

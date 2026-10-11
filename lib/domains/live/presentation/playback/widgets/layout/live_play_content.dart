@@ -612,15 +612,16 @@ class LivePlayContent extends StatelessWidget {
 
   Widget _buildDanmaku() {
     return Obx(() {
-      final state = controller.state.value;
-      if (!state.room.success || controller.site == Sites.iptvSite) {
-        return const SizedBox.shrink();
-      }
+      // The side panel sits above the room's loading cycle: switching or
+      // reloading a room never removes it (its sections show their own
+      // loading state), so 关注 stays usable throughout.
+      // Read the observables first: an Obx must always subscribe to one.
       final player = GlobalPlayerService.instance.player;
-      if (player.isSystemFullscreen.value || player.isWindowFullscreen.value) {
+      final fullscreen = player.isSystemFullscreen.value || player.isWindowFullscreen.value;
+      if (fullscreen || controller.site == Sites.iptvSite) {
         return const SizedBox.shrink();
       }
-      return const DanmakuTabView();
+      return const DanmakuTabView(key: ValueKey('live-room-side-panel'));
     });
   }
 }

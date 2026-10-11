@@ -261,7 +261,13 @@ class PlayerMoreMenuButton extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
         color: iconColor,
         icon: const Icon(Icons.more_horiz_rounded),
-        onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+        onPressed: () {
+          if (menu.isOpen) {
+            menu.close();
+          } else {
+            menu.open();
+          }
+        },
       ),
     );
   }

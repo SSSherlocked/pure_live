@@ -14,9 +14,12 @@ class DanmakuTabView extends GetView<LivePlayController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final state = controller.state.value;
-      if (state.room.detail == null || state.player.videoController == null) {
-        return AppStatusView(type: AppStatusType.loading, title: "", subtitle: "");
-      }
+      final detail = state.room.detail;
+      final videoController = state.player.videoController;
+      // The tab bar and every section stay mounted while a room switch
+      // reloads: only the sections that need the new room show a loading
+      // state, so the 关注 list never blanks out during the switch.
+      Widget loading() => AppStatusView(type: AppStatusType.loading, title: "", subtitle: "");
       return ColoredBox(
         color: Theme.of(context).colorScheme.surface,
         child: Column(
@@ -37,7 +40,9 @@ class DanmakuTabView extends GetView<LivePlayController> {
                                   child: Text(i18n('danmaku_display_disabled_hint'), textAlign: TextAlign.center),
                                 ),
                               )
-                            : DanmakuListView(room: state.room.detail!, controller: controller),
+                            : detail == null
+                            ? loading()
+                            : DanmakuListView(room: detail, controller: controller),
                       // RxList mutations do not invalidate this outer Obx unless
                       // its value is read while building. Snapshot it here so new
                       // SC entries appear immediately without switching tabs.
@@ -46,12 +51,18 @@ class DanmakuTabView extends GetView<LivePlayController> {
                       ),
                       // 80 % of the regular size so the dense settings fit the
                       // narrow panel; 屏蔽管理 closes the page as its last section.
-                      LivePanelTab.danmakuSettings => DanmakuSettingsPage(
-                        controller: state.player.videoController!,
-                        scale: 0.8,
-                        footer: const KeywordBlockPage(asSection: true),
+                      LivePanelTab.danmakuSettings =>
+                        videoController == null
+                            ? loading()
+                            : DanmakuSettingsPage(
+                                controller: videoController,
+                                scale: 0.8,
+                                footer: const KeywordBlockPage(asSection: true),
+                              ),
+                      LivePanelTab.follow => FollowRoomsPage(
+                        key: const ValueKey('live-panel-follow'),
+                        controller: controller,
                       ),
-                      LivePanelTab.follow => FollowRoomsPage(controller: controller),
                     },
                 ],
               ),

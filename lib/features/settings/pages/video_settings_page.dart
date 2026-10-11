@@ -87,6 +87,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
             ),
           ]),
           const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("audio_settings")),
           context.buildModernCard([
             context.buildSwitchTile(
               title: i18n("global_mute"),
@@ -131,6 +132,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
           const SizedBox(height: 20),
 
+          context.buildGroupTitle(i18n("video_quality_settings")),
           context.buildModernCard([
             Obx(
               () => context.buildTile(
@@ -166,6 +168,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
           const SizedBox(height: 20),
 
+          context.buildGroupTitle(i18n("playback_behavior_settings")),
           context.buildModernCard([
             context.buildTile(
               title: i18n('portrait_live_settings'),
@@ -327,6 +330,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
           const SizedBox(height: 20),
 
+          context.buildGroupTitle(i18n("danmaku_settings")),
           context.buildModernCard([
             Obx(
               () => context.buildSwitchTile(

@@ -51,6 +51,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
             ),
           ]),
           const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("general")),
           context.buildModernCard([
             if (Platform.isAndroid || Platform.isWindows)
               Obx(() {

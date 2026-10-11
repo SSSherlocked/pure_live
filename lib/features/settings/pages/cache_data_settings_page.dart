@@ -164,6 +164,7 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
             ),
           ]),
           const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("cache_and_data")),
           context.buildModernCard([
             Obx(() {
               final size = SettingsService.to.cache.cacheSizeMB.value;

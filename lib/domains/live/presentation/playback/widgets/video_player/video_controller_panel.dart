@@ -47,8 +47,8 @@ List<TopActionLeadingSlot> resolveTopActionLeadingSlots({required bool fullscree
   ];
 }
 
-/// Keeps the three Android playback actions identical in portrait and
-/// fullscreen: headphones, casting, then picture-in-picture.
+/// Keeps the Android playback actions identical in portrait and fullscreen:
+/// casting, then picture-in-picture (纯音频 is in the ⋯ menu).
 @visibleForTesting
 List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
   required bool fullscreen,
@@ -59,7 +59,7 @@ List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
     if (fullscreen) TopActionTrailingSlot.roomHistory,
     if (fullscreen && !android) TopActionTrailingSlot.datetime,
     if (fullscreen && !android) TopActionTrailingSlot.battery,
-    TopActionTrailingSlot.audioOnly,
+    // 纯音频 lives in the ⋯ menu at the top-left.
     if (android) TopActionTrailingSlot.cast,
     if (android || windows) TopActionTrailingSlot.pip,
   ];
@@ -437,7 +437,16 @@ class TopActionBar extends StatelessWidget {
                       switch (slot) {
                         TopActionLeadingSlot.back => Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: [BackButton(controller: controller), const PlayerMoreMenuButton()],
+                          children: [
+                            BackButton(controller: controller),
+                            PlayerMoreMenuButton(
+                              isAudioOnly: () => controller.isAudioOnly,
+                              onToggleAudioOnly: () {
+                                controller.enableController();
+                                controller.toggleAudioOnly();
+                              },
+                            ),
+                          ],
                         ),
                         TopActionLeadingSlot.datetime => const DatetimeInfo(key: ValueKey('fullscreen-leading-time')),
                         TopActionLeadingSlot.battery => BatteryInfo(
@@ -1426,10 +1435,9 @@ class BottomActionBar extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (GlobalPlayerService.instance.player.isWindowFullscreen.value && !compact ||
-            GlobalPlayerService.instance.player.isSystemFullscreen.value && !compact) ...[
-          FullscreenStreamSelectorButton(controller: controller),
-        ],
+        // Quality and line stay on the bar in every mode, so entering or
+        // leaving fullscreen never shifts the controls around.
+        FullscreenStreamSelectorButton(controller: controller, compact: compact),
         // These two belong to the PORTRAIT fullscreen bar. Rendering them in
         // a landscape room's inline bar is what pushed the fullscreen button
         // off-screen after the video-fit option landed (v3.15 report).

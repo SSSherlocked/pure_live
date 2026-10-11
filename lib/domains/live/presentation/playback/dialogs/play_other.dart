@@ -6,7 +6,6 @@ import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
-import 'package:pure_live/domains/live/data/history_controller.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
@@ -95,7 +94,7 @@ class PlayOther extends StatelessWidget {
   }
 }
 
-/// Followed rooms split into 已开播 / 录播 / 观看记录, one tap away from
+/// Followed rooms split into 已开播 / 录播, one tap away from
 /// replacing the room being watched. Used by the room panel's 关注 tab and
 /// by the fullscreen [PlayOther] panel.
 class FollowRoomSwitcher extends StatefulWidget {
@@ -115,27 +114,24 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
 
   final onlineRooms = <LiveRoom>[].obs;
   final recordingRooms = <LiveRoom>[].obs;
-  final historyRooms = <LiveRoom>[].obs;
   final loadingFinish = false.obs;
   final refreshing = false.obs;
 
   StreamSubscription<dynamic>? subscription;
   Worker? _favoritesWorker;
-  Worker? _historyWorker;
 
   @override
   void initState() {
     super.initState();
 
-    tabController = TabController(length: 3, vsync: this, animationDuration: pureLiveTabTransitionDuration);
+    tabController = TabController(length: 2, vsync: this, animationDuration: pureLiveTabTransitionDuration);
 
     _updateRooms();
 
     subscription = EventBus.instance.listen('refresh_favorite_finish', (_) => _updateRooms());
     // The 关注 tab stays mounted for the whole room session, so follow list
-    // and history edits must show up without reopening it.
+    // edits must show up without reopening it.
     _favoritesWorker = ever(FavoriteRoomController.to.favoriteRooms, (_) => _updateRooms());
-    _historyWorker = ever(HistoryController.to.historyRooms, (_) => _updateRooms());
   }
 
   void _updateRooms() {
@@ -148,7 +144,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       ..sort(_compareAudience);
     onlineRooms.assignAll(liveList);
     recordingRooms.assignAll(recordList);
-    historyRooms.assignAll(HistoryController.to.historyRooms.v);
 
     loadingFinish.value = true;
     refreshing.value = false;
@@ -169,7 +164,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     tabController.dispose();
     subscription?.cancel();
     _favoritesWorker?.dispose();
-    _historyWorker?.dispose();
     super.dispose();
   }
 
@@ -197,22 +191,16 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
           child: Row(
             children: [
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: textMetrics.tabBarHeight,
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceContainerHighest.withValues(alpha: .6),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
                   child: ScrollableTabBar(
                     controller: tabController,
                     isScrollable: textMetrics.scrollTabs,
                     tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
                     physics: const PureLiveBoundedScrollPhysics(),
-                    labelColor: colors.onPrimaryContainer,
+                    labelColor: colors.primary,
                     unselectedLabelColor: colors.onSurfaceVariant,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(color: colors.primaryContainer, borderRadius: BorderRadius.circular(8)),
+                    indicatorSize: TabBarIndicatorSize.label,
                     dividerHeight: 0,
                     splashBorderRadius: BorderRadius.circular(8),
                     labelPadding: const EdgeInsets.symmetric(horizontal: 6),
@@ -220,19 +208,13 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                       _CompactTab(
                         icon: Icons.sensors_rounded,
                         label: i18n('online_room_title'),
-                        height: textMetrics.tabBarHeight - 6,
+                        height: textMetrics.tabBarHeight,
                         shrinkToFit: !textMetrics.scrollTabs,
                       ),
                       _CompactTab(
                         icon: Icons.fiber_smart_record_rounded,
                         label: i18n('recording_room_title'),
-                        height: textMetrics.tabBarHeight - 6,
-                        shrinkToFit: !textMetrics.scrollTabs,
-                      ),
-                      _CompactTab(
-                        icon: Icons.history_rounded,
-                        label: i18n('watch_history'),
-                        height: textMetrics.tabBarHeight - 6,
+                        height: textMetrics.tabBarHeight,
                         shrinkToFit: !textMetrics.scrollTabs,
                       ),
                     ],
@@ -267,7 +249,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                         children: [
                           _buildRoomGrid(onlineRooms, history: false, textMetrics: textMetrics),
                           _buildRoomGrid(recordingRooms, history: false, textMetrics: textMetrics),
-                          _buildRoomGrid(historyRooms, history: true, textMetrics: textMetrics),
                         ],
                       )
                     : AppStatusView(type: AppStatusType.loading, title: '', subtitle: ''),
@@ -452,14 +433,14 @@ class _RoomSwitchCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  title,
+                  displayNick,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  displayNick,
+                  title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),

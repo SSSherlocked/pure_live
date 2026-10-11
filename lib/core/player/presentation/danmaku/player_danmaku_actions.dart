@@ -225,9 +225,14 @@ class DanmakuSettingsDialog extends StatelessWidget {
 /// mode; the current one is checked. The room and a recording share the
 /// stored index (`SettingsService.to.player.videoFitIndex`).
 class PlayerMoreMenuButton extends StatelessWidget {
-  const PlayerMoreMenuButton({super.key, this.iconColor = Colors.white});
+  const PlayerMoreMenuButton({super.key, this.iconColor = Colors.white, this.isAudioOnly, this.onToggleAudioOnly});
 
   final Color iconColor;
+
+  /// Reads the room's audio-only state (an observable); with
+  /// [onToggleAudioOnly] it adds the 纯音频 entry.
+  final ValueGetter<bool>? isAudioOnly;
+  final VoidCallback? onToggleAudioOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -254,6 +259,15 @@ class PlayerMoreMenuButton extends StatelessWidget {
           ],
           child: Text(i18n('video_fit')),
         ),
+        if (isAudioOnly != null && onToggleAudioOnly != null)
+          Obx(
+            () => MenuItemButton(
+              key: const ValueKey('player-more-audio-only'),
+              leadingIcon: Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
+              onPressed: onToggleAudioOnly,
+              child: Text(i18n('audio_only_mode')),
+            ),
+          ),
       ],
       builder: (context, menu, child) => IconButton(
         key: const ValueKey('player-more-menu'),

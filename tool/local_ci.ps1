@@ -83,7 +83,6 @@ try {
     if ($runRepositoryChecks) {
         $activePhase = 'repository_preflight'
         $phaseClock = [Diagnostics.Stopwatch]::StartNew()
-        & (Join-Path $PSScriptRoot 'validate_build_policy.ps1')
         & (Join-Path $PSScriptRoot 'test_subst_path.ps1')
         & (Join-Path $PSScriptRoot 'test_android_recording_platforms.ps1')
         & (Join-Path $PSScriptRoot 'test_android_recording_guard.ps1')

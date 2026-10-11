@@ -48,9 +48,8 @@ permissions:
 concurrency:
   group: manual-build-${{ github.ref }}
   cancel-in-progress: false
-# Every job resolves the latest stable Flutter SDK at run time through
-# subosito/flutter-action (channel: stable) — no SDK version is pinned in this
-# workflow. Local development keeps its own pin in .fvmrc.
+# Every job installs the Flutter SDK pinned in .fvmrc through
+# ./.github/actions/setup-flutter, the same version local development uses.
 env:
   FASTFORGE_VERSION: "0.6.12"
 jobs:
@@ -66,10 +65,7 @@ jobs:
         with:
           distribution: zulu
           java-version: "26"
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          cache: true
+      - uses: ./.github/actions/setup-flutter
       - name: Verify Flutter SDK
         run: flutter --version
       - name: Resolve packages
@@ -130,10 +126,7 @@ jobs:
           distribution: zulu
           java-version: "26"
           cache: gradle
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          cache: true
+      - uses: ./.github/actions/setup-flutter
       - name: Configure Android signing
         shell: bash
         env:
@@ -227,10 +220,7 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          cache: true
+      - uses: ./.github/actions/setup-flutter
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -387,10 +377,7 @@ jobs:
             libxext-dev \
             libxfixes-dev \
             libxcb1-dev
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          cache: true
+      - uses: ./.github/actions/setup-flutter
       - name: Verify Flutter SDK
         run: flutter --version
       - name: Resolve packages
@@ -475,10 +462,7 @@ jobs:
           test -n "$xcode_path"
           sudo xcode-select --switch "$xcode_path/Contents/Developer"
           xcodebuild -version
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          cache: true
+      - uses: ./.github/actions/setup-flutter
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -730,25 +714,12 @@ jobs:
           from datetime import datetime, timezone
           from pathlib import Path
 
-          def latest_stable_flutter_version():
-              # The build jobs resolve their SDK independently through
-              # subosito/flutter-action; this records the stable version from
-              # the same official manifest. Falls back to a generic marker if
-              # the manifest is unreachable.
-              import urllib.request
+          def pinned_flutter_version():
+              # Every build job installs the SDK pinned in .fvmrc.
               try:
-                  with urllib.request.urlopen(
-                      "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json",
-                      timeout=30,
-                  ) as response:
-                      manifest = json.load(response)
-                  stable = manifest["current_release"]["stable"]
-                  for release in manifest["releases"]:
-                      if release.get("hash") == stable and release.get("channel") == "stable":
-                          return release["version"]
+                  return json.loads(Path(".fvmrc").read_text(encoding="utf-8"))["flutter"]
               except Exception:
-                  pass
-              return "stable"
+                  return "unknown"
 
           artifacts = []
           for path in sorted(Path("artifacts").rglob("*")):
@@ -768,7 +739,7 @@ jobs:
               "run_id": int(os.environ["RUN_ID"]),
               "run_number": int(os.environ["RUN_NUMBER"]),
               "actor": os.environ["ACTOR"],
-              "flutter_version": latest_stable_flutter_version(),
+              "flutter_version": pinned_flutter_version(),
               "generated_at": datetime.now(timezone.utc).isoformat(),
               "build_options": {
                   "android": "${{ inputs.build_android }}",

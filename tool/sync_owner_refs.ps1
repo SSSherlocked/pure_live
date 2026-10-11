@@ -21,9 +21,7 @@ $ErrorActionPreference = 'Stop'
 #       this project's own releases: assets/version.json, assets/releases.json
 #       and the release workflows
 #   PURELIVE_NATIVE_OWNER / PURELIVE_NATIVE_REPOSITORY
-#       the native bundles (FFmpeg, libmpv) the build downloads: pubspec.yaml's
-#       ffmpeg_kit_extended_config, media_kit's native_bundles.json and the
-#       Android prefetch script
+#       the native bundles (FFmpeg) the local prefetch scripts download
 #
 # Third-party URLs (Predidit's libmpv builds, akashskypatel's ffmpeg-kit
 # builders) are deliberately left alone: they are upstream projects, not this
@@ -62,13 +60,9 @@ $targets = @(
     @{ Path = 'pubspec.yaml'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (ffmpeg_kit_extended_config)' },
     @{ Path = 'tool/prefetch_android_native.ps1'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (Android prefetch)' },
     @{ Path = 'tool/prefetch_linux_native.sh'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (Linux prefetch)' },
-    @{ Path = 'third_party/media_kit/hook/native_bundles.json'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (libmpv)' },
     @{ Path = 'assets/version.json'; Repo = $selfRepo; Owner = $selfOwner; Note = 'download link' },
     @{ Path = 'assets/releases.json'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release history' },
-    @{ Path = '.github/workflows/build_pure_live_release.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release notes and asset links' },
-    @{ Path = '.github/workflows/feature-build.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release notes and asset links' },
-    @{ Path = '.github/workflows/stage-hosted-artifacts.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'staged asset links' },
-    @{ Path = '.github/workflows/publish-staged-release.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'staged asset links' }
+    @{ Path = '.github/workflows/build_pure_live_release.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release notes and asset links' }
 )
 
 $problems = New-Object System.Collections.Generic.List[string]

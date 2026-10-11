@@ -9,7 +9,9 @@ import unittest
 
 
 WAKE = Path(__file__).resolve().parents[1] / "wake_android_device.ps1"
-PWSH = shutil.which("pwsh")
+# Device-harness scripts target the Windows workstation; CI sets
+# PURE_LIVE_SKIP_POWERSHELL_TESTS to leave them to that machine.
+PWSH = None if os.environ.get("PURE_LIVE_SKIP_POWERSHELL_TESTS") else shutil.which("pwsh")
 HARNESS = r"""
 $ErrorActionPreference='Stop'
 $global:fixture=Get-Content -LiteralPath "$PSScriptRoot/config.json" -Raw | ConvertFrom-Json

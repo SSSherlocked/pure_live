@@ -12,9 +12,19 @@ import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from validate_agent_workflow import Loader
+import re
+import copy
 import yaml
+
+
+class Loader(yaml.SafeLoader):
+    # GitHub uses YAML 1.2: `on` is a key, not the YAML 1.1 boolean True.
+    yaml_implicit_resolvers = copy.deepcopy(yaml.SafeLoader.yaml_implicit_resolvers)
+
+
+for _char, _rules in Loader.yaml_implicit_resolvers.items():
+    Loader.yaml_implicit_resolvers[_char] = [r for r in _rules if r[0] != 'tag:yaml.org,2002:bool']
+Loader.add_implicit_resolver('tag:yaml.org,2002:bool', re.compile(r'^(?:true|false)$', re.I), list('tTfF'))
 
 ROOT = Path(__file__).resolve().parents[2]
 BASH = os.environ.get('BASH_EXE')
@@ -24,7 +34,7 @@ if not BASH and os.name == 'nt':
     BASH = str(candidate) if candidate and candidate.is_file() else None
 elif not BASH:
     BASH = shutil.which('bash')
-WORKFLOWS = ('feature-build.yml', 'build_pure_live_release.yml')
+WORKFLOWS = ('build_pure_live_release.yml',)
 
 
 def step_script(workflow, name):
@@ -60,7 +70,7 @@ class ReleaseWorkflowDataTest(unittest.TestCase):
                 with self.subTest(workflow=workflow, description=description), tempfile.TemporaryDirectory() as directory:
                     result = run_step(
                         step_script(workflow, 'Build Release Body'), directory,
-                        RELEASE_TAG='v3.2.0', RELEASE_DESCRIPTION=description,
+                        RELEASE_TAG='v3.2.0', RELEASE_DESCRIPTION=description, REPOSITORY='owner/pure_live',
                         GITHUB_OUTPUT='step-output.txt',
                     )
                     self.assertEqual(result.returncode, 0, result.stderr)

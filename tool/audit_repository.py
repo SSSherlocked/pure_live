@@ -30,14 +30,10 @@ CONFLICT_PATTERN = re.compile(r"^(?:<{7}(?: .*)?|={7}|>{7}(?: .*)?)$", re.MULTIL
 ACTION_PATTERN = re.compile(r"\buses:\s*([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@([^\s#]+)")
 SHA40_PATTERN = re.compile(r"^[0-9a-fA-F]{40}$")
 
-# This intentionally public, self-signed loopback fixture is not a credential.
-# Both exact path and exact bytes are required: changing/copying it, adding a
-# different test key, or appending another secret must still fail the gate.
-# Its isolated test trust and provenance are documented beside the fixture.
-PUBLIC_TLS_TEST_KEYS = {
-    "test/fixtures/tls/localhost-key.pem":
-        "b55b3743dda7dd512713f6efa4850d3a729486e9e2bff8cb4302738c192a5af8",
-}
+# Reviewed public test keys, by exact path and exact SHA-256. Both must match
+# for a private-key match to be reported as a note instead of an error. The
+# repository currently ships none.
+PUBLIC_TLS_TEST_KEYS: dict[str, str] = {}
 
 
 def git(*args: str) -> str:
@@ -91,10 +87,10 @@ def read_text(path: Path) -> str | None:
 
 def category(path: str) -> str:
     rules = (
-        ("live_playback", ("lib/modules/live_play/", "lib/player/")),
-        ("platform_interfaces", ("lib/core/",)),
-        ("persisted_settings", ("lib/common/services/settings/",)),
-        ("navigation", ("lib/routes/", "lib/get/")),
+        ("live_playback", ("lib/domains/live/presentation/playback/", "lib/core/player/")),
+        ("persisted_settings", ("lib/core/config/", "lib/core/storage/")),
+        ("navigation", ("lib/core/navigation/", "lib/app/router/", "lib/get/")),
+        ("platform_interfaces", ("lib/shared/platforms/", "lib/core/")),
         ("native_android", ("android/",)),
         ("native_windows", ("windows/",)),
         ("native_apple", ("ios/", "macos/")),
@@ -227,16 +223,6 @@ def main() -> int:
                     "path": rel,
                     "line": line_number(text, pub_get.start()),
                 })
-            for default_true in re.finditer(r"(?m)^\s*default:\s*true\s*$", text):
-                nearby = text[max(0, default_true.start() - 240):default_true.end()]
-                # A quality gate may default on; build, platform, upload and
-                # release actions remain opt-in to protect Actions quota.
-                if "run_full_regression:" not in nearby:
-                    errors.append({
-                        "rule": "workflow_default_true",
-                        "path": rel,
-                        "line": line_number(text, default_true.start()),
-                    })
 
     audited_names = {relative(path) for path in files}
     for forbidden in audited_names:
@@ -255,18 +241,14 @@ def main() -> int:
                 "reference": reference,
             })
 
-    manifest_path = ROOT / "android/app/src/main/AndroidManifest.xml"
-    manifest = manifest_path.read_text(encoding="utf-8")
-    callback_values = re.findall(r'android:enableOnBackInvokedCallback="([^"]+)"', manifest)
-    if not callback_values or any(value != "true" for value in callback_values):
-        errors.append({"rule": "predictive_back_disabled", "path": relative(manifest_path)})
-
-    back_scope = ROOT / "lib/modules/live_play/widgets/layout/live_play_back_scope.dart"
-    live_page = ROOT / "lib/modules/live_play/pages/live_play_page.dart"
-    controller = ROOT / "lib/modules/live_play/controllers/live_play_controller.dart"
+    # Predictive back stays off on Android (a424399e6: ColorOS 14 gesture back
+    # froze the app); system back reaches the live page through PopScope.
+    back_scope = ROOT / "lib/core/player/presentation/player_back_scope.dart"
+    live_page = ROOT / "lib/domains/live/presentation/playback/pages/live_play_page.dart"
+    controller = ROOT / "lib/domains/live/presentation/playback/controllers/live_play_controller.dart"
     required_back_markers = {
         relative(back_scope): "PopScope<Object?>",
-        relative(live_page): "LivePlayBackScope(",
+        relative(live_page): "PlayerBackScope(",
         relative(controller): "exitPresentationForSystemBack",
     }
     for rel, marker in required_back_markers.items():

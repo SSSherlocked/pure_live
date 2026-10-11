@@ -8,7 +8,9 @@ import tempfile
 import unittest
 
 TOOL = Path(__file__).resolve().parents[1]
-PWSH = shutil.which('pwsh')
+# Device-harness scripts target the Windows workstation; CI sets
+# PURE_LIVE_SKIP_POWERSHELL_TESTS to leave them to that machine.
+PWSH = None if os.environ.get('PURE_LIVE_SKIP_POWERSHELL_TESTS') else shutil.which('pwsh')
 CONFIGURE = r'''
 param($Serial,$Mode,$Port=7897,$EvidenceDirectory,$SessionPath,[switch]$KeepAppOpen)
 $ErrorActionPreference='Stop'

@@ -9,7 +9,9 @@ import unittest
 
 
 WRAPPER = Path(__file__).resolve().parents[1] / "run_android_device_test_turn.ps1"
-PWSH = shutil.which("pwsh")
+# Device-harness scripts target the Windows workstation; CI sets
+# PURE_LIVE_SKIP_POWERSHELL_TESTS to leave them to that machine.
+PWSH = None if os.environ.get("PURE_LIVE_SKIP_POWERSHELL_TESTS") else shutil.which("pwsh")
 WAKE_FIXTURE = r"""
 param([string]$Serial, [switch]$StayAwake, [switch]$ReleaseStayAwake, [int]$RestoreStayAwakeValue, [int]$AcquiredStayAwakeValue)
 if ([string]::IsNullOrWhiteSpace($Serial) -and $env:FIXTURE_DEFAULT_SERIAL) { $Serial=$env:FIXTURE_DEFAULT_SERIAL }

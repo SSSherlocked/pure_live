@@ -1,0 +1,26 @@
+name: Set up pinned Flutter
+description: Installs the Flutter SDK version pinned in .fvmrc, so CI builds with the same SDK as local development.
+outputs:
+  version:
+    description: The Flutter version that was installed.
+    value: ${{ steps.pin.outputs.version }}
+runs:
+  using: composite
+  steps:
+    - name: Read pinned Flutter version
+      id: pin
+      shell: bash
+      run: |
+        set -euo pipefail
+        version=$(sed -n 's/.*"flutter"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' .fvmrc | head -n 1)
+        if [[ -z "$version" ]]; then
+          echo "::error file=.fvmrc::No Flutter version found in .fvmrc"
+          exit 1
+        fi
+        echo "Pinned Flutter: $version"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+    - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+      with:
+        flutter-version: ${{ steps.pin.outputs.version }}
+        channel: stable
+        cache: true

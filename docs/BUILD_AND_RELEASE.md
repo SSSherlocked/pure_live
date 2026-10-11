@@ -205,7 +205,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/flutterw.ps1 pub run en
 1. 修改 `.env`、`.env.dev`、`.env.prod` 里对应的变量（三个文件保持一致）。
 2. 重新生成 `lib/gen/env.g.dart`（上面的命令）。
 3. `powershell -NoProfile -ExecutionPolicy Bypass -File tool/sync_owner_refs.ps1 -Apply` 改写派生文件。
-4. `tool/validate_build_policy.ps1` 通过；它会调用同一个脚本的检查模式，任何半途而废的替换（例如只改了 `pubspec.yaml` 没改预取脚本）都会让门禁失败。
+4. 不带 `-Apply` 再运行一次 `tool/sync_owner_refs.ps1`，确认没有遗漏的派生文件（例如只改了 `pubspec.yaml` 没改预取脚本）。
 
 第三方地址不属于本仓库的镜像，脚本不会改写：`third_party/media_kit/hook/native_bundles.json` 里 Predidit 的 libmpv 构建、`tool/prefetch_android_native.ps1` 里 akashskypatel 的 ffmpeg-kit builders。`docs/` 下的历史记录同样保持原样。
 

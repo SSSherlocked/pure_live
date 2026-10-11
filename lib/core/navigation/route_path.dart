@@ -30,14 +30,6 @@ class RoutePath {
 
   static const kHistory = "/history";
 
-  static const kMine = "/mine";
-
-  static const kSignIn = "/sign_in";
-
-  static const kUserManage = "/user_manage";
-
-  static const kUpdatePassword = "/update_password";
-
   static const kSettingsDanmuShield = "/shield";
 
   static const kSettingsHotAreas = "/hot_areas";

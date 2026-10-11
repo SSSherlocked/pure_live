@@ -1,12 +1,10 @@
 import 'dart:io';
-import 'dart:convert';
 
 import '../../core/platform/file_utils.dart';
 
 import 'package:pure_live/core/index.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:date_format/date_format.dart' hide S;
-import 'package:pure_live/core/network/http_client.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:pure_live/features/backup/backup_section_picker.dart';
 
@@ -86,18 +84,5 @@ class BackupRecoveryService {
 
     await backup.setBackupDirectoryDurably(selectedDirectory);
     return selectedDirectory;
-  }
-
-  Future<bool> pushSettingsToRemoteServer(String httpAddress, {Iterable<String>? sections}) async {
-    final backup = Get.find<BackupController>();
-    try {
-      final response = await HttpClient.instance.postJson(
-        '$httpAddress/api/setSettings',
-        queryParameters: {"settings": jsonEncode(backup.exportToTVSettings(sections: sections))},
-      );
-      return jsonDecode(response)['data'] ?? false;
-    } catch (e) {
-      return false;
-    }
   }
 }

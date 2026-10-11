@@ -20,7 +20,6 @@ class VersionController extends GetxController {
   final androidX8664Url = ''.obs;
 
   final windowsSetupUrl = ''.obs;
-  final windowsMsixUrl = ''.obs;
   final windowsPortableUrl = ''.obs;
 
   final macosUrl = ''.obs;
@@ -72,7 +71,6 @@ class VersionController extends GetxController {
       androidX8664Url.value = androidAbis.contains('x86_64') ? assetUrls['android-x86_64'] ?? '' : '';
 
       windowsSetupUrl.value = assetUrls['windows-x64-setup.exe'] ?? '';
-      windowsMsixUrl.value = VersionUtil.latestWindowsMsixAvailable ? assetUrls['windows-x64.msix'] ?? '' : '';
       windowsPortableUrl.value = assetUrls['windows-x64-portable.zip'] ?? '';
 
       macosUrl.value = assetUrls['macos-universal.dmg'] ?? assetUrls['macos-universal.zip'] ?? '';
@@ -107,7 +105,6 @@ class VersionController extends GetxController {
     androidArm64Url.value = '';
     androidX8664Url.value = '';
     windowsSetupUrl.value = '';
-    windowsMsixUrl.value = '';
     windowsPortableUrl.value = '';
     macosUrl.value = '';
     linuxDebUrl.value = '';

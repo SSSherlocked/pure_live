@@ -45,8 +45,6 @@ class VersionUtil {
 
   static List<Map<String, dynamic>> latestAssets = [];
 
-  static bool latestWindowsMsixAvailable = false;
-
   var allReleased = [].obs;
 
   static Map<String, dynamic>? _cachedVersionJson;
@@ -187,8 +185,6 @@ class VersionUtil {
     downloadUrl = selected['download_url']?.toString() ?? '';
 
     latestAndroidAbis = selectAndroidAbis(selected);
-
-    latestWindowsMsixAvailable = selected['windows_msix_available'] == true;
   }
 
   static Set<String> selectAndroidAbis(Map<String, dynamic> data) {
@@ -297,8 +293,6 @@ class VersionUtil {
     latestAndroidAbis = AppConsts.supportAndroidAbis;
 
     latestAssets = [];
-
-    latestWindowsMsixAvailable = false;
 
     isHasNewVersion.value = false;
   }

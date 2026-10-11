@@ -48,10 +48,6 @@ dependencies:
   connectivity_plus: ^7.3.1 # 网络连接状态监听
   webdav_client: ^1.2.2 # WebDAV文件存储客户端
 
-  firebase_core: ^4.15.0
-  firebase_auth: ^6.7.0
-  cloud_firestore: ^6.10.0
-
   win32_registry: ^3.0.3
   best_form_validator: ^1.4.0
   flutter_spinkit: ^5.2.2
@@ -315,7 +311,6 @@ dev_dependencies:
   change_app_package_name: ^1.5.0 # 修改应用包名
   build_runner: ^2.4.15 # 代码生成器
   flutter_launcher_icons: ^0.14.4 # 应用图标生成
-  msix: ^3.16.12 # Windows安装包打包
   intl_utils: ^2.8.11 # 国际化工具
   flutter_lints: ^6.0.0 # 代码规范检查
   dmg: ^0.1.7 # macOS安装包打包

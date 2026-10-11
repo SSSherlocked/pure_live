@@ -104,8 +104,6 @@ class BackupController extends GetxController {
 
   static List<String> get sectionNames => List<String>.unmodifiable(_sectionKeys.keys);
 
-  static const List<String> tvSectionNames = <String>['danmaku', 'favorite', 'history', 'iptv', 'cookie'];
-
   static List<String> presentSections(Map<String, dynamic> data) {
     return [
       for (final name in _sectionKeys.keys)
@@ -513,22 +511,5 @@ class BackupController extends GetxController {
         }
       } catch (_) {}
     }
-  }
-
-  Map<String, dynamic> exportToTVSettings({bool includeSensitiveData = true, Iterable<String>? sections}) {
-    final selected = sections?.toSet();
-    bool wanted(String name) => selected == null || selected.contains(name);
-
-    final data = <String, dynamic>{};
-    if (wanted('danmaku')) data.addAll(Get.find<DanmakuSettingsController>().toJson());
-    if (wanted('favorite')) data.addAll(Get.find<FavoriteRoomController>().toJson());
-    if (wanted('history')) data.addAll(Get.find<HistoryController>().toJson());
-    if (wanted('iptv')) {
-      data['customIptvUserAgent'] = Get.find<IptvSettingsController>().toJson()['customIptvUserAgent'];
-    }
-    if (includeSensitiveData && wanted('cookie')) {
-      data.addAll(Get.find<CookieSettingsController>().toJson());
-    }
-    return data;
   }
 }

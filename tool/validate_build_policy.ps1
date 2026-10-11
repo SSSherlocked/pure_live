@@ -36,7 +36,6 @@ $requiredFiles = @(
     'tool\build_local_release.ps1',
     'tool\verify_android_apk.ps1',
     'tool\publish_local_release.ps1',
-    'tool\prefetch_windows_native.ps1',
     'android\gradle.properties'
 )
 foreach ($relativePath in $requiredFiles) {
@@ -137,7 +136,6 @@ $powerShellFiles = @(
     'tool\build_local_release.ps1',
     'tool\verify_android_apk.ps1',
     'tool\publish_local_release.ps1',
-    'tool\prefetch_windows_native.ps1',
     'tool\flutterw.ps1',
     'tool\android_ui.ps1',
     'tool\validate_build_policy.ps1'
@@ -240,7 +238,6 @@ foreach ($marker in @(
     "Join-Path `$PSScriptRoot 'verify_android_apk.ps1'",
     "'--target-platform', 'android-arm64',",
     "'--no-pub',",
-    "Join-Path `$PSScriptRoot 'prefetch_windows_native.ps1'",
     '/DArtifactVersion=$artifactVersion',
     'build\windows\x64\install_manifest.txt',
     '$manifestSourceMarker = "\build\windows\x64\runner\$configurationDirectory\"',
@@ -512,7 +509,7 @@ $fileUtils = Get-Content -LiteralPath (Join-Path $repoRoot 'lib\plugins\file_uti
 if (-not $backupPage.Contains('LogFileWriter.resolveLogDirectory()') -or
     -not $backupPage.Contains('await FileUtils.openFileOrUrl(logDir.path)') -or
     -not $fileUtils.Contains('ProcessStartMode.detached')) {
-    throw 'Desktop/MSIX directory opening must use the canonical log directory and checked shell launch.'
+    throw 'Desktop directory opening must use the canonical log directory and checked shell launch.'
 }
 
 $normalLayout = Get-Content -LiteralPath (Join-Path $repoRoot 'lib\modules\live_play\widgets\layout\live_play_content.dart') -Raw
@@ -566,7 +563,6 @@ foreach ($marker in @(
     'flutter test --concurrency=12',
     '--target-platform android-arm64',
     'PureLive-${VERSION}-android-arm64-v8a-release.apk',
-    'Prefetch verified Firebase C++ SDK',
     'steps.version.outputs.artifact_version',
     "!inputs.build_windows || needs.windows.result == 'success'",
     "!(inputs.build_macos || inputs.build_ios) || needs.apple.result == 'success'",
@@ -626,12 +622,6 @@ $displayVersion = $Matches[1]
 $buildNumber = [int]$Matches[2]
 $releaseTag = "v$displayVersion"
 $versionFeed = Get-Content -LiteralPath (Join-Path $repoRoot 'assets\version.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-$msixConfig = Get-Content -LiteralPath (Join-Path $repoRoot 'windows\packaging\msix\make_config.yaml') -Raw
-$windowsDisplayVersion = $versionFeed.platforms.windows.version
-$windowsBuildNumber = [int]$versionFeed.platforms.windows.build_number
-if ($msixConfig -notmatch "(?m)^msix_version:\s*$([regex]::Escape($windowsDisplayVersion))\.$windowsBuildNumber\s*$") {
-    throw 'Windows MSIX version must match the Windows platform entry in assets/version.json.'
-}
 if ($versionFeed.version -ne $displayVersion -or [int]$versionFeed.build_number -ne $buildNumber) {
     throw 'assets/version.json top-level version must match pubspec.yaml.'
 }

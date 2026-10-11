@@ -117,13 +117,6 @@ class ReleaseAssetUrls {
     extensions: const <String>['.exe'],
   );
 
-  /// Windows x64 MSIX package.
-  String? get windowsMsix => _find(
-    requiredKeywords: const <String>['windows', 'x64'],
-    preferredKeywords: const <String>[],
-    extensions: const <String>['.msix'],
-  );
-
   /// Windows x64 portable ZIP.
   String? get windowsPortable => _find(
     requiredKeywords: const <String>['windows', 'portable'],
@@ -199,7 +192,6 @@ class ReleaseAssetUrls {
     add('android-armeabi-v7a', androidArmeabiV7a);
     add('android-x86_64', androidX8664);
     add('windows-x64-setup.exe', windowsSetup);
-    add('windows-x64.msix', windowsMsix);
     add('windows-x64-portable.zip', windowsPortable);
     add('macos-universal.dmg', macosUniversalDmg);
     add('macos-universal.zip', macosUniversalZip);

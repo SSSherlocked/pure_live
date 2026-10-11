@@ -234,7 +234,6 @@ try {
             -LogPath $commandLog
         Assert-PureLiveCommandSucceeded 'Windows locked dependency resolution' -ExitCode $pubGetExitCode
         & (Join-Path $PSScriptRoot 'prefetch_android_native.ps1') -SkipAndroidMedia
-        & (Join-Path $PSScriptRoot 'prefetch_windows_native.ps1')
 
         # A debug run (flutter test integration_test / flutter run) leaves its
         # JIT kernel_blob.bin in build\flutter_assets. Release builds do not

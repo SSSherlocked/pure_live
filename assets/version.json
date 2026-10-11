@@ -30,8 +30,7 @@
       "version_num": 301184108,
       "version_desc": "version: 3.1.19\n版本更新：\n- 修复部分bug",
       "prerelease": false,
-      "download_url": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.1.19",
-      "windows_msix_available": false
+      "download_url": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.1.19"
     },
     "linux": {
       "version": "3.1.19",

@@ -29,7 +29,6 @@ import 'package:pure_live/core/config/window_size_controller.dart';
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/domains/account/data/bilibili_account_service.dart';
-import 'package:pure_live/domains/account/presentation/auth/auth_controller.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/recorder/data/services/niconico_hls_input.dart' show readNiconicoMaster;
@@ -121,7 +120,6 @@ class InitialServices {
     Get.lazyPut(() => RecordSettingsController(), fenix: true);
     Get.lazyPut(() => RecorderController(), fenix: true);
     Get.lazyPut(() => StreamResolverService(), fenix: true);
-    Get.lazyPut(() => AuthController(), fenix: true);
   }
 
   static Future<void> initDb() async {

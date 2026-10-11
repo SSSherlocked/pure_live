@@ -144,6 +144,41 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // The side panel chat list has its own text size and spacing,
+          // separate from the danmaku scrolling over the video below.
+          context.buildGroupTitle(i18n('chat_list_display')),
+          const SizedBox(height: 8),
+          reactiveCard(
+            () => [
+              _slider(
+                theme,
+                title: i18n('chat_list_font_size'),
+                value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
+                min: 10,
+                max: 28,
+                stepSize: 1,
+                display: SettingsService.to.danmaku.chatListFontSize.v.round().toString(),
+                semanticValueBuilder: (value) => value.round().toString(),
+                onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = v,
+                labelColor: labelColor,
+                digitColor: digitColor,
+              ),
+              _slider(
+                theme,
+                title: i18n('chat_list_item_spacing'),
+                value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
+                min: 0,
+                max: 16,
+                stepSize: 1,
+                display: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
+                semanticValueBuilder: (value) => value.round().toString(),
+                onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v,
+                labelColor: labelColor,
+                digitColor: digitColor,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           context.buildGroupTitle(i18n('danmaku_templates')),
           const SizedBox(height: 8),
           _buildTemplateSection(theme),

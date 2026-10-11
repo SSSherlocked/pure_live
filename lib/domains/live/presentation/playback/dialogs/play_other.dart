@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:pure_live/core/network/image_cache_manager.dart';
 import 'package:pure_live/domains/live/data/history_controller.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
@@ -21,7 +21,12 @@ class PlayOther extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final layout = resolveContentFirstPanelLayout(MediaQuery.sizeOf(context), ContentFirstPanelKind.roomHistory);
+    final screen = MediaQuery.sizeOf(context);
+    // A full-height column on the right edge, as wide as the room side panel.
+    final preferredWidth = Get.isRegistered<ThemeSettingsController>()
+        ? SettingsService.to.theme.livePanelWidth.v
+        : LivePanelWidth.defaultValue;
+    final panelWidth = math.min(math.max(LivePanelWidth.normalize(preferredWidth), 320.0), screen.width * 0.9);
     final headerHeight = resolveRoomHistoryTextMetrics(
       textScaler: MediaQuery.textScalerOf(context),
       headerFontSize: theme.textTheme.titleSmall?.fontSize ?? 14,
@@ -37,50 +42,53 @@ class PlayOther extends StatelessWidget {
     return Dialog(
       key: const ValueKey('fullscreen-room-history-dialog'),
       alignment: Alignment.centerRight,
-      insetPadding: layout.insetPadding,
+      insetPadding: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.horizontal(left: Radius.circular(16))),
       child: SizedBox(
-        width: layout.size.width,
-        height: layout.size.height,
-        child: Column(
-          children: [
-            SizedBox(
-              height: headerHeight,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 10, right: 2),
-                child: Row(
-                  children: [
-                    Icon(Icons.favorite_rounded, size: 17, color: theme.colorScheme.primary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        i18n('follow'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        width: panelWidth,
+        height: screen.height,
+        child: SafeArea(
+          left: false,
+          child: Column(
+            children: [
+              SizedBox(
+                height: headerHeight,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 2),
+                  child: Row(
+                    children: [
+                      Icon(Icons.favorite_rounded, size: 17, color: theme.colorScheme.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          i18n('follow'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      key: const ValueKey('room-history-close'),
-                      tooltip: i18n('close'),
-                      visualDensity: VisualDensity.standard,
-                      constraints: const BoxConstraints.tightFor(
-                        width: contentFirstPanelHeaderActionExtent,
-                        height: contentFirstPanelHeaderActionExtent,
+                      IconButton(
+                        key: const ValueKey('room-history-close'),
+                        tooltip: i18n('close'),
+                        visualDensity: VisualDensity.standard,
+                        constraints: const BoxConstraints.tightFor(
+                          width: contentFirstPanelHeaderActionExtent,
+                          height: contentFirstPanelHeaderActionExtent,
+                        ),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: FollowRoomSwitcher(controller: controller, onSwitch: () => Navigator.of(context).pop()),
-            ),
-          ],
+              Expanded(
+                child: FollowRoomSwitcher(controller: controller, onSwitch: () => Navigator.of(context).pop()),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -286,20 +294,13 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       return AppStatusView(type: AppStatusType.empty);
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const padding = 10.0;
-        const spacing = 8.0;
-        const cardModeMinimumWidth = 520.0;
-        final infoHeight = math.max(48.0, textMetrics.cardFooterHeight);
-        final avatarRowHeight = textMetrics.mobileRowHeight;
-
-        final availableWidth = math.max(0.0, constraints.maxWidth - padding * 2);
-        final cardMode = availableWidth >= cardModeMinimumWidth;
-        final columns = cardMode ? 2 : 1;
-        final cardWidth = math.max(0.0, (availableWidth - spacing * (columns - 1)) / columns);
-        final rowExtent = cardMode ? math.max(80.0, cardWidth * 9 / 16 + infoHeight) : avatarRowHeight;
-
+    // One column of avatar rows at every width: no covers, the same list in
+    // the side panel and in the fullscreen panel.
+    const padding = 10.0;
+    const spacing = 8.0;
+    final rowExtent = textMetrics.mobileRowHeight;
+    return Builder(
+      builder: (context) {
         return Obx(() {
           final current = widget.controller.state.value.room.detail;
           return GridView.builder(
@@ -307,7 +308,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
             padding: const EdgeInsets.fromLTRB(padding, 2, padding, padding),
             physics: const PureLiveScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
+              crossAxisCount: 1,
               mainAxisExtent: rowExtent,
               mainAxisSpacing: spacing,
               crossAxisSpacing: spacing,
@@ -320,8 +321,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
               return _RoomSwitchCard(
                 room: room,
                 history: history,
-                cardMode: cardMode,
-                infoHeight: infoHeight,
                 playing: playing,
                 onTap: playing
                     ? null
@@ -368,8 +367,6 @@ class _RoomSwitchCard extends StatelessWidget {
   const _RoomSwitchCard({
     required this.room,
     required this.history,
-    required this.cardMode,
-    required this.infoHeight,
     required this.onTap,
     this.playing = false,
   });
@@ -380,9 +377,6 @@ class _RoomSwitchCard extends StatelessWidget {
   /// The room currently on screen: highlighted and not tappable.
   final bool playing;
 
-  final bool cardMode;
-
-  final double infoHeight;
   final VoidCallback? onTap;
 
   String _historyLabel() {
@@ -433,23 +427,10 @@ class _RoomSwitchCard extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: cardMode
-                ? _buildCardLayout(context, meta: meta, title: title, nick: nick)
-                : _buildAvatarLayout(context, meta: meta, title: title, nick: nick),
+            child: _buildAvatarLayout(context, meta: meta, title: title, nick: nick),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildCardLayout(BuildContext context, {required String meta, required String title, required String nick}) {
-    return Column(
-      children: [
-        Expanded(
-          child: _RoomSwitchCover(room: room, meta: meta),
-        ),
-        RoomSwitchCardDetails(height: infoHeight, title: title, nick: nick.isEmpty ? i18n('unknown') : nick),
-      ],
     );
   }
 
@@ -539,159 +520,10 @@ class _PlatformTag extends StatelessWidget {
   }
 }
 
-class RoomSwitchCardDetails extends StatelessWidget {
-  const RoomSwitchCardDetails({super.key, required this.height, required this.title, required this.nick});
-
-  final double height;
-  final String title;
-  final String nick;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    return SizedBox(
-      height: height,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(7, 3, 3, 3),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const Spacer(),
-            Row(
-              children: [
-                Icon(Icons.person_outline_rounded, size: 12, color: colors.onSurfaceVariant),
-                const SizedBox(width: 3),
-                Expanded(
-                  child: Text(
-                    nick,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
-                  ),
-                ),
-                Icon(Icons.chevron_right_rounded, size: 14, color: colors.onSurfaceVariant),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-@visibleForTesting
 String formatHistoryWatchedAt(int millisecondsSinceEpoch) {
   final watched = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
   String twoDigits(int value) => value.toString().padLeft(2, '0');
   return '${watched.year.toString().padLeft(4, '0')}-'
       '${twoDigits(watched.month)}-${twoDigits(watched.day)} '
       '${twoDigits(watched.hour)}:${twoDigits(watched.minute)}';
-}
-
-class _RoomSwitchCover extends StatelessWidget {
-  const _RoomSwitchCover({required this.room, required this.meta});
-
-  final LiveRoom room;
-  final String meta;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    final url = normalizeNetworkImageUrl(room.cover);
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (url.isEmpty)
-          ColoredBox(
-            color: colors.surfaceContainerHighest,
-            child: Icon(Icons.live_tv_rounded, size: 34, color: colors.onSurfaceVariant.withValues(alpha: .35)),
-          )
-        else
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cacheWidth = (constraints.maxWidth * MediaQuery.devicePixelRatioOf(context))
-                  .round()
-                  .clamp(240, 720)
-                  .toInt();
-
-              return CachedNetworkImage(
-                imageUrl: url,
-                httpHeaders: networkImageHeaders(url),
-                cacheManager: AppImageCacheManager.instance,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.low,
-                memCacheWidth: cacheWidth,
-                fadeInDuration: Duration.zero,
-                fadeOutDuration: Duration.zero,
-                useOldImageOnUrlChange: true,
-                placeholder: (_, _) {
-                  return ColoredBox(
-                    color: colors.surfaceContainerHighest,
-                    child: Icon(Icons.live_tv_rounded, color: colors.onSurfaceVariant.withValues(alpha: .25)),
-                  );
-                },
-                errorWidget: (_, _, _) {
-                  return ColoredBox(
-                    color: colors.surfaceContainerHighest,
-                    child: Icon(Icons.broken_image_outlined, color: colors.onSurfaceVariant.withValues(alpha: .35)),
-                  );
-                },
-              );
-            },
-          ),
-        Positioned(
-          top: 7,
-          right: 7,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: .58),
-              borderRadius: BorderRadius.circular(7),
-            ),
-            child: Text(
-              i18n('site_${room.platform}'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700, height: 1),
-            ),
-          ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(8, 22, 8, 8),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black87],
-              ),
-            ),
-            child: Text(
-              meta,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                height: 1.1,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -78,7 +78,15 @@ class DanmakuSectionTabBar extends StatelessWidget {
         physics: const PureLiveBoundedScrollPhysics(),
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
         controller: controller,
-        tabs: tabs.map((name) => Tab(text: name)).toList(growable: false),
+        // Five equal-width sections share a narrow panel: shrink a label that
+        // does not fit instead of letting neighbouring labels overlap.
+        tabs: tabs
+            .map(
+              (name) => Tab(
+                child: FittedBox(fit: BoxFit.scaleDown, child: Text(name, maxLines: 1, softWrap: false)),
+              ),
+            )
+            .toList(growable: false),
       ),
     );
   }

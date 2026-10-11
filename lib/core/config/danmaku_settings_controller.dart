@@ -59,6 +59,13 @@ class DanmakuSettingsController extends GetxController {
   }
 
   final RxBool hideDanmaku = hiveBool('hideDanmaku', false);
+
+  /// Text size of the chat list in the room side panel; independent of the
+  /// scrolling danmaku on the video.
+  final RxDouble chatListFontSize = hiveDouble('chatListFontSize', 14);
+
+  /// Vertical gap between chat list messages in the room side panel.
+  final RxDouble chatListItemSpacing = hiveDouble('chatListItemSpacing', 4);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
   final RxDouble danmakuTopArea = hiveDouble('danmakuTopArea', defaultDanmakuTopArea);
   final RxDouble danmakuArea = hiveDouble('danmakuArea', defaultDanmakuArea);

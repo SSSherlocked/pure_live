@@ -172,6 +172,12 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
                           height: _controlHeight,
                           child: TextField(
                             controller: _inputController,
+                            // Fill the 32 px box like the refresh button.
+                            expands: true,
+                            maxLines: null,
+                            minLines: null,
+                            // Expanding fields default to "newline"; Enter must still jump.
+                            textInputAction: TextInputAction.done,
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],

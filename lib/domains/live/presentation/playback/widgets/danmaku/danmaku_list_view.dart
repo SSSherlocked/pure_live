@@ -443,9 +443,26 @@ class DanmakuItem extends StatelessWidget {
 
     final textColor = isDark ? Colors.white70 : Colors.black87;
 
+    return Obx(() {
+      final settings = SettingsService.to.danmaku;
+      final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
+      final spacing = settings.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble();
+      return _buildCard(context, vibrantColor, cardBgColor, textColor, fontSize, spacing);
+    });
+  }
+
+  Widget _buildCard(
+    BuildContext context,
+    Color vibrantColor,
+    Color cardBgColor,
+    Color textColor,
+    double fontSize,
+    double spacing,
+  ) {
+    final base = AppTextStyles.t14.copyWith(fontSize: fontSize);
     return RepaintBoundary(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: spacing),
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: cardBgColor,
@@ -461,7 +478,7 @@ class DanmakuItem extends StatelessWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  margin: const EdgeInsets.only(top: 6, right: 10),
+                  margin: EdgeInsets.only(top: fontSize * 0.45, right: 10),
                   decoration: BoxDecoration(color: vibrantColor, shape: BoxShape.circle),
                 ),
 
@@ -482,8 +499,8 @@ class DanmakuItem extends StatelessWidget {
                                 child: ClipOval(
                                   child: Image.network(
                                     danmaku.avatar,
-                                    width: 16,
-                                    height: 16,
+                                    width: fontSize + 2,
+                                    height: fontSize + 2,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                                   ),
@@ -505,7 +522,7 @@ class DanmakuItem extends StatelessWidget {
                                       ? danmaku.fansName
                                       : '${danmaku.fansName} ${danmaku.fansLevel}',
                                   style: AppTextStyles.t14.copyWith(
-                                    fontSize: 10,
+                                    fontSize: fontSize * 0.72,
                                     height: 1.2,
                                     fontWeight: FontWeight.w600,
                                     color: textColor,
@@ -515,18 +532,18 @@ class DanmakuItem extends StatelessWidget {
                             ),
                           TextSpan(
                             text: "${danmaku.userName}: ",
-                            style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.w700, color: textColor),
+                            style: base.copyWith(fontWeight: FontWeight.w700, color: textColor),
                           ),
                           TextSpan(
                             children: parseEmojis(
                               danmaku.message,
-                              AppTextStyles.t14.fontSize!,
+                              fontSize,
                               textColor,
                               emoteUrls: danmaku.emotes.isEmpty
                                   ? null
                                   : {for (final emote in danmaku.emotes) emote.code: emote.url},
                             ),
-                            style: AppTextStyles.t14.copyWith(
+                            style: base.copyWith(
                               height: 1.45,
                               fontWeight: FontWeight.w500,
                               color: textColor,

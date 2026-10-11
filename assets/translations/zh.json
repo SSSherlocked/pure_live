@@ -2563,5 +2563,8 @@
   "live_panel_tab_order_subtitle": "拖动调整播放页侧栏各标签的排列顺序",
   "live_panel_width": "侧栏宽度",
   "live_panel_width_subtitle": "宽屏播放时右侧面板的宽度",
-  "search_all_platforms": "全平台搜索"
+  "search_all_platforms": "全平台搜索",
+  "chat_list_display": "弹幕列表显示",
+  "chat_list_font_size": "列表字体大小",
+  "chat_list_item_spacing": "列表弹幕间距"
 }

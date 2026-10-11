@@ -696,18 +696,18 @@ class BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      onPressed: () {
+      onPressed: () async {
         final player = GlobalPlayerService.instance.player;
-        // Fullscreen: back leaves fullscreen. Inline: back leaves the room,
-        // the same as the app bar's back; it used to toggle fullscreen here,
-        // which made one "back" enter fullscreen and need a second press.
-        if (player.isWindowFullscreen.value) {
-          controller.toggleWindowFullScreen();
-        } else if (player.isSystemFullscreen.value) {
-          controller.toggleFullScreen();
-        } else {
-          Navigator.of(context).maybePop();
+        final navigator = Navigator.of(context);
+        // The on-screen back always leaves the room. Fullscreen is the same
+        // page, so stopping at the inline player cost a second press; Esc and
+        // the window controls still just leave fullscreen.
+        if (player.isWindowFullscreen.value || player.isSystemFullscreen.value) {
+          await controller.livePlayController.exitPresentationForSystemBack();
+          // Let the back scope rebuild with canPop restored before popping.
+          await WidgetsBinding.instance.endOfFrame;
         }
+        if (navigator.mounted) await navigator.maybePop();
       },
       constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
       icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),

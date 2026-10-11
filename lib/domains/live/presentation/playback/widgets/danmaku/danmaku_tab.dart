@@ -44,8 +44,13 @@ class DanmakuTabView extends GetView<LivePlayController> {
                       LivePanelTab.superChat => Obx(
                         () => SuperChatPage(messages: controller.superChats.toList(growable: false)),
                       ),
-                      LivePanelTab.danmakuSettings => DanmakuSettingsPage(controller: state.player.videoController!),
-                      LivePanelTab.blockList => const KeywordBlockPage(),
+                      // 80 % of the regular size so the dense settings fit the
+                      // narrow panel; 屏蔽管理 closes the page as its last section.
+                      LivePanelTab.danmakuSettings => DanmakuSettingsPage(
+                        controller: state.player.videoController!,
+                        scale: 0.8,
+                        footer: const KeywordBlockPage(asSection: true),
+                      ),
                       LivePanelTab.follow => FollowRoomsPage(controller: controller),
                     },
                 ],

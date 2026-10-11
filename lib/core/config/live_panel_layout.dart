@@ -3,8 +3,7 @@ enum LivePanelTab {
   danmakuList('danmaku_list'),
   superChat('super_chat'),
   follow('follow'),
-  danmakuSettings('danmaku_settings'),
-  blockList('block_list');
+  danmakuSettings('danmaku_settings');
 
   const LivePanelTab(this.id);
 
@@ -13,8 +12,9 @@ enum LivePanelTab {
 
   String get labelKey => id;
 
-  /// Default order: 关注 sits right after 醒目留言.
-  static const List<LivePanelTab> defaultOrder = [danmakuList, superChat, follow, danmakuSettings, blockList];
+  /// Default order: 关注 sits right after 醒目留言. 屏蔽管理 is the last
+  /// section of 弹幕设置 rather than a tab of its own.
+  static const List<LivePanelTab> defaultOrder = [danmakuList, superChat, follow, danmakuSettings];
 
   static String encode(List<LivePanelTab> order) => order.map((tab) => tab.id).join(',');
 

@@ -4,7 +4,11 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 
 class KeywordBlockPage extends StatefulWidget {
-  const KeywordBlockPage({super.key});
+  const KeywordBlockPage({super.key, this.asSection = false});
+
+  /// Render as a section inside another scrolling page (the end of the room
+  /// panel's 弹幕设置) instead of a standalone scrolling page.
+  final bool asSection;
 
   @override
   State<KeywordBlockPage> createState() => _KeywordBlockPageState();
@@ -61,6 +65,95 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
     final digitColor = theme.colorScheme.primary;
     final dm = settingsService.danmaku;
 
+    final sections = <Widget>[
+      context.buildGroupTitle(i18n('platform_danmaku_filter')),
+      Obx(
+        () => context.buildModernCard([
+          _switch(
+            theme,
+            title: i18n('douyu_suspected_automated_filter'),
+            subtitle: i18n('douyu_suspected_automated_filter_desc'),
+            value: dm.filterDouyuSuspectedAutomatedMessages.v,
+            onChanged: (value) => dm.filterDouyuSuspectedAutomatedMessages.v = value,
+            labelColor: labelColor,
+          ),
+        ]),
+      ),
+      const SizedBox(height: 20),
+      context.buildGroupTitle(i18n('danmaku_similarity_filter')),
+      Obx(
+        () => context.buildModernCard([
+          _switch(
+            theme,
+            title: i18n('danmaku_similarity_filter_enable'),
+            value: dm.enableDanmakuSimilarityFilter.v,
+            onChanged: (value) => dm.enableDanmakuSimilarityFilter.v = value,
+            labelColor: labelColor,
+          ),
+          if (dm.enableDanmakuSimilarityFilter.v) ...[
+            _slider(
+              theme,
+              title: i18n('danmaku_similarity_threshold'),
+              value: dm.danmakuSimilarityThreshold.v.toDouble(),
+              min: 50,
+              max: 100,
+              stepSize: 1,
+              display: '${dm.danmakuSimilarityThreshold.v}%',
+              semanticValueBuilder: (value) => '${value.round()}%',
+              onChanged: (value) => dm.danmakuSimilarityThreshold.v = value.round(),
+              labelColor: labelColor,
+              digitColor: digitColor,
+            ),
+            _slider(
+              theme,
+              title: i18n('danmaku_similarity_cache_duration'),
+              value: dm.danmakuSimilarityCacheDuration.v.toDouble(),
+              min: 1,
+              max: 60,
+              stepSize: 1,
+              display: i18n(
+                'danmaku_similarity_cache_seconds',
+                args: {'seconds': '${dm.danmakuSimilarityCacheDuration.v}'},
+              ),
+              semanticValueBuilder: (value) =>
+                  i18n('danmaku_similarity_cache_seconds', args: {'seconds': '${value.round()}'}),
+              onChanged: (value) => dm.danmakuSimilarityCacheDuration.v = value.round(),
+              labelColor: labelColor,
+              digitColor: digitColor,
+            ),
+            _slider(
+              theme,
+              title: i18n('danmaku_similarity_max_cache_size'),
+              value: dm.danmakuSimilarityMaxCacheSize.v.toDouble(),
+              min: 20,
+              max: 1000,
+              stepSize: 10,
+              display: '${dm.danmakuSimilarityMaxCacheSize.v}',
+              semanticValueBuilder: (value) => '${value.round()}',
+              onChanged: (value) => dm.danmakuSimilarityMaxCacheSize.v = value.round(),
+              labelColor: labelColor,
+              digitColor: digitColor,
+            ),
+          ],
+        ]),
+      ),
+      const SizedBox(height: 20),
+      context.buildGroupTitle(i18n('danmaku_keyword_block')),
+      Obx(() => context.buildModernCard([_buildInput(theme, labelColor)])),
+      const SizedBox(height: 20),
+    ];
+
+    if (widget.asSection) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...sections,
+          Obx(() => _buildBlockedColumn(theme, users: false)),
+          Obx(() => _buildBlockedColumn(theme, users: true)),
+        ],
+      );
+    }
+
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
@@ -68,85 +161,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            sliver: SliverList.list(
-              children: [
-                context.buildGroupTitle(i18n('platform_danmaku_filter')),
-                Obx(
-                  () => context.buildModernCard([
-                    _switch(
-                      theme,
-                      title: i18n('douyu_suspected_automated_filter'),
-                      subtitle: i18n('douyu_suspected_automated_filter_desc'),
-                      value: dm.filterDouyuSuspectedAutomatedMessages.v,
-                      onChanged: (value) => dm.filterDouyuSuspectedAutomatedMessages.v = value,
-                      labelColor: labelColor,
-                    ),
-                  ]),
-                ),
-                const SizedBox(height: 20),
-                context.buildGroupTitle(i18n('danmaku_similarity_filter')),
-                Obx(
-                  () => context.buildModernCard([
-                    _switch(
-                      theme,
-                      title: i18n('danmaku_similarity_filter_enable'),
-                      value: dm.enableDanmakuSimilarityFilter.v,
-                      onChanged: (value) => dm.enableDanmakuSimilarityFilter.v = value,
-                      labelColor: labelColor,
-                    ),
-                    if (dm.enableDanmakuSimilarityFilter.v) ...[
-                      _slider(
-                        theme,
-                        title: i18n('danmaku_similarity_threshold'),
-                        value: dm.danmakuSimilarityThreshold.v.toDouble(),
-                        min: 50,
-                        max: 100,
-                        stepSize: 1,
-                        display: '${dm.danmakuSimilarityThreshold.v}%',
-                        semanticValueBuilder: (value) => '${value.round()}%',
-                        onChanged: (value) => dm.danmakuSimilarityThreshold.v = value.round(),
-                        labelColor: labelColor,
-                        digitColor: digitColor,
-                      ),
-                      _slider(
-                        theme,
-                        title: i18n('danmaku_similarity_cache_duration'),
-                        value: dm.danmakuSimilarityCacheDuration.v.toDouble(),
-                        min: 1,
-                        max: 60,
-                        stepSize: 1,
-                        display: i18n(
-                          'danmaku_similarity_cache_seconds',
-                          args: {'seconds': '${dm.danmakuSimilarityCacheDuration.v}'},
-                        ),
-                        semanticValueBuilder: (value) =>
-                            i18n('danmaku_similarity_cache_seconds', args: {'seconds': '${value.round()}'}),
-                        onChanged: (value) => dm.danmakuSimilarityCacheDuration.v = value.round(),
-                        labelColor: labelColor,
-                        digitColor: digitColor,
-                      ),
-                      _slider(
-                        theme,
-                        title: i18n('danmaku_similarity_max_cache_size'),
-                        value: dm.danmakuSimilarityMaxCacheSize.v.toDouble(),
-                        min: 20,
-                        max: 1000,
-                        stepSize: 10,
-                        display: '${dm.danmakuSimilarityMaxCacheSize.v}',
-                        semanticValueBuilder: (value) => '${value.round()}',
-                        onChanged: (value) => dm.danmakuSimilarityMaxCacheSize.v = value.round(),
-                        labelColor: labelColor,
-                        digitColor: digitColor,
-                      ),
-                    ],
-                  ]),
-                ),
-                const SizedBox(height: 20),
-                context.buildGroupTitle(i18n('danmaku_keyword_block')),
-                Obx(() => context.buildModernCard([_buildInput(theme, labelColor)])),
-                const SizedBox(height: 20),
-              ],
-            ),
+            sliver: SliverList.list(children: sections),
           ),
           Obx(() => _buildBlockedSliver(theme, users: false)),
           Obx(() => _buildBlockedSliver(theme, users: true)),
@@ -154,6 +169,45 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildBlockedColumn(ThemeData theme, {required bool users}) {
+    final values = List<String>.from(
+      users ? FavoriteRoomController.to.blockedDanmakuUsers : FavoriteRoomController.to.shieldList,
+    );
+    if (values.isEmpty) return const SizedBox.shrink();
+    final title = users
+        ? i18n('blocked_danmaku_users', args: {'count': '${values.length}'})
+        : i18n('keyword_added_count', args: {'count': '${values.length}'});
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(theme, title),
+          for (final value in values)
+            _buildItem(
+              theme,
+              text: value,
+              icon: users ? Icons.person_off_rounded : Icons.filter_alt_off_rounded,
+              onRemove: () => _remove(users, value),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _remove(bool users, String value) {
+    final favorites = FavoriteRoomController.to;
+    // Resolve the rendered value against current preferences, not a stale index.
+    final current = users ? favorites.blockedDanmakuUsers : favorites.shieldList;
+    final index = current.indexOf(value);
+    if (index < 0) return;
+    if (users) {
+      favorites.removeBlockedDanmakuUser(index);
+    } else {
+      favorites.removeShieldList(index);
+    }
   }
 
   Widget _buildBlockedSliver(ThemeData theme, {required bool users}) {

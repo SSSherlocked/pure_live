@@ -12,7 +12,6 @@ class LivePanelTabOrderPage extends StatelessWidget {
     LivePanelTab.superChat: Remix.money_cny_circle_line,
     LivePanelTab.follow: Remix.heart_line,
     LivePanelTab.danmakuSettings: Remix.settings_3_line,
-    LivePanelTab.blockList: Remix.forbid_line,
   };
 
   void _save(List<LivePanelTab> order) {

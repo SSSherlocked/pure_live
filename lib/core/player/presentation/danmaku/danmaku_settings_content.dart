@@ -2,17 +2,29 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
+import 'package:pure_live/core/widgets/uniform_scale.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_viewing_preset.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 
 class DanmakuSettingsPage extends StatelessWidget {
-  const DanmakuSettingsPage({super.key, required this.controller});
+  const DanmakuSettingsPage({super.key, required this.controller, this.scale = 1, this.footer});
   final DanmakuSettingsSource controller;
+
+  /// Uniform size of the whole page; the room side panel uses 0.8.
+  final double scale;
+
+  /// Extra section appended after the settings (the room panel's 屏蔽管理).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: DanmakuSettingsContent(controller: controller));
+    return Scaffold(
+      body: UniformScale(
+        scale: scale,
+        child: DanmakuSettingsContent(controller: controller, footer: footer),
+      ),
+    );
   }
 }
 
@@ -27,11 +39,15 @@ class DanmakuSettingsContent extends StatefulWidget {
     required this.controller,
     this.embedded = false,
     this.includePipSettings = true,
+    this.footer,
   });
 
   final DanmakuSettingsSource controller;
   final bool embedded;
   final bool includePipSettings;
+
+  /// Extra section appended after the settings.
+  final Widget? footer;
 
   @override
   State<DanmakuSettingsContent> createState() => _DanmakuSettingsContentState();
@@ -95,23 +111,33 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 10 : 12),
     );
 
+    Widget button({required VoidCallback onPressed, required IconData icon, required String label}) {
+      return OutlinedButton.icon(
+        onPressed: onPressed,
+        style: buttonStyle(),
+        icon: Icon(icon, size: isEmbedded ? 16 : 18),
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(label, maxLines: 1, style: TextStyle(fontSize: isEmbedded ? 12 : null)),
+        ),
+      );
+    }
+
+    // Two equal halves: the save and restore buttons always sit side by side.
     final content = Padding(
       padding: EdgeInsets.all(isEmbedded ? 10 : 12),
-      child: Wrap(
-        spacing: isEmbedded ? 6 : 8,
-        runSpacing: isEmbedded ? 6 : 8,
+      child: Row(
         children: [
-          OutlinedButton.icon(
-            onPressed: _saveTemplate,
-            style: buttonStyle(),
-            icon: Icon(Icons.save_outlined, size: isEmbedded ? 16 : 18),
-            label: Text(i18n('save_current_template'), style: TextStyle(fontSize: isEmbedded ? 12 : null)),
+          Expanded(
+            child: button(onPressed: _saveTemplate, icon: Icons.save_outlined, label: i18n('save_current_template')),
           ),
-          OutlinedButton.icon(
-            onPressed: _restoreTemplate,
-            style: buttonStyle(),
-            icon: Icon(Icons.restore_rounded, size: isEmbedded ? 16 : 18),
-            label: Text(i18n('restore_saved_template'), style: TextStyle(fontSize: isEmbedded ? 12 : null)),
+          SizedBox(width: isEmbedded ? 6 : 8),
+          Expanded(
+            child: button(
+              onPressed: _restoreTemplate,
+              icon: Icons.restore_rounded,
+              label: i18n('restore_saved_template'),
+            ),
           ),
         ],
       ),
@@ -445,7 +471,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             ],
           ),
           const SizedBox(height: 20),
-
+          if (widget.footer != null) widget.footer!,
           const SizedBox(height: 12),
         ],
       ),

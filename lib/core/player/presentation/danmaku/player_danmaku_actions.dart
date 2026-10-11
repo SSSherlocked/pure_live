@@ -219,70 +219,51 @@ class DanmakuSettingsDialog extends StatelessWidget {
   }
 }
 
-/// Cycles the six video-fit modes through one shared stored index.
+/// The "⋯" button at the top-left of the player.
 ///
-/// The label is the mode's own description from [AppConsts]; the room and a
-/// recording both read and write `SettingsService.to.player.videoFitIndex`, so
-/// switching modes on one surface is what the other shows next.
-class PlayerVideoFitButton extends StatelessWidget {
-  const PlayerVideoFitButton({super.key, this.labelColor = Colors.white});
+/// Opens a menu whose 画面比例 entry expands a submenu with every video-fit
+/// mode; the current one is checked. The room and a recording share the
+/// stored index (`SettingsService.to.player.videoFitIndex`).
+class PlayerMoreMenuButton extends StatelessWidget {
+  const PlayerMoreMenuButton({super.key, this.iconColor = Colors.white});
 
-  final Color labelColor;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final label = PlayerVideoFitActions.currentLabel;
-      return Semantics(
-        button: true,
-        label: label,
-        child: Tooltip(
-          message: label,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              key: const ValueKey('video-fit-action'),
-              borderRadius: BorderRadius.circular(8),
-              onTap: PlayerVideoFitActions.advance,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: kMinInteractiveDimension,
-                  minHeight: kMinInteractiveDimension,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Center(
-                    child: Text(label, style: AppTextStyles.t15.copyWith(color: labelColor)),
+    return MenuAnchor(
+      menuChildren: [
+        SubmenuButton(
+          key: const ValueKey('player-more-video-fit'),
+          leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
+          menuChildren: [
+            for (final (index, option) in AppConsts().videoFitType.indexed)
+              Obx(
+                () => MenuItemButton(
+                  key: ValueKey('player-video-fit-$index'),
+                  leadingIcon: SizedBox(
+                    width: 18,
+                    child: SettingsService.to.player.resolvedVideoFitIndex == index
+                        ? const Icon(Icons.check_rounded, size: 18)
+                        : null,
                   ),
+                  onPressed: () => SettingsService.to.player.videoFitIndex.v = index,
+                  child: Text(i18n(option['desc'] as String)),
                 ),
               ),
-            ),
-          ),
+          ],
+          child: Text(i18n('video_fit')),
         ),
-      );
-    });
+      ],
+      builder: (context, menu, child) => IconButton(
+        key: const ValueKey('player-more-menu'),
+        visualDensity: VisualDensity.standard,
+        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        color: iconColor,
+        icon: const Icon(Icons.more_horiz_rounded),
+        onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+      ),
+    );
   }
 }
 
-/// Reading and advancing the shared video-fit mode.
-abstract final class PlayerVideoFitActions {
-  /// The mode currently selected, resolved against the option list.
-  static BoxFit get current {
-    final options = AppConsts().videoFitType;
-    if (options.isEmpty) return BoxFit.contain;
-    return options[SettingsService.to.player.resolvedVideoFitIndex]['attr'] as BoxFit;
-  }
-
-  /// The localised name of [current].
-  static String get currentLabel {
-    final key = SettingsService.to.player.resolvedVideoFitDescriptionKey;
-    return key.isEmpty ? '' : i18n(key);
-  }
-
-  /// Moves to the next mode and returns it.
-  static BoxFit advance() {
-    final index = SettingsService.to.player.advanceVideoFitIndex();
-    if (index == null) return current;
-    return AppConsts().videoFitType[index]['attr'] as BoxFit;
-  }
-}

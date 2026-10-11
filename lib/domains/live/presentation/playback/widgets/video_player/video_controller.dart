@@ -6,6 +6,7 @@ import 'iptv_programme_policy.dart';
 
 import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:media_core/media_core.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flame_barrage/flame_barrage.dart';
@@ -393,6 +394,10 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   final audioModeSwitching = false.obs;
   final catchUpSwitching = false.obs;
   final batteryLevel = 100.obs;
+
+  /// Whether the device reports a battery. Desktops without one (and any
+  /// platform whose query fails) hide the battery readout.
+  final hasBattery = false.obs;
   final currentVolume = 1.0.obs;
   final FullscreenOrientationRestoreState _fullscreenOrientationRestore = FullscreenOrientationRestoreState();
 
@@ -797,14 +802,36 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   void initBattery() {
     if (!PlatformHelper.supportsBatteryMonitoring) return;
+    // Phones and tablets always have one; desktops must report a real state.
+    if (PlatformUtils.isMobile) hasBattery.value = true;
 
-    _battery.batteryLevel.then((value) {
-      if (!_isDisposed) batteryLevel.value = value;
-    });
+    unawaited(
+      _battery.batteryState
+          .then((state) {
+            if (_isDisposed) return;
+            if (state != BatteryState.unknown) hasBattery.value = true;
+          })
+          .catchError((Object _) {}),
+    );
+
+    _battery.batteryLevel
+        .then((value) {
+          if (_isDisposed) return;
+          if (value < 0 || value > 100) {
+            if (!PlatformUtils.isMobile) hasBattery.value = false;
+            return;
+          }
+          batteryLevel.value = value;
+        })
+        .catchError((Object _) {
+          if (!_isDisposed && !PlatformUtils.isMobile) hasBattery.value = false;
+        });
 
     final batterySub = _battery.onBatteryStateChanged.listen((BatteryState state) async {
-      final value = await _battery.batteryLevel;
-      if (!_isDisposed) batteryLevel.value = value;
+      try {
+        final value = await _battery.batteryLevel;
+        if (!_isDisposed && value >= 0 && value <= 100) batteryLevel.value = value;
+      } catch (_) {}
     });
     _addSubscription(batterySub);
   }
@@ -1052,6 +1079,9 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     }
     _danmakuHeld = _danmakuManager.pauseDanmakuAt(localPosition) != null;
   }
+
+  /// Whether the current long press pinned a barrage under the finger.
+  bool get danmakuHeld => _danmakuHeld;
 
   /// Releases messages pinned by [pauseDanmakuAt].
   void resumeHeldDanmaku() {

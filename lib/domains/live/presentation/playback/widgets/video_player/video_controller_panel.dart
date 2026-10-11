@@ -306,7 +306,20 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                     // message-actions menu opens as before, and releasing
                     // (with the menu closed) resumes the held message.
                     controller.pauseDanmakuAt(details.globalPosition);
-                    controller.handleDanmakuPointer(details.globalPosition, longPress: true);
+                    final onDanmaku = controller.handleDanmakuPointer(details.globalPosition, longPress: true);
+                    // Fullscreen: a long press anywhere that is not on a
+                    // barrage opens the 关注 panel, like Simple Live.
+                    if (!onDanmaku &&
+                        !controller.danmakuHeld &&
+                        !controller.showLocked.value &&
+                        GlobalPlayerService.instance.player.fullscreenUI) {
+                      unawaited(
+                        showDialog<void>(
+                          context: context,
+                          builder: (_) => PlayOther(controller: controller.livePlayController),
+                        ),
+                      );
+                    }
                   },
                   onLongPressEnd: (_) => controller.resumeHeldDanmaku(),
                   onLongPressCancel: () => controller.resumeHeldDanmaku(),
@@ -422,7 +435,10 @@ class TopActionBar extends StatelessWidget {
                       android: PlatformUtils.isAndroid,
                     ))
                       switch (slot) {
-                        TopActionLeadingSlot.back => BackButton(controller: controller),
+                        TopActionLeadingSlot.back => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [BackButton(controller: controller), const PlayerMoreMenuButton()],
+                        ),
                         TopActionLeadingSlot.datetime => const DatetimeInfo(key: ValueKey('fullscreen-leading-time')),
                         TopActionLeadingSlot.battery => BatteryInfo(
                           key: const ValueKey('fullscreen-leading-battery'),
@@ -498,7 +514,6 @@ class TopActionBar extends StatelessWidget {
                               ),
                             );
                           },
-                          style: IconButton.styleFrom(backgroundColor: Colors.black26),
                         ),
                         TopActionTrailingSlot.datetime => const DatetimeInfo(),
                         TopActionTrailingSlot.battery => BatteryInfo(controller: controller),
@@ -610,6 +625,10 @@ class _BatteryInfoState extends State<BatteryInfo> {
 
   @override
   Widget build(BuildContext context) {
+    return Obx(() => widget.controller.hasBattery.value ? _buildBattery() : const SizedBox.shrink());
+  }
+
+  Widget _buildBattery() {
     return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.all(12),
@@ -1072,7 +1091,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Material(
           key: const ValueKey('fullscreen-stream-selector'),
-          color: Colors.white.withValues(alpha: .13),
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(18),
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
@@ -1416,7 +1435,6 @@ class BottomActionBar extends StatelessWidget {
         // off-screen after the video-fit option landed (v3.15 report).
         if (PlatformUtils.isMobile && portraitPinned) PortraitFullscreenDisplayModeButton(controller: controller),
         if (PlatformUtils.isMobile && portraitPinned) PortraitOrientationButton(controller: controller),
-        const PlayerVideoFitButton(),
         if (Platform.isWindows) OverlayVolumeControl(controller: controller),
         if (Platform.isWindows &&
             controller.supportWindowFull &&

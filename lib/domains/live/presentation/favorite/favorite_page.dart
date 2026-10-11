@@ -1,9 +1,7 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/domains/live/presentation/tags/live_tag.dart';
 import 'package:pure_live/domains/live/presentation/favorite/room_grid_view.dart';
 import 'package:pure_live/core/widgets/common_appbar_actions.dart';
-import 'package:pure_live/domains/live/presentation/tags/tag_management_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
@@ -132,12 +130,6 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
           physics: const PureLiveBoundedScrollPhysics(),
           tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
         ),
-        FavoriteTagStrip(
-          tags: controller.visibleTags,
-          selectedTagId: controller.selectedTagId,
-          allLabel: i18n('recorder_tab_all'),
-          onSelected: controller.changeSelectedTag,
-        ),
         Expanded(
           child: BasePageView<FavoriteController, LiveRoom>(
             controller: controller,
@@ -179,98 +171,6 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
         ),
       ],
     );
-  }
-}
-
-class FavoriteTagStrip extends StatelessWidget {
-  const FavoriteTagStrip({
-    super.key,
-    required this.tags,
-    required this.selectedTagId,
-    required this.allLabel,
-    required this.onSelected,
-    this.labelStyle,
-  });
-
-  final RxList<LiveTag> tags;
-  final RxString selectedTagId;
-  final String allLabel;
-  final ValueChanged<String> onSelected;
-  final TextStyle? labelStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Obx(() {
-      // Read both reactive values before entering ListView.builder. Its lazy
-      // itemBuilder runs outside GetX's dependency collector, which previously
-      // to a custom tag.
-      final visibleTags = tags.toList(growable: false);
-      final activeTagId = selectedTagId.value;
-      if (visibleTags.isEmpty) return const SizedBox.shrink();
-      final effectiveLabelStyle = DefaultTextStyle.of(context).style.merge(labelStyle ?? AppTextStyles.t12);
-      final textScaler = MediaQuery.textScalerOf(context);
-      final textDirection = Directionality.of(context);
-      var tallestLabel = 0.0;
-      for (final label in <String>[allLabel, ...visibleTags.map((tag) => tag.name)]) {
-        final painter = TextPainter(
-          text: TextSpan(text: label, style: effectiveLabelStyle),
-          textScaler: textScaler,
-          textDirection: textDirection,
-          maxLines: 1,
-        )..layout();
-        if (painter.height > tallestLabel) tallestLabel = painter.height;
-      }
-      // ChoiceChip owns a 48 px touch target. The list padding adds another
-      // 12 px, while scaled label text may require more than the default chip
-      // height. Derive the rail height instead of clipping either contract.
-      final scaledStripHeight = tallestLabel + 28;
-      final stripHeight = scaledStripHeight < 60 ? 60.0 : scaledStripHeight;
-      return SizedBox(
-        key: const ValueKey('favorite_tag_strip'),
-        height: stripHeight,
-        width: double.infinity,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          physics: const PureLiveBoundedScrollPhysics(),
-          clipBehavior: Clip.hardEdge,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          itemCount: visibleTags.length + 1,
-          itemBuilder: (context, index) {
-            final isAll = index == 0;
-            final tag = isAll ? null : visibleTags[index - 1];
-            final tagId = tag?.id ?? TagManagementController.allTagKey;
-            final isSelected = activeTagId == tagId;
-            return Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: ChoiceChip(
-                key: ValueKey('favorite_tag_$tagId'),
-                showCheckmark: false,
-                label: Text(
-                  tag?.name ?? allLabel,
-                  maxLines: 1,
-                  style: effectiveLabelStyle.copyWith(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                selected: isSelected,
-                selectedColor: theme.colorScheme.primary,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: isSelected ? Colors.transparent : theme.dividerColor.withValues(alpha: 0.04),
-                    width: 0.5,
-                  ),
-                ),
-                onSelected: (_) => onSelected(tagId),
-              ),
-            );
-          },
-        ),
-      );
-    });
   }
 }
 

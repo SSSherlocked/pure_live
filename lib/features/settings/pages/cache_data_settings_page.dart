@@ -154,15 +154,7 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          // 备份与恢复 is part of 数据管理与备份, reached from here.
-          context.buildModernCard([
-            context.buildTile(
-              icon: Remix.cloud_line,
-              title: i18n("backup_recover"),
-              subtitle: i18n("backup_recover_desc"),
-              onTap: () => Get.to(() => const BackupPage()),
-            ),
-          ]),
+          const BackupSettingsSections(),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("cache_and_data")),
           context.buildModernCard([

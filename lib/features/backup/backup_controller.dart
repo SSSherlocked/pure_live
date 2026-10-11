@@ -5,7 +5,6 @@ import 'package:pure_live/get/get.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
-import 'package:pure_live/domains/live/presentation/tags/tag_management_controller.dart';
 import 'package:pure_live/features/web_dav/web_dav_settings_controller.dart';
 import 'package:pure_live/domains/live/data/history_controller.dart';
 import 'package:pure_live/core/config/startup_controller.dart';
@@ -53,10 +52,6 @@ class BackupController extends GetxController {
   }
 
   Map<String, dynamic> exportAllSettings({bool includeSensitiveData = true, Iterable<String>? sections}) {
-    if (!Get.isRegistered<TagManagementController>()) {
-      Get.put(TagManagementController());
-    }
-
     final data = <String, dynamic>{
       'backupVersion': backupVersion,
       'sensitiveDataIncluded': includeSensitiveData,
@@ -74,7 +69,6 @@ class BackupController extends GetxController {
       'windowSize': Get.find<WindowSizeController>().toJson(),
       'exit': Get.find<ExitSettingsController>().toJson(),
       'startup': Get.find<StartupController>().toJson(),
-      'tags': Get.find<TagManagementController>().exportToJson(),
       'refresh': Get.find<RefreshConfigController>().toJson(),
       'page': Get.find<PageSettingsController>().toJson(),
       'background': Get.find<BackgroundController>().toJson(),
@@ -160,7 +154,6 @@ class BackupController extends GetxController {
     'refresh': RefreshConfigController.extractConfig(null).keys.toSet(),
     'page': PageSettingsController.extractConfig(null).keys.toSet(),
     'background': BackgroundController.extractConfig(null).keys.toSet(),
-    'tags': {'tags', 'roomTagsMap'},
   };
 
   static int countConfigSections(Map<String, dynamic> data) {
@@ -174,13 +167,9 @@ class BackupController extends GetxController {
     }
     bool recognized = false;
     if (version == null) {
-      final legacyTags = data['custom_tags_data'];
       recognized =
-          (legacyTags is Map && legacyTags.keys.any(_sectionKeys['tags']!.contains)) ||
           data.containsKey('pipDanmaNoEmojiMode') ||
-          _sectionKeys.entries
-              .where((entry) => entry.key != 'tags')
-              .any((entry) => data.keys.any(entry.value.contains));
+          _sectionKeys.values.any((keys) => data.keys.any(keys.contains));
     } else {
       validateSectionStructure(data);
       recognized = _sectionKeys.entries.any((entry) {
@@ -231,10 +220,6 @@ class BackupController extends GetxController {
       } else if (data.containsKey(entry.key)) {
         entry.value(Map<String, dynamic>.from(data[entry.key] ?? {}));
       }
-    }
-    final tags = version == null ? data['custom_tags_data'] : data['tags'];
-    if (tags != null) {
-      TagManagementController.parseConfig(Map<String, dynamic>.from(tags));
     }
     if (version == null) {
       VolumeSettingsController.parseConfig(data);
@@ -314,15 +299,6 @@ class BackupController extends GetxController {
     if (data.containsKey('background')) {
       Get.find<BackgroundController>().fromJson(Map<String, dynamic>.from(data['background'] ?? {}));
     }
-
-    if (!Get.isRegistered<TagManagementController>()) {
-      Get.put(TagManagementController());
-    }
-
-    final tagsData = data['tags'];
-    if (tagsData is Map) {
-      Get.find<TagManagementController>().importFromJson(Map<String, dynamic>.from(tagsData));
-    }
   }
 
   /// Reject malformed sections before any controller persists an earlier one.
@@ -348,7 +324,6 @@ class BackupController extends GetxController {
       'refresh',
       'page',
       'background',
-      'tags',
     ];
     for (final name in sections) {
       final section = data[name];
@@ -378,14 +353,6 @@ class BackupController extends GetxController {
     Get.find<StartupController>().fromJson(data);
     Get.find<RefreshConfigController>().fromJson(data);
     Get.find<PageSettingsController>().fromJson(data);
-    if (!Get.isRegistered<TagManagementController>()) {
-      Get.put(TagManagementController());
-    }
-
-    final legacyTags = data['custom_tags_data'];
-    if (legacyTags is Map) {
-      Get.find<TagManagementController>().importFromJson(Map<String, dynamic>.from(legacyTags));
-    }
   }
 
   Future<bool> backup(File file, {Iterable<String>? sections}) async {

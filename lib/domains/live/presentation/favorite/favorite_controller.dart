@@ -4,9 +4,7 @@ import 'dart:developer' as developer;
 import 'package:pure_live/core/index.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
-import 'package:pure_live/domains/live/presentation/tags/live_tag.dart';
 import 'package:pure_live/shared/platforms/live_site.dart';
-import 'package:pure_live/domains/live/presentation/tags/tag_management_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_startup_policy.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
@@ -15,7 +13,6 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 
 class FavoriteController extends LocalReactivePageController<LiveRoom>
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
-  final TagManagementController tagController = Get.find<TagManagementController>();
   final RefreshConfigController refreshConfigController = Get.find<RefreshConfigController>();
 
   late TabController tabController;
@@ -53,8 +50,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   final onlineRooms = <LiveRoom>[].obs;
   final offlineRooms = <LiveRoom>[].obs;
   final replayRooms = <LiveRoom>[].obs;
-  final selectedTagId = TagManagementController.allTagKey.obs;
-  final visibleTags = <LiveTag>[].obs;
   final DateTime Function() _now;
 
   FavoriteController({DateTime Function()? now}) : _now = now ?? DateTime.now, super();
@@ -85,7 +80,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
 
     tabController = TabController(length: 3, vsync: this, animationDuration: pureLiveTabTransitionDuration);
     WidgetsBinding.instance.addObserver(this);
-    tagController.migrateLegacyRoomTagKeys(FavoriteRoomController.to.favoriteRooms.v);
 
     _workers.add(
       ever(FavoriteRoomController.to.favoriteRooms, (_) {
@@ -101,11 +95,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     );
 
     _workers.add(
-      ever(selectedTagId, (_) {
-        if (!_selectionTransaction) applyLocalFilter();
-      }),
-    );
-    _workers.add(
       ever(tabSiteIndex, (_) {
         if (!_selectionTransaction) applyLocalFilter(resyncSource: false);
       }),
@@ -115,8 +104,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         if (!_selectionTransaction) applyLocalFilter(resyncSource: false);
       }),
     );
-    _workers.add(ever(tagController.tags, _handleTagsChanged));
-    _workers.add(ever(tagController.roomTagsMap, (_) => applyLocalFilter()));
     _workers.add(ever(SettingsService.to.app.preferRealOnlineCounts, (_) => applyLocalFilter()));
     _workers.add(ever(SettingsService.to.app.realOnlinePlatforms, (_) => applyLocalFilter()));
 
@@ -136,18 +123,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
 
     listenFavorite();
     listenRoomChanged();
-  }
-
-  void _handleTagsChanged(List<LiveTag> tags) {
-    if (isClosed) return;
-    final selected = selectedTagId.value;
-    if (selected != TagManagementController.allTagKey && !tags.any((tag) => tag.id == selected)) {
-      _selectionTransaction = true;
-      selectedTagId.value = TagManagementController.allTagKey;
-      _selectionTransaction = false;
-      currentPage = 1;
-    }
-    applyLocalFilter();
   }
 
   void _handleStatusTabChange() {
@@ -258,21 +233,19 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
 
   /// Commits a settled platform page as one local filter transaction.
   ///
-  /// The previous listener reset the tag and then changed the site in two Rx
-  /// writes. Each write rebuilt and sorted the full favourites snapshot, so a
-  /// single horizontal swipe could publish two different grids.
+  /// Writing the site index and platform id separately would rebuild and sort
+  /// the full favourites snapshot more than once, so a single horizontal swipe
+  /// could publish two different grids.
   void selectSiteIndex(int index) {
     if (isClosed) return;
     final availableSites = availableFavoriteSites;
     if (index < 0 || index >= availableSites.length) return;
     final nextPlatformId = availableSites[index].id;
-    final resetTag = selectedTagId.value != TagManagementController.allTagKey;
-    if (tabSiteIndex.value == index && selectedPlatformId == nextPlatformId && !resetTag) return;
+    if (tabSiteIndex.value == index && selectedPlatformId == nextPlatformId) return;
 
     _selectionTransaction = true;
     tabSiteIndex.value = index;
     selectedPlatformId = nextPlatformId;
-    if (resetTag) selectedTagId.value = TagManagementController.allTagKey;
     _selectionTransaction = false;
     currentPage = 1;
     applyLocalFilter(resyncSource: false);
@@ -281,12 +254,10 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   void selectStatusIndex(int index) {
     if (isClosed) return;
     if (index < 0 || index >= tabController.length) return;
-    final resetTag = selectedTagId.value != TagManagementController.allTagKey;
-    if (tabOnlineIndex.value == index && !resetTag) return;
+    if (tabOnlineIndex.value == index) return;
 
     _selectionTransaction = true;
     tabOnlineIndex.value = index;
-    if (resetTag) selectedTagId.value = TagManagementController.allTagKey;
     _selectionTransaction = false;
     currentPage = 1;
     applyLocalFilter(resyncSource: false);
@@ -300,13 +271,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
       return;
     }
     tabController.animateTo(index, duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic);
-  }
-
-  void changeSelectedTag(String tagId) {
-    if (isClosed) return;
-    if (selectedTagId.value == tagId) return;
-    currentPage = 1;
-    selectedTagId.value = tagId;
   }
 
   List<LiveRoom> getAllRooms() {
@@ -331,14 +295,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
       }).toList();
     }
 
-    if (selectedTagId.value == TagManagementController.allTagKey) {
-      return siteFiltered;
-    }
-
-    return siteFiltered.where((room) {
-      final List<String> ids = tagController.getTagsForRoom(room);
-      return ids.contains(selectedTagId.value);
-    }).toList();
+    return siteFiltered;
   }
 
   List<LiveRoom> getFilteredRooms({Iterable<LiveRoom>? roomSnapshot, bool resyncSource = true}) {
@@ -384,14 +341,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
       }).toList();
     }
 
-    if (selectedTagId.value == TagManagementController.allTagKey) {
-      return siteFiltered;
-    }
-
-    return siteFiltered.where((room) {
-      final List<String> ids = tagController.getTagsForRoom(room);
-      return ids.contains(selectedTagId.value);
-    }).toList();
+    return siteFiltered;
   }
 
   int favoriteCountForSite(String siteId, {int? statusIndex}) {
@@ -425,61 +375,8 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         ? List<LiveRoom>.from(preview.replayRooms)
         : roomsBase.where((r) => r.effectiveLiveStatus == LiveStatus.replay).toList();
 
-    final currentAvailableSites = favoriteSitesForRooms(roomsBase);
-    var nextVisibleTags = <LiveTag>[];
-
-    if (tabSiteIndex.value >= 0 && tabSiteIndex.value < currentAvailableSites.length) {
-      final activeSite = currentAvailableSites[tabSiteIndex.value];
-      List<LiveRoom> target;
-
-      switch (tabOnlineIndex.value) {
-        case 0:
-          target = nextOnline;
-          break;
-
-        case 1:
-          target = nextReplay;
-          break;
-
-        case 2:
-          target = nextOffline;
-          break;
-
-        default:
-          target = nextOnline;
-      }
-      final Set<String> tagIds = {};
-      final normalizedSiteId = activeSite.id.trim().toLowerCase();
-
-      for (var room in target) {
-        if (activeSite.id == Sites.allSite || room.normalizedPlatformId == normalizedSiteId) {
-          final ids = tagController.getTagsForRoom(room);
-          tagIds.addAll(ids);
-        }
-      }
-
-      nextVisibleTags = tagController.tags.where((t) => tagIds.contains(t.id)).toList()
-        ..sort((a, b) => a.order.compareTo(b.order));
-    }
-
-    nextOnline.sort((a, b) {
-      if (selectedTagId.value == TagManagementController.allTagKey) {
-        return _compareAudience(a, b);
-      }
-      int sa = _getRoomTagScore(a);
-      int sb = _getRoomTagScore(b);
-      if (sa != sb) return sb.compareTo(sa);
-      return _compareAudience(a, b);
-    });
-    nextReplay.sort((a, b) {
-      if (selectedTagId.value == TagManagementController.allTagKey) {
-        return _compareAudience(a, b);
-      }
-      int sa = _getRoomTagScore(a);
-      int sb = _getRoomTagScore(b);
-      if (sa != sb) return sb.compareTo(sa);
-      return _compareAudience(a, b);
-    });
+    nextOnline.sort(_compareAudience);
+    nextReplay.sort(_compareAudience);
 
     // Build and sort plain lists first, then publish each result once. The old
     // clear/addAll/sort sequence notified every Obx grid several times for one
@@ -487,7 +384,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     _assignIfSnapshotChanged(onlineRooms, nextOnline);
     _assignIfSnapshotChanged(offlineRooms, nextOffline);
     _assignIfSnapshotChanged(replayRooms, nextReplay);
-    _assignIfSnapshotChanged(visibleTags, nextVisibleTags);
   }
 
   bool _isCurrentFavoriteSnapshotSynced() {
@@ -517,30 +413,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     );
   }
 
-  void _refreshVisibleTagsFromSyncedRooms() {
-    final sites = availableFavoriteSites;
-    if (tabSiteIndex.value < 0 || tabSiteIndex.value >= sites.length) {
-      _assignIfSnapshotChanged(visibleTags, const <LiveTag>[]);
-      return;
-    }
-    final source = switch (tabOnlineIndex.value) {
-      0 => onlineRooms,
-      1 => replayRooms,
-      2 => offlineRooms,
-      _ => onlineRooms,
-    };
-    final siteId = sites[tabSiteIndex.value].id;
-    final tagIds = <String>{};
-    for (final room in source) {
-      if (siteId == Sites.allSite || room.normalizedPlatformId == siteId) {
-        tagIds.addAll(tagController.getTagsForRoom(room));
-      }
-    }
-    final next = tagController.tags.where((tag) => tagIds.contains(tag.id)).toList(growable: false)
-      ..sort((left, right) => left.order.compareTo(right.order));
-    _assignIfSnapshotChanged(visibleTags, next);
-  }
-
   void _assignIfSnapshotChanged<T>(RxList<T> target, List<T> next) {
     if (target.length == next.length) {
       var identicalSnapshot = true;
@@ -565,27 +437,8 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     );
   }
 
-  int _getRoomTagScore(LiveRoom liveroom) {
-    final ids = tagController.getTagsForRoom(liveroom);
-    if (ids.isEmpty) return 0;
-
-    int highest = 0;
-    const maxScore = 1000000;
-
-    for (var id in ids) {
-      final idx = tagController.tags.indexWhere((t) => id == t.id);
-      if (idx != -1) {
-        final tag = tagController.tags[idx];
-        final score = maxScore - tag.order * 100;
-        if (score > highest) highest = score;
-      }
-    }
-    return highest;
-  }
-
   void applyLocalFilter({bool resyncSource = true}) {
     if (isClosed) return;
-    if (!resyncSource) _refreshVisibleTagsFromSyncedRooms();
     final filtered = getFilteredRooms(resyncSource: resyncSource);
     updateLocalReactivePool(filtered);
   }
@@ -802,7 +655,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         if (updated == null) return null;
         // Match by the requested favourite identity, not a canonical id that a
         // platform may return (Douyin room ids, for example, can change to the
-        // stable web rid). Keep the stored identity stable for tags and keys.
+        // stable web rid). Keep the stored identity stable for storage keys.
         return (key: _roomKey(room), room: bindFavoriteRefreshResultToRequest(room, updated));
       },
       shouldCancel: () => refreshEpoch != _refreshEpoch || isClosed,

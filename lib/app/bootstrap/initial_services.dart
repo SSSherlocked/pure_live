@@ -34,7 +34,6 @@ import 'package:pure_live/domains/recorder/data/services/niconico_hls_input.dart
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/data/history_controller.dart';
 import 'package:pure_live/shared/platforms/huya/huya_site.dart';
-import 'package:pure_live/domains/live/presentation/tags/tag_management_controller.dart';
 import 'package:pure_live/domains/iptv/data/iptv_settings_controller.dart';
 import 'package:pure_live/features/about/widgets/release_history_repository.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
@@ -90,7 +89,6 @@ class InitialServices {
     Get.lazyPut(() => FavoriteRoomController(), fenix: true);
     Get.lazyPut(() => WebDavController(), fenix: true);
     Get.lazyPut(() => BackupController(), fenix: true);
-    Get.lazyPut(() => TagManagementController(), fenix: true);
     Get.lazyPut(() => BiliBiliAccountService(), fenix: true);
   }
 

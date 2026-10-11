@@ -67,7 +67,7 @@ class MenuButton extends StatelessWidget {
             item('settings', Remix.settings_5_line, i18n('settings_title')),
           item('about', Remix.information_line, i18n('about')),
           item('history', Remix.history_line, i18n('history')),
-          item('backup', Remix.cloud_line, i18n('backup_recover')),
+          item('backup', Remix.database_2_line, i18n('data_and_backup')),
           if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
             item('new_window', Icons.add_to_photos_outlined, i18n('open_new_window')),
         ];

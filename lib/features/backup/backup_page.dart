@@ -10,16 +10,17 @@ import 'package:pure_live/features/backup/backup_recovery_service.dart';
 import 'package:pure_live/core/config/log_controller.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
 
-class BackupPage extends StatefulWidget {
-  const BackupPage({super.key});
+/// The backup, restore and log groups shown at the top of 数据管理与备份.
+class BackupSettingsSections extends StatefulWidget {
+  const BackupSettingsSections({super.key});
 
   @override
-  State<BackupPage> createState() => _BackupPageState();
+  State<BackupSettingsSections> createState() => _BackupSettingsSectionsState();
 }
 
 enum _BackupAction { create, restore, directory }
 
-class _BackupPageState extends State<BackupPage> {
+class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
   final LogController logController = LogController.to;
   String get backupDirectory => BackupController.to.backupDirectory.v;
   _BackupAction? _backupAction;
@@ -75,147 +76,138 @@ class _BackupPageState extends State<BackupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(i18n("backup_recover"))),
-      body: SettingsContentWidth(child: Builder(
-        builder: (context) {
-          return ListView(
-            physics: const PureLiveScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            children: [
-              context.buildGroupTitle(i18n("cloud_backup")),
-              context.buildModernCard([
-                context.buildTile(
-                  icon: Remix.cloud_line,
-                  title: i18n("webdav"),
-                  subtitle: i18n("backup_to_webdav"),
-                  isLong: true,
-                  onTap: () => Get.toNamed(RoutePath.kWebDavPage),
-                ),
-                context.buildTile(
-                  icon: Remix.qr_scan_2_line,
-                  title: i18n('remote_sync'),
-                  subtitle: i18n('remote_sync_subtitle'),
-                  onTap: () => Get.toNamed(RoutePath.kRemoteSync),
-                ),
-              ]),
-              const SizedBox(height: 20),
-              context.buildGroupTitle(i18n("local_backup")),
-              context.buildModernCard([
-                context.buildTile(
-                  icon: Remix.file_download_line,
-                  title: i18n("create_backup"),
-                  subtitle: i18n("create_backup_subtitle"),
-                  isLong: true,
-                  trailing: _backupActionIndicator(_BackupAction.create),
-                  onTap: _backupAction == null
-                      ? () => unawaited(
-                          _runBackupAction(_BackupAction.create, 'create_backup_failed', () async {
-                            // The export flow chooses a directory and remembers the first
-                            // successful choice; no separate first-run settings step.
-                            await BackupRecoveryService().createAppSettingsBackup(backupDirectory);
-                          }),
-                        )
-                      : null,
-                ),
-                context.buildTile(
-                  icon: Remix.file_upload_line,
-                  title: i18n("recover_backup"),
-                  subtitle: i18n("recover_backup_subtitle"),
-                  isLong: true,
-                  trailing: _backupActionIndicator(_BackupAction.restore),
-                  onTap: _backupAction == null
-                      ? () => unawaited(
-                          _runBackupAction(
-                            _BackupAction.restore,
-                            'recover_backup_failed',
-                            BackupRecoveryService().recoverSettingsFromFile,
-                          ),
-                        )
-                      : null,
-                ),
-              ]),
-              const SizedBox(height: 20),
-              context.buildGroupTitle(i18n("backup_settings")),
-              context.buildModernCard([
-                context.buildTile(
-                  icon: Remix.folder_open_line,
-                  title: i18n("backup_directory"),
-                  subtitle: backupDirectory.isEmpty ? i18n('please_set_backup_directory') : backupDirectory,
-                  isLong: true,
-                  trailing: _backupActionIndicator(_BackupAction.directory),
-                  onTap: _backupAction == null
-                      ? () => unawaited(
-                          _runBackupAction(_BackupAction.directory, 'backup_directory_update_failed', () async {
-                            await BackupRecoveryService().updateBackupDirectory();
-                          }),
-                        )
-                      : null,
-                ),
-              ]),
-              const SizedBox(height: 20),
-              context.buildGroupTitle(i18n("log_manage")),
-              context.buildModernCard([
-                Obx(() {
-                  final applying = logController.isApplyingLogStatus.v;
-                  final statusKey = logController.logStatusKey.v;
-                  final subtitleKey = applying
-                      ? 'local_log_applying'
-                      : statusKey.isNotEmpty
-                      ? statusKey
-                      : 'enable_local_log_desc';
-                  return context.buildTile(
-                    icon: Remix.file_text_line,
-                    title: i18n("enable_local_log"),
-                    subtitle: i18n(subtitleKey),
-                    subtitleColor: statusKey.isNotEmpty && !applying ? Theme.of(context).colorScheme.error : null,
-                    isLong: true,
-                    stackTrailingOnNarrow: true,
-                    showNavigationChevronWhenStacked: false,
-                    trailing: Switch(
-                      key: const ValueKey('local-log-switch'),
-                      value: logController.storedEnableLog.v,
-                      onChanged: applying ? null : (value) => unawaited(logController.setLoggingEnabled(value)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        context.buildGroupTitle(i18n("cloud_backup")),
+        context.buildModernCard([
+          context.buildTile(
+            icon: Remix.cloud_line,
+            title: i18n("webdav"),
+            subtitle: i18n("backup_to_webdav"),
+            isLong: true,
+            onTap: () => Get.toNamed(RoutePath.kWebDavPage),
+          ),
+          context.buildTile(
+            icon: Remix.qr_scan_2_line,
+            title: i18n('remote_sync'),
+            subtitle: i18n('remote_sync_subtitle'),
+            onTap: () => Get.toNamed(RoutePath.kRemoteSync),
+          ),
+        ]),
+        const SizedBox(height: 20),
+        context.buildGroupTitle(i18n("local_backup")),
+        context.buildModernCard([
+          context.buildTile(
+            icon: Remix.file_download_line,
+            title: i18n("create_backup"),
+            subtitle: i18n("create_backup_subtitle"),
+            isLong: true,
+            trailing: _backupActionIndicator(_BackupAction.create),
+            onTap: _backupAction == null
+                ? () => unawaited(
+                    _runBackupAction(_BackupAction.create, 'create_backup_failed', () async {
+                      // The export flow chooses a directory and remembers the first
+                      // successful choice; no separate first-run settings step.
+                      await BackupRecoveryService().createAppSettingsBackup(backupDirectory);
+                    }),
+                  )
+                : null,
+          ),
+          context.buildTile(
+            icon: Remix.file_upload_line,
+            title: i18n("recover_backup"),
+            subtitle: i18n("recover_backup_subtitle"),
+            isLong: true,
+            trailing: _backupActionIndicator(_BackupAction.restore),
+            onTap: _backupAction == null
+                ? () => unawaited(
+                    _runBackupAction(
+                      _BackupAction.restore,
+                      'recover_backup_failed',
+                      BackupRecoveryService().recoverSettingsFromFile,
                     ),
-                    onTap: applying
-                        ? null
-                        : () => unawaited(logController.setLoggingEnabled(!logController.storedEnableLog.v)),
-                  );
-                }),
-                Obx(() {
-                  if (!logController.enableLog ||
-                      logController.isApplyingLogStatus.v ||
-                      logController.serverPort.value == 0) {
-                    return const SizedBox.shrink();
-                  }
-                  final uri = Uri(
-                    scheme: 'http',
-                    host: logController.serverAddress.value,
-                    port: logController.serverPort.value,
-                  );
-                  return context.buildTile(
-                    icon: Remix.global_line,
-                    title: i18n("view_logs_in_browser"),
-                    subtitle: uri.toString(),
-                    isLong: true,
-                    trailing: const Icon(Remix.arrow_right_s_line),
-                    onTap: () => _openLogBrowser(uri),
-                  );
-                }),
+                  )
+                : null,
+          ),
+        ]),
+        const SizedBox(height: 20),
+        context.buildGroupTitle(i18n("backup_settings")),
+        context.buildModernCard([
+          context.buildTile(
+            icon: Remix.folder_open_line,
+            title: i18n("backup_directory"),
+            subtitle: backupDirectory.isEmpty ? i18n('please_set_backup_directory') : backupDirectory,
+            isLong: true,
+            trailing: _backupActionIndicator(_BackupAction.directory),
+            onTap: _backupAction == null
+                ? () => unawaited(
+                    _runBackupAction(_BackupAction.directory, 'backup_directory_update_failed', () async {
+                      await BackupRecoveryService().updateBackupDirectory();
+                    }),
+                  )
+                : null,
+          ),
+        ]),
+        const SizedBox(height: 20),
+        context.buildGroupTitle(i18n("log_manage")),
+        context.buildModernCard([
+          Obx(() {
+            final applying = logController.isApplyingLogStatus.v;
+            final statusKey = logController.logStatusKey.v;
+            final subtitleKey = applying
+                ? 'local_log_applying'
+                : statusKey.isNotEmpty
+                ? statusKey
+                : 'enable_local_log_desc';
+            return context.buildTile(
+              icon: Remix.file_text_line,
+              title: i18n("enable_local_log"),
+              subtitle: i18n(subtitleKey),
+              subtitleColor: statusKey.isNotEmpty && !applying ? Theme.of(context).colorScheme.error : null,
+              isLong: true,
+              stackTrailingOnNarrow: true,
+              showNavigationChevronWhenStacked: false,
+              trailing: Switch(
+                key: const ValueKey('local-log-switch'),
+                value: logController.storedEnableLog.v,
+                onChanged: applying ? null : (value) => unawaited(logController.setLoggingEnabled(value)),
+              ),
+              onTap: applying
+                  ? null
+                  : () => unawaited(logController.setLoggingEnabled(!logController.storedEnableLog.v)),
+            );
+          }),
+          Obx(() {
+            if (!logController.enableLog ||
+                logController.isApplyingLogStatus.v ||
+                logController.serverPort.value == 0) {
+              return const SizedBox.shrink();
+            }
+            final uri = Uri(
+              scheme: 'http',
+              host: logController.serverAddress.value,
+              port: logController.serverPort.value,
+            );
+            return context.buildTile(
+              icon: Remix.global_line,
+              title: i18n("view_logs_in_browser"),
+              subtitle: uri.toString(),
+              isLong: true,
+              trailing: const Icon(Remix.arrow_right_s_line),
+              onTap: () => _openLogBrowser(uri),
+            );
+          }),
 
-                context.buildTile(
-                  icon: Remix.folder_open_line,
-                  title: i18n("open_log_dir"),
-                  subtitle: i18n("open_log_dir_desc"),
-                  isLong: true,
-                  onTap: _openLogDirectory,
-                ),
-              ]),
-              const SizedBox(height: 32),
-            ],
-          );
-        },
-      )),
+          context.buildTile(
+            icon: Remix.folder_open_line,
+            title: i18n("open_log_dir"),
+            subtitle: i18n("open_log_dir_desc"),
+            isLong: true,
+            onTap: _openLogDirectory,
+          ),
+        ]),
+      ],
     );
   }
 }

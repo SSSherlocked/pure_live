@@ -58,15 +58,6 @@ class PlatformSettingsPage extends GetView<SettingsService> {
                 Get.toNamed(RoutePath.kSettingsAccount);
               },
             ),
-            context.buildTile(
-              icon: Remix.price_tag_3_line,
-              title: i18n('tag_management'),
-              subtitle: i18n('tag_management_subtitle'),
-              isLong: true,
-              onTap: () {
-                Get.toNamed(RoutePath.kSettingsTags);
-              },
-            ),
           ]),
           const SizedBox(height: 32),
         ],

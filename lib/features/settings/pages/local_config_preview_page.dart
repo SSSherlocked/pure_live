@@ -19,7 +19,6 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
 
   int _favoriteCount = 0;
   int _historyCount = 0;
-  int _tagCount = 0;
 
   @override
   void initState() {
@@ -34,12 +33,9 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
       final favoriteRooms = favoriteData['favoriteRooms'] as List? ?? [];
       final historyData = data['history'] as Map<String, dynamic>? ?? {};
       final historyList = historyData['historyRooms'] ?? historyData['historyList'] ?? [];
-      final tagData = data['tags'] as Map<String, dynamic>? ?? {};
-      final tagList = tagData['tags'] as List? ?? [];
 
       _favoriteCount = favoriteRooms.length;
       _historyCount = historyList is List ? historyList.length : 0;
-      _tagCount = tagList.length;
       _configData = json.decode(json.encode(data)) as Map<String, dynamic>;
     } catch (error) {
       _errorMsg = error.toString();
@@ -142,7 +138,7 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
         final columnCount = textScale > 1.5
             ? 1
             : constraints.maxWidth >= 900
-            ? 4
+            ? 3
             : constraints.maxWidth >= 520
             ? 2
             : 1;
@@ -162,14 +158,6 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
             icon: Remix.history_line,
             label: i18n('history'),
             value: '$_historyCount',
-            theme: theme,
-            isPrimaryColor: true,
-          ),
-          _buildMeta(
-            key: 'tags',
-            icon: Remix.price_tag_3_line,
-            label: i18n('tags'),
-            value: '$_tagCount',
             theme: theme,
             isPrimaryColor: true,
           ),

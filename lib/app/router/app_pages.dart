@@ -5,7 +5,7 @@ import 'package:pure_live/domains/iptv/presentation/iptv_page.dart';
 import 'package:pure_live/features/about/about_page.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_page.dart';
 import 'package:pure_live/domains/live/presentation/search/search_page.dart';
-import 'package:pure_live/features/backup/backup_page.dart';
+import 'package:pure_live/features/settings/pages/cache_data_settings_page.dart';
 import 'package:pure_live/features/splash/splash_screen.dart';
 import 'package:pure_live/features/version/version_page.dart';
 import 'package:pure_live/features/web_dav/web_dav_page.dart';
@@ -17,7 +17,6 @@ import 'package:pure_live/features/about/version_history.dart';
 import 'package:pure_live/domains/live/presentation/search/web_search_page.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_page.dart';
 import 'package:pure_live/features/settings/settings_page.dart';
-import 'package:pure_live/domains/live/presentation/tags/tag_management_page.dart';
 import 'package:pure_live/domains/live/presentation/hot_areas/hot_areas_page.dart';
 import 'package:pure_live/domains/live/presentation/shield/danmu_shield_page.dart';
 import 'package:pure_live/domains/live/presentation/multiview/multiview_page.dart';
@@ -56,7 +55,7 @@ class AppPages {
     GetPage(name: RoutePath.kSettings, page: _smoothPage(SettingsPage.new), bindings: [SettingsBinding()]),
     GetPage(name: RoutePath.kHistory, page: _smoothPage(HistoryPage.new)),
     GetPage(name: RoutePath.kSearch, page: _smoothPage(SearchPage.new), bindings: [SearchBinding()]),
-    GetPage(name: RoutePath.kBackup, page: _smoothPage(BackupPage.new)),
+    GetPage(name: RoutePath.kBackup, page: _smoothPage(CacheDataSettingsPage.new)),
     GetPage(name: RoutePath.kIptv, page: _smoothPage(IptvPage.new)),
     GetPage(name: RoutePath.kAbout, page: _smoothPage(AboutPage.new)),
     GetPage(
@@ -220,11 +219,6 @@ class AppPages {
     ),
     GetPage(name: RoutePath.kWebSearch, page: _smoothPage(() => const WebSearchPage()), bindings: [WebSearchBinding()]),
 
-    GetPage(
-      name: RoutePath.kSettingsTags,
-      page: _smoothPage(() => const TagManagementPage()),
-      bindings: [TagManagementBinding()],
-    ),
     GetPage(
       name: RoutePath.kRemoteSync,
       page: _smoothPage(() => const RemoteSyncPage()),

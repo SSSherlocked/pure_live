@@ -12,12 +12,10 @@ class HotAreasPage extends GetView<HotAreasController> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n('platform_display'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          _buildTipBanner(theme),
-          const SizedBox(height: 16),
           context.buildGroupTitle(i18n('platform_display')),
           Obx(() {
             if (controller.sites.isEmpty) return const SizedBox.shrink();
@@ -101,33 +99,7 @@ class HotAreasPage extends GetView<HotAreasController> {
           }),
           const SizedBox(height: 32),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTipBanner(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Remix.information_line, size: 18, color: theme.colorScheme.primary.withValues(alpha: 0.8)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '${i18n('drag_to_sort_tip')}\n${i18n('at_least_one_platform_required')}',
-              style: AppTextStyles.t13.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
+      )),
     );
   }
 }

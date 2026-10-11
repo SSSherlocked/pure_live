@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
+import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
 import 'package:pure_live/domains/wallpaper/presentation/wallpaper_page.dart';
@@ -52,15 +53,88 @@ class GeneralSettingsPage extends GetView<SettingsService> {
             ),
           ]),
           const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("general")),
+          context.buildGroupTitle(i18n("danmaku_settings")),
           context.buildModernCard([
-            if (Platform.isAndroid || Platform.isWindows)
+            Obx(
+              () => context.buildSwitchTile(
+                title: i18n('show_danmaku'),
+                subtitle: i18n('show_danmaku_subtitle'),
+                // The stored flag is "hide"; the switch shows the opposite.
+                value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
+                autoCommit: false,
+                icon: Remix.chat_smile_2_line,
+                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
+              ),
+            ),
+            Obx(
+              () => context.buildTile(
+                icon: Remix.font_size,
+                title: i18n("change_danmaku_font_family"),
+                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
+                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
+              ),
+            ),
+
+            context.buildTile(
+              icon: Remix.filter_2_line,
+              title: i18n("danmaku_filter"),
+              subtitle: "",
+              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Remix.text,
+                title: i18n('chat_list_font_size'),
+                value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
+                min: 10,
+                max: 28,
+                displayValue: SettingsService.to.danmaku.chatListFontSize.v.round().toString(),
+                onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = v.roundToDouble(),
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Remix.text_spacing,
+                title: i18n('chat_list_item_spacing'),
+                value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
+                min: 0,
+                max: 16,
+                displayValue: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
+                onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v.roundToDouble(),
+              ),
+            ),
+            context.buildSwitchTile(
+              title: i18n('chat_list_bubble'),
+              subtitle: i18n('chat_list_bubble_subtitle'),
+              value: SettingsService.to.danmaku.chatListBubble,
+              icon: Remix.chat_3_line,
+            ),
+            const ChatListColorModeTile(),
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("language_group")),
+          context.buildModernCard([
+            context.buildTile(
+              icon: Remix.global_line,
+              title: i18n("change_language"),
+              subtitle: i18n("change_language_subtitle"),
+              onTap: () => showLanguageSelectDialog(context),
+            ),
+          ]),
+          // Only Android and Windows have entries left in 通用.
+          if (Platform.isAndroid || Platform.isWindows) ...[
+            const SizedBox(height: 20),
+            context.buildGroupTitle(i18n("general")),
+            context.buildModernCard([
               Obx(() {
                 final info = DisplayModeService.info.value;
                 final mode = SettingsService.to.app.refreshRateMode;
                 final suffix = info == null
                     ? ''
-                    : ' · ${info.currentRefreshRate.toStringAsFixed(0)} / ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
+                    : ' · ${info.currentRefreshRate.toStringAsFixed(0)} / '
+                          '${info.maxRefreshRate.toStringAsFixed(0)} Hz';
                 return context.buildTile(
                   title: i18n('refresh_rate_mode'),
                   subtitle: '${_refreshRateModeLabel(mode)} · ${_refreshRateModeDescription(mode)}$suffix',
@@ -70,82 +144,78 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                   onTap: () => _showRefreshRateModeDialog(context),
                 );
               }),
-            if (Platform.isWindows)
-              Obx(() {
-                final info = DisplayModeService.info.value;
-                final mode = info == null
-                    ? i18n('display_mode_detecting')
-                    : '${info.width} × ${info.height} · '
-                          '${info.currentRefreshRate.toStringAsFixed(0)} Hz '
-                          '(${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz)';
-                return context.buildTile(
-                  title: i18n('windows_dynamic_refresh_rate'),
-                  subtitle: '${i18n('windows_dynamic_refresh_rate_subtitle')}\n$mode',
-                  icon: Remix.speed_up_line,
-                  isLong: true,
-                  trailing: const Icon(Icons.refresh_rounded),
-                  onTap: () => DisplayModeService.refreshInfo(),
-                );
-              }),
-            if (Platform.isWindows)
-              context.buildSwitchTile(
-                title: i18n('open_new_window'),
-                subtitle: i18n("open_new_window_subtitle"),
-                value: SettingsService.to.app.enableNewWindowPlay,
-                icon: Icons.add_to_photos_outlined,
-              ),
-            context.buildTile(
-              icon: Remix.global_line,
-              title: i18n("change_language"),
-              subtitle: i18n("change_language_subtitle"),
-              onTap: () => showLanguageSelectDialog(context),
-            ),
-            if (Platform.isWindows) ...[
-              Obx(() {
-                final startup = SettingsService.to.startup;
-                final applying = startup.isApplyingStartup.v;
-                final statusKey = startup.startupStatusKey.v;
-                final subtitleKey = applying
-                    ? 'startup_applying'
-                    : statusKey.isNotEmpty
-                    ? statusKey
-                    : 'startup_subtitle';
-                return SwitchListTile(
-                  key: const ValueKey('windows-startup-switch'),
-                  secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
-                  title: Text(i18n('startup'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(
-                      i18n(subtitleKey),
-                      style: AppTextStyles.t12.copyWith(
-                        color: statusKey.isNotEmpty && !applying
-                            ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).hintColor.withValues(alpha: 0.75),
+              if (Platform.isWindows)
+                Obx(() {
+                  final info = DisplayModeService.info.value;
+                  final mode = info == null
+                      ? i18n('display_mode_detecting')
+                      : '${info.width} × ${info.height} · '
+                            '${info.currentRefreshRate.toStringAsFixed(0)} Hz '
+                            '(${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz)';
+                  return context.buildTile(
+                    title: i18n('windows_dynamic_refresh_rate'),
+                    subtitle: '${i18n('windows_dynamic_refresh_rate_subtitle')}\n$mode',
+                    icon: Remix.speed_up_line,
+                    isLong: true,
+                    trailing: const Icon(Icons.refresh_rounded),
+                    onTap: () => DisplayModeService.refreshInfo(),
+                  );
+                }),
+              if (Platform.isWindows)
+                context.buildSwitchTile(
+                  title: i18n('open_new_window'),
+                  subtitle: i18n("open_new_window_subtitle"),
+                  value: SettingsService.to.app.enableNewWindowPlay,
+                  icon: Icons.add_to_photos_outlined,
+                ),
+              if (Platform.isWindows) ...[
+                Obx(() {
+                  final startup = SettingsService.to.startup;
+                  final applying = startup.isApplyingStartup.v;
+                  final statusKey = startup.startupStatusKey.v;
+                  final subtitleKey = applying
+                      ? 'startup_applying'
+                      : statusKey.isNotEmpty
+                      ? statusKey
+                      : 'startup_subtitle';
+                  return SwitchListTile(
+                    key: const ValueKey('windows-startup-switch'),
+                    secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
+                    title: Text(i18n('startup'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        i18n(subtitleKey),
+                        style: AppTextStyles.t12.copyWith(
+                          color: statusKey.isNotEmpty && !applying
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).hintColor.withValues(alpha: 0.75),
+                        ),
                       ),
                     ),
-                  ),
-                  value: startup.enableStartUp.v,
-                  onChanged: applying ? null : (value) => unawaited(startup.setStartupEnabled(value)),
-                  contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
-                );
-              }),
-              context.buildTile(
-                icon: Remix.aspect_ratio_line,
-                title: i18n("window_size"),
-                subtitle:
-                    "${SettingsService.to.window.resolvedStoredWidth.toInt()} × ${SettingsService.to.window.resolvedStoredHeight.toInt()}",
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _showWindowSizeDialog(context),
-              ),
-              context.buildSwitchTile(
-                title: i18n("no_exit_confirm"),
-                subtitle: "",
-                value: SettingsService.to.exit.dontAskExit,
-                icon: Remix.error_warning_line,
-              ),
-            ],
-          ]),
+                    value: startup.enableStartUp.v,
+                    onChanged: applying ? null : (value) => unawaited(startup.setStartupEnabled(value)),
+                    contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
+                  );
+                }),
+                context.buildTile(
+                  icon: Remix.aspect_ratio_line,
+                  title: i18n("window_size"),
+                  subtitle:
+                      "${SettingsService.to.window.resolvedStoredWidth.toInt()} × "
+                      "${SettingsService.to.window.resolvedStoredHeight.toInt()}",
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => _showWindowSizeDialog(context),
+                ),
+                context.buildSwitchTile(
+                  title: i18n("no_exit_confirm"),
+                  subtitle: "",
+                  value: SettingsService.to.exit.dontAskExit,
+                  icon: Remix.error_warning_line,
+                ),
+              ],
+            ]),
+          ],
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("timer_settings")),
           context.buildModernCard([
@@ -200,36 +270,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               value: SettingsService.to.app.useGitHubOriginForUpdates,
               icon: Remix.github_line,
               isLong: true,
-            ),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("danmaku_settings")),
-          context.buildModernCard([
-            Obx(
-              () => context.buildSwitchTile(
-                title: i18n('show_danmaku'),
-                subtitle: i18n('show_danmaku_subtitle'),
-                // The stored flag is "hide"; the switch shows the opposite.
-                value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
-                autoCommit: false,
-                icon: Remix.chat_smile_2_line,
-                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
-              ),
-            ),
-            Obx(
-              () => context.buildTile(
-                icon: Remix.font_size,
-                title: i18n("change_danmaku_font_family"),
-                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
-                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
-              ),
-            ),
-
-            context.buildTile(
-              icon: Remix.filter_2_line,
-              title: i18n("danmaku_filter"),
-              subtitle: "",
-              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
             ),
           ]),
           const SizedBox(height: 32),

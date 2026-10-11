@@ -2538,5 +2538,13 @@
   "backup_section_recorder": "Recording settings",
   "rail_settings": "Sidebar",
   "rail_show_labels": "Show labels",
-  "rail_show_labels_subtitle": "Show page names under the sidebar icons"
+  "rail_show_labels_subtitle": "Show page names under the sidebar icons",
+  "language_group": "Language",
+  "chat_list_bubble": "Bubble style",
+  "chat_list_bubble_subtitle": "Show chat list messages in rounded bubbles",
+  "chat_list_color_mode": "Danmaku colour",
+  "chat_list_color_mode_subtitle": "How the chat list shows each message's colour",
+  "chat_list_color_none": "Off",
+  "chat_list_color_dot": "Dot",
+  "chat_list_color_text": "Coloured text"
 }

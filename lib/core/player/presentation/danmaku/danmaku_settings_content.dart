@@ -6,6 +6,7 @@ import 'package:pure_live/core/widgets/uniform_scale.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_viewing_preset.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
+import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 
 class DanmakuSettingsPage extends StatelessWidget {
   const DanmakuSettingsPage({super.key, required this.controller, this.scale = 1, this.footer});
@@ -202,6 +203,15 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),
+              _switch(
+                theme,
+                title: i18n('chat_list_bubble'),
+                subtitle: i18n('chat_list_bubble_subtitle'),
+                value: SettingsService.to.danmaku.chatListBubble.v,
+                onChanged: (v) => SettingsService.to.danmaku.chatListBubble.v = v,
+                labelColor: labelColor,
+              ),
+              ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
             ],
           ),
           const SizedBox(height: 20),

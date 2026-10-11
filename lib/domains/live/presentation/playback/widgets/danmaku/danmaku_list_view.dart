@@ -11,6 +11,7 @@ import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
+import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_message_actions.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_arrival_counter.dart';
@@ -447,7 +448,16 @@ class DanmakuItem extends StatelessWidget {
       final settings = SettingsService.to.danmaku;
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final spacing = settings.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble();
-      return _buildCard(context, vibrantColor, cardBgColor, textColor, fontSize, spacing);
+      return _buildCard(
+        context,
+        vibrantColor,
+        cardBgColor,
+        textColor,
+        fontSize,
+        spacing,
+        bubble: settings.chatListBubble.v,
+        colorMode: settings.resolvedChatListColorMode,
+      );
     });
   }
 
@@ -457,30 +467,36 @@ class DanmakuItem extends StatelessWidget {
     Color cardBgColor,
     Color textColor,
     double fontSize,
-    double spacing,
-  ) {
+    double spacing, {
+    required bool bubble,
+    required ChatListColorMode colorMode,
+  }) {
     final base = AppTextStyles.t14.copyWith(fontSize: fontSize);
+    final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
     return RepaintBoundary(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: spacing),
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: cardBgColor,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: vibrantColor.withValues(alpha: 0.08), width: 0.5),
-          ),
+          decoration: bubble
+              ? BoxDecoration(
+                  color: cardBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: vibrantColor.withValues(alpha: 0.08), width: 0.5),
+                )
+              : const BoxDecoration(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: bubble ? 12 : 4, vertical: bubble ? 8 : 2),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  margin: EdgeInsets.only(top: fontSize * 0.45, right: 10),
-                  decoration: BoxDecoration(color: vibrantColor, shape: BoxShape.circle),
-                ),
+                if (colorMode == ChatListColorMode.dot)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: EdgeInsets.only(top: fontSize * 0.45, right: 10),
+                    decoration: BoxDecoration(color: vibrantColor, shape: BoxShape.circle),
+                  ),
 
                 Expanded(
                   child: GestureDetector(
@@ -538,7 +554,7 @@ class DanmakuItem extends StatelessWidget {
                             children: parseEmojis(
                               danmaku.message,
                               fontSize,
-                              textColor,
+                              messageColor,
                               emoteUrls: danmaku.emotes.isEmpty
                                   ? null
                                   : {for (final emote in danmaku.emotes) emote.code: emote.url},
@@ -546,7 +562,7 @@ class DanmakuItem extends StatelessWidget {
                             style: base.copyWith(
                               height: 1.45,
                               fontWeight: FontWeight.w500,
-                              color: textColor,
+                              color: messageColor,
                             ),
                           ),
                         ],

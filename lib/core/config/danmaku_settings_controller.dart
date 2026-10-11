@@ -69,6 +69,14 @@ class DanmakuSettingsController extends GetxController {
 
   /// Vertical gap between chat list messages in the room side panel.
   final RxDouble chatListItemSpacing = hiveDouble('chatListItemSpacing', defaultChatListItemSpacing);
+
+  /// Whether chat list messages sit in rounded bubbles.
+  final RxBool chatListBubble = hiveBool('chatListBubble', true);
+
+  /// How a message's danmaku colour shows in the chat list; a [ChatListColorMode] name.
+  final RxString chatListColorMode = hiveString('chatListColorMode', ChatListColorMode.dot.name);
+
+  ChatListColorMode get resolvedChatListColorMode => ChatListColorMode.fromName(chatListColorMode.v);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
   final RxDouble danmakuTopArea = hiveDouble('danmakuTopArea', defaultDanmakuTopArea);
   final RxDouble danmakuArea = hiveDouble('danmakuArea', defaultDanmakuArea);
@@ -183,6 +191,8 @@ class DanmakuSettingsController extends GetxController {
       'hideDanmaku': hideDanmaku.v,
       'chatListFontSize': chatListFontSize.v,
       'chatListItemSpacing': chatListItemSpacing.v,
+      'chatListBubble': chatListBubble.v,
+      'chatListColorMode': chatListColorMode.v,
       'noEmojiMode': noEmojiMode.v,
       'danmakuTopArea': danmakuTopArea.v,
       'danmakuArea': danmakuArea.v,
@@ -228,6 +238,8 @@ class DanmakuSettingsController extends GetxController {
       'danmakuMaxVisibleCount': typed<int>(
         _boundedInt(json['danmakuMaxVisibleCount'], fallback: defaultDanmakuMaxVisibleCount, min: 10, max: 120),
       ),
+      'chatListBubble': typed<bool>(json['chatListBubble'] ?? true),
+      'chatListColorMode': ChatListColorMode.fromName(json['chatListColorMode']).name,
       'noEmojiMode': typed<bool>(json['noEmojiMode'] ?? defaultNoEmojiMode),
       'danmakuTopArea': typed<double>(
         _boundedDouble(json['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
@@ -294,6 +306,8 @@ class DanmakuSettingsController extends GetxController {
     hideDanmaku.v = parsed['hideDanmaku'];
     chatListFontSize.v = parsed['chatListFontSize'];
     chatListItemSpacing.v = parsed['chatListItemSpacing'];
+    chatListBubble.v = parsed['chatListBubble'];
+    chatListColorMode.v = parsed['chatListColorMode'];
     danmakuMaxVisibleCount.v = parsed['danmakuMaxVisibleCount'];
     noEmojiMode.v = parsed['noEmojiMode'];
     danmakuTopArea.v = parsed['danmakuTopArea'];
@@ -340,6 +354,8 @@ class DanmakuSettingsController extends GetxController {
         min: 0,
         max: 16,
       ),
+      'chatListBubble': danmaku['chatListBubble'] ?? true,
+      'chatListColorMode': ChatListColorMode.fromName(danmaku['chatListColorMode']).name,
       'danmakuMaxVisibleCount': _boundedInt(
         danmaku['danmakuMaxVisibleCount'],
         fallback: defaultDanmakuMaxVisibleCount,
@@ -430,4 +446,19 @@ class DanmakuSettingsController extends GetxController {
     rootConfig['danmaku'] = danmaku;
     return rootConfig;
   }
+}
+
+/// How the chat list shows each message's danmaku colour.
+enum ChatListColorMode {
+  /// No colour mark.
+  none,
+
+  /// A coloured dot before the message.
+  dot,
+
+  /// The message text itself in that colour.
+  text;
+
+  static ChatListColorMode fromName(Object? name) =>
+      values.firstWhere((mode) => mode.name == name, orElse: () => ChatListColorMode.dot);
 }

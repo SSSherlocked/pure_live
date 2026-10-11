@@ -2538,5 +2538,13 @@
   "backup_section_recorder": "录制设置",
   "rail_settings": "侧边栏",
   "rail_show_labels": "显示底部文字",
-  "rail_show_labels_subtitle": "在侧边栏图标下方显示页面名称"
+  "rail_show_labels_subtitle": "在侧边栏图标下方显示页面名称",
+  "language_group": "语言",
+  "chat_list_bubble": "气泡样式",
+  "chat_list_bubble_subtitle": "聊天列表的消息显示在圆角气泡中",
+  "chat_list_color_mode": "弹幕颜色",
+  "chat_list_color_mode_subtitle": "在聊天列表中标出每条弹幕的颜色",
+  "chat_list_color_none": "不显示",
+  "chat_list_color_dot": "圆点",
+  "chat_list_color_text": "文字着色"
 }

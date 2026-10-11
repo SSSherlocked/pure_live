@@ -83,8 +83,32 @@ jobs:
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Test
         run: flutter test --concurrency=12
-      - name: Probe public interfaces
-        run: python tool/interface_probe.py
+      # Report-only: third-party live-platform endpoints flake from hosted
+      # runners, so a failed probe raises warnings instead of blocking builds.
+      - name: Probe public interfaces (report only)
+        shell: bash
+        run: |
+          set -uo pipefail
+          python tool/interface_probe.py 2>&1 | tee probe.log
+          status=${PIPESTATUS[0]}
+          {
+            echo "### Public interface probe"
+            echo
+            grep -E '^SUMMARY' probe.log || echo "No summary line (exit $status)."
+            if grep -qE '^FAIL ' probe.log; then
+              echo
+              echo '```'
+              grep -E '^FAIL ' probe.log
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          grep -E '^FAIL ' probe.log | cut -c1-300 | while IFS= read -r line; do
+            echo "::warning title=Interface probe::${line}"
+          done
+          if [[ "$status" -ne 0 ]]; then
+            echo "::warning title=Interface probe::Probe exited with $status; builds continue."
+          fi
+          exit 0
   android:
     name: Android all ABIs
     needs: quality

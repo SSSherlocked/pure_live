@@ -66,9 +66,9 @@ A third-party live stream aggregator built with Flutter.
 
 | 平台 | 安装包 | 系统要求 |
 | --- | --- | --- |
-| 📱 Android | APK（arm64-v8a / armeabi-v7a / x86_64，以 Release 实际发布为准） | Android 8.0（API 26）及以上 |
+| 📱 Android | APK（arm64-v8a） | Android 8.0（API 26）及以上 |
 | 🖥️ Windows | EXE 安装器 / 便携 ZIP | Windows 10 / 11 x64 |
-| 🍎 macOS | Universal DMG / ZIP | Apple Silicon + Intel |
+| 🍎 macOS | Universal ZIP | Apple Silicon + Intel |
 | 🐧 Linux | Portable tar.gz | x64 |
 | 📲 iOS | TrollStore IPA / 未签名 ZIP | arm64 |
 

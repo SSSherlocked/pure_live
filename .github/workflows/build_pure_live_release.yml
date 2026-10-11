@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       build_android:
-        description: Build Android Release APKs for all ABIs
+        description: Build Android arm64-v8a Release APK
         required: true
         type: boolean
         default: true
@@ -113,7 +113,7 @@ jobs:
           fi
           exit 0
   android:
-    name: Android all ABIs
+    name: Android arm64-v8a
     needs: quality
     if: >-
       ${{
@@ -161,7 +161,7 @@ jobs:
           dart run enven \
             --env-files .env,.env.prod \
             --class-name AppConfig
-      - name: Build Android release APKs for all ABIs
+      - name: Build Android arm64-v8a release APK
         env:
           # CI runners are ephemeral, so the configuration cache would be
           # stored but never reused. With android/gradle.properties keeping
@@ -174,33 +174,23 @@ jobs:
           flutter build apk \
             --release \
             --split-per-abi \
+            --target-platform android-arm64 \
             --dart-define=PURELIVE_BUILD_SOURCE=github-manual
       - uses: ./.github/actions/get-version
         id: version
-      - name: Rename Android APKs
+      - name: Rename Android APK
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.artifact_version }}"
-          APK_DIR="build/app/outputs/flutter-apk"
-          declare -A APK_MAP=(
-            ["app-arm64-v8a-release.apk"]="PureLive-${VERSION}-android-arm64-v8a-release.apk"
-            ["app-armeabi-v7a-release.apk"]="PureLive-${VERSION}-android-armeabi-v7a-release.apk"
-            ["app-x86_64-release.apk"]="PureLive-${VERSION}-android-x86_64-release.apk"
-          )
-          for source in "${!APK_MAP[@]}"; do
-            target="${APK_MAP[$source]}"
-            if [[ ! -f "$APK_DIR/$source" ]]; then
-              echo "Missing Android APK: $APK_DIR/$source"
-              exit 1
-            fi
-            cp "$APK_DIR/$source" "$target"
-            echo "Created: $target"
-          done
-          ls -lh \
-            "PureLive-${VERSION}-android-arm64-v8a-release.apk" \
-            "PureLive-${VERSION}-android-armeabi-v7a-release.apk" \
-            "PureLive-${VERSION}-android-x86_64-release.apk"
+          source="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
+          target="PureLive-${VERSION}-android-arm64-v8a-release.apk"
+          if [[ ! -f "$source" ]]; then
+            echo "Missing Android APK: $source"
+            exit 1
+          fi
+          cp "$source" "$target"
+          ls -lh "$target"
       - name: Generate Android SHA256SUM file
         shell: bash
         run: |
@@ -209,8 +199,6 @@ jobs:
           SHA_FILE="ANDROID_SHA256SUM.txt"
           rm -f "$SHA_FILE"
           sha256sum "PureLive-${VERSION}-android-arm64-v8a-release.apk" >> "$SHA_FILE"
-          sha256sum "PureLive-${VERSION}-android-armeabi-v7a-release.apk" >> "$SHA_FILE"
-          sha256sum "PureLive-${VERSION}-android-x86_64-release.apk" >> "$SHA_FILE"
           cat "$SHA_FILE"
       - name: Verify Android SHA256SUM
         shell: bash
@@ -223,8 +211,6 @@ jobs:
           name: pure-live-android
           path: |
             PureLive-*-android-arm64-v8a-release.apk
-            PureLive-*-android-armeabi-v7a-release.apk
-            PureLive-*-android-x86_64-release.apk
             ANDROID_SHA256SUM.txt
           if-no-files-found: error
           retention-days: 3
@@ -540,14 +526,6 @@ jobs:
           VERSION="${{ steps.version.outputs.artifact_version }}"
           APP="${{ steps.macos_app.outputs.app_path }}"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-macos-universal.zip"
-      - name: Build macOS DMG
-        if: ${{ inputs.build_macos }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
-          APP="${{ steps.macos_app.outputs.app_path }}"
-          hdiutil create -volname "PureLive" -srcfolder "$APP" -ov -format UDZO "PureLive-${VERSION}-macos-universal.dmg"
       - name: Verify macOS packages
         if: ${{ inputs.build_macos }}
         shell: bash
@@ -555,8 +533,7 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.artifact_version }}"
           test -f "PureLive-${VERSION}-macos-universal.zip"
-          test -f "PureLive-${VERSION}-macos-universal.dmg"
-          ls -lh "PureLive-${VERSION}-macos-universal.zip" "PureLive-${VERSION}-macos-universal.dmg"
+          ls -lh "PureLive-${VERSION}-macos-universal.zip"
       - name: Upload macOS artifacts
         if: ${{ inputs.build_macos }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -564,7 +541,6 @@ jobs:
           name: pure-live-macos
           path: |
             PureLive-*-macos-universal.zip
-            PureLive-*-macos-universal.dmg
           if-no-files-found: error
           retention-days: 3
       - name: Build iOS device application
@@ -830,12 +806,10 @@ jobs:
           ### 🍎 macOS 版
           - macOS 桌面版
           - Universal：Apple Silicon + Intel
-          - ZIP / DMG
+          - ZIP
           ### 📱 Android 版
           - Android 8.0+（API 26，FFmpegKit 录制依赖要求）
           - ARM64-v8a
-          - ARMv7
-          - x86_64
           - 统一 SHA256 校验文件：[**ANDROID_SHA256SUM.txt**](https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/ANDROID_SHA256SUM.txt)
           ### 🐧 Linux 版
           - Linux x64

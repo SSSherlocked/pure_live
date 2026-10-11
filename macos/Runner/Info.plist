@@ -34,5 +34,9 @@
     <array>
       <string>purelive</string> 
     </array>
+    <!-- Impeller garbles text on macOS while the GPU is busy (video
+         playback): flutter/flutter#193927. Render with Skia instead. -->
+    <key>FLTEnableImpeller</key>
+    <false/>
   </dict>
 </plist>

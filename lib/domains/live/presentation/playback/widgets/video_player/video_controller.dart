@@ -885,6 +885,23 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     await trySetVolume(value);
   }
 
+  /// Level to come back to when the mute button unmutes.
+  double _volumeBeforeMute = 0;
+
+  /// One-tap mute: a playing room goes to 0, a silent one returns to the level
+  /// it had before muting (or the platform default when it started muted).
+  Future<void> toggleMute() async {
+    final current = currentVolume.value;
+    if (current > 0) {
+      _volumeBeforeMute = current;
+      await setVolume(0);
+      return;
+    }
+    final fallback = _settingsService.vol.currentPlatformDefaultVolume;
+    final restore = _volumeBeforeMute > 0 ? _volumeBeforeMute : (fallback > 0 ? fallback : 1.0);
+    await setVolume(restore);
+  }
+
   /// Applies a user-requested volume and reports whether the active room still
   /// owned the operation. Ordinary controls keep using [setVolume], while
   /// transactional UI can retain its draft when the platform write fails.

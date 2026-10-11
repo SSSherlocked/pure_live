@@ -1470,8 +1470,9 @@ class BottomActionBar extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Quality and line stay on the bar in every mode, so entering or
-        // leaving fullscreen never shifts the controls around.
+        // One-tap mute, then quality and line: both stay on the bar in every
+        // mode, so entering or leaving fullscreen never shifts the controls.
+        MuteToggleButton(controller: controller),
         FullscreenStreamSelectorButton(controller: controller, compact: compact),
         // These two belong to the PORTRAIT fullscreen bar. Rendering them in
         // a landscape room's inline bar is what pushed the fullscreen button
@@ -1588,6 +1589,33 @@ class ExpandButton extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
         onPressed: () => controller.toggleFullScreen(),
         icon: Icon(expanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded, color: Colors.white, size: 26),
+      );
+    });
+  }
+}
+
+/// Speaker icon that mutes or restores the room in one tap. It shows the
+/// current state: a speaker while sound plays, a crossed-out speaker at 0.
+class MuteToggleButton extends StatelessWidget {
+  const MuteToggleButton({super.key, required this.controller});
+
+  final VideoController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final muted = controller.currentVolume.value <= 0;
+      return IconButton(
+        key: const ValueKey('player-mute-toggle'),
+        visualDensity: VisualDensity.standard,
+        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        iconSize: 21,
+        color: Colors.white,
+        onPressed: () {
+          controller.enableController();
+          unawaited(controller.toggleMute());
+        },
+        icon: Icon(muted ? Icons.volume_off_rounded : Icons.volume_up_rounded),
       );
     });
   }

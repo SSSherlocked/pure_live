@@ -86,31 +86,35 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
             ),
             if (_isMobile)
               Obx(
-                () => context.buildSliderTile(
-                  context,
-                  icon: Remix.phone_line,
-                  title: i18n("mobile_default_volume"),
-                  value: SettingsService.to.vol.defaultMobileVolume.v * 100,
-                  min: 0.0,
-                  max: 100.0,
-                  displayValue: "${(SettingsService.to.vol.defaultMobileVolume.v * 100).toStringAsFixed(0)}%",
-                  onChanged: (val) =>
-                      SettingsService.to.vol.defaultMobileVolume.v = double.parse((val / 100).toStringAsFixed(2)),
+                () => _mutedAware(
+                  context.buildSliderTile(
+                    context,
+                    icon: Remix.phone_line,
+                    title: i18n("mobile_default_volume"),
+                    value: SettingsService.to.vol.defaultMobileVolume.v * 100,
+                    min: 0.0,
+                    max: 100.0,
+                    displayValue: "${(SettingsService.to.vol.defaultMobileVolume.v * 100).toStringAsFixed(0)}%",
+                    onChanged: (val) =>
+                        SettingsService.to.vol.defaultMobileVolume.v = double.parse((val / 100).toStringAsFixed(2)),
+                  ),
                 ),
               ),
             if (_isDesktop)
               Obx(
-                () => context.buildSliderTile(
-                  context,
-                  icon: Remix.computer_line,
-                  title: i18n("desktop_default_volume"),
-                  value: SettingsService.to.vol.defaultDesktopVolume.v * 100,
-                  min: 0.0,
-                  max: 100.0,
-                  displayValue: "${(SettingsService.to.vol.defaultDesktopVolume.v * 100).toStringAsFixed(0)}%",
-                  onChanged: (val) {
-                    SettingsService.to.vol.defaultDesktopVolume.v = double.parse((val / 100).toStringAsFixed(2));
-                  },
+                () => _mutedAware(
+                  context.buildSliderTile(
+                    context,
+                    icon: Remix.computer_line,
+                    title: i18n("desktop_default_volume"),
+                    value: SettingsService.to.vol.defaultDesktopVolume.v * 100,
+                    min: 0.0,
+                    max: 100.0,
+                    displayValue: "${(SettingsService.to.vol.defaultDesktopVolume.v * 100).toStringAsFixed(0)}%",
+                    onChanged: (val) {
+                      SettingsService.to.vol.defaultDesktopVolume.v = double.parse((val / 100).toStringAsFixed(2));
+                    },
+                  ),
                 ),
               ),
           ]),
@@ -774,4 +778,11 @@ String _formatAsmrDuration(int minutes) {
   if (minutes % 1440 == 0) return '${minutes ~/ 1440} ${i18n('day')}';
   if (minutes % 60 == 0) return '${minutes ~/ 60} ${i18n('hour')}';
   return '$minutes ${i18n('minute')}';
+}
+
+/// While 默认静音 is on rooms start silent, so the default-volume slider has
+/// no effect: show it greyed out and ignore input.
+Widget _mutedAware(Widget slider) {
+  final muted = SettingsService.to.vol.globalVolumeMute.v;
+  return IgnorePointer(ignoring: muted, child: Opacity(opacity: muted ? 0.4 : 1, child: slider));
 }

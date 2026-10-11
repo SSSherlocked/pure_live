@@ -127,7 +127,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Obx(() {
+      body: SettingsContentWidth(child: Obx(() {
         final fontModels = SettingsService.to.font.fontList;
 
         return CustomScrollView(
@@ -167,7 +167,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         );
-      }),
+      })),
     );
   }
 

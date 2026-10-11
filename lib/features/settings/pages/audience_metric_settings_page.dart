@@ -31,7 +31,7 @@ class AudienceMetricSettingsPage extends StatelessWidget {
     final app = SettingsService.to.app;
     return Scaffold(
       appBar: AppBar(title: Text(i18n('audience_metric_settings'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -85,7 +85,7 @@ class AudienceMetricSettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 }

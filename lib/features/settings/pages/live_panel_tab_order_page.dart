@@ -31,7 +31,7 @@ class LivePanelTabOrderPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Obx(() {
+      body: SettingsContentWidth(child: Obx(() {
         final order = SettingsService.to.theme.resolvedLivePanelTabOrder;
         return ReorderableListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -66,7 +66,7 @@ class LivePanelTabOrderPage extends StatelessWidget {
             );
           },
         );
-      }),
+      })),
     );
   }
 }

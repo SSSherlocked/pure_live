@@ -432,7 +432,7 @@ class _LoadingStyleSettingsPageState extends State<LoadingStyleSettingsPage> wit
           ),
         ],
       ),
-      body: CustomScrollView(
+      body: SettingsContentWidth(child: CustomScrollView(
         physics: const PureLiveScrollPhysics(),
         slivers: [
           SliverPadding(
@@ -541,7 +541,7 @@ class _LoadingStyleSettingsPageState extends State<LoadingStyleSettingsPage> wit
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }

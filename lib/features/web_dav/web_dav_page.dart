@@ -68,7 +68,7 @@ class _WebDavPageState extends State<WebDavPage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: LayoutBuilder(
+      body: SettingsContentWidth(child: LayoutBuilder(
         builder: (context, constraints) {
           final breadcrumbExtent = _breadcrumbHeaderExtent(context);
           final minimumStateHeight = (constraints.maxHeight - kToolbarHeight - breadcrumbExtent)
@@ -85,7 +85,7 @@ class _WebDavPageState extends State<WebDavPage> {
             ],
           );
         },
-      ),
+      )),
       endDrawer: _buildDrawer(context),
       floatingActionButton: Obx(
         () => FloatingActionButton(

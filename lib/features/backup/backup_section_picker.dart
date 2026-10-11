@@ -56,7 +56,7 @@ class _BackupSectionPickerPageState extends State<BackupSectionPickerPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -90,7 +90,7 @@ class _BackupSectionPickerPageState extends State<BackupSectionPickerPage> {
           ),
           const SizedBox(height: 12),
         ],
-      ),
+      )),
       bottomNavigationBar: Material(
         color: theme.colorScheme.surface,
         child: SafeArea(

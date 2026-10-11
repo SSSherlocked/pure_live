@@ -18,7 +18,7 @@ class MpvOptionPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -51,7 +51,7 @@ class MpvOptionPage extends StatelessWidget {
           ]),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 }

@@ -29,7 +29,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n("player_kernel_settings"))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -118,7 +118,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
           }),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 

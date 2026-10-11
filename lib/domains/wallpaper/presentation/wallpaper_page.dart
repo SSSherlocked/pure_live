@@ -53,7 +53,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n('ui_background_settings'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
@@ -160,7 +160,7 @@ class _WallpaperPageState extends State<WallpaperPage> {
             ),
           ]),
         ],
-      ),
+      )),
     );
   }
 

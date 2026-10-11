@@ -112,7 +112,7 @@ class _PlayerGuidePageState extends State<PlayerGuidePage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n('player_guide_title'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         physics: const PureLiveScrollPhysics(),
         children: [
@@ -140,7 +140,7 @@ class _PlayerGuidePageState extends State<PlayerGuidePage> {
               ),
             ),
         ],
-      ),
+      )),
     );
   }
 

@@ -55,16 +55,16 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(),
-        body: Center(child: AppStatusView(type: AppStatusType.loading)),
+        body: SettingsContentWidth(child: Center(child: AppStatusView(type: AppStatusType.loading))),
       );
     }
 
     if (_errorMsg.isNotEmpty) {
       return Scaffold(
         appBar: AppBar(),
-        body: Center(
+        body: SettingsContentWidth(child: Center(
           child: AppStatusView(type: AppStatusType.error, title: _errorMsg),
-        ),
+        )),
       );
     }
 
@@ -83,7 +83,7 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
         elevation: 0,
         scrolledUnderElevation: 1,
       ),
-      body: LayoutBuilder(
+      body: SettingsContentWidth(child: LayoutBuilder(
         builder: (context, viewportConstraints) {
           final rawPreviewHeight = (viewportConstraints.maxHeight * 0.7).clamp(320.0, 720.0).toDouble();
           return CustomScrollView(
@@ -126,7 +126,7 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
             ],
           );
         },
-      ),
+      )),
     );
   }
 

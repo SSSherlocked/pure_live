@@ -16,7 +16,7 @@ class PlayerPresetPage extends GetView<SettingsService> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n('player_preset_section'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.all(12),
         children: [
@@ -45,7 +45,7 @@ class PlayerPresetPage extends GetView<SettingsService> {
                 ),
               ),
         ],
-      ),
+      )),
     );
   }
 }

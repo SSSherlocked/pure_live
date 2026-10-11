@@ -21,14 +21,14 @@ class WallpaperApiGroupPage extends StatelessWidget {
     if (group == null) {
       return Scaffold(
         appBar: AppBar(title: Text(i18n('wallpaper_api_group'))),
-        body: AppStatusView(type: AppStatusType.empty, title: i18n('background_no_category'), subtitle: ''),
+        body: SettingsContentWidth(child: AppStatusView(type: AppStatusType.empty, title: i18n('background_no_category'), subtitle: '')),
       );
     }
 
     final WallpaperApiGroup resolved = group;
     return Scaffold(
       appBar: AppBar(title: Text(i18n(resolved.nameKey))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         physics: const PureLiveScrollPhysics(),
         children: <Widget>[
@@ -42,7 +42,8 @@ class WallpaperApiGroupPage extends StatelessWidget {
                 onTap: () => Get.to<void>(() => WallpaperPreviewPage.api(source)),
               ),
           ]),
-        ],),
+        ],
+      )),
     );
   }
 }

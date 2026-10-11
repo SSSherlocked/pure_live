@@ -15,7 +15,7 @@ class WallpaperApiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(i18n('wallpaper_api_group'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         physics: const PureLiveScrollPhysics(),
         children: <Widget>[
@@ -30,7 +30,7 @@ class WallpaperApiPage extends StatelessWidget {
               ),
           ]),
         ],
-      ),
+      )),
     );
   }
 }

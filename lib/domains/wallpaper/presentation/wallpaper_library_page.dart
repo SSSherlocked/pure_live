@@ -20,7 +20,7 @@ class WallpaperLibraryPage extends StatelessWidget {
     return Scaffold(
       // Transparent so the wallpaper painted behind the navigator stays visible.
       appBar: AppBar(title: Text(i18n('wallpaper_library'))),
-      body: sources.isEmpty
+      body: SettingsContentWidth(child: sources.isEmpty
           ? AppStatusView(type: AppStatusType.empty, title: i18n('background_catalog_empty'), subtitle: '')
           : ListView(
               physics: const PureLiveScrollPhysics(),
@@ -44,7 +44,7 @@ class WallpaperLibraryPage extends StatelessWidget {
                     ),
                 ]),
               ],
-            ),
+            )),
     );
   }
 

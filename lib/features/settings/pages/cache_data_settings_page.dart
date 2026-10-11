@@ -150,7 +150,7 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n("data_and_backup"))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -247,7 +247,7 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
           ]),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 }

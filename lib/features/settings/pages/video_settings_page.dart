@@ -72,7 +72,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n("video_settings"))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -330,7 +330,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 

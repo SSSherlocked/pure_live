@@ -9,7 +9,7 @@ class RefreshSettingsPage extends GetView<RefreshConfigController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(i18n("refresh_settings"))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -68,7 +68,7 @@ class RefreshSettingsPage extends GetView<RefreshConfigController> {
           ]),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 

@@ -45,7 +45,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
           ),
         ],
       ),
-      body: Obx(() {
+      body: SettingsContentWidth(child: Obx(() {
         final config = controller.configFor(_viewport);
         final preset = controller.presetFor(_viewport);
         return ListView(
@@ -179,7 +179,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             ),
           ],
         );
-      }),
+      })),
     );
   }
 

@@ -31,7 +31,7 @@ class _FontSettingsPageState extends State<FontSettingsPage> {
           ),
         ],
       ),
-      body: Obx(
+      body: SettingsContentWidth(child: Obx(
         () => Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
@@ -120,7 +120,7 @@ class _FontSettingsPageState extends State<FontSettingsPage> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 

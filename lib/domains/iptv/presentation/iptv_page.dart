@@ -118,7 +118,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(i18n("iptv_settings"))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -224,7 +224,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
           ]),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 

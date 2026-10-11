@@ -16,7 +16,7 @@ class PortraitLiveSettingsPage extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(i18n('portrait_live_settings'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -168,7 +168,7 @@ class PortraitLiveSettingsPage extends StatelessWidget {
           ]),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 

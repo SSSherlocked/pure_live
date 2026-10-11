@@ -77,7 +77,7 @@ class _BackupPageState extends State<BackupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(i18n("backup_recover"))),
-      body: Builder(
+      body: SettingsContentWidth(child: Builder(
         builder: (context) {
           return ListView(
             physics: const PureLiveScrollPhysics(),
@@ -215,7 +215,7 @@ class _BackupPageState extends State<BackupPage> {
             ],
           );
         },
-      ),
+      )),
     );
   }
 }

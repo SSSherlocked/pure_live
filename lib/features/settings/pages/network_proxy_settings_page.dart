@@ -133,7 +133,7 @@ class _NetworkProxySettingsPageState extends State<NetworkProxySettingsPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n("network_proxy_settings"))),
-      body: Obx(() {
+      body: SettingsContentWidth(child: Obx(() {
         return ListView(
           physics: const PureLiveScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -185,7 +185,7 @@ class _NetworkProxySettingsPageState extends State<NetworkProxySettingsPage> {
             const SizedBox(height: 32),
           ],
         );
-      }),
+      })),
     );
   }
 }

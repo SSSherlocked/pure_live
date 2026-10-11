@@ -1,7 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/iptv/presentation/iptv_page.dart';
-import 'package:pure_live/features/backup/backup_page.dart';
 import 'package:pure_live/features/settings/pages/video_settings_page.dart';
 import 'package:pure_live/features/settings/pages/local_config_preview_page.dart';
 import 'package:pure_live/features/settings/pages/general_settings_page.dart';
@@ -48,7 +47,8 @@ class SettingsPage extends GetView<SettingsService> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
           // One flat list: no group headings. Theme, background, navigation
-          // and refresh live inside 通用; 播放器内核 lives inside 视频.
+          // and refresh live inside 通用; 播放器内核 inside 视频; 备份与恢复
+          // inside 数据管理与备份.
           context.buildModernCard([
             context.buildTile(
               icon: Remix.settings_4_line,
@@ -82,15 +82,9 @@ class SettingsPage extends GetView<SettingsService> {
             ),
             context.buildTile(
               icon: Remix.database_2_line,
-              title: i18n("cache_and_data"),
-              subtitle: i18n("cache_and_data_desc"),
+              title: i18n("data_and_backup"),
+              subtitle: i18n("data_and_backup_desc"),
               onTap: () => Get.to(() => const CacheDataSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.cloud_line,
-              title: i18n("backup_recover"),
-              subtitle: i18n("backup_recover_desc"),
-              onTap: () => Get.to(() => const BackupPage()),
             ),
           ]),
           const SizedBox(height: 32),

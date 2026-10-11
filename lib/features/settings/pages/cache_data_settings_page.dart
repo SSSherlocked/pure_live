@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/features/backup/backup_page.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:pure_live/core/config/cache_controller.dart';
 
@@ -148,12 +149,21 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(i18n("cache_and_data"))),
+      appBar: AppBar(title: Text(i18n("data_and_backup"))),
       body: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          context.buildGroupTitle(i18n("cache_and_data")),
+          // 备份与恢复 is part of 数据管理与备份, reached from here.
+          context.buildModernCard([
+            context.buildTile(
+              icon: Remix.cloud_line,
+              title: i18n("backup_recover"),
+              subtitle: i18n("backup_recover_desc"),
+              onTap: () => Get.to(() => const BackupPage()),
+            ),
+          ]),
+          const SizedBox(height: 20),
           context.buildModernCard([
             Obx(() {
               final size = SettingsService.to.cache.cacheSizeMB.value;

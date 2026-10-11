@@ -2572,5 +2572,7 @@
   "room_card_width": "卡片宽度",
   "panel_tab_danmaku": "弹幕",
   "panel_tab_super_chat": "留言",
-  "panel_tab_settings": "设置"
+  "panel_tab_settings": "设置",
+  "data_and_backup": "数据管理与备份",
+  "data_and_backup_desc": "缓存、数据清理与备份恢复"
 }

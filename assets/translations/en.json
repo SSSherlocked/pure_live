@@ -2572,5 +2572,7 @@
   "room_card_width": "Card width",
   "panel_tab_danmaku": "Chat",
   "panel_tab_super_chat": "SC",
-  "panel_tab_settings": "Settings"
+  "panel_tab_settings": "Settings",
+  "data_and_backup": "Data & backup",
+  "data_and_backup_desc": "Cache, data cleanup, backup and restore"
 }

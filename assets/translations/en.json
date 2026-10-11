@@ -2575,5 +2575,6 @@
   "panel_tab_settings": "Settings",
   "data_and_backup": "Data & backup",
   "data_and_backup_desc": "Cache, data cleanup, backup and restore",
-  "playback_auto_reconnect": "Network lost. Playback will reconnect automatically"
+  "playback_auto_reconnect": "Network lost. Playback will reconnect automatically",
+  "kernel_settings": "Kernel"
 }

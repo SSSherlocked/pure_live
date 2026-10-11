@@ -77,6 +77,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
           // 播放器内核 is part of 视频, reached from here.
+          context.buildGroupTitle(i18n("kernel_settings")),
           context.buildModernCard([
             context.buildTile(
               icon: Remix.cpu_line,

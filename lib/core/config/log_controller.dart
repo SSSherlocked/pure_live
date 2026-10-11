@@ -120,7 +120,13 @@ class LogController extends GetxController {
         mlog.LogLevel.warning => Colors.orangeAccent,
         _ => null,
       };
-      Log.addDebugLog('[kernel:${record.category.name}] ${record.message}', color);
+      final line = '[kernel:${record.category.name}] ${record.message}';
+      Log.addDebugLog(line, color);
+      Log.writeLog(line, switch (record.level) {
+        mlog.LogLevel.error => Level.error,
+        mlog.LogLevel.warning => Level.warning,
+        _ => Level.info,
+      });
     }
   }
 

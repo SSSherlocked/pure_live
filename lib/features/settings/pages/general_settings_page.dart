@@ -209,7 +209,9 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               () => context.buildSwitchTile(
                 title: i18n('show_danmaku'),
                 subtitle: i18n('show_danmaku_subtitle'),
-                value: SettingsService.to.danmaku.hideDanmaku.v ? true.obs : false.obs,
+                // The stored flag is "hide"; the switch shows the opposite.
+                value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
+                autoCommit: false,
                 icon: Remix.chat_smile_2_line,
                 onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
               ),

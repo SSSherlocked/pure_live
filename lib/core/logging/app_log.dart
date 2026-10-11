@@ -62,6 +62,23 @@ class Log {
 
   static void clearDebugLogs() => _allLogs.clear();
 
+  static bool _debugPrintCaptured = false;
+
+  /// Mirrors `debugPrint` output into the local log while it is enabled. Most
+  /// diagnostics in the app and its plugins go through `debugPrint`, so without
+  /// this the log file and browser view stay nearly empty.
+  static void captureDebugPrint() {
+    if (_debugPrintCaptured) return;
+    _debugPrintCaptured = true;
+    final DebugPrintCallback original = debugPrint;
+    debugPrint = (String? message, {int? wrapWidth}) {
+      original(message, wrapWidth: wrapWidth);
+      if (message == null || !_localLoggingEnabled) return;
+      addDebugLog(message);
+      writeLog(message, Level.debug);
+    };
+  }
+
   static Future<void> init() async {
     await setEnabled(LogController.to.enableLog);
   }
@@ -93,29 +110,31 @@ class Log {
       return false;
     }
 
-    HttpServer server;
+    HttpServer? server;
     try {
       // Port zero asks the OS to select and bind an available port atomically;
       // loopback keeps the diagnostic page local to this device.
       server = await HttpServer.bind(logServerBindAddress, 0);
     } catch (error) {
+      // The browser view is optional: a sandbox without the server entitlement
+      // still gets the log file.
       debugPrint('Failed to start local log server: $error');
-      await writer.close();
-      return false;
     }
 
     if (generation != _statusGeneration) {
-      await server.close(force: true);
+      await server?.close(force: true);
       await writer.close();
       return false;
     }
 
     _logFileWriter = writer;
     _server = server;
-    if (Get.isRegistered<LogController>()) {
-      LogController.to.updateServerInfo(server.address.address, server.port);
+    if (server != null) {
+      if (Get.isRegistered<LogController>()) {
+        LogController.to.updateServerInfo(server.address.address, server.port);
+      }
+      server.listen(_handleNativeRequest);
     }
-    server.listen(_handleNativeRequest);
     return true;
   }
 
@@ -519,8 +538,13 @@ class _NullOutput extends LogOutput {
 
 class LogFileWriter {
   late final String _fileName;
-  IOSink? _fileWriter;
+  RandomAccessFile? _file;
   bool _isInitialized = false;
+  // Lines wait here and reach the disk once a second, so the file stays
+  // current while the app runs instead of only when logging is switched off.
+  final StringBuffer _pending = StringBuffer();
+  Timer? _drainTimer;
+  bool _draining = false;
 
   LogFileWriter() {
     var dt = DateFormat("yyyy-MM-dd_HH-mm-ss").format(DateTime.now());
@@ -537,8 +561,9 @@ class LogFileWriter {
       }
 
       var logFile = File("${logDir.path}/$_fileName");
-      _fileWriter = logFile.openWrite(mode: FileMode.append);
+      _file = await logFile.open(mode: FileMode.append);
       _isInitialized = true;
+      _drainTimer = Timer.periodic(const Duration(seconds: 1), (_) => unawaited(_drain()));
 
       await _writeSystemInfo();
       return true;
@@ -561,13 +586,39 @@ class LogFileWriter {
 
   void write(String content) {
     if (!_isInitialized) return;
-    _fileWriter?.write("$content\r\n");
+    _pending.write("$content\r\n");
+  }
+
+  Future<void> _drain() async {
+    final file = _file;
+    if (_draining || file == null || _pending.isEmpty) return;
+    _draining = true;
+    final chunk = _pending.toString();
+    _pending.clear();
+    try {
+      await file.writeString(chunk);
+      await file.flush();
+    } catch (_) {
+      // Dropped on purpose: reporting through Log or debugPrint would feed
+      // the failure back into this writer.
+    } finally {
+      _draining = false;
+    }
   }
 
   Future<void> close() async {
-    await _fileWriter?.flush();
-    await _fileWriter?.close();
+    _drainTimer?.cancel();
+    _drainTimer = null;
+    for (var i = 0; _draining && i < 100; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    await _drain();
     _isInitialized = false;
+    final file = _file;
+    _file = null;
+    try {
+      await file?.close();
+    } catch (_) {}
   }
 
   Future<void> _writeSystemInfo() async {
@@ -575,18 +626,18 @@ class LogFileWriter {
       final packageInfo = await PackageInfo.fromPlatform();
       final deviceInfo = DeviceInfoPlugin();
 
-      _fileWriter?.write("=========================================================\r\n");
-      _fileWriter?.write("  ____  _   _ ____  _____   _     _____     _______ \r\n");
-      _fileWriter?.write(" |  _ \\| | | |  _ \\| ____| | |   |_ _\\ \\   / / ____|\r\n");
-      _fileWriter?.write(" | |_) | | | | |_) |  _|   | |    | | \\ \\ / /|  _|  \r\n");
-      _fileWriter?.write(" |  __/| |_| |  _ <| |___  | |___ | |  \\ V / | |___ \r\n");
-      _fileWriter?.write(" |_|    \\___/|_| \\_\\_____| |_____|___|  \\_/  |_____|\r\n");
-      _fileWriter?.write("=========================================================\r\n");
-      _fileWriter?.write(" 🕒 Current Time : ${DateTime.now()}\r\n");
-      _fileWriter?.write(" 📱 Platform     : ${Platform.operatingSystem}\r\n");
-      _fileWriter?.write(" ⚙️ OS Version   : ${Platform.operatingSystemVersion}\r\n");
-      _fileWriter?.write(" 🌐 Locale       : ${Platform.localeName}\r\n");
-      _fileWriter?.write(" 📦 App Version  : v${packageInfo.version} (${packageInfo.buildNumber})\r\n");
+      _pending.write("=========================================================\r\n");
+      _pending.write("  ____  _   _ ____  _____   _     _____     _______ \r\n");
+      _pending.write(" |  _ \\| | | |  _ \\| ____| | |   |_ _\\ \\   / / ____|\r\n");
+      _pending.write(" | |_) | | | | |_) |  _|   | |    | | \\ \\ / /|  _|  \r\n");
+      _pending.write(" |  __/| |_| |  _ <| |___  | |___ | |  \\ V / | |___ \r\n");
+      _pending.write(" |_|    \\___/|_| \\_\\_____| |_____|___|  \\_/  |_____|\r\n");
+      _pending.write("=========================================================\r\n");
+      _pending.write(" 🕒 Current Time : ${DateTime.now()}\r\n");
+      _pending.write(" 📱 Platform     : ${Platform.operatingSystem}\r\n");
+      _pending.write(" ⚙️ OS Version   : ${Platform.operatingSystemVersion}\r\n");
+      _pending.write(" 🌐 Locale       : ${Platform.localeName}\r\n");
+      _pending.write(" 📦 App Version  : v${packageInfo.version} (${packageInfo.buildNumber})\r\n");
 
       String model = "Unknown";
       if (Platform.isAndroid) {
@@ -606,9 +657,9 @@ class LogFileWriter {
         model = "${info.computerName} (Build ${info.buildNumber})";
       }
 
-      _fileWriter?.write(" 💻 Device Model : $model\r\n");
-      _fileWriter?.write("=========================================================\r\n\r\n");
-      await _fileWriter?.flush();
+      _pending.write(" 💻 Device Model : $model\r\n");
+      _pending.write("=========================================================\r\n\r\n");
+      await _drain();
     } catch (e, stackTrace) {
       Log.e("Init log file failed: $e", stackTrace);
     }

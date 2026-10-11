@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
@@ -49,14 +50,16 @@ class DanmakuTabView extends GetView<LivePlayController> {
                       LivePanelTab.superChat => Obx(
                         () => SuperChatPage(messages: controller.superChats.toList(growable: false)),
                       ),
-                      // 80 % of the regular size so the dense settings fit the
-                      // narrow panel; 屏蔽管理 closes the page as its last section.
+                      // Desktop draws the dense settings at 80 % so they fit the
+                      // narrow side panel; phones and tablets keep full size for
+                      // readable text and touch targets. 屏蔽管理 closes the page
+                      // as its last section.
                       LivePanelTab.danmakuSettings =>
                         videoController == null
                             ? loading()
                             : DanmakuSettingsPage(
                                 controller: videoController,
-                                scale: 0.8,
+                                scale: PlatformUtils.isMobile ? 1 : 0.8,
                                 footer: const KeywordBlockPage(asSection: true),
                               ),
                       LivePanelTab.follow => FollowRoomsPage(

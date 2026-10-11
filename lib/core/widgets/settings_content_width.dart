@@ -5,8 +5,8 @@ import 'package:flutter/widgets.dart';
 ///
 /// Settings rows read badly when a wide desktop window stretches them edge to
 /// edge, so the body keeps [width] and sits centred; narrower windows still
-/// shrink it to fit. The margins beside it forward the mouse wheel to the
-/// page's list, so the whole window scrolls the page.
+/// shrink it to fit. The margins beside it scroll the page's list: the mouse
+/// wheel, and touch, stylus or trackpad drags (with fling) on tablets.
 class SettingsContentWidth extends StatefulWidget {
   const SettingsContentWidth({super.key, required this.child});
 
@@ -20,26 +20,19 @@ class SettingsContentWidth extends StatefulWidget {
 
 class _SettingsContentWidthState extends State<SettingsContentWidth> {
   final GlobalKey _contentKey = GlobalKey();
+  Drag? _drag;
 
-  void _onPointerSignal(PointerSignalEvent event) {
-    if (event is! PointerScrollEvent) return;
-    final contentContext = _contentKey.currentContext;
-    final box = contentContext?.findRenderObject();
-    if (contentContext == null || box is! RenderBox || !box.hasSize) return;
-    // Inside the content the list already handles the wheel itself.
-    if ((Offset.zero & box.size).contains(box.globalToLocal(event.position))) return;
-    final scrollable = _verticalScrollable(contentContext);
-    if (scrollable == null) return;
-    GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
-      final position = scrollable.position;
-      final delta = (resolved as PointerScrollEvent).scrollDelta.dy;
-      final target = (position.pixels + delta).clamp(position.minScrollExtent, position.maxScrollExtent).toDouble();
-      if (target != position.pixels) position.jumpTo(target);
-    });
-  }
+  static const Set<PointerDeviceKind> _dragDevices = {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+    PointerDeviceKind.trackpad,
+  };
 
   /// The first vertical scroll view inside the content: the page's list.
-  static ScrollableState? _verticalScrollable(BuildContext context) {
+  ScrollableState? _verticalScrollable() {
+    final context = _contentKey.currentContext;
+    if (context == null) return null;
     ScrollableState? found;
     void visit(Element element) {
       if (found != null) return;
@@ -57,19 +50,73 @@ class _SettingsContentWidthState extends State<SettingsContentWidth> {
     return found;
   }
 
+  void _onPointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    final scrollable = _verticalScrollable();
+    if (scrollable == null) return;
+    GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
+      final position = scrollable.position;
+      final delta = (resolved as PointerScrollEvent).scrollDelta.dy;
+      final target = (position.pixels + delta).clamp(position.minScrollExtent, position.maxScrollExtent).toDouble();
+      if (target != position.pixels) position.jumpTo(target);
+    });
+  }
+
+  void _onDragStart(DragStartDetails details) {
+    _drag?.cancel();
+    _drag = _verticalScrollable()?.position.drag(details, () => _drag = null);
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) => _drag?.update(details);
+
+  void _onDragEnd(DragEndDetails details) {
+    _drag?.end(details);
+    _drag = null;
+  }
+
+  void _onDragCancel() {
+    _drag?.cancel();
+    _drag = null;
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerSignal: _onPointerSignal,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          key: _contentKey,
-          constraints: const BoxConstraints(maxWidth: SettingsContentWidth.width),
-          child: widget.child,
+  void dispose() {
+    _drag?.cancel();
+    super.dispose();
+  }
+
+  Widget _margin() {
+    return Expanded(
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerSignal: _onPointerSignal,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          supportedDevices: _dragDevices,
+          onVerticalDragStart: _onDragStart,
+          onVerticalDragUpdate: _onDragUpdate,
+          onVerticalDragEnd: _onDragEnd,
+          onVerticalDragCancel: _onDragCancel,
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = KeyedSubtree(key: _contentKey, child: widget.child);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth <= SettingsContentWidth.width) return content;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _margin(),
+            SizedBox(width: SettingsContentWidth.width, child: content),
+            _margin(),
+          ],
+        );
+      },
     );
   }
 }

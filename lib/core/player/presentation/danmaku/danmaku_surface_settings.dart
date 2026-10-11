@@ -130,18 +130,6 @@ class SettingsDanmakuSource implements DanmakuSettingsSource {
   String? get danmakuFontFamilyName => _settings.danmakuFontFamilyName.v;
 }
 
-/// The local-chat composer switch a live room offers in the danmaku panel.
-///
-/// Composing a message into a room is a room capability: it needs a platform
-/// account, a socket and a place in the local list. The shared settings surface
-/// therefore asks for this small contract and hides the switch when no host
-/// registered one — which is what lets a replayed recording show the same panel
-/// without pretending it can send chat.
-abstract interface class DanmakuLocalInteraction {
-  /// Whether sent messages are echoed locally without reaching the platform.
-  RxBool get enabled;
-}
-
 /// What a portrait picture does to the barrage over it.
 ///
 /// A tall stream leaves very little width for a scrolling message to travel

@@ -83,9 +83,7 @@ abstract final class MediaKitLiveProperties {
     }
 
     if (Platform.isMacOS) {
-      // The bundled libmpv's VideoToolbox path is unstable with the Flutter
-      // texture surface on this app's macOS builds.
-      properties['hwdec'] = 'no';
+      properties['hwdec'] = macosHardwareDecoder(_output) ?? 'no';
     }
 
     // Decode-cost policy: a software decoder's thread pool is what actually
@@ -136,15 +134,36 @@ abstract final class MediaKitLiveProperties {
     // those produce sound-without-picture or a rogue mpv window.
     final vo = segment.customPlayerOutput && segment.videoOutputDriver.trim() == 'libmpv' ? 'libmpv' : null;
 
-    var hwdec = segment.customPlayerOutput ? _normalize(segment.videoHardwareDecoder) : null;
-    // NativeVideoController.create rewrites a null hwdec to 'auto'. That would
-    // resurrect VideoToolbox exactly where build() forces 'no' — its decode
-    // path is unstable with the Flutter texture surface and crashes macOS on
-    // room entry — and it would also override an enableCodec=false choice on
-    // every platform. 'no' has to travel as an explicit value.
+    var hwdec = Platform.isMacOS
+        ? macosHardwareDecoder(segment)
+        : (segment.customPlayerOutput ? _normalize(segment.videoHardwareDecoder) : null);
+    // NativeVideoController.create rewrites a null hwdec to 'auto'. On macOS
+    // that would resurrect zero-copy VideoToolbox, which crashes with the
+    // Flutter texture surface on room entry, and on every platform it would
+    // override an enableCodec=false choice. 'no' has to travel as an explicit
+    // value.
     if (!segment.enableCodec || Platform.isMacOS) hwdec ??= 'no';
 
-    return mkv.VideoControllerConfiguration(vo: vo, hwdec: hwdec, enableHardwareAcceleration: segment.enableCodec);
+    return mkv.VideoControllerConfiguration(
+      vo: vo,
+      hwdec: hwdec,
+      enableHardwareAcceleration: segment.enableCodec && !(Platform.isMacOS && hwdec == 'no'),
+    );
+  }
+
+  /// The hardware decoder to run on macOS, or null for software decoding.
+  ///
+  /// Software stays the default. When the user opts in through the custom
+  /// output switch, every hardware pick (including `auto` and the zero-copy
+  /// `videotoolbox`) resolves to `videotoolbox-copy`: it decodes with
+  /// VideoToolbox but hands mpv system-memory frames, which avoids the
+  /// IOSurface sharing with the Flutter texture that crashed the app.
+  @visibleForTesting
+  static String? macosHardwareDecoder(PlayerEngineOutput segment) {
+    if (!segment.enableCodec || !segment.customPlayerOutput) return null;
+    final pick = segment.videoHardwareDecoder.trim();
+    if (pick.isEmpty || pick == 'no') return null;
+    return 'videotoolbox-copy';
   }
 
   /// Normalises a pick; empty/auto leaves the engine default.

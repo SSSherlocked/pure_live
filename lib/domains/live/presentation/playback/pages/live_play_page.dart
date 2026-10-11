@@ -22,9 +22,7 @@ class LivePlayPage extends GetView<LivePlayController> {
       final presentationActive =
           !isInPip && (mode != VideoMode.normal || player.isSystemFullscreen.value || player.isWindowFullscreen.value);
 
-      final child = LivePlayContent(controller: controller, isInPip: isInPip, mode: mode);
-
-      final content = _withLocalGiftEffect(child);
+      final content = LivePlayContent(controller: controller, isInPip: isInPip, mode: mode);
 
       // The room is black by design - but a wallpaper is meant to run through
       // the whole app, so the windowed canvas steps aside while one is showing.
@@ -50,52 +48,5 @@ class LivePlayPage extends GetView<LivePlayController> {
         child: page,
       );
     });
-  }
-
-  Widget _withLocalGiftEffect(Widget child) {
-    final message = controller.localGiftEffect.value;
-
-    if (message == null) {
-      return child;
-    }
-
-    final color = Color.fromARGB(255, message.color.r, message.color.g, message.color.b);
-
-    final fullEffect = message.data is Map && message.data['effect'] == 'full';
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        child,
-        IgnorePointer(
-          child: Center(
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey(message),
-              tween: Tween(begin: .72, end: 1),
-              duration: const Duration(milliseconds: 420),
-              curve: Curves.easeOutBack,
-              builder: (context, scale, effectChild) {
-                return Transform.scale(scale: scale, child: effectChild);
-              },
-              child: Container(
-                constraints: BoxConstraints(maxWidth: fullEffect ? 440 : 320),
-                padding: EdgeInsets.symmetric(horizontal: fullEffect ? 28 : 20, vertical: fullEffect ? 24 : 14),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [color.withValues(alpha: .94), Colors.black.withValues(alpha: .78)]),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: .45)),
-                  boxShadow: [BoxShadow(color: color.withValues(alpha: .55), blurRadius: fullEffect ? 42 : 24)],
-                ),
-                child: Text(
-                  message.message,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: fullEffect ? 20 : 16, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }

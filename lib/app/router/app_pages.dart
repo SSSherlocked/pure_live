@@ -41,8 +41,6 @@ import 'package:pure_live/domains/recorder/presentation/pages/record_settings/re
 import 'package:pure_live/domains/recorder/presentation/pages/local_player/local_video_player_page.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 
-// auth
-
 class AppPages {
   AppPages._();
 

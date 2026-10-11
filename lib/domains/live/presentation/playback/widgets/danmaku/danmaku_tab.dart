@@ -1,6 +1,7 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
+import 'package:pure_live/domains/live/presentation/playback/pages/follow_rooms_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/danmaku_settings_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_list_view.dart';
@@ -39,6 +40,7 @@ class DanmakuTabView extends GetView<LivePlayController> {
                   Obx(() => SuperChatPage(messages: controller.superChats.toList(growable: false))),
                   DanmakuSettingsPage(controller: state.player.videoController!),
                   const KeywordBlockPage(),
+                  FollowRoomsPage(controller: controller),
                 ],
               ),
             ),

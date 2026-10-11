@@ -97,7 +97,7 @@ class LivePlayController extends GetxController
       ? SettingsService.to.theme.resolvedLivePanelTabOrder
       : LivePanelTab.defaultOrder;
 
-  late final List<String> tabs = [for (final tab in panelTabs) i18n(tab.labelKey)];
+  late final List<String> tabs = [for (final tab in panelTabs) i18n(tab.shortLabelKey)];
 
   bool _floatingResourcesReleased = false;
   bool _ownerClosed = false;

@@ -2569,5 +2569,8 @@
   "chat_list_item_spacing": "列表弹幕间距",
   "room_card_fixed_width": "固定卡片宽度",
   "room_card_fixed_width_subtitle": "关闭时卡片随窗口自动缩放；开启后卡片保持固定宽度，窗口变化只改变列数",
-  "room_card_width": "卡片宽度"
+  "room_card_width": "卡片宽度",
+  "panel_tab_danmaku": "弹幕",
+  "panel_tab_super_chat": "留言",
+  "panel_tab_settings": "设置"
 }

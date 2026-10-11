@@ -12,6 +12,14 @@ enum LivePanelTab {
 
   String get labelKey => id;
 
+  /// Short label for the room panel's tab bar (弹幕 / 留言 / 关注 / 设置).
+  String get shortLabelKey => switch (this) {
+    LivePanelTab.danmakuList => 'panel_tab_danmaku',
+    LivePanelTab.superChat => 'panel_tab_super_chat',
+    LivePanelTab.follow => 'follow',
+    LivePanelTab.danmakuSettings => 'panel_tab_settings',
+  };
+
   /// Default order: 关注 sits right after 醒目留言. 屏蔽管理 is the last
   /// section of 弹幕设置 rather than a tab of its own.
   static const List<LivePanelTab> defaultOrder = [danmakuList, superChat, follow, danmakuSettings];

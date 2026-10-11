@@ -96,6 +96,9 @@ class DanmakuSectionTabBar extends StatelessWidget {
         tabAlignment: TabAlignment.fill,
         physics: const PureLiveBoundedScrollPhysics(),
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+        // Short labels at a smaller size keep the four sections airy.
+        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         controller: controller,
         // Five equal-width sections share a narrow panel: shrink a label that
         // does not fit instead of letting neighbouring labels overlap.

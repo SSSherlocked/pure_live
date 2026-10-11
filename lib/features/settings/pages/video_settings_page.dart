@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/features/settings/pages/player_kernel_settings_page.dart';
 import 'package:pure_live/core/player/kernel/player_consts.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:pure_live/core/player/core/live_audio_service.dart';
@@ -76,6 +77,16 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
+          // 播放器内核 is part of 视频, reached from here.
+          context.buildModernCard([
+            context.buildTile(
+              icon: Remix.cpu_line,
+              title: i18n("player_kernel"),
+              subtitle: i18n("player_kernel_desc"),
+              onTap: () => Get.to(() => const PlayerKernelSettingsPage()),
+            ),
+          ]),
+          const SizedBox(height: 20),
           context.buildGroupTitle(i18n("audio_settings")),
           context.buildModernCard([
             context.buildSwitchTile(

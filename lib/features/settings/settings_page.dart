@@ -2,17 +2,12 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/iptv/presentation/iptv_page.dart';
 import 'package:pure_live/features/backup/backup_page.dart';
-import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
-import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
-import 'package:pure_live/domains/wallpaper/presentation/wallpaper_page.dart';
 import 'package:pure_live/features/settings/pages/video_settings_page.dart';
 import 'package:pure_live/features/settings/pages/local_config_preview_page.dart';
 import 'package:pure_live/features/settings/pages/general_settings_page.dart';
 import 'package:pure_live/features/settings/pages/platform_settings_page.dart';
-import 'package:pure_live/features/settings/pages/navigation_settings_page.dart';
 import 'package:pure_live/features/settings/pages/cache_data_settings_page.dart';
 import 'package:pure_live/features/settings/pages/network_proxy_settings_page.dart';
-import 'package:pure_live/features/settings/pages/player_kernel_settings_page.dart';
 
 class SettingsPage extends GetView<SettingsService> {
   const SettingsPage({super.key});
@@ -52,9 +47,8 @@ class SettingsPage extends GetView<SettingsService> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          // 通用: everyday app behaviour plus look (theme, background), the
-          // navigation bar and refresh. The former 主题设置 group is folded in.
-          context.buildGroupTitle(i18n("general_settings")),
+          // One flat list: no group headings. Theme, background, navigation
+          // and refresh live inside 通用; 播放器内核 lives inside 视频.
           context.buildModernCard([
             context.buildTile(
               icon: Remix.settings_4_line,
@@ -63,28 +57,10 @@ class SettingsPage extends GetView<SettingsService> {
               onTap: () => Get.to(() => const GeneralSettingsPage()),
             ),
             context.buildTile(
-              icon: Remix.palette_line,
-              title: i18n("theme_customization"),
-              subtitle: i18n("theme_customization_desc"),
-              onTap: () => Get.to(() => const ThemeSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.image_line,
-              title: i18n("ui_background_settings"),
-              subtitle: i18n("background_entry_subtitle"),
-              onTap: () => Get.to(() => const WallpaperPage()),
-            ),
-            context.buildTile(
-              icon: Remix.menu_line,
-              title: i18n("navigation_display_settings"),
-              subtitle: i18n("navigation_display_settings_desc"),
-              onTap: () => Get.to(() => NavigationSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.refresh_line,
-              title: i18n("refresh_settings"),
-              subtitle: i18n("refresh_settings_subtitle"),
-              onTap: () => Get.to(() => const RefreshSettingsPage()),
+              icon: Remix.film_line,
+              title: i18n("video"),
+              subtitle: i18n("video_desc"),
+              onTap: () => Get.to(() => const VideoSettingsPage()),
             ),
             context.buildTile(
               icon: Remix.apps_2_line,
@@ -92,62 +68,24 @@ class SettingsPage extends GetView<SettingsService> {
               subtitle: i18n("platform_settings_desc"),
               onTap: () => Get.to(() => const PlatformSettingsPage()),
             ),
-          ]),
-
-          const SizedBox(height: 20),
-          // 视频 and 播放器内核 together: everything about playback.
-          context.buildGroupTitle(i18n("video_settings")),
-          context.buildModernCard([
-            context.buildTile(
-              icon: Remix.film_line,
-              title: i18n("video"),
-              subtitle: i18n("video_desc"),
-              onTap: () => Get.to(() => const VideoSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.cpu_line,
-              title: i18n("player_kernel"),
-              subtitle: i18n("player_kernel_desc"),
-              onTap: () => Get.to(() => const PlayerKernelSettingsPage()),
-            ),
-          ]),
-
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("iptv_settings")),
-          context.buildModernCard([
             context.buildTile(
               icon: Remix.tv_line,
               title: i18n("iptv_settings"),
               subtitle: i18n("manage_iptv_sources"),
               onTap: () => Get.to(() => const IptvPage()),
             ),
-          ]),
-
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("network_proxy_settings")),
-          context.buildModernCard([
             context.buildTile(
               icon: Remix.global_line,
               title: i18n("custom_network_proxy"),
               subtitle: i18n("custom_network_proxy_desc"),
               onTap: () => Get.to(() => const NetworkProxySettingsPage()),
             ),
-          ]),
-
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("data_manage")),
-          context.buildModernCard([
             context.buildTile(
               icon: Remix.database_2_line,
               title: i18n("cache_and_data"),
               subtitle: i18n("cache_and_data_desc"),
               onTap: () => Get.to(() => const CacheDataSettingsPage()),
             ),
-          ]),
-
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("backup_manage")),
-          context.buildModernCard([
             context.buildTile(
               icon: Remix.cloud_line,
               title: i18n("backup_recover"),

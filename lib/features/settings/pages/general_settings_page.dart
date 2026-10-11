@@ -4,6 +4,10 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
+import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
+import 'package:pure_live/domains/wallpaper/presentation/wallpaper_page.dart';
+import 'package:pure_live/features/settings/pages/navigation_settings_page.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
 import 'package:pure_live/core/config/window_size_controller.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -19,6 +23,34 @@ class GeneralSettingsPage extends GetView<SettingsService> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
+          // Look and navigation, folded in from the settings home page.
+          context.buildModernCard([
+            context.buildTile(
+              icon: Remix.palette_line,
+              title: i18n("theme_customization"),
+              subtitle: i18n("theme_customization_desc"),
+              onTap: () => Get.to(() => const ThemeSettingsPage()),
+            ),
+            context.buildTile(
+              icon: Remix.image_line,
+              title: i18n("ui_background_settings"),
+              subtitle: i18n("background_entry_subtitle"),
+              onTap: () => Get.to(() => const WallpaperPage()),
+            ),
+            context.buildTile(
+              icon: Remix.menu_line,
+              title: i18n("navigation_display_settings"),
+              subtitle: i18n("navigation_display_settings_desc"),
+              onTap: () => Get.to(() => NavigationSettingsPage()),
+            ),
+            context.buildTile(
+              icon: Remix.refresh_line,
+              title: i18n("refresh_settings"),
+              subtitle: i18n("refresh_settings_subtitle"),
+              onTap: () => Get.to(() => const RefreshSettingsPage()),
+            ),
+          ]),
+          const SizedBox(height: 20),
           context.buildGroupTitle(i18n("general")),
           context.buildModernCard([
             if (Platform.isAndroid || Platform.isWindows)

@@ -78,7 +78,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
             context.buildTile(
               icon: Remix.filter_2_line,
               title: i18n("danmaku_filter"),
-              subtitle: "",
+              subtitle: i18n("danmaku_filter_subtitle"),
               onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
             ),
             Obx(
@@ -209,7 +209,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 ),
                 context.buildSwitchTile(
                   title: i18n("no_exit_confirm"),
-                  subtitle: "",
+                  subtitle: i18n("no_exit_confirm_subtitle"),
                   value: SettingsService.to.exit.dontAskExit,
                   icon: Remix.error_warning_line,
                 ),
@@ -260,7 +260,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
           context.buildModernCard([
             context.buildSwitchTile(
               title: i18n('enable_auto_check_update'),
-              subtitle: "",
+              subtitle: i18n('enable_auto_check_update_subtitle'),
               value: SettingsService.to.app.enableAutoCheckUpdate,
               icon: Remix.refresh_line,
             ),

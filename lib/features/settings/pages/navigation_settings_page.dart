@@ -24,7 +24,7 @@ class NavigationSettingsPage extends StatelessWidget {
             context.buildModernCard([
               context.buildSwitchTile(
                 title: i18n("multiview_title"),
-                subtitle: "",
+                subtitle: i18n("multiview_entry_subtitle"),
                 value: SettingsService.to.app.enableMultiView,
                 icon: Remix.layout_grid_line,
               ),

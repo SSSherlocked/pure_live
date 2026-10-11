@@ -457,6 +457,7 @@ class DanmakuItem extends StatelessWidget {
         spacing,
         bubble: settings.chatListBubble.v,
         colorMode: settings.resolvedChatListColorMode,
+        colorName: settings.chatListColorName.v,
       );
     });
   }
@@ -470,6 +471,7 @@ class DanmakuItem extends StatelessWidget {
     double spacing, {
     required bool bubble,
     required ChatListColorMode colorMode,
+    required bool colorName,
   }) {
     final base = AppTextStyles.t14.copyWith(fontSize: fontSize);
     final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
@@ -548,7 +550,10 @@ class DanmakuItem extends StatelessWidget {
                             ),
                           TextSpan(
                             text: "${danmaku.userName}: ",
-                            style: base.copyWith(fontWeight: FontWeight.w700, color: textColor),
+                            style: base.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorName ? vibrantColor : textColor,
+                            ),
                           ),
                           TextSpan(
                             children: parseEmojis(

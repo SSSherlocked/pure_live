@@ -64,7 +64,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 context.buildTile(
                   icon: Remix.magic_line,
                   title: i18n('player_preset_section'),
-                  subtitle: i18n('player_preset_hint'),
+                  subtitle: i18n('player_preset_entry_subtitle'),
                   trailing: const Icon(Remix.arrow_right_s_line),
                   onTap: () => Get.to(() => const PlayerPresetPage()),
                 ),

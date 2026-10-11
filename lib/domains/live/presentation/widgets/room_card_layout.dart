@@ -32,11 +32,23 @@ abstract final class RoomCardLayoutMetrics {
       return compactHeight(appearance: appearance, dense: dense, textScaler: textScaler);
     }
 
-    final baseCaptionHeight = dense ? 72.0 : 84.0;
-    final scaledCaptionHeight =
-        _textHeight(appearance: appearance, dense: dense, textScaler: textScaler) + (dense ? 16.0 : 20.0);
-    final captionHeight = math.max(baseCaptionHeight, scaledCaptionHeight);
+    final captionHeight = coverCaptionHeight(appearance: appearance, dense: dense, textScaler: textScaler);
     return math.max(0, itemWidth) * 9 / 16 + captionHeight;
+  }
+
+  /// Height of the single avatar + streamer-name row under a cover card (the
+  /// room title sits on the cover itself). About 30 % below the former
+  /// two-line caption; scaled text still gets the room it needs.
+  static double coverCaptionHeight({
+    required RoomCardAppearance appearance,
+    required bool dense,
+    TextScaler textScaler = TextScaler.noScaling,
+  }) {
+    final baseCaptionHeight = dense ? 50.0 : 58.0;
+    final avatarHeight = appearance.showAvatar ? (dense ? 34.0 : 40.0) : 0.0;
+    final lineHeight = textScaler.scale(dense ? 13 : 15) * 1.3;
+    final scaledCaptionHeight = math.max(avatarHeight, lineHeight) + (dense ? 12.0 : 16.0);
+    return math.max(baseCaptionHeight, scaledCaptionHeight);
   }
 
   static double _textHeight({

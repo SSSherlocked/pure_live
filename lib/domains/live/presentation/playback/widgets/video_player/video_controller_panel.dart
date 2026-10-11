@@ -435,19 +435,7 @@ class TopActionBar extends StatelessWidget {
                       android: PlatformUtils.isAndroid,
                     ))
                       switch (slot) {
-                        TopActionLeadingSlot.back => Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            BackButton(controller: controller),
-                            PlayerMoreMenuButton(
-                              isAudioOnly: () => controller.isAudioOnly,
-                              onToggleAudioOnly: () {
-                                controller.enableController();
-                                controller.toggleAudioOnly();
-                              },
-                            ),
-                          ],
-                        ),
+                        TopActionLeadingSlot.back => BackButton(controller: controller),
                         TopActionLeadingSlot.datetime => const DatetimeInfo(key: ValueKey('fullscreen-leading-time')),
                         TopActionLeadingSlot.battery => BatteryInfo(
                           key: const ValueKey('fullscreen-leading-battery'),
@@ -541,6 +529,16 @@ class TopActionBar extends StatelessWidget {
                           controller: controller,
                         ),
                       },
+                    // ⋯ (画面比例 / 纯音频) closes the top-right group, inline and
+                    // in fullscreen alike.
+                    PlayerMoreMenuButton(
+                      key: const ValueKey('player-top-more-menu'),
+                      isAudioOnly: () => controller.isAudioOnly,
+                      onToggleAudioOnly: () {
+                        controller.enableController();
+                        controller.toggleAudioOnly();
+                      },
+                    ),
                   ],
                 ),
               ),

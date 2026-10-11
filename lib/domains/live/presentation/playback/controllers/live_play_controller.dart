@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
@@ -88,6 +89,9 @@ class LivePlayController extends GetxController
   late Site currentSite;
   late TabController tabController;
 
+  /// Keeps the room's fullscreen state in step with the desktop window.
+  late final _NativeFullscreenSync _nativeFullscreenSync = _NativeFullscreenSync(this);
+
   /// Side panel sections in the user's order, fixed for this room session.
   late final List<LivePanelTab> panelTabs = Get.isRegistered<ThemeSettingsController>()
       ? SettingsService.to.theme.resolvedLivePanelTabOrder
@@ -132,6 +136,7 @@ class LivePlayController extends GetxController
   @override
   void onInit() {
     super.onInit();
+    _nativeFullscreenSync.attach();
     _controllerTag = '${identityHashCode(this)}';
     currentSite = Sites.of(site);
 
@@ -1180,6 +1185,7 @@ class LivePlayController extends GetxController
 
   @override
   void onClose() {
+    _nativeFullscreenSync.detach();
     _ownerClosed = true;
     _roomLoadEpoch++;
     _iptvPlaybackEpoch++;
@@ -1199,5 +1205,42 @@ class LivePlayController extends GetxController
       unawaited(_disposeNormalRouteResources());
     }
     super.onClose();
+  }
+}
+
+/// Follows the desktop window leaving native fullscreen on its own.
+///
+/// macOS lets the window leave fullscreen without the app's controls (the green
+/// window button, ⌃⌘F, a trackpad swipe). The room kept believing it was
+/// fullscreen, so the next Back was spent "leaving" a presentation that was
+/// already gone (the page flashed black) and a second Back was needed to
+/// leave the room.
+class _NativeFullscreenSync with WindowListener {
+  _NativeFullscreenSync(this._owner);
+
+  final LivePlayController _owner;
+  bool _attached = false;
+
+  bool get _supported => Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+
+  void attach() {
+    if (!_supported || _attached) return;
+    _attached = true;
+    windowManager.addListener(this);
+  }
+
+  void detach() {
+    if (!_attached) return;
+    _attached = false;
+    windowManager.removeListener(this);
+  }
+
+  @override
+  void onWindowLeaveFullScreen() {
+    if (_owner.isClosed) return;
+    final player = GlobalPlayerService.instance.player;
+    final mode = _owner.state.value.ui.screenMode;
+    if (!player.isSystemFullscreen.value && mode == VideoMode.normal) return;
+    unawaited(_owner.exitPresentationForSystemBack());
   }
 }

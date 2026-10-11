@@ -1197,10 +1197,17 @@ class RoomCard extends StatelessWidget {
                         ),
                         // Below the cover: avatar and streamer name, with the
                         // platform and audience on the same row.
-                        Padding(
+                        Container(
                           key: const ValueKey('room-card-anchor-row'),
-                          padding: EdgeInsets.symmetric(horizontal: dense ? 10 : 12, vertical: dense ? 6 : 8),
+                          height: RoomCardLayoutMetrics.coverCaptionHeight(
+                            appearance: config,
+                            dense: dense,
+                            textScaler: MediaQuery.textScalerOf(context),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: dense ? 10 : 12),
+                          alignment: Alignment.center,
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               if (config.showAvatar) ...[
                                 KeyedSubtree(

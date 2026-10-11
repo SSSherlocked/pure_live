@@ -28,6 +28,9 @@ class DanmakuSettingsController extends GetxController {
   static const bool defaultPipDanmakuAutoFps = true;
   static const bool defaultNoEmojiMode = false;
   static const bool defaultPipDanmakuNoEmojiMode = false;
+  static const double defaultChatListFontSize = 14.0;
+  static const double defaultChatListItemSpacing = 4.0;
+  static const int defaultDanmakuMaxVisibleCount = 48;
 
   static const double pipDanmakuScaleMin = 0.4;
   static const double pipDanmakuScaleMax = 1.0;
@@ -62,10 +65,10 @@ class DanmakuSettingsController extends GetxController {
 
   /// Text size of the chat list in the room side panel; independent of the
   /// scrolling danmaku on the video.
-  final RxDouble chatListFontSize = hiveDouble('chatListFontSize', 14);
+  final RxDouble chatListFontSize = hiveDouble('chatListFontSize', defaultChatListFontSize);
 
   /// Vertical gap between chat list messages in the room side panel.
-  final RxDouble chatListItemSpacing = hiveDouble('chatListItemSpacing', 4);
+  final RxDouble chatListItemSpacing = hiveDouble('chatListItemSpacing', defaultChatListItemSpacing);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
   final RxDouble danmakuTopArea = hiveDouble('danmakuTopArea', defaultDanmakuTopArea);
   final RxDouble danmakuArea = hiveDouble('danmakuArea', defaultDanmakuArea);
@@ -77,7 +80,7 @@ class DanmakuSettingsController extends GetxController {
   final RxDouble danmakuOpacity = hiveDouble('danmakuOpacity', defaultDanmakuOpacity);
 
   /// Same-screen cap forwarded to FlameBarrageWidget.maxVisibleCount.
-  final RxInt danmakuMaxVisibleCount = hiveInt('danmakuMaxVisibleCount', 48);
+  final RxInt danmakuMaxVisibleCount = hiveInt('danmakuMaxVisibleCount', defaultDanmakuMaxVisibleCount);
   final RxBool enableDanmakuStroke = hiveBool('enableDanmakuStroke', true);
 
   final RxBool danmakuMassMode = hiveBool('danmakuRealtimeMode', false);
@@ -178,6 +181,8 @@ class DanmakuSettingsController extends GetxController {
   Map<String, dynamic> toJson() {
     return {
       'hideDanmaku': hideDanmaku.v,
+      'chatListFontSize': chatListFontSize.v,
+      'chatListItemSpacing': chatListItemSpacing.v,
       'noEmojiMode': noEmojiMode.v,
       'danmakuTopArea': danmakuTopArea.v,
       'danmakuArea': danmakuArea.v,
@@ -214,6 +219,15 @@ class DanmakuSettingsController extends GetxController {
     T typed<T>(dynamic value) => value as T;
     return {
       'hideDanmaku': typed<bool>(json['hideDanmaku'] ?? false),
+      'chatListFontSize': typed<double>(
+        _boundedDouble(json['chatListFontSize'], fallback: defaultChatListFontSize, min: 10, max: 28),
+      ),
+      'chatListItemSpacing': typed<double>(
+        _boundedDouble(json['chatListItemSpacing'], fallback: defaultChatListItemSpacing, min: 0, max: 16),
+      ),
+      'danmakuMaxVisibleCount': typed<int>(
+        _boundedInt(json['danmakuMaxVisibleCount'], fallback: defaultDanmakuMaxVisibleCount, min: 10, max: 120),
+      ),
       'noEmojiMode': typed<bool>(json['noEmojiMode'] ?? defaultNoEmojiMode),
       'danmakuTopArea': typed<double>(
         _boundedDouble(json['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
@@ -278,6 +292,9 @@ class DanmakuSettingsController extends GetxController {
   void fromJson(Map<String, dynamic> json) {
     final parsed = parseConfig(json);
     hideDanmaku.v = parsed['hideDanmaku'];
+    chatListFontSize.v = parsed['chatListFontSize'];
+    chatListItemSpacing.v = parsed['chatListItemSpacing'];
+    danmakuMaxVisibleCount.v = parsed['danmakuMaxVisibleCount'];
     noEmojiMode.v = parsed['noEmojiMode'];
     danmakuTopArea.v = parsed['danmakuTopArea'];
     danmakuArea.v = parsed['danmakuArea'];
@@ -311,6 +328,24 @@ class DanmakuSettingsController extends GetxController {
     final danmaku = rootConfig?['danmaku'] as Map<String, dynamic>? ?? {};
     return {
       'hideDanmaku': danmaku['hideDanmaku'] ?? false,
+      'chatListFontSize': _boundedDouble(
+        danmaku['chatListFontSize'],
+        fallback: defaultChatListFontSize,
+        min: 10,
+        max: 28,
+      ),
+      'chatListItemSpacing': _boundedDouble(
+        danmaku['chatListItemSpacing'],
+        fallback: defaultChatListItemSpacing,
+        min: 0,
+        max: 16,
+      ),
+      'danmakuMaxVisibleCount': _boundedInt(
+        danmaku['danmakuMaxVisibleCount'],
+        fallback: defaultDanmakuMaxVisibleCount,
+        min: 10,
+        max: 120,
+      ),
       'noEmojiMode': danmaku['noEmojiMode'] ?? defaultNoEmojiMode,
       'danmakuTopArea': _boundedDouble(danmaku['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
       'danmakuArea': _boundedDouble(danmaku['danmakuArea'], fallback: defaultDanmakuArea, min: 0, max: 1),
@@ -330,6 +365,8 @@ class DanmakuSettingsController extends GetxController {
         max: 4,
       ),
       'danmakuOpacity': _boundedDouble(danmaku['danmakuOpacity'], fallback: defaultDanmakuOpacity, min: 0, max: 1),
+      'danmakuLetterSpacing': _boundedDouble(danmaku['danmakuLetterSpacing'], fallback: 0.0, min: -2, max: 8),
+      'danmakuRealtimeMode': danmaku['danmakuRealtimeMode'] ?? false,
       'danmakuFontFamilyName': danmaku['danmakuFontFamilyName'] ?? 'Default',
       'enableDanmakuStroke': danmaku['enableDanmakuStroke'] ?? true,
       'danmakuFps': _boundedInt(danmaku['danmakuFps'], fallback: defaultDanmakuFps, min: 30, max: 240),
@@ -340,6 +377,10 @@ class DanmakuSettingsController extends GetxController {
       'repeatedDanmakuWindowSeconds': (danmaku['repeatedDanmakuWindowSeconds'] ?? 5).toInt().clamp(1, 30).toInt(),
       'savedDanmakuTemplate': danmaku['savedDanmakuTemplate']?.toString() ?? '',
       'pipDanmakuAutoScale': danmaku['pipDanmakuAutoScale'] ?? defaultPipDanmakuAutoScale,
+      'pipDanmakuScaleValue': (danmaku['pipDanmakuScaleValue'] ?? defaultPipDanmakuScaleValue)
+          .toDouble()
+          .clamp(pipDanmakuScaleMin, pipDanmakuScaleMax)
+          .toDouble(),
       'pipDanmakuNoEmojiMode':
           danmaku['pipDanmakuNoEmojiMode'] ?? danmaku['pipDanmaNoEmojiMode'] ?? defaultPipDanmakuNoEmojiMode,
       'pipDanmakuUseOriginalColor': danmaku['pipDanmakuUseOriginalColor'] ?? defaultPipDanmakuUseOriginalColor,

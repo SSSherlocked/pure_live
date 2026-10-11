@@ -496,6 +496,7 @@ class PlayerSettingsController extends GetxController {
       'windowsPipMinHeight': windowsPipMinHeight.v,
       'audioOnly': false,
       'useHardStopOnExit': useHardStopOnExit.v,
+      'superResolutionMode': SuperResolutionMode.fromName(superResolutionMode.v).name,
       'enablePortraitStreamAdaptation': enablePortraitStreamAdaptation.v,
       'portraitAdaptiveHeight': portraitAdaptiveHeight.v,
       'portraitLayoutMode': portraitLayoutMode.name,
@@ -548,6 +549,9 @@ class PlayerSettingsController extends GetxController {
       'windowsPipMinHeight': typed<double>((json['windowsPipMinHeight'] ?? 90.0).toDouble().clamp(60.0, 240.0)),
       'audioOnly': typed<bool>(false),
       'useHardStopOnExit': typed<bool>(json['useHardStopOnExit'] ?? false),
+      'superResolutionMode': SuperResolutionMode.fromName(
+        typed<String>(json['superResolutionMode'] ?? SuperResolutionMode.off.name),
+      ).name,
       'enablePortraitStreamAdaptation': typed<bool>(json['enablePortraitStreamAdaptation'] ?? true),
       'portraitAdaptiveHeight': typed<bool>(json['portraitAdaptiveHeight'] ?? true),
       'portraitLayoutModeName': typed<String>(
@@ -596,6 +600,7 @@ class PlayerSettingsController extends GetxController {
     windowsPipMinHeight.v = parsed['windowsPipMinHeight'];
     audioOnly.v = parsed['audioOnly'];
     useHardStopOnExit.v = parsed['useHardStopOnExit'];
+    superResolutionMode.v = parsed['superResolutionMode'];
     enablePortraitStreamAdaptation.v = parsed['enablePortraitStreamAdaptation'];
     portraitAdaptiveHeight.v = parsed['portraitAdaptiveHeight'];
     portraitLayoutModeName.v = parsed['portraitLayoutModeName'];
@@ -648,6 +653,7 @@ class PlayerSettingsController extends GetxController {
       'rememberPipPosition': player['rememberPipPosition'] ?? true,
       'audioOnly': false,
       'useHardStopOnExit': player['useHardStopOnExit'] ?? false,
+      'superResolutionMode': SuperResolutionMode.fromName(player['superResolutionMode']?.toString()).name,
       'enablePortraitStreamAdaptation': player['enablePortraitStreamAdaptation'] ?? true,
       'portraitAdaptiveHeight': player['portraitAdaptiveHeight'] ?? true,
       'portraitLayoutMode': _enumName(
@@ -674,6 +680,7 @@ class PlayerSettingsController extends GetxController {
       'rememberPortraitRoomOverride': player['rememberPortraitRoomOverride'] ?? true,
       'showPortraitDiagnostics': player['showPortraitDiagnostics'] ?? false,
       'portraitRoomOverrides': player['portraitRoomOverrides'] ?? {},
+      'engineOutputs': player['engineOutputs'] ?? {},
     };
   }
 

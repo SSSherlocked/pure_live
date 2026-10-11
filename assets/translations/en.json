@@ -2539,5 +2539,6 @@
   "theme_group": "Theme",
   "timer_settings": "Timer",
   "software_update": "Software Update",
-  "font_group_settings": "Fonts"
+  "font_group_settings": "Fonts",
+  "backup_section_recorder": "Recording settings"
 }

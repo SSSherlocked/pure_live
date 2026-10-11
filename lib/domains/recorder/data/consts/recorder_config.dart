@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'recorder_keys.dart';
 
 import 'package:pure_live/core/storage/hive_pref_util.dart';
@@ -266,4 +268,93 @@ class RecorderConfig {
 
   static Future<void> setUsePinyinForFolder(bool value) =>
       HivePrefUtil.setBool(RecorderKeys.folderNamingStrategy, value);
+
+  /// Saves live chat beside each recorded video (opt-in).
+  static bool get recordDanmaku => HivePrefUtil.getBool(RecorderKeys.recordDanmaku) ?? defaultRecordDanmaku;
+
+  static Future<void> setRecordDanmaku(bool value) => HivePrefUtil.setBool(RecorderKeys.recordDanmaku, value);
+
+  /// =========================
+  /// Backup / restore
+  /// =========================
+  ///
+  /// Only portable preferences are carried. The recording directory, the
+  /// task list and the local recording history describe this device's files
+  /// and stay out of every backup.
+
+  static Map<String, dynamic> toJson() {
+    return {
+      'defaultQuality': defaultQuality,
+      'segmentTime': segmentTime,
+      'maxTaskCount': maxTaskCount,
+      'preferBestStream': preferBestStream,
+      'rwTimeout': rwTimeout,
+      'threadQueueSize': threadQueueSize,
+      'autoReconnect': autoReconnect,
+      'maxRetryCount': maxRetryCount,
+      'retryDelay': retryDelay,
+      'enablePolling': enablePolling,
+      'liveCheckInterval': liveCheckInterval,
+      'enableBackoff': enableBackoff,
+      'maxCheckInterval': maxCheckInterval,
+      'autoStartOnBoot': autoStartOnBoot,
+      'usePinyinForFolder': usePinyinForFolder,
+      'recordDanmaku': recordDanmaku,
+      'enableCacheLimit': enableCacheLimit,
+      'maxCacheMB': maxCacheMB,
+    };
+  }
+
+  /// Parse the complete section without persisting values.
+  static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
+    return {
+      'defaultQuality': normalizeDefaultQuality((json['defaultQuality'] ?? PlayerConsts.resolutions.first) as String),
+      'segmentTime': normalizeSegmentTime((json['segmentTime'] ?? defaultSegmentTime) as int),
+      'maxTaskCount': normalizeMaxTaskCount((json['maxTaskCount'] ?? defaultMaxTaskCount) as int),
+      'preferBestStream': (json['preferBestStream'] ?? defaultPreferBestStream) as bool,
+      'rwTimeout': normalizeRwTimeout((json['rwTimeout'] ?? defaultRwTimeout) as int),
+      'threadQueueSize': normalizeThreadQueueSize((json['threadQueueSize'] ?? defaultThreadQueueSize) as int),
+      'autoReconnect': (json['autoReconnect'] ?? defaultAutoReconnect) as bool,
+      'maxRetryCount': normalizeMaxRetryCount((json['maxRetryCount'] ?? defaultMaxRetryCount) as int),
+      'retryDelay': normalizeRetryDelay((json['retryDelay'] ?? defaultRetryDelay) as int),
+      'enablePolling': (json['enablePolling'] ?? defaultEnablePolling) as bool,
+      'liveCheckInterval': normalizeLiveCheckInterval((json['liveCheckInterval'] ?? defaultLiveCheckInterval) as int),
+      'enableBackoff': (json['enableBackoff'] ?? defaultEnableBackoff) as bool,
+      'maxCheckInterval': normalizeMaxCheckInterval((json['maxCheckInterval'] ?? defaultMaxCheckInterval) as int),
+      'autoStartOnBoot': (json['autoStartOnBoot'] ?? defaultAutoStartOnBoot) as bool,
+      'usePinyinForFolder': (json['usePinyinForFolder'] ?? defaultUsePinyinForFolder) as bool,
+      'recordDanmaku': (json['recordDanmaku'] ?? defaultRecordDanmaku) as bool,
+      'enableCacheLimit': (json['enableCacheLimit'] ?? defaultEnableCacheLimit) as bool,
+      'maxCacheMB': normalizeMaxCacheMB((json['maxCacheMB'] ?? defaultMaxCacheMB) as int),
+    };
+  }
+
+  /// Writes a parsed section. Inside a settings restore batch every write is
+  /// collected synchronously, so the whole section commits with the rest.
+  static void fromJson(Map<String, dynamic> json) {
+    final parsed = parseConfig(json);
+    unawaited(setDefaultQuality(parsed['defaultQuality'] as String));
+    unawaited(setSegmentTime(parsed['segmentTime'] as int));
+    unawaited(setMaxTaskCount(parsed['maxTaskCount'] as int));
+    unawaited(setPreferBestStream(parsed['preferBestStream'] as bool));
+    unawaited(setRwTimeout(parsed['rwTimeout'] as int));
+    unawaited(setThreadQueueSize(parsed['threadQueueSize'] as int));
+    unawaited(setAutoReconnect(parsed['autoReconnect'] as bool));
+    unawaited(setMaxRetryCount(parsed['maxRetryCount'] as int));
+    unawaited(setRetryDelay(parsed['retryDelay'] as int));
+    unawaited(setEnablePolling(parsed['enablePolling'] as bool));
+    unawaited(setLiveCheckInterval(parsed['liveCheckInterval'] as int));
+    unawaited(setEnableBackoff(parsed['enableBackoff'] as bool));
+    unawaited(setMaxCheckInterval(parsed['maxCheckInterval'] as int));
+    unawaited(setAutoStartOnBoot(parsed['autoStartOnBoot'] as bool));
+    unawaited(setUsePinyinForFolder(parsed['usePinyinForFolder'] as bool));
+    unawaited(setRecordDanmaku(parsed['recordDanmaku'] as bool));
+    unawaited(setEnableCacheLimit(parsed['enableCacheLimit'] as bool));
+    unawaited(setMaxCacheMB(parsed['maxCacheMB'] as int));
+  }
+
+  static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
+    final recorder = rootConfig?['recorder'] as Map<String, dynamic>? ?? {};
+    return parseConfig(recorder);
+  }
 }

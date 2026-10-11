@@ -307,6 +307,30 @@ class RecordSettingsController extends GetxController {
     usePinyinForFolder.value = v;
   }
 
+  /// Re-reads the portable preferences after a settings restore wrote them
+  /// through [RecorderConfig.fromJson]. The recording directory is
+  /// device-local and is left untouched.
+  void reloadFromStorage() {
+    defaultQuality.value = RecorderConfig.defaultQuality;
+    segmentTime.value = RecorderConfig.segmentTime;
+    maxTaskCount.value = RecorderConfig.maxTaskCount;
+    preferBestStream.value = RecorderConfig.preferBestStream;
+    rwTimeout.value = RecorderConfig.rwTimeout;
+    threadQueueSize.value = RecorderConfig.threadQueueSize;
+    autoReconnect.value = RecorderConfig.autoReconnect;
+    maxRetryCount.value = RecorderConfig.maxRetryCount;
+    retryDelay.value = RecorderConfig.retryDelay;
+    enablePolling.value = RecorderConfig.enablePolling;
+    liveCheckInterval.value = RecorderConfig.liveCheckInterval;
+    enableBackoff.value = RecorderConfig.enableBackoff;
+    maxCheckInterval.value = RecorderConfig.maxCheckInterval;
+    autoStartOnBoot.value = RecorderConfig.autoStartOnBoot;
+    usePinyinForFolder.value = RecorderConfig.usePinyinForFolder;
+    recordDanmaku.value = RecorderConfig.recordDanmaku;
+    enableCacheLimit.value = RecorderConfig.enableCacheLimit;
+    maxCacheMB.value = RecorderConfig.maxCacheMB;
+  }
+
   Future<void> initRecordPath() async {
     if (recordSavePath.value.isEmpty) {
       final Directory recordDir = await CacheService.to.getRecordDir();

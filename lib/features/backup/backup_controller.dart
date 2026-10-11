@@ -18,6 +18,8 @@ import 'package:pure_live/core/config/page_settings_controller.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/domains/wallpaper/domain/background_controller.dart';
+import 'package:pure_live/domains/recorder/data/consts/recorder_config.dart';
+import 'package:pure_live/domains/recorder/data/record_settings_controller.dart';
 import 'package:pure_live/core/config/proxy_settings_controller.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/core/config/volume_settings_controller.dart';
@@ -72,6 +74,7 @@ class BackupController extends GetxController {
       'refresh': Get.find<RefreshConfigController>().toJson(),
       'page': Get.find<PageSettingsController>().toJson(),
       'background': Get.find<BackgroundController>().toJson(),
+      'recorder': RecorderConfig.toJson(),
     };
 
     if (includeSensitiveData) {
@@ -154,6 +157,7 @@ class BackupController extends GetxController {
     'refresh': RefreshConfigController.extractConfig(null).keys.toSet(),
     'page': PageSettingsController.extractConfig(null).keys.toSet(),
     'background': BackgroundController.extractConfig(null).keys.toSet(),
+    'recorder': RecorderConfig.extractConfig(null).keys.toSet(),
   };
 
   static int countConfigSections(Map<String, dynamic> data) {
@@ -167,9 +171,13 @@ class BackupController extends GetxController {
     }
     bool recognized = false;
     if (version == null) {
+      // The legacy flat format predates the recorder section, so its generic
+      // field names must not make an arbitrary object look like a backup.
       recognized =
           data.containsKey('pipDanmaNoEmojiMode') ||
-          _sectionKeys.values.any((keys) => data.keys.any(keys.contains));
+          _sectionKeys.entries
+              .where((entry) => entry.key != 'recorder')
+              .any((entry) => data.keys.any(entry.value.contains));
     } else {
       validateSectionStructure(data);
       recognized = _sectionKeys.entries.any((entry) {
@@ -225,6 +233,10 @@ class BackupController extends GetxController {
       VolumeSettingsController.parseConfig(data);
     } else {
       VolumeSettingsController.parseConfig(Map<String, dynamic>.from(data['volume'] ?? {}));
+      // Introduced after the legacy flat format, so only sectioned backups carry it.
+      if (data.containsKey('recorder')) {
+        RecorderConfig.parseConfig(Map<String, dynamic>.from(data['recorder'] ?? {}));
+      }
       // Validate the legacy player-owned flag after normalizing its ownership.
       WindowSizeController.parseConfig(WindowSizeController.extractConfig(data));
     }
@@ -299,6 +311,17 @@ class BackupController extends GetxController {
     if (data.containsKey('background')) {
       Get.find<BackgroundController>().fromJson(Map<String, dynamic>.from(data['background'] ?? {}));
     }
+
+    // Only when present, for the same reason: older backups predate the
+    // recorder section and must keep this device's recording preferences.
+    if (data.containsKey('recorder')) {
+      RecorderConfig.fromJson(Map<String, dynamic>.from(data['recorder'] ?? {}));
+      // The lazy settings controller reads storage when it is first created;
+      // an instance that already exists has to pick the restored values up.
+      if (Get.isRegistered<RecordSettingsController>() && !Get.isPrepared<RecordSettingsController>()) {
+        Get.find<RecordSettingsController>().reloadFromStorage();
+      }
+    }
   }
 
   /// Reject malformed sections before any controller persists an earlier one.
@@ -324,6 +347,7 @@ class BackupController extends GetxController {
       'refresh',
       'page',
       'background',
+      'recorder',
     ];
     for (final name in sections) {
       final section = data[name];

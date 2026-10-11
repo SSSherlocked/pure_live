@@ -121,6 +121,14 @@ class ThemeSettingsController extends GetxController {
     return converted.clamp(minSpacing, maxSpacing).toDouble();
   }
 
+  static String normalizeLivePanelTabOrder(String value) => LivePanelTab.encode(LivePanelTab.decode(value));
+
+  static double _parseLivePanelWidth(Object? value) {
+    final parsed = ((value ?? LivePanelWidth.defaultValue) as num).toDouble();
+    if (!parsed.isFinite) throw const FormatException('Live panel width must be finite');
+    return LivePanelWidth.normalize(parsed);
+  }
+
   static double _parseSpacing(Object? value) {
     final parsed = ((value ?? defaultSpacing) as num).toDouble();
     if (!parsed.isFinite) throw const FormatException('Theme spacing must be finite');
@@ -183,6 +191,8 @@ class ThemeSettingsController extends GetxController {
       'mainAxisSpacing': resolvedMainAxisSpacing,
       'loadingStyle': resolvedLoadingStyle,
       'loadingStyleColorSwitch': resolvedLoadingStyleColorHex,
+      'livePanelTabOrder': normalizeLivePanelTabOrder(livePanelTabOrder.v),
+      'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
     };
   }
 
@@ -197,6 +207,10 @@ class ThemeSettingsController extends GetxController {
       'mainAxisSpacing': _parseSpacing(json['mainAxisSpacing']),
       'loadingStyle': normalizeLoadingStyle((json['loadingStyle'] ?? AppConsts.defaultLoadingStyleKey) as String),
       'loadingStyleColorSwitch': normalizeLoadingStyleColor((json['loadingStyleColorSwitch'] ?? '') as String),
+      'livePanelTabOrder': normalizeLivePanelTabOrder(
+        (json['livePanelTabOrder'] ?? LivePanelTab.defaultOrderValue) as String,
+      ),
+      'livePanelWidth': _parseLivePanelWidth(json['livePanelWidth']),
     };
   }
 
@@ -210,6 +224,8 @@ class ThemeSettingsController extends GetxController {
     mainAxisSpacing.v = parsed['mainAxisSpacing'];
     loadingStyle.v = parsed['loadingStyle'];
     loadingStyleColorSwitch.v = parsed['loadingStyleColorSwitch'];
+    livePanelTabOrder.v = parsed['livePanelTabOrder'];
+    livePanelWidth.v = parsed['livePanelWidth'];
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
@@ -224,6 +240,8 @@ class ThemeSettingsController extends GetxController {
       'mainAxisSpacing': parsed['mainAxisSpacing'],
       'loadingStyle': parsed['loadingStyle'],
       'loadingStyleColorSwitch': parsed['loadingStyleColorSwitch'],
+      'livePanelTabOrder': parsed['livePanelTabOrder'],
+      'livePanelWidth': parsed['livePanelWidth'],
     };
   }
 

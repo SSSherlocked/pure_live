@@ -2539,5 +2539,6 @@
   "theme_group": "主题",
   "timer_settings": "定时设置",
   "software_update": "软件更新",
-  "font_group_settings": "字体设置"
+  "font_group_settings": "字体设置",
+  "backup_section_recorder": "录制设置"
 }

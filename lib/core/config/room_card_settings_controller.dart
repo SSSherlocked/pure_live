@@ -402,6 +402,8 @@ class RoomCardSettingsController extends GetxController {
       'desktopPreset': presetFor(RoomCardViewport.desktop).storageKey,
       'mobileConfig': configFor(RoomCardViewport.mobile).toJson(),
       'desktopConfig': configFor(RoomCardViewport.desktop).toJson(),
+      'mobileCardWidth': cardWidthFor(RoomCardViewport.mobile),
+      'desktopCardWidth': cardWidthFor(RoomCardViewport.desktop),
     };
   }
 
@@ -426,7 +428,16 @@ class RoomCardSettingsController extends GetxController {
       'desktopPreset': _matchingPreset(desktop).storageKey,
       'mobileConfig': mobile,
       'desktopConfig': desktop,
+      'mobileCardWidth': _readCardWidth(source, 'mobileCardWidth'),
+      'desktopCardWidth': _readCardWidth(source, 'desktopCardWidth'),
     };
+  }
+
+  static double _readCardWidth(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value == null) return autoCardWidth;
+    if (value is! num) throw FormatException('$key must be a number');
+    return normalizeCardWidth(value.toDouble());
   }
 
   static String? _readString(Map<String, dynamic> json, String key, {required String legacyKey}) {
@@ -454,6 +465,8 @@ class RoomCardSettingsController extends GetxController {
     desktopConfig.value = parsed['desktopConfig'] as RoomCardAppearance;
     mobilePreset.v = parsed['mobilePreset'] as String;
     desktopPreset.v = parsed['desktopPreset'] as String;
+    mobileCardWidth.v = parsed['mobileCardWidth'] as double;
+    desktopCardWidth.v = parsed['desktopCardWidth'] as double;
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
@@ -463,6 +476,8 @@ class RoomCardSettingsController extends GetxController {
       'desktopPreset': parsed['desktopPreset'],
       'mobileConfig': (parsed['mobileConfig'] as RoomCardAppearance).toJson(),
       'desktopConfig': (parsed['desktopConfig'] as RoomCardAppearance).toJson(),
+      'mobileCardWidth': parsed['mobileCardWidth'],
+      'desktopCardWidth': parsed['desktopCardWidth'],
     };
   }
 }

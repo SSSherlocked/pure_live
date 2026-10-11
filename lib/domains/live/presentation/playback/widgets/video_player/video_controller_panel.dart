@@ -19,7 +19,6 @@ import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_surfac
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/danmaku_settings_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_link_dialog.dart';
-import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/volume_control.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/control_hover_region.dart';
@@ -28,7 +27,6 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/layout/bott
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/iptv_schedule_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/portrait_playback_picker_dialog.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/local_interaction/local_danmaku_style_editor.dart';
 
 @visibleForTesting
 enum TopActionLeadingSlot { back, datetime, battery }
@@ -1296,23 +1294,7 @@ class BottomActionBar extends StatelessWidget {
                   if (fullscreen) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        children: [
-                          left,
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 420),
-                                child: FullscreenLocalDanmakuComposer(controller: controller),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          right,
-                        ],
-                      ),
+                      child: Row(children: [left, const Spacer(), right]),
                     );
                   }
 
@@ -1367,9 +1349,7 @@ class BottomActionBar extends StatelessWidget {
             height: portraitFullscreenComposerHeight,
             child: Row(
               children: [
-                Expanded(child: FullscreenLocalDanmakuComposer(controller: controller)),
-                const SizedBox(width: 6),
-                Flexible(
+                Expanded(
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: FullscreenStreamSelectorButton(controller: controller, compact: true),
@@ -1447,178 +1427,6 @@ class BottomActionBar extends StatelessWidget {
           ExpandButton(controller: controller),
       ],
     );
-  }
-}
-
-/// Room-local composer placed between the two fullscreen control groups.
-/// Pure Live does not impersonate a platform account here: the submitted line
-/// enters the local list and video barrage through the same ordered delivery
-/// queue used by portrait mode.
-class FullscreenLocalDanmakuComposer extends StatefulWidget {
-  const FullscreenLocalDanmakuComposer({super.key, required this.controller});
-
-  final VideoController controller;
-
-  @override
-  State<FullscreenLocalDanmakuComposer> createState() => _FullscreenLocalDanmakuComposerState();
-}
-
-/// The fullscreen composer is a presentation of the room-local interaction
-/// feature, not an entry point that silently changes the user's global setting.
-/// Keeping this decision pure also prevents portrait and landscape fullscreen
-/// layouts from drifting apart when the setting is disabled.
-bool shouldShowFullscreenLocalDanmakuComposer(bool localInteractionEnabled) => localInteractionEnabled;
-
-class _FullscreenLocalDanmakuComposerState extends State<FullscreenLocalDanmakuComposer> {
-  final TextEditingController _textController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  bool _pinsControllerBar = false;
-
-  VideoController get controller => widget.controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(_handleFocusChanged);
-  }
-
-  void _handleFocusChanged() {
-    if (_focusNode.hasFocus) {
-      _pinsControllerBar = true;
-      // `showController` is allowed to time out while the IME is animating.
-      // Keep the bar mounted through `isMenuOpen` as well, otherwise the
-      // TextField is disposed together with the typed draft before Send can be
-      // pressed on slower Android keyboards.
-      controller.isMenuOpen.value = true;
-      controller.stopHideController();
-      return;
-    }
-    if (_pinsControllerBar) {
-      _pinsControllerBar = false;
-      controller.isMenuOpen.value = false;
-    }
-    controller.enableController();
-  }
-
-  @override
-  void dispose() {
-    _focusNode.removeListener(_handleFocusChanged);
-    if (_pinsControllerBar && controller.status != PlayerStatus.disposed) {
-      _pinsControllerBar = false;
-      controller.isMenuOpen.value = false;
-      controller.enableController();
-    }
-    _focusNode.dispose();
-    _textController.dispose();
-    super.dispose();
-  }
-
-  void _send() {
-    final text = _textController.text.trim();
-    final live = controller.livePlayController;
-    final local = live.localInteractionController;
-    if (!local.enabled.v || text.isEmpty) return;
-    live.emitLocalMessage(
-      local.createChat(text, platform: live.site),
-      showAsDanmaku: local.showAsDanmaku.v,
-      delay: LivePlayController.localChatDeliveryDelay,
-    );
-    _textController.clear();
-    ToastUtil.show(i18n('local_message_queued'));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final local = controller.livePlayController.localInteractionController;
-      if (!shouldShowFullscreenLocalDanmakuComposer(local.enabled.v)) return const SizedBox.shrink();
-
-      final localStyle = local.currentDanmakuStyle;
-      return SizedBox(
-        key: const ValueKey('fullscreen-local-danmaku-composer'),
-        height: portraitFullscreenComposerHeight,
-        child: TextField(
-          controller: _textController,
-          focusNode: _focusNode,
-          style: TextStyle(
-            color: Color(local.danmakuColor.v).withValues(alpha: localStyle.opacity),
-            fontSize: 13,
-            fontWeight: FontWeight(localStyle.fontWeight),
-            fontFamily: localStyle.fontFamily,
-            fontStyle: localStyle.italic ? FontStyle.italic : FontStyle.normal,
-            letterSpacing: localStyle.letterSpacing,
-            shadows: localStyle.showShadow
-                ? [
-                    Shadow(
-                      color: Color(localStyle.shadowColor).withValues(alpha: localStyle.opacity),
-                      blurRadius: localStyle.shadowBlur,
-                      offset: Offset(localStyle.shadowOffset, localStyle.shadowOffset),
-                    ),
-                  ]
-                : null,
-          ),
-          textInputAction: TextInputAction.send,
-          onSubmitted: (_) => _send(),
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: Colors.black54,
-            hintText: i18n('local_message_hint'),
-            hintStyle: const TextStyle(color: Colors.white60, fontSize: 13),
-            prefixIcon: IconButton(
-              key: const ValueKey('fullscreen-local-danmaku-style'),
-              tooltip: i18n('local_danmaku_style'),
-              visualDensity: VisualDensity.standard,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints.tightFor(
-                width: portraitFullscreenComposerHeight,
-                height: portraitFullscreenComposerHeight,
-              ),
-              onPressed: () async {
-                controller.isMenuOpen.value = true;
-                controller.stopHideController();
-                try {
-                  await showLocalDanmakuStyleEditor(
-                    context,
-                    controller: controller.livePlayController.localInteractionController,
-                  );
-                } finally {
-                  if (controller.status != PlayerStatus.disposed) {
-                    controller.isMenuOpen.value = false;
-                    controller.enableController();
-                  }
-                }
-              },
-              icon: Icon(Icons.auto_awesome_rounded, color: Color(local.danmakuColor.v), size: 18),
-            ),
-            prefixIconConstraints: const BoxConstraints(
-              minWidth: portraitFullscreenComposerHeight,
-              minHeight: portraitFullscreenComposerHeight,
-            ),
-            suffixIcon: IconButton(
-              key: const ValueKey('fullscreen-local-danmaku-send'),
-              tooltip: i18n('local_send_message'),
-              visualDensity: VisualDensity.standard,
-              onPressed: _send,
-              icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
-            ),
-            suffixIconConstraints: const BoxConstraints(
-              minWidth: portraitFullscreenComposerHeight,
-              minHeight: portraitFullscreenComposerHeight,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(color: Colors.white24),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.3),
-            ),
-          ),
-        ),
-      );
-    });
   }
 }
 

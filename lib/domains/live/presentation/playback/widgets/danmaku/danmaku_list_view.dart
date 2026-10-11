@@ -11,11 +11,9 @@ import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
-import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_message_actions.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_arrival_counter.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/local_interaction/local_danmaku_style_editor.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 
 bool isDanmakuUserScrollStart(
@@ -62,7 +60,6 @@ class DanmakuListView extends StatefulWidget {
 
 class DanmakuListViewState extends State<DanmakuListView> {
   final ScrollController _scrollController = createPureLiveScrollController();
-  final TextEditingController _composerController = TextEditingController();
 
   static const Duration throttleDuration = Duration(milliseconds: 80);
 
@@ -164,7 +161,6 @@ class DanmakuListViewState extends State<DanmakuListView> {
     windowFullscreenWorker?.dispose();
     presentationWorker?.dispose();
     throttleTimer?.cancel();
-    _composerController.dispose();
     _pendingMessageCount.dispose();
     _scrollController.dispose();
     _itemCache.clear();
@@ -254,19 +250,6 @@ class DanmakuListViewState extends State<DanmakuListView> {
     // "return to live" button is the sole resume action.
   }
 
-  void _sendLocalMessage() {
-    final text = _composerController.text.trim();
-    final local = controller.localInteractionController;
-    if (!local.enabled.v || text.isEmpty) return;
-    controller.emitLocalMessage(
-      local.createChat(text, platform: controller.site),
-      showAsDanmaku: local.showAsDanmaku.v,
-      delay: LivePlayController.localChatDeliveryDelay,
-    );
-    _composerController.clear();
-    ToastUtil.show(i18n('local_message_queued'));
-  }
-
   void _removeActiveScrollPointer() {
     if (_activeScrollPointers > 0) _activeScrollPointers--;
   }
@@ -308,10 +291,7 @@ class DanmakuListViewState extends State<DanmakuListView> {
           Icon(Icons.info_outline, size: 14, color: theme.colorScheme.primary),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
+            child: Text(text, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ),
           TextButton(
             key: const ValueKey('live-play-name-hint-login'),
@@ -424,57 +404,6 @@ class DanmakuListViewState extends State<DanmakuListView> {
                     ],
                   ),
                 ),
-                Obx(() {
-                  if (!controller.localInteractionController.enabled.v) return const SizedBox.shrink();
-                  final state = controller.state.value;
-                  final screenMode = state.ui.screenMode;
-                  return Material(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _composerController,
-                                textInputAction: TextInputAction.send,
-                                onSubmitted: (_) => _sendLocalMessage(),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  hintText: i18n('local_message_hint'),
-                                  prefixIcon: IconButton(
-                                    key: const ValueKey('portrait-local-danmaku-style'),
-                                    tooltip: i18n('local_danmaku_style'),
-                                    onPressed: () => showLocalDanmakuStyleEditor(
-                                      context,
-                                      controller: controller.localInteractionController,
-                                    ),
-                                    icon: Icon(
-                                      Icons.auto_awesome_rounded,
-                                      size: 19,
-                                      color: screenMode == VideoMode.normal
-                                          ? Theme.of(context).primaryColor
-                                          : Color(controller.localInteractionController.danmakuColor.v),
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(22)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            IconButton.filled(
-                              tooltip: i18n('local_send_message'),
-                              onPressed: _sendLocalMessage,
-                              icon: const Icon(Icons.send_rounded),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }),
               ],
             ),
           ),
@@ -644,10 +573,7 @@ List<EmojiToken> _parseEmojiTokens(String text, {Map<String, String>? emoteUrls}
   }
 
   final atlas = EmojiAtlas.instance.regex;
-  final sources = <String>[
-    ...extras.map(RegExp.escape),
-    if (atlas != null) atlas.pattern,
-  ];
+  final sources = <String>[...extras.map(RegExp.escape), if (atlas != null) atlas.pattern];
 
   if (sources.isEmpty) {
     final tokens = [EmojiToken(isEmoji: false, value: text)];

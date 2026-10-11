@@ -1,11 +1,9 @@
 import 'package:pure_live/app/router/page_bindings.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/features/home/home_page.dart';
-import 'package:pure_live/domains/account/presentation/auth/mine_page.dart';
 import 'package:pure_live/domains/iptv/presentation/iptv_page.dart';
 import 'package:pure_live/features/about/about_page.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_page.dart';
-import 'package:pure_live/domains/account/presentation/auth/sign_in_page.dart';
 import 'package:pure_live/domains/live/presentation/search/search_page.dart';
 import 'package:pure_live/features/backup/backup_page.dart';
 import 'package:pure_live/features/splash/splash_screen.dart';
@@ -15,7 +13,6 @@ import 'package:pure_live/features/toolbox/toolbox_page.dart';
 import 'package:pure_live/domains/account/presentation/account/account_page.dart';
 import 'package:pure_live/domains/live/presentation/popular/popular_page.dart';
 import 'package:pure_live/domains/live/presentation/history/history_page.dart';
-import 'package:pure_live/domains/account/presentation/auth/user_manage_page.dart';
 import 'package:pure_live/features/about/version_history.dart';
 import 'package:pure_live/domains/live/presentation/search/web_search_page.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_page.dart';
@@ -44,8 +41,6 @@ import 'package:pure_live/domains/recorder/presentation/pages/record_settings/re
 import 'package:pure_live/domains/recorder/presentation/pages/local_player/local_video_player_page.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 
-// auth
-
 class AppPages {
   AppPages._();
 
@@ -55,9 +50,6 @@ class AppPages {
 
   static final routes = [
     GetPage(name: RoutePath.kInitial, page: HomePage.new, participatesInRootNavigator: true, preventDuplicates: true),
-    GetPage(name: RoutePath.kSignIn, page: _smoothPage(SignInPage.new)),
-    GetPage(name: RoutePath.kMine, page: _smoothPage(MinePage.new)),
-    GetPage(name: RoutePath.kUserManage, page: _smoothPage(UserManager.new)),
     GetPage(name: RoutePath.kFavorite, page: _smoothPage(FavoritePage.new)),
     GetPage(name: RoutePath.kPopular, page: _smoothPage(PopularPage.new)),
     GetPage(name: RoutePath.kAreas, page: _smoothPage(AreasPage.new)),

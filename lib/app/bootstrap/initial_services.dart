@@ -6,7 +6,6 @@ import 'package:pure_live/core/release/release_history_source.dart';
 import 'package:pure_live/core/platform/multi_instance_settings_source.dart';
 import 'package:pure_live/core/platform/desktop_exit_port.dart';
 import 'package:pure_live/core/navigation/official_category_policy.dart';
-import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/player/presentation/compact_source_orientation.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/shared/platforms/cc/cc_catalog.dart';
@@ -29,7 +28,6 @@ import 'package:pure_live/core/config/window_size_controller.dart';
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/domains/account/data/bilibili_account_service.dart';
-import 'package:pure_live/domains/account/presentation/auth/auth_controller.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/recorder/data/services/niconico_hls_input.dart' show readNiconicoMaster;
@@ -48,7 +46,6 @@ import 'package:pure_live/domains/recorder/data/services/stream_resolver_service
 import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_controller.dart';
 import 'package:pure_live/domains/iptv/presentation/channel_detail_controller.dart';
 import 'package:pure_live/domains/recorder/data/record_settings_controller.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/local_interaction/local_interaction_controller.dart';
 import 'package:pure_live/domains/wallpaper/domain/background_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
@@ -66,12 +63,6 @@ class InitialServices {
     // frame. A direct, post-registration owner also avoids the old
     // lazy-then-permanent collision in GetX.
     Get.put(IptvSettingsController(), permanent: true);
-    final localInteraction = LocalInteractionController();
-    Get.put(localInteraction, permanent: true);
-    // The shared danmaku panel looks the composer up by its Core contract, not
-    // by this concrete class: the panel must not know which domain registered it,
-    // and a recording has nothing to register at all.
-    Get.put<DanmakuLocalInteraction>(localInteraction, permanent: true);
     Get.put(RouteObserverController(), permanent: true);
   }
 
@@ -121,7 +112,6 @@ class InitialServices {
     Get.lazyPut(() => RecordSettingsController(), fenix: true);
     Get.lazyPut(() => RecorderController(), fenix: true);
     Get.lazyPut(() => StreamResolverService(), fenix: true);
-    Get.lazyPut(() => AuthController(), fenix: true);
   }
 
   static Future<void> initDb() async {

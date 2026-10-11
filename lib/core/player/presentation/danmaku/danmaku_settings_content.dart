@@ -195,13 +195,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     final theme = Theme.of(context);
     final Color labelColor = theme.colorScheme.onSurface;
     final Color digitColor = theme.colorScheme.primary;
-    // A room registers the local-interaction composer; a host with nothing to
-    // compose into (a replayed recording) simply does not show that switch. A
-    // hard `Get.find` would make this shared surface fail outside a live room,
-    // which is the whole reason it lives in Core.
-    final localInteraction = Get.isRegistered<DanmakuLocalInteraction>()
-        ? Get.find<DanmakuLocalInteraction>()
-        : null;
     return SingleChildScrollView(
       key: ValueKey(widget.embedded ? 'danmaku-settings-content-embedded' : 'danmaku-settings-content-page'),
       controller: _scrollController,
@@ -210,17 +203,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (localInteraction != null) ...[
-            context.buildModernCard([
-              context.buildSwitchTile(
-                title: i18n('local_interaction_enable'),
-                value: localInteraction.enabled,
-                icon: Icons.auto_awesome_rounded,
-                isLong: true,
-              ),
-            ]),
-            const SizedBox(height: 8),
-          ],
           context.buildGroupTitle(i18n('danmaku_templates')),
           const SizedBox(height: 8),
           _buildTemplateSection(theme),

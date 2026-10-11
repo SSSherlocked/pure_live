@@ -11,7 +11,6 @@ import 'package:pure_live/domains/live/presentation/playback/dialogs/room_timer_
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_volume_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_link_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/local_interaction/local_interaction_sheet.dart';
 
 class LivePlayMenuButton extends StatelessWidget {
   const LivePlayMenuButton({super.key, required this.controller});
@@ -67,10 +66,6 @@ class LivePlayMenuButton extends StatelessWidget {
 
       case 6:
         _shareRoom();
-        break;
-
-      case 7:
-        _showLocalInteraction(context);
         break;
 
       case 8:
@@ -140,29 +135,6 @@ class LivePlayMenuButton extends StatelessWidget {
     ShareCommandHandler.instance.onShareRoomPressed(detail);
   }
 
-  void _showLocalInteraction(BuildContext context) {
-    if (!controller.localInteractionController.enabled.v) {
-      return;
-    }
-
-    final detail = controller.state.value.room.detail;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) {
-        return LocalInteractionSheet(
-          controller: controller.localInteractionController,
-          platform: detail?.platform ?? controller.site,
-          onMessage: (message, showAsDanmaku) {
-            controller.emitLocalMessage(message, showAsDanmaku: showAsDanmaku);
-          },
-        );
-      },
-    );
-  }
-
   void _openNewWindow() {
     final detail = controller.state.value.room.detail;
 
@@ -197,9 +169,6 @@ class LivePlayMenuButton extends StatelessWidget {
       _item(value: 5, icon: Remix.link_m, text: i18n('toolbox_get_direct_link')),
 
       _item(value: 6, icon: RemixIcons.share_forward_line, text: i18n('share')),
-
-      if (controller.localInteractionController.enabled.v)
-        _item(value: 7, icon: Icons.auto_awesome_rounded, text: i18n('local_interaction_title')),
 
       if (Platform.isWindows) _item(value: 8, icon: Icons.open_in_new_rounded, text: i18n('open_room_in_new_window')),
     ];

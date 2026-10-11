@@ -26,8 +26,6 @@ import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_list_view.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_presentation_recovery.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/local_interaction/local_interaction_controller.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/local_interaction/local_message_delivery_queue.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
@@ -77,7 +75,6 @@ class LivePlayController extends GetxController
   late final PlayerController playerController;
 
   final RecorderController recorderController = Get.find<RecorderController>();
-  final LocalInteractionController localInteractionController = Get.find<LocalInteractionController>();
 
   @override
   final Rx<LivePlayState> state = const LivePlayState().obs;
@@ -85,12 +82,17 @@ class LivePlayController extends GetxController
   final _danmakuRemovals = StreamController<bool Function(LiveMessage)>.broadcast(sync: true);
   Stream<bool Function(LiveMessage)> get danmakuRemovals => _danmakuRemovals.stream;
   final RxInt danmakuPresentationRevision = 0.obs;
-  final Rxn<LiveMessage> localGiftEffect = Rxn<LiveMessage>();
   final RxList<LiveSuperChatMessage> superChats = <LiveSuperChatMessage>[].obs;
   late Site currentSite;
   late TabController tabController;
 
-  final List<String> tabs = [i18n('danmaku_list'), i18n('super_chat'), i18n('danmaku_settings'), i18n('block_list')];
+  final List<String> tabs = [
+    i18n('danmaku_list'),
+    i18n('super_chat'),
+    i18n('danmaku_settings'),
+    i18n('block_list'),
+    i18n('follow'),
+  ];
 
   bool _floatingResourcesReleased = false;
   bool _ownerClosed = false;
@@ -101,7 +103,6 @@ class LivePlayController extends GetxController
   int _roomLoadEpoch = 0;
   int _iptvPlaybackEpoch = 0;
   bool _asmrSessionActive = false;
-  Timer? _localGiftEffectTimer;
   Timer? _danmakuFlushTimer;
   Worker? _pipStateWorker;
   Worker? _screenKeepOnWorker;
@@ -110,7 +111,6 @@ class LivePlayController extends GetxController
   bool _wasBackgrounded = false;
   bool _handlingSystemBackPresentation = false;
   final List<LiveMessage> _pendingDanmakuMessages = <LiveMessage>[];
-  late final LocalMessageDeliveryQueue _localMessageDeliveryQueue;
   late final String _controllerTag;
   RoomSessionSnapshot? _reentrySession;
 
@@ -126,7 +126,6 @@ class LivePlayController extends GetxController
   // rooms without slowing the moving barrage or local messages (which flush
   // immediately).
   static const Duration _danmakuBatchWindow = Duration(milliseconds: 64);
-  static const Duration localChatDeliveryDelay = Duration(seconds: 2);
 
   Timer? _superChatExpiryTimer;
   @override
@@ -134,7 +133,6 @@ class LivePlayController extends GetxController
     super.onInit();
     _controllerTag = '${identityHashCode(this)}';
     currentSite = Sites.of(site);
-    _localMessageDeliveryQueue = LocalMessageDeliveryQueue(onDeliver: _deliverLocalMessage);
 
     final manager = GlobalPlayerService.instance.player;
     _reentrySession = manager.consumeRoomSessionReentry(room);
@@ -609,36 +607,6 @@ class LivePlayController extends GetxController
     updateRoom(liveroom: candidate.withAudienceFallbackFrom(detail));
   }
 
-  void emitLocalMessage(LiveMessage msg, {required bool showAsDanmaku, Duration delay = Duration.zero}) {
-    if (!localInteractionController.enabled.v) return;
-    final targetRoom = state.value.room.detail;
-    if (targetRoom == null) return;
-    _localMessageDeliveryQueue.schedule(
-      LocalMessageDelivery(
-        message: msg,
-        showAsDanmaku: showAsDanmaku,
-        roomId: targetRoom.roomId,
-        platform: targetRoom.platform,
-      ),
-      delay: delay,
-    );
-  }
-
-  void _deliverLocalMessage(LocalMessageDelivery delivery) {
-    final currentRoom = state.value.room.detail;
-    if (isClosed || _ownerClosed || currentRoom == null || !delivery.matchesRoom(liveroom: currentRoom)) {
-      return;
-    }
-    final msg = delivery.message;
-    addDanmakuMessage(msg, immediate: true);
-    if (delivery.showAsDanmaku) state.value.player.videoController?.sendDanmaku(msg);
-    if (msg.type == LiveMessageType.gift && localInteractionController.enableGiftEffects.v) {
-      localGiftEffect.v = msg;
-      _localGiftEffectTimer?.cancel();
-      _localGiftEffectTimer = Timer(const Duration(seconds: 3), () => localGiftEffect.v = null);
-    }
-  }
-
   /// Applies the headphone action to this room only. Restoring video also
   /// ends an automatically started ASMR timer, while manually entering audio
   /// mode does not implicitly create a sleep session.
@@ -933,7 +901,6 @@ class LivePlayController extends GetxController
     invalidateRoomLoad();
     _iptvPlaybackEpoch++;
     playerController.invalidateLoad();
-    _localMessageDeliveryQueue.cancelAll();
     final sameRoom =
         state.value.room.detail?.roomId == newRoom.roomId && state.value.room.detail?.platform == newRoom.platform;
 
@@ -1221,8 +1188,6 @@ class LivePlayController extends GetxController
     _danmakuPresentationRecovery.dispose();
     clearSuperChats();
     playerController.invalidateLoad();
-    _localGiftEffectTimer?.cancel();
-    _localMessageDeliveryQueue.dispose();
     _danmakuFlushTimer?.cancel();
     _pendingDanmakuMessages.clear();
     tabController.dispose();

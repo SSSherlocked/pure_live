@@ -670,10 +670,19 @@ class BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: i18n('exit_fullscreen'),
-      onPressed: () => GlobalPlayerService.instance.player.isWindowFullscreen.value
-          ? controller.toggleWindowFullScreen()
-          : controller.toggleFullScreen(),
+      onPressed: () {
+        final player = GlobalPlayerService.instance.player;
+        // Fullscreen: back leaves fullscreen. Inline: back leaves the room,
+        // the same as the app bar's back; it used to toggle fullscreen here,
+        // which made one "back" enter fullscreen and need a second press.
+        if (player.isWindowFullscreen.value) {
+          controller.toggleWindowFullScreen();
+        } else if (player.isSystemFullscreen.value) {
+          controller.toggleFullScreen();
+        } else {
+          Navigator.of(context).maybePop();
+        }
+      },
       constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
       icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
     );

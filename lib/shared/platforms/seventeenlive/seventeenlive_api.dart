@@ -364,13 +364,23 @@ class SeventeenLiveApi {
       (qualities[qualityId] ??= <Uri>[]).add(uri);
     }
 
+    // Wansu (most rooms now list it first) serves the source, enhanced and HD
+    // streams but no H.264 transcode: its url264 is a 404 or empty. Only the
+    // first CDN serves at all, so a Wansu-first room has no H.264 quality, and
+    // Wansu's url264 is never read (wzgrx/pure_live E03.18).
+    bool isWansu(Map<String, dynamic> provider) =>
+        ['url', 'webUrl', 'urlLowQuality', 'webUrlLowQuality', 'urlHighQuality'].any((key) {
+          final value = provider[key];
+          return value is String && (Uri.tryParse(value)?.host.toLowerCase().startsWith('wansu-') ?? false);
+        });
+    final wansuFirst = providers.isNotEmpty && isWansu(_object(providers.first));
     for (final raw in providers) {
       final provider = _object(raw);
       add('enhanced', provider['urlQualityEnhancedHD']);
       add('hd', provider['urlLowBitrateHD']);
       add('hd', provider['webUrl']);
       add('hd', provider['url']);
-      add('h264', provider['url264']);
+      if (!wansuFirst && !isWansu(provider)) add('h264', provider['url264']);
       add('standard', provider['urlLowQuality']);
       add('standard', provider['webUrlLowQuality']);
       add('standard', provider['urlHighQuality']);

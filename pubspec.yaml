@@ -46,6 +46,7 @@ dependencies:
   web_socket_channel: ^3.0.3 # WebSocket通信
   stream_channel: ^2.1.4 # YY保留请求头大小写的自定义WebSocket通道
   connectivity_plus: ^7.3.1 # 网络连接状态监听
+  audio_session: ^0.2.4 # 直播间音频焦点（来电暂停、拔耳机暂停）
   webdav_client: ^1.2.2 # WebDAV文件存储客户端
 
   win32_registry: ^3.0.3

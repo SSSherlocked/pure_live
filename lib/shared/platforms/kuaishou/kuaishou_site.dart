@@ -44,7 +44,11 @@ class KuaishouSite
 
   String cookie = '';
   Map<String, String> cookieObj = {};
-  Future<void>? _sessionBootstrap;
+  Future<({String url, String? page})>? _sessionBootstrap;
+
+  /// The device report started by the last session bootstrap; awaited only
+  /// when the bootstrap page could not be used.
+  Future<void>? _didReport;
   DateTime? _sessionUpdatedAt;
   static const Duration _sessionLifetime = Duration(minutes: 30);
   List<String> imageExtensions = [
@@ -402,11 +406,18 @@ class KuaishouSite
     return map;
   }
 
-  Future getCookie(String url) async {
+  /// Opens [url] with a fresh cookie jar, keeps its cookies as the guest
+  /// session and returns the page body (null when it is not text).
+  Future<String?> getCookie(String url) async {
     final dio = Dio();
     final cookieJar = CookieJar();
     dio.interceptors.add(CookieManager(cookieJar));
-    await dio.get(url);
+    final response = await dio.get<String>(
+      url,
+      // Browser headers so the page is the parseable room page; no cookie, so
+      // the response sets a fresh guest session.
+      options: Options(responseType: ResponseType.plain, headers: _roomHeaders()..remove('cookie')),
+    );
     List<Cookie> cookies = await cookieJar.loadForRequest(Uri.parse(url));
     cookie = '';
     cookieObj.clear();
@@ -418,6 +429,7 @@ class KuaishouSite
       }
       cookieObj[cookies[i].name] = cookies[i].value;
     }
+    return response.data;
   }
 
   @override
@@ -520,8 +532,28 @@ class KuaishouSite
 
   Future<LiveRoom> _loadRoom(String roomId, {required bool includePlaybackData, required bool ensureSession}) async {
     final url = "https://live.kuaishou.com/u/$roomId";
-    if (ensureSession) await _ensureSession(url);
+    if (ensureSession) {
+      // A new guest session is bootstrapped by opening this very room page.
+      // Use that page when it parses instead of requesting it a second time
+      // (first entry: about 1.0-1.35 s -> 0.33-0.5 s, wzgrx/pure_live G03.1);
+      // the device report then finishes in the background.
+      final bootstrap = await _ensureSession(url);
+      final page = bootstrap?.url == url ? bootstrap?.page : null;
+      if (page != null) {
+        try {
+          return _parseRoomPage(page, roomId, includePlaybackData: includePlaybackData);
+        } on FormatException {
+          // A risk-control or partial page: register the device first, then
+          // read the room again with the session.
+          await _didReport;
+        }
+      }
+    }
     final resultText = await HttpClient.instance.getText(url, queryParameters: const {}, header: _roomHeaders());
+    return _parseRoomPage(resultText, roomId, includePlaybackData: includePlaybackData);
+  }
+
+  LiveRoom _parseRoomPage(String resultText, String roomId, {required bool includePlaybackData}) {
     final text = RegExp(r"window\.__INITIAL_STATE__=(.*?);", multiLine: false).firstMatch(resultText)?.group(1);
     if (text == null || text.isEmpty) throw const FormatException('Kuaishou initial state is missing');
     final jsonObj = jsonDecode(text.replaceAll("undefined", "null"));
@@ -584,23 +616,23 @@ class KuaishouSite
     return configuredCookie.isNotEmpty ? configuredCookie : cookie;
   }
 
-  Future<void> _ensureSession(String url) async {
-    if (CookieSettingsController.to.kuaishouCookie.v.trim().isNotEmpty) return;
+  /// Makes sure a guest session exists. Returns the page the bootstrap opened
+  /// (with its URL) when this call created a new session, otherwise null.
+  Future<({String url, String? page})?> _ensureSession(String url) async {
+    if (CookieSettingsController.to.kuaishouCookie.v.trim().isNotEmpty) return null;
     final updatedAt = _sessionUpdatedAt;
-    if (cookie.isNotEmpty && updatedAt != null && DateTime.now().difference(updatedAt) < _sessionLifetime) return;
+    if (cookie.isNotEmpty && updatedAt != null && DateTime.now().difference(updatedAt) < _sessionLifetime) return null;
     final pending = _sessionBootstrap;
     if (pending != null) return pending;
 
-    late final Future<void> operation;
+    late final Future<({String url, String? page})> operation;
     operation =
         (() async {
-          await getCookie(url);
+          final page = await getCookie(url);
           _sessionUpdatedAt = DateTime.now();
-          try {
-            await registerDid(requestHeaders: _roomHeaders());
-          } catch (_) {
-            // Device telemetry is best-effort and must not hold up room metadata.
-          }
+          // Device telemetry is best-effort and must not hold up room metadata.
+          _didReport = registerDid(requestHeaders: _roomHeaders()).then<void>((_) {}).catchError((Object _) {});
+          return (url: url, page: page);
         })().whenComplete(() {
           if (identical(_sessionBootstrap, operation)) _sessionBootstrap = null;
         });

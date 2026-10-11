@@ -2,7 +2,10 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:pure_live/domains/live/domain/playback_startup_timing.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/domains/live/domain/live_audio_focus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
@@ -89,6 +92,88 @@ class LivePlayController extends GetxController
   late Site currentSite;
   late TabController tabController;
 
+  // Automatic reconnect after a network-class playback failure: retried at
+  // 5/10/20/30/60 s (the last repeats) for up to 30 minutes, and at once when
+  // the device reports a network again (wzgrx/pure_live G02.3 / O01.3).
+  static const List<int> _reconnectDelaysSeconds = [5, 10, 20, 30, 60];
+  static const Duration _reconnectWindow = Duration(minutes: 30);
+  Timer? _reconnectTimer;
+  StreamSubscription<List<ConnectivityResult>>? _reconnectConnectivity;
+  DateTime? _reconnectStartedAt;
+  int _reconnectAttempt = 0;
+  bool _reconnecting = false;
+
+  /// A network-class playback failure: keep trying until the room plays again.
+  void onPlaybackNetworkError() {
+    if (isClosed || _ownerClosed) return;
+    final firstFailure = _reconnectStartedAt == null;
+    _reconnectStartedAt ??= DateTime.now();
+    if (firstFailure) ToastUtil.show(i18n('playback_auto_reconnect'));
+    _reconnectConnectivity ??= Connectivity().onConnectivityChanged.listen((results) {
+      if (results.any((result) => result != ConnectivityResult.none)) {
+        _scheduleReconnect(const Duration(seconds: 1));
+      }
+    });
+    final index = _reconnectAttempt < _reconnectDelaysSeconds.length
+        ? _reconnectAttempt
+        : _reconnectDelaysSeconds.length - 1;
+    _scheduleReconnect(Duration(seconds: _reconnectDelaysSeconds[index]));
+  }
+
+  /// The room plays again: stop the reconnect ladder.
+  void notifyPlaybackRecovered() => _stopReconnect();
+
+  void _scheduleReconnect(Duration delay) {
+    if (isClosed || _ownerClosed || _reconnectStartedAt == null) return;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(delay, () => unawaited(_attemptReconnect()));
+  }
+
+  Future<void> _attemptReconnect() async {
+    final startedAt = _reconnectStartedAt;
+    if (isClosed || _ownerClosed || startedAt == null || _reconnecting) return;
+    if (GlobalPlayerService.instance.player.isPlayingNow) {
+      _stopReconnect();
+      return;
+    }
+    if (DateTime.now().difference(startedAt) > _reconnectWindow) {
+      _stopReconnect();
+      return;
+    }
+    _reconnectAttempt++;
+    _reconnecting = true;
+    try {
+      final videoController = state.value.player.videoController;
+      if (videoController != null) {
+        await videoController.refresh();
+      } else {
+        await onInitPlayerState(reloadDataType: ReloadDataType.refresh);
+      }
+    } catch (_) {
+      // A failed attempt is answered by the next step of the ladder.
+    } finally {
+      _reconnecting = false;
+    }
+    if (isClosed || _ownerClosed || _reconnectStartedAt == null) return;
+    // Keep the ladder going even when a failed attempt raised no player error
+    // (for example the room page itself did not load).
+    if (!GlobalPlayerService.instance.player.isPlayingNow) {
+      final index = _reconnectAttempt < _reconnectDelaysSeconds.length
+          ? _reconnectAttempt
+          : _reconnectDelaysSeconds.length - 1;
+      _scheduleReconnect(Duration(seconds: _reconnectDelaysSeconds[index]));
+    }
+  }
+
+  void _stopReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    unawaited(_reconnectConnectivity?.cancel());
+    _reconnectConnectivity = null;
+    _reconnectStartedAt = null;
+    _reconnectAttempt = 0;
+  }
+
   /// Keeps the room's fullscreen state in step with the desktop window.
   late final _NativeFullscreenSync _nativeFullscreenSync = _NativeFullscreenSync(this);
 
@@ -137,6 +222,7 @@ class LivePlayController extends GetxController
   void onInit() {
     super.onInit();
     _nativeFullscreenSync.attach();
+    unawaited(LiveAudioFocus.instance.attach());
     _controllerTag = '${identityHashCode(this)}';
     currentSite = Sites.of(site);
 
@@ -709,9 +795,11 @@ class LivePlayController extends GetxController
     final loadEpoch = ++_roomLoadEpoch;
 
     beginRoomMetadataLoad();
+    PlaybackStartupTiming.instance.begin(site: requestedPlatform, roomId: roomId);
 
     try {
       final fetchedRoom = await currentSite.liveSite.getRoomDetail(requestedRoom);
+      PlaybackStartupTiming.instance.mark('detail');
 
       var liveRoom = fetchedRoom.withAudienceFallbackFrom(requestedRoom);
       liveRoom = liveRoom.fillFromDetail(requestedRoom);
@@ -902,6 +990,8 @@ class LivePlayController extends GetxController
   void clearClosedPlaybackSource() => _restoreQualityAndLines();
 
   Future<void> switchRoom(LiveRoom newRoom) async {
+    // A reconnect ladder belongs to the room it started for.
+    _stopReconnect();
     // Fence any room-detail/play-quality request that was started before this
     // switch. Its late result must not restore the previous room or socket.
     invalidateRoomLoad();
@@ -1186,6 +1276,8 @@ class LivePlayController extends GetxController
   @override
   void onClose() {
     _nativeFullscreenSync.detach();
+    unawaited(LiveAudioFocus.instance.detach());
+    _stopReconnect();
     _ownerClosed = true;
     _roomLoadEpoch++;
     _iptvPlaybackEpoch++;

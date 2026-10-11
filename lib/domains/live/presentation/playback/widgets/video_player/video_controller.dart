@@ -734,6 +734,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         if (_isDisposed) return;
         if (playing) {
           _setStatus(PlayerStatus.playing);
+          _livePlayController.notifyPlaybackRecovered();
         } else if (_playerManager.hasError.value) {
           _setStatus(PlayerStatus.error);
         }
@@ -780,7 +781,16 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     _lastPlayerErrorSignature = signature;
     _lastPlayerErrorAt = now;
 
-    final errorMessage = switch (ErrorClassifier.classify(error.code)) {
+    final category = ErrorClassifier.classify(error.code);
+    if (category == PlayerErrorCategory.network ||
+        category == PlayerErrorCategory.http ||
+        category == PlayerErrorCategory.timeout) {
+      // The room reconnects by itself; its first notice replaces the toast.
+      _livePlayController.onPlaybackNetworkError();
+      return;
+    }
+
+    final errorMessage = switch (category) {
       PlayerErrorCategory.network ||
       PlayerErrorCategory.http ||
       PlayerErrorCategory.authentication ||

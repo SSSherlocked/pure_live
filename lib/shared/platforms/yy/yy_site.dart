@@ -291,7 +291,7 @@ class YYSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomResol
     return (cid: roomId, sid: roomId);
   }
 
-  Future<Map<String, dynamic>> getLiveStreamObj({required LiveRoom liveroom, required String qn}) async {
+  Future<Map<String, dynamic>> getLiveStreamObj({required LiveRoom liveroom, required String qn, int lineSeq = -1}) async {
     final sequence = DateTime.now().millisecondsSinceEpoch;
     final channel = _channelIds(liveroom);
     final cid = channel.sid;
@@ -335,7 +335,7 @@ class YYSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomResol
         'service_type': 0,
         'imsi': 0,
         'send_time': sequence ~/ 1000,
-        'line_seq': -1,
+        'line_seq': lineSeq,
         'gear': int.parse(qn),
         'ssl': 1,
         'stream_format': 0,
@@ -519,8 +519,31 @@ class YYSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomResol
     }
 
     try {
-      final urls = parsePlayUrls(await getLiveStreamObj(liveroom: liveroom, qn: qn));
-      if (urls.isNotEmpty) return urls;
+      final first = await getLiveStreamObj(liveroom: liveroom, qn: qn);
+      final urls = parsePlayUrls(first);
+      if (urls.isNotEmpty) {
+        // The server picks one CDN line. Ask the stream's other lines for the
+        // same quality as backups, so a failing CDN can switch line instead
+        // of failing the room (wzgrx/pure_live: line 10 tx-flv-web, 14
+        // ks-flv-web). Best effort: any failure keeps the first line alone.
+        final servedStreams = _servedStreamKeys(first);
+        final others = await Future.wait(
+          otherLines(first).take(2).map((line) async {
+            try {
+              return await getLiveStreamObj(liveroom: liveroom, qn: qn, lineSeq: line);
+            } catch (_) {
+              return null;
+            }
+          }),
+        );
+        for (final other in others) {
+          if (other == null || _servedStreamKeys(other).intersection(servedStreams).isEmpty) continue;
+          for (final url in parsePlayUrls(other)) {
+            if (!urls.contains(url)) urls.add(url);
+          }
+        }
+        return urls;
+      }
     } catch (error) {
       CoreLog.w('YY stream URL request failed; retrying through mobile HLS: $error');
     }
@@ -528,6 +551,38 @@ class YYSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomResol
     final payload = await _getMobileHlsStream(liveroom: liveroom, rate: fallbackRate);
     final url = payload?['hls']?.toString().trim() ?? '';
     return url.isEmpty ? const <String>[] : <String>[url];
+  }
+
+  /// The other CDN lines (`line_seq`) the served stream is on, in server
+  /// order: `stream_line_list` of the served stream key, without the lines it
+  /// was served on.
+  @visibleForTesting
+  static List<int> otherLines(dynamic payload) {
+    final avpInfoRes = payload is Map ? payload['avp_info_res'] : null;
+    if (avpInfoRes is! Map) return const <int>[];
+    final addresses = avpInfoRes['stream_line_addr'];
+    if (addresses is! Map || addresses.isEmpty) return const <int>[];
+    final served = <int>{
+      for (final value in addresses.values)
+        if (value is Map && _asInt(value['line_seq']) != null) _asInt(value['line_seq'])!,
+    };
+    final lineList = avpInfoRes['stream_line_list'];
+    final entry = lineList is Map ? lineList[addresses.keys.first] : null;
+    final infos = entry is Map ? entry['line_infos'] : null;
+    final lines = <int>[];
+    if (infos is List) {
+      for (final info in infos.whereType<Map>()) {
+        final line = _asInt(info['line_seq']);
+        if (line != null && line >= 0 && !served.contains(line) && !lines.contains(line)) lines.add(line);
+      }
+    }
+    return lines;
+  }
+
+  static Set<String> _servedStreamKeys(dynamic payload) {
+    final avpInfoRes = payload is Map ? payload['avp_info_res'] : null;
+    final addresses = avpInfoRes is Map ? avpInfoRes['stream_line_addr'] : null;
+    return addresses is Map ? addresses.keys.map((key) => key.toString()).toSet() : const <String>{};
   }
 
   @visibleForTesting

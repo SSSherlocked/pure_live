@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
+import 'package:pure_live/domains/live/domain/playback_startup_timing.dart';
 import 'package:media_core/media_core.dart';
 import 'package:media_core_live/media_core_live.dart';
 import 'package:flame_barrage/flame_barrage.dart';
@@ -151,6 +152,7 @@ final class LivePlayerFacade {
     if (audioOnly) await setAudioOnlyMode(true, stopVideoDecoding: true);
     final sourceUrl = url.trim();
     if (sourceUrl.isEmpty) throw ArgumentError('Remote playback source is empty');
+    PlaybackStartupTiming.instance.mark('urls');
 
     final urls = <String>[sourceUrl, ...playUrls.where((value) => value != sourceUrl)];
     _room = liveroom;
@@ -190,6 +192,7 @@ final class LivePlayerFacade {
       ),
       preferredBackend: backendIdOfEngine(preferredEngine),
     );
+    PlaybackStartupTiming.instance.mark('open');
     // The commit carries the platform's line order — the list the line
     // selector, the label and the next-line cycling are all written against.
     // `_lastLines` above is the kernel's fallback preference (selected first)
@@ -436,6 +439,11 @@ final class LivePlayerFacade {
     if (size != null && size.width > 0 && size.height > 0) {
       windowsPipDriver.onVideoSize((size.width / size.height * 1000).round(), 1000);
     }
+    PlaybackStartupTiming.instance.reportPlaybackState(
+      playing: state.playback == PlayerPlaybackState.playing,
+      hasPicture: size != null && size.width > 0 && size.height > 0 && !dummy,
+      audioOnly: dummy || _audioOnlyMode.value,
+    );
     videoGeometryState.value = _computeVideoGeometry();
   }
 

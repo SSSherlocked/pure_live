@@ -2574,5 +2574,6 @@
   "panel_tab_super_chat": "留言",
   "panel_tab_settings": "设置",
   "data_and_backup": "数据管理与备份",
-  "data_and_backup_desc": "缓存、数据清理与备份恢复"
+  "data_and_backup_desc": "缓存、数据清理与备份恢复",
+  "playback_auto_reconnect": "网络连接中断，恢复后会自动重连"
 }

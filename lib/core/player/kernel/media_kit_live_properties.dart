@@ -49,8 +49,12 @@ abstract final class MediaKitLiveProperties {
   static Map<String, String> build() {
     final properties = <String, String>{
       'protocol_whitelist': 'httpproxy,udp,rtp,tcp,tls,data,file,http,https,crypto,rtmp,rtmps,rtsp,srt',
-      'demuxer-lavf-probesize': '2097152',
-      'demuxer-lavf-analyzeduration': '2',
+      // 1 MiB / 1 s (from 2 MiB / 2 s). Bilibili's CDN sends 1-2 s of cache
+      // and then real time, so a 2 s analysis waited for the live edge: its
+      // first frame went 1802 -> 708 ms on a phone (wzgrx/pure_live G03.1);
+      // CDNs that burst several seconds up front are unaffected.
+      'demuxer-lavf-probesize': '1048576',
+      'demuxer-lavf-analyzeduration': '1',
       'network-timeout': '15',
       // Drop a failing hw decoder after one bad frame.
       'hwdec-software-fallback': '1',

@@ -28,5 +28,4 @@ then remove the corresponding snapshot.
 The Android picture-in-picture backend is not here: `floating` is snapshotted in
 the media_core workspace (`packages/floating`), because `media_core_pip` is what
 depends on it. Its build and status-observation changes are listed in
-`packages/floating/PATCHES.md` there; `docs/PIP_STATUS_OBSERVATION_AUDIT_2026_09_06.md`
-records how that behaviour was reached.
+`packages/floating/PATCHES.md` there.

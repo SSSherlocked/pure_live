@@ -10,20 +10,18 @@
 
 A third-party live stream aggregator built with Flutter.
 
-[![Latest Release](https://img.shields.io/github/v/release/liuchuancong/pure_live?color=success&label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/liuchuancong/pure_live/releases/latest)
-[![Stars](https://img.shields.io/github/stars/liuchuancong/pure_live?color=yellow)](https://github.com/liuchuancong/pure_live/stargazers)
-[![Downloads](https://img.shields.io/github/downloads/liuchuancong/pure_live/total?style=flat-square&color=orange&label=%E4%B8%8B%E8%BD%BD)](https://github.com/liuchuancong/pure_live/releases)
-[![License](https://img.shields.io/github/license/liuchuancong/pure_live?color=blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/Android%20%7C%20TV%20%7C%20Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-8A2BE2)](https://github.com/liuchuancong/pure_live)
+[![Latest Release](https://img.shields.io/github/v/release/SSSherlocked/pure_live?color=success&label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/SSSherlocked/pure_live/releases/latest)
+[![Stars](https://img.shields.io/github/stars/SSSherlocked/pure_live?color=yellow)](https://github.com/SSSherlocked/pure_live/stargazers)
+[![Downloads](https://img.shields.io/github/downloads/SSSherlocked/pure_live/total?style=flat-square&color=orange&label=%E4%B8%8B%E8%BD%BD)](https://github.com/SSSherlocked/pure_live/releases)
+[![License](https://img.shields.io/github/license/SSSherlocked/pure_live?color=blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/Android%20%7C%20Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-8A2BE2)](https://github.com/SSSherlocked/pure_live)
 [![Flutter](https://img.shields.io/badge/Flutter-3.47-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 
 <img src="assets/images/banner.png" width="720" alt="Pure Live 界面预览"/>
 
 </div>
 
-> **纯粹直播** 是一款开源的第三方多平台直播聚合播放器，使用 Flutter 构建，支持 Android、Android TV、Windows、Linux、macOS 和 iOS。一个应用看遍全网直播，支持多画面同看、弹幕、录制、定时关闭与数据同步。
-
-> 📺 **TV 请迁移至：<https://github.com/liuchuancong/pure_live_TV>**
+> **纯粹直播** 是一款开源的第三方多平台直播聚合播放器，使用 Flutter 构建，支持 Android、Windows、Linux、macOS 和 iOS。一个应用看遍全网直播，支持多画面同看、弹幕、录制、定时关闭与数据同步。
 
 ---
 
@@ -64,17 +62,17 @@ A third-party live stream aggregator built with Flutter.
 
 ## 📥 下载安装
 
-前往 [**GitHub Releases**](https://github.com/liuchuancong/pure_live/releases/latest) 获取最新安装包，并使用同一 Release 的 `SHA256SUMS.txt` 校验完整性。
+前往 [**GitHub Releases**](https://github.com/SSSherlocked/pure_live/releases/latest) 获取最新安装包，并使用同一 Release 的 `SHA256SUMS.txt` 校验完整性。
 
 | 平台 | 安装包 | 系统要求 |
 | --- | --- | --- |
-| 📱 Android / Android TV | APK（arm64-v8a / armeabi-v7a / x86_64，以 Release 实际发布为准） | Android 8.0（API 26）及以上 |
-| 🖥️ Windows | EXE 安装器 / 便携 ZIP（MSIX 可自行构建，见 [MSIX 证书说明](docs/MSIX_INSTALL.md)） | Windows 10 / 11 x64 |
+| 📱 Android | APK（arm64-v8a / armeabi-v7a / x86_64，以 Release 实际发布为准） | Android 8.0（API 26）及以上 |
+| 🖥️ Windows | EXE 安装器 / 便携 ZIP | Windows 10 / 11 x64 |
 | 🍎 macOS | Universal DMG / ZIP | Apple Silicon + Intel |
 | 🐧 Linux | Portable tar.gz | x64 |
 | 📲 iOS | TrollStore IPA / 未签名 ZIP | arm64 |
 
-- Android 使用正式包名 `com.mystyle.purelive`，正式 Release 使用仓库专用持久签名，可直接覆盖升级。
+- Android 使用正式包名 `com.mystyle.purelive`，正式 Release 使用本仓库专用持久签名，可直接覆盖升级本仓库的旧版本；签名与原项目不同，从原项目安装包切换时需先卸载（请先备份数据）。
 - Windows 安装向导支持选择其他磁盘，设置、关注、历史、IPTV、录制和缓存集中保存在安装目录 `AppData`。
 - macOS / Linux / iOS 源码保留构建能力，相关产物以具体 Release 说明为准，属社区验证范围。
 
@@ -90,7 +88,7 @@ A third-party live stream aggregator built with Flutter.
 
 ### ▶️ 多播放器
 
-Android / Android TV 支持在设置中切换播放器，出现黑屏、卡顿或硬解兼容问题时可随时更换：
+Android 支持在设置中切换播放器，出现黑屏、卡顿或硬解兼容问题时可随时更换：
 
 - IJKPlayer
 - EXOPlayer
@@ -195,15 +193,11 @@ PowerShell -ExecutionPolicy Bypass -File .\tool\build_local_release.ps1 `
 | [当前状态快照](docs/ACCEPTANCE_STATUS_3_2_0.md) | 当前候选、编号统计、主要阻塞与下一批顺序 |
 | [Android / Windows 验收矩阵](docs/ACCEPTANCE_MATRIX_3_1_0.md) | 62 个编号行的唯一状态和证据所有者 |
 | [维护范围与问题处置策略](MAINTENANCE_POLICY.md) | 平台支持边界、Issue 分流、来源判定与完成标准 |
-| [上游同步审查策略](UPSTREAM_REVIEW_POLICY.md) | 三方差异、语义审查、冲突处置与合并门禁 |
 | [构建与发布](docs/BUILD_AND_RELEASE.md) | 本机质量门禁、签名、打包和 Release 流程 |
 | [平台接口与兼容性](docs/PLATFORM_COMPATIBILITY.md) | 分区、搜索、弹幕、观看指标和能力边界 |
-| [平台扩展任务清单](docs/PLATFORM_EXPANSION_PLAN_2026_09_21.md) | 已接入范围、内部候选、下一生产合同批次与统一收敛顺序 |
 | [Windows 数据与升级](docs/WINDOWS_DATA_AND_UPGRADE.md) | 安装目录存储、关注恢复、迁移和回滚 |
-| [Windows MSIX 证书说明](docs/MSIX_INSTALL.md) | 自行构建 MSIX 时的证书核对与安装步骤 |
 | [高刷新率与性能验证](docs/PERFORMANCE.md) | Android / Windows 帧、CPU、GPU 与资源采样 |
 | [WebDAV 配置](docs/WEBDAV.md) | 通用字段、坚果云示例和故障排查 |
-| [依赖与接口审计](docs/DEPENDENCY_AUDIT.md) | 固定工具链、升级约束和接口探测范围 |
 | [参与贡献](CONTRIBUTING.md) | 分支、提交、测试和 Pull Request 要求 |
 | [安全策略](SECURITY.md) | 私密漏洞报告和签名材料管理 |
 | [版本说明](RELEASE_NOTES.md) | 当前稳定版变更与历史记录 |
@@ -213,50 +207,24 @@ PowerShell -ExecutionPolicy Bypass -File .\tool\build_local_release.ps1 `
 
 ## 📌 维护说明
 
-<!-- maintenance-readme-markers: maintenance-scope; android-first; windows-maintained; upstream-feature-routing; bugfix-release-default -->
+<!-- maintenance-readme-markers: maintenance-scope; android-first; windows-maintained; bugfix-release-default -->
 
-- 本仓库重点维护 **Android / Android TV 与 Windows**：多数修复与安装包优先更新 Android，Windows 继续作为主要桌面维护目标；Linux、macOS 与 iOS 为社区验证范围，不承诺每轮构建。
+- 本仓库重点维护 **Android 与 Windows**：多数修复与安装包优先更新 Android，Windows 继续作为主要桌面维护目标；Linux、macOS 与 iOS 为社区验证范围，不承诺每轮构建。
 - 当前 **3.2.0** 处于完整验收阶段，尚未发布；进度与发布门禁见 [3.2.0 验收入口](docs/ACCEPTANCE_3_2_0.md)，当前状态见 [状态快照](docs/ACCEPTANCE_STATUS_3_2_0.md)。
-- Issue 受理**可复现的维护型 Bug**（[提交 Bug](https://github.com/liuchuancong/pure_live/issues/new/choose)）；Bug 修复批次默认递增版本并优先构建 Android 正式包。
-- 上游变更的来源判定、根因、兼容、验证与回滚流程见[维护范围与问题处置策略](MAINTENANCE_POLICY.md)及[上游同步审查策略](UPSTREAM_REVIEW_POLICY.md)。
+- Bug 与功能建议请在[本仓库 Issue](https://github.com/SSSherlocked/pure_live/issues/new/choose)提交；Bug 修复批次默认递增版本并优先构建 Android 正式包。
+- Bug 的来源判定、根因、兼容、验证与回滚流程见[维护范围与问题处置策略](MAINTENANCE_POLICY.md)。
 
 ---
 
 ## 🤝 贡献与致谢
 
-**主开发者**：[@liuchuancong](https://github.com/liuchuancong)
+**维护者**：[@SSSherlocked](https://github.com/SSSherlocked)
 
-**协助开发者**：[@RebornQ](https://github.com/RebornQ) · [@wzgrx](https://github.com/wzgrx)
+> 📌 欢迎贡献修复、测试和文档！分支、提交、测试与 Pull Request 要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-> 📌 欢迎贡献维护型修复、测试和文档！分支、提交、测试与 Pull Request 要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+**致谢**
 
-**代码参考**
+本项目 Fork 自 [liuchuancong/pure_live](https://github.com/liuchuancong/pure_live)（原作者 [@liuchuancong](https://github.com/liuchuancong)，协助开发者 [@RebornQ](https://github.com/RebornQ) · [@wzgrx](https://github.com/wzgrx)），依 AGPL-3.0 许可证继续开发。代码参考：
 
 - [dart_simple_live](https://github.com/xiaoyaocz/dart_simple_live)
 - [pure_live (Jackiu1997)](https://github.com/Jackiu1997/pure_live)
-
----
-
-## 🌟 Star 趋势
-
-如果 Pure Live 对你有帮助，欢迎给项目一个 ⭐ Star：
-
-<a href="https://www.star-history.com/?repos=liuchuancong%2Fpure_live&type=date&legend=bottom-right">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=liuchuancong/pure_live&type=date&theme=dark&legend=bottom-right&sealed_token=7TCHJ1imubZUrHskxy4Fj--g2rclGNfNcTikzBHUf3sq9UyOFMIc2Seh8xnBxICxbcuc33QXSM34ooqO-iEpmwbF9JdlGslt_OSSHpPQqMSWBnOYCZoyWOK7vMh0OxfC9TyY_7cFplT_pTHUNrs3RYVg3GZfjqE1ezf5E9fH7_DTDNxxvD5jUlyqDNpT" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=liuchuancong/pure_live&type=date&legend=bottom-right&sealed_token=7TCHJ1imubZUrHskxy4Fj--g2rclGNfNcTikzBHUf3sq9UyOFMIc2Seh8xnBxICxbcuc33QXSM34ooqO-iEpmwbF9JdlGslt_OSSHpPQqMSWBnOYCZoyWOK7vMh0OxfC9TyY_7cFplT_pTHUNrs3RYVg3GZfjqE1ezf5E9fH7_DTDNxxvD5jUlyqDNpT" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=liuchuancong/pure_live&type=date&legend=bottom-right&sealed_token=7TCHJ1imubZUrHskxy4Fj--g2rclGNfNcTikzBHUf3sq9UyOFMIc2Seh8xnBxICxbcuc33QXSM34ooqO-iEpmwbF9JdlGslt_OSSHpPQqMSWBnOYCZoyWOK7vMh0OxfC9TyY_7cFplT_pTHUNrs3RYVg3GZfjqE1ezf5E9fH7_DTDNxxvD5jUlyqDNpT" />
- </picture>
-</a>
-
----
-
-## ☕ 捐助支持
-
-如果您觉得本项目对您有帮助，欢迎扫码支持开发者一杯咖啡 ☕
-
-<p align="center">
-  <img src="https://github.com/liuchuancong/pure_live/blob/master/assets/images/wechat.png" width="350" alt="WeChat Donate">
-</p>
-
-> 您的支持是我持续维护的动力！感谢 ❤️

@@ -24,12 +24,6 @@ class VersionUtil {
 
   static final String githubUrl = 'https://github.com/$updateOwner';
 
-  static const String email = '17792321552@163.com';
-  static const String emailUrl = 'mailto:17792321552@163.com?subject=PureLive Feedback';
-
-  static const String telegramGroup = 't.me/pure_live_channel';
-  static const String telegramGroupUrl = 'https://t.me/pure_live_channel';
-
   static final String releaseUrl = 'https://api.github.com/repos/$updateOwner/$updateRepository/releases?per_page=30';
 
   static final GitHubMirror mirror = GitHubMirror(owner: updateOwner, repo: updateRepository, branch: 'master');

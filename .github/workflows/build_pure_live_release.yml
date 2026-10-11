@@ -798,7 +798,6 @@ jobs:
           # 纯粹直播 $RELEASE_TAG
           |版本|下载地址|
           |---|---|
-          |TV版|[pure_live_TV](https://github.com/liuchuancong/pure_live_TV/releases/latest)|
           |Windows/macOS/Android/iOS版|[pure_live](https://github.com/$REPOSITORY/releases/latest)|
           ### 🖥️ Windows 版
           - **Portable ZIP**：解压即用，无需安装

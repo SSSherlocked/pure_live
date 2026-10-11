@@ -30,8 +30,6 @@ class RoutePath {
 
   static const kHistory = "/history";
 
-  static const kDonate = "/donate";
-
   static const kMine = "/mine";
 
   static const kSignIn = "/sign_in";

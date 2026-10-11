@@ -1,6 +1,6 @@
 # Agent task and workflow routing
 
-This is an on-demand execution map. AGENTS.md contains session defaults; BUILD_POLICY.md owns resource/signing rules; MAINTENANCE_POLICY.md owns bug provenance; UPSTREAM_REVIEW_POLICY.md owns merge review. Do not duplicate those rules in new skills.
+This is an on-demand execution map. AGENTS.md contains session defaults; BUILD_POLICY.md owns resource/signing rules; MAINTENANCE_POLICY.md owns bug provenance. Do not duplicate those rules in new skills.
 
 ## Select the evidence needed
 
@@ -12,7 +12,6 @@ This is an on-demand execution map. AGENTS.md contains session defaults; BUILD_P
 | Parser/API contract | Real or sanitized response and parser callers | Positive/negative fixture tests; external probe only when necessary |
 | Platform registration or capability expansion | Registry, bundled locale labels, settings migration and shared consumers | `test/sites_test.dart` plus the affected adapter, migration, search and recording contracts; do not treat adapter-only tests as application coverage |
 | Player/lifecycle/recording | State/event sequence, ownership and disposal | Reproduction plus adjacent pause/exit/source-change regressions; native/device evidence when in scope |
-| Upstream merge | Frozen fork/upstream/base and all incoming changes | Full semantic audit required by UPSTREAM_REVIEW_POLICY.md, then affected regression |
 | Formal release | Clean source commit and completed repair batch | Full quality gate and platform-specific artifact/signing/publication verification |
 
 Before changing a reported or scanned surface, prove that it is reachable from the current product: find its production call site, route, registration or runtime contract. An unreferenced vendored/framework helper is not a current UI regression merely because a static pattern looks suspicious; record or remove it only when dead-code maintenance is the actual task. This reachability gate prevents writing tests and fixes for code the app never executes.
@@ -58,10 +57,9 @@ Update only the owner of the information; avoid copying the same batch narrative
 | 62 Android/Windows acceptance states | `ACCEPTANCE_MATRIX_3_1_0.md` | Only when row evidence or state changes; keep each row within 1000 characters and move batch detail to its focused report |
 | Current totals and major release blockers | `ACCEPTANCE_STATUS_3_2_0.md` | Snapshot changes, not routine per-Issue prose |
 | 3.2.0 execution order and gates | `ACCEPTANCE_3_2_0.md` | Procedure changes; its historical timeline is frozen |
-| Full client case catalog | `FULL_CLIENT_TEST_PLAN_2026_08_28.md` | New/changed user-observable cases only |
 | Root cause/design/release evidence | focused audit/stage document | Only when the compact ledger is insufficient |
 
-This ownership map supersedes the older habit of inserting the same result into the root README, both acceptance narratives, the matrix and the docs index. Historical timelines now live in `ACCEPTANCE_HISTORY_3_2_0.md`, `ACCEPTANCE_STATUS_HISTORY_3_2_0.md`, `ACCEPTANCE_MATRIX_HISTORY_3_1_0.md` and `README_HISTORY_2026_09_19.md`; treat them as read-only evidence and never append current status to them.
+This ownership map supersedes the older habit of inserting the same result into the root README, both acceptance narratives, the matrix and the docs index. Historical timelines now live in `ACCEPTANCE_HISTORY_3_2_0.md`, `ACCEPTANCE_STATUS_HISTORY_3_2_0.md`, and `ACCEPTANCE_MATRIX_HISTORY_3_1_0.md`; treat them as read-only evidence and never append current status to them.
 
 Read the compact active files first. Open a history archive only when a current row, Issue or audit links to an older batch whose exact evidence is needed. Do not load an archive merely to answer current progress, choose the next test, or repeat a completed investigation.
 
@@ -86,7 +84,6 @@ GitHub Actions remain explicit fallback/signing infrastructure; local Android/Wi
 
 | Route | Use |
 | --- | --- |
-| `audit-upstream.yml` | Read-only incoming-change inventory; no merge |
 | `feature-build.yml` | Main hosted fallback; selected platforms run serially. Sole owner of `stage-linux-*`, `stage-macos-*`, `stage-ios-*` tag triggers |
 | `build_pure_live_release.yml` | Manual legacy/all-ABI compatibility entrypoint; no stage-tag trigger |
 | `build-ios-unsigned.yml` | Explicit manual standalone iOS build; no duplicate tag build |

@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// A [TabBar] that desktop users can also scroll with the mouse wheel and by
-/// dragging with the mouse (from liuchuancong/pure_live). Touch behaviour and
+/// dragging with the mouse (ported from the original project). Touch behaviour and
 /// the given scroll physics are unchanged.
 class ScrollableTabBar extends StatefulWidget {
   final List<Widget> tabs;

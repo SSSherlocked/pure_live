@@ -24,18 +24,14 @@ foreach ($relativePath in $trackedPowerShellFiles) {
 $requiredFiles = @(
     'BUILD_POLICY.md',
     'MAINTENANCE_POLICY.md',
-    'UPSTREAM_REVIEW_POLICY.md',
     '.agents\skills\pure-live-build\SKILL.md',
     '.agents\skills\pure-live-maintenance\SKILL.md',
     '.github\ISSUE_TEMPLATE\bug_report.yml',
     '.github\ISSUE_TEMPLATE\config.yml',
     '.github\pull_request_template.md',
     'docs\BUG_TRIAGE_TEMPLATE.md',
-    'docs\UPSTREAM_AUDIT_TEMPLATE.md',
     'tool\build_resource_guard.ps1',
-    'tool\review_upstream_update.ps1',
     'tool\audit_repository.py',
-    '.github\workflows\audit-upstream.yml',
     'tool\local_ci.ps1',
     'tool\build_local_release.ps1',
     'tool\verify_android_apk.ps1',
@@ -81,7 +77,6 @@ $maintenancePolicy = Get-Content -LiteralPath (Join-Path $repoRoot 'MAINTENANCE_
 foreach ($marker in @(
     'android-first',
     'windows-maintained',
-    'feature-requests-upstream',
     'bug-provenance-required',
     'semantic-change-ledger',
     'evidence-layered',
@@ -104,17 +99,13 @@ foreach ($marker in @(
     }
 }
 
-$featureRequestTemplate = Join-Path $repoRoot '.github\ISSUE_TEMPLATE\feature_request.yml'
-if (Test-Path -LiteralPath $featureRequestTemplate) {
-    throw 'Feature requests must route to the upstream project instead of a local Issue form.'
-}
 $issueConfig = Get-Content -LiteralPath (Join-Path $repoRoot '.github\ISSUE_TEMPLATE\config.yml') -Raw
 $bugTemplate = Get-Content -LiteralPath (Join-Path $repoRoot '.github\ISSUE_TEMPLATE\bug_report.yml') -Raw
 $pullRequestTemplate = Get-Content -LiteralPath (Join-Path $repoRoot '.github\pull_request_template.md') -Raw
-if (-not $issueConfig.Contains('https://github.com/liuchuancong/pure_live/issues/new/choose')) {
-    throw 'Issue configuration must route feature requests to the upstream project.'
+if (-not $issueConfig.Contains('https://github.com/SSSherlocked/pure_live/issues/new/choose')) {
+    throw 'Issue configuration must route feature requests to this repository.'
 }
-foreach ($marker in @('maintenance-bug-only', 'upstream-comparison', 'community-verified', 'upstream_comparison', 'last_working')) {
+foreach ($marker in @('maintenance-bug-only', 'community-verified', 'last_working')) {
     if (-not $bugTemplate.Contains($marker)) {
         throw "Bug report triage marker is missing: $marker"
     }
@@ -128,12 +119,10 @@ foreach ($marker in @('bug-provenance', 'semantic-audit', 'impact-matrix', 'evid
 $readmeText = Get-Content -LiteralPath (Join-Path $repoRoot 'README.md') -Raw
 $contributingText = Get-Content -LiteralPath (Join-Path $repoRoot 'CONTRIBUTING.md') -Raw
 $agentText = Get-Content -LiteralPath (Join-Path $repoRoot 'AGENTS.md') -Raw
-$upstreamAuditTemplate = Get-Content -LiteralPath (Join-Path $repoRoot 'docs\UPSTREAM_AUDIT_TEMPLATE.md') -Raw
 foreach ($entry in @(
-    [pscustomobject]@{ Name = 'README'; Text = $readmeText; Markers = @('maintenance-readme-markers', 'android-first', 'windows-maintained', 'upstream-feature-routing', 'bugfix-release-default', 'MAINTENANCE_POLICY.md', 'issues/new/choose') },
-    [pscustomobject]@{ Name = 'CONTRIBUTING'; Text = $contributingText; Markers = @('contribution-policy-markers', 'maintenance-bug-only', 'bug-triage', 'upstream-review', 'feature-routing', 'integration-conflict') },
-    [pscustomobject]@{ Name = 'AGENTS'; Text = $agentText; Markers = @('Maintenance scope and triage', 'MAINTENANCE_POLICY.md', 'not-reproduced', 'bugfix-android-release-default') },
-    [pscustomobject]@{ Name = 'upstream audit template'; Text = $upstreamAuditTemplate; Markers = @('file_review', 'semantic_change_ledger', 'issue_and_bug_mapping', 'fork_feature_impact', 'quality_assessment', 'disposition', 'conflict_resolution', 'regression_plan', 'verification_plan') }
+    [pscustomobject]@{ Name = 'README'; Text = $readmeText; Markers = @('maintenance-readme-markers', 'android-first', 'windows-maintained', 'bugfix-release-default', 'MAINTENANCE_POLICY.md', 'issues/new/choose') },
+    [pscustomobject]@{ Name = 'CONTRIBUTING'; Text = $contributingText; Markers = @('contribution-policy-markers', 'maintenance-bug-only', 'bug-triage', 'feature-routing', 'integration-conflict') },
+    [pscustomobject]@{ Name = 'AGENTS'; Text = $agentText; Markers = @('Maintenance scope and triage', 'MAINTENANCE_POLICY.md', 'not-reproduced', 'bugfix-android-release-default') }
 )) {
     foreach ($marker in $entry.Markers) {
         if (-not $entry.Text.Contains($marker)) {
@@ -151,7 +140,6 @@ $powerShellFiles = @(
     'tool\prefetch_windows_native.ps1',
     'tool\flutterw.ps1',
     'tool\android_ui.ps1',
-    'tool\review_upstream_update.ps1',
     'tool\validate_build_policy.ps1'
 )
 foreach ($relativePath in $powerShellFiles) {
@@ -485,49 +473,6 @@ foreach ($marker in @(
     }
 }
 
-$upstreamPolicy = Get-Content -LiteralPath (Join-Path $repoRoot 'UPSTREAM_REVIEW_POLICY.md') -Raw
-$upstreamReviewScript = Get-Content -LiteralPath (Join-Path $repoRoot 'tool\review_upstream_update.ps1') -Raw
-$upstreamAuditWorkflow = Get-Content -LiteralPath (Join-Path $repoRoot '.github\workflows\audit-upstream.yml') -Raw
-foreach ($marker in @(
-    'review_upstream_update.ps1',
-    'normal-live-layout-visible',
-    'manual-workflow-defaults-off',
-    'semantic-change-ledger',
-    'fork-feature-impact',
-    'disposition-required',
-    'bug-provenance-required'
-)) {
-    if (-not $upstreamPolicy.Contains($marker)) {
-        throw "Upstream review policy marker is missing: $marker"
-    }
-}
-foreach ($marker in @(
-    'ApproveHighRisk',
-    'ReportOnly',
-    "@('merge-base', `$baseSha, `$upstreamSha)",
-    'incoming_range',
-    'audit_document_valid',
-    'audit_document_required_markers',
-    'audit_document_missing_commits',
-    'audit_document_missing_files',
-    'semantic_change_ledger',
-    'issue_and_bug_mapping',
-    'fork_feature_impact',
-    'quality_assessment',
-    'disposition',
-    'regression_plan',
-    'credential_material_in_added_lines'
-)) {
-    if (-not $upstreamReviewScript.Contains($marker)) {
-        throw "Upstream review script marker is missing: $marker"
-    }
-}
-foreach ($marker in @('workflow_dispatch:', 'fetch-depth: 0', '-ReportOnly', 'audit_repository.py', 'contents: read')) {
-    if (-not $upstreamAuditWorkflow.Contains($marker)) {
-        throw "Upstream audit workflow is missing required marker: $marker"
-    }
-}
-
 $repositoryAuditScript = Get-Content -LiteralPath (Join-Path $repoRoot 'tool\audit_repository.py') -Raw
 foreach ($marker in @(
     'mutable_action_reference',
@@ -694,7 +639,7 @@ if ($versionFeed.platforms.android.version -ne $displayVersion -or
     [int]$versionFeed.platforms.android.build_number -ne $buildNumber) {
     throw 'assets/version.json Android version must match the current application version.'
 }
-if ($versionFeed.download_url -ne "https://github.com/liuchuancong/pure_live/releases/tag/$releaseTag") {
+if ($versionFeed.download_url -ne "https://github.com/SSSherlocked/pure_live/releases/tag/$releaseTag") {
     throw 'assets/version.json must advertise the maintained repository release.'
 }
 foreach ($workflowName in @('feature-build.yml', 'stage-hosted-artifacts.yml', 'publish-staged-release.yml')) {
@@ -708,9 +653,9 @@ foreach ($workflowName in @('feature-build.yml', 'stage-hosted-artifacts.yml', '
 
 $environmentText = Get-Content -LiteralPath (Join-Path $repoRoot '.env.prod') -Raw
 $generatedEnvironment = Get-Content -LiteralPath (Join-Path $repoRoot 'lib\gen\env.g.dart') -Raw
-if ($environmentText -notmatch '(?m)^PURELIVE_UPDATE_OWNER=liuchuancong\s*$' -or
-    $generatedEnvironment -notmatch "pureliveUpdateOwner = 'liuchuancong'") {
-    throw 'Production and generated update repositories must both target liuchuancong/pure_live.'
+if ($environmentText -notmatch '(?m)^PURELIVE_UPDATE_OWNER=SSSherlocked\s*$' -or
+    $generatedEnvironment -notmatch "pureliveUpdateOwner = 'SSSherlocked'") {
+    throw 'Production and generated update repositories must both target SSSherlocked/pure_live.'
 }
 
 # Owner and native-bundle URLs are derived from the .env file, so a rename is

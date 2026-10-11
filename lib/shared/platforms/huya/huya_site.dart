@@ -13,6 +13,7 @@ import 'package:pure_live/core/tars/base_tars_http.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
 import 'package:pure_live/core/models/live_category.dart';
 import 'package:pure_live/shared/platforms/live_site.dart';
+import 'package:pure_live/gen/env.g.dart';
 import 'package:pure_live/core/release/github_mirror.dart';
 import 'package:pure_live/core/models/live_anchor_item.dart';
 import 'package:pure_live/core/models/live_play_quality.dart';
@@ -404,7 +405,11 @@ class HuyaSite
     if (playUserAgent != null) {
       return playUserAgent!;
     }
-    final mirror = GitHubMirror(owner: 'liuchuancong', repo: 'pure_live', branch: 'master');
+    final mirror = GitHubMirror(
+      owner: AppConfig.pureliveUpdateOwner,
+      repo: AppConfig.pureliveUpdateRepository,
+      branch: 'master',
+    );
     final urls = mirror.mirrors('assets/play_config.json');
     final data = await RaceHttp.fetchJson(urls);
     final ua = data?['huya']?['user_agent']?.toString().trim();

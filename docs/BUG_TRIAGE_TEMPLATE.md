@@ -6,8 +6,6 @@
 
 - Issue / 报告：
 - 当前维护分支 SHA：
-- 冻结上游 SHA：
-- merge base：
 - 版本、平台、系统、设备、播放器：
 - 直播平台、房间类型、发生时间：
 - 最短复现步骤：
@@ -18,9 +16,8 @@
 ## 来源判定
 
 - 分类：`upstream-existing` / `fork-regression` / `integration-conflict` / `external-drift` / `environment-or-data` / `not-reproduced`
-- 上游行为：
-- 维护分支行为：
-- 合并后或当前产物行为：
+- 最后正常版本行为：
+- 当前产物行为：
 - 支撑证据：
 
 ## 根本原因

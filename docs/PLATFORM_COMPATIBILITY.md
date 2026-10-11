@@ -11,29 +11,29 @@
 
 3.2.11 起按 `lib/core/sites.dart` 核对：当前源码注册 **33 个直播站点 + IPTV，共 34 个适配器**（2026-09-22 时为 45 站）。这是源码注册数量，不是已发布包或完整验收数量。小红书、niconico、微博、SHOWROOM、CHZZK、Kick、17LIVE、LiveMe、TikTok LIVE、YouTube Live、Bigo Live、PandaTV、PopkonTV、Shopee Live、VK Video Live、NimoTV、Dailymotion、Rumble、GoodGame、FC2 Live、Steam Broadcasts、京东直播、淘宝直播、酷狗直播、百度直播、六间房直播和 LOOK 直播已接入应用入口；原生整体验收继续，当前候选与完整剩余范围以[验收状态](ACCEPTANCE_STATUS_3_2_0.md)为准。
 
-2026-09-23 房间页“外部打开”也已与注册表对齐：此前 14 个新增站点缺少官方房间 URL 映射，操作会落到 `unavailable`；现在 45 个直播站点均有按稳定房间身份重建的官方目标，IPTV 不存在远端官方房间页。构造、无效 ID 与启动动作的定向证据见[外部打开覆盖审计](ROOM_EXTERNAL_OPEN_COVERAGE_AUDIT_2026_09_23.md)；这只是源码动作合同，外部浏览器/客户端实际落地仍待当前候选双端验证。
+2026-09-23 房间页“外部打开”也已与注册表对齐：此前 14 个新增站点缺少官方房间 URL 映射，操作会落到 `unavailable`；现在 45 个直播站点均有按稳定房间身份重建的官方目标，IPTV 不存在远端官方房间页。构造、无效 ID 与启动动作的定向证据；这只是源码动作合同，外部浏览器/客户端实际落地仍待当前候选双端验证。
 
-内置网页搜索打开小红书直播间或 TTing/FLEX 频道直播页时，现也能识别稳定房间身份并提示回到应用播放；普通内容与仿冒链接仍被排除，见[链接回流审计](WEB_SEARCH_XHS_TTING_LINK_AUDIT_2026_09_23.md)。
+内置网页搜索打开小红书直播间或 TTing/FLEX 频道直播页时，现也能识别稳定房间身份并提示回到应用播放；普通内容与仿冒链接仍被排除。
 
-小红书录制所用的共用 HLS 保留窗口现识别旧版 `EXT-X-ALLOW-CACHE:YES`，使该标签不再单独阻断预取；`NO` 仍走原始 relay。此为确定性源码回归，当前现网清单和新候选原生录制仍待复核，见[旧缓存标签审计](XIAOHONGSHU_HLS_ALLOW_CACHE_AUDIT_2026_09_24.md)。
+小红书录制所用的共用 HLS 保留窗口现识别旧版 `EXT-X-ALLOW-CACHE:YES`，使该标签不再单独阻断预取；`NO` 仍走原始 relay。此为确定性源码回归，当前现网清单和新候选原生录制仍待复核。
 
-2026-09-23 搜索页能力表已与这 46 个已注册适配器核对：此前 14 个新平台虽有原生查询实现，UI 却因缺少能力登记而落到通用网页搜索；现已逐一标注搜索范围与分页，45 个平台提供原生搜索入口，快手保持已有网页入口。范围与回归见[搜索能力登记审计](SEARCH_REGISTRY_COVERAGE_AUDIT_2026_09_23.md)。该数量是源码入口，不等于 45 个平台的生产可达或双端原生验收通过。
+2026-09-23 搜索页能力表已与这 46 个已注册适配器核对：此前 14 个新平台虽有原生查询实现，UI 却因缺少能力登记而落到通用网页搜索；现已逐一标注搜索范围与分页，45 个平台提供原生搜索入口，快手保持已有网页入口。范围与回归。该数量是源码入口，不等于 45 个平台的生产可达或双端原生验收通过。
 
 ### 09-09 及更早阶段的取证快照
 
-OPENREC / mellow-fan 已接入复合频道身份、公开目录与 HLS 质量；当前源码补精确频道查询，2026-09-23 本机公共接口 CloudFront 403，现网整链可达性与原生验收仍有缺口，见[应用审计](OPENREC_APPLICATION_INTEGRATION_AUDIT_2026_09_09.md)和[精确查询及访问记录](OPENREC_EXACT_CHANNEL_SEARCH_AUDIT_2026_09_23.md)。TTingLive / FLEX TV 已接入有限首页目录、精确频道查询及按源 token 策略；应用回归 201/201，最新生产注册适配器与 24 份 HLS 列表链路通过，后续 Windows 原生短录两次采集目标失败；保留片段的合并/完整解码通过，但起始延迟及音视频时间覆盖仍待修，完整录制未通过，见[应用审计](TTING_APPLICATION_INTEGRATION_AUDIT_2026_09_09.md)、[生产链路审计](TTING_PRODUCTION_RELAY_AUDIT_2026_09_09.md)及[原生短录审计](TTING_NATIVE_RECORDING_AUDIT_2026_09_09.md)。
-克拉克拉与花椒已接入公开目录、UID 收藏及播放/录制解析；克拉克拉现补精确主播号/官方主页及[官网主播关键词搜索](KILAKILA_NATIVE_KEYWORD_SEARCH_AUDIT_2026_09_23.md)，花椒现补精确主播号/官方主页查询与[最多三页公开推荐关键词筛选](HUAJIAO_PUBLIC_RECOMMENDATION_SEARCH_AUDIT_2026_09_23.md)。弹幕与 Android/Windows 原生验收仍待完成，见[克拉克拉应用审计](KILAKILA_APPLICATION_INTEGRATION_AUDIT_2026_09_08.md)、[萌星目录修订](KILAKILA_RISING_STAR_AUDIT_2026_09_08.md)、[克拉克拉精确查询](KILAKILA_EXACT_UID_SEARCH_AUDIT_2026_09_23.md)、[花椒应用审计](HUAJIAO_APPLICATION_INTEGRATION_AUDIT_2026_09_08.md)及[花椒精确查询](HUAJIAO_EXACT_UID_SEARCH_AUDIT_2026_09_23.md)。花椒空页仍有 more 时沿原生游标有界继续，游标按页面和刷新批次隔离，不用结果条数代替结束信号。
-当前 [Android 候选 bee143e2](OPENREC_PICARTO_ANDROID_CANDIDATE_2026_09_09.md) 已包含克拉克拉、花椒、OPENREC 和 Picarto 响应收尾修订；完整门禁/打包通过，尚未安装，后续 TTing 和源策略输入链未入包。Windows f3de664a 未随本批更新，原生能力证据仍按各平台分列。
-猫耳和映客已应用接入；猫耳 Windows 原生短录有独立证据，映客已有公开接口和生产地址解析，并补齐精确 UID/官网链接查询及公开精选昵称筛选，见[映客应用审计](INKE_APPLICATION_INTEGRATION_AUDIT_2026_09_08.md)与[精确查询记录](INKE_EXACT_UID_SEARCH_AUDIT_2026_09_23.md)。昵称筛选只覆盖当前有限精选，不代表全站主播索引。
-Picarto 已进入 Android 候选并取得部分原生证据，见 [接入审计](PICARTO_ADAPTER_AUDIT_2026_09_07.md)及[停止/清理补证](ANDROID_PROXY_OCCLUSION_AUDIT_2026_09_07.md)。当前源码新增官网动态直播分类与原生分类分页、主播档案原生搜索，见[分类专项记录](PICARTO_NATIVE_CATEGORY_AUDIT_2026_09_23.md)与[搜索专项记录](PICARTO_PROFILE_SEARCH_AUDIT_2026_09_23.md)；这些更新尚未进入原生候选。
-TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入与恢复；Android 80b7431c已覆盖安装并解除首段401，low出现实际画面，但短录文件严格解码仍失败，见[修复候选复验](TWITCASTING_COOKIE_ANDROID_RETEST_2026_09_07.md)。当前源码另补[官网当前直播搜索](TWITCASTING_PUBLIC_LIVE_SEARCH_AUDIT_2026_09_23.md)与[频道根链接精确查询](TWITCASTING_EXACT_CHANNEL_SEARCH_AUDIT_2026_09_23.md)；根链接可返回未开播频道，但电影/归档链接不替换为当前直播。首次high/首帧、完整文件与长录仍待验收，现有 Android/Windows 候选早于这项搜索修订。
+OPENREC / mellow-fan 已接入复合频道身份、公开目录与 HLS 质量；当前源码补精确频道查询，2026-09-23 本机公共接口 CloudFront 403，现网整链可达性与原生验收仍有缺口。TTingLive / FLEX TV 已接入有限首页目录、精确频道查询及按源 token 策略；应用回归 201/201，最新生产注册适配器与 24 份 HLS 列表链路通过，后续 Windows 原生短录两次采集目标失败；保留片段的合并/完整解码通过，但起始延迟及音视频时间覆盖仍待修，完整录制未通过及原生短录审计。
+克拉克拉与花椒已接入公开目录、UID 收藏及播放/录制解析；克拉克拉现补精确主播号/官方主页及官网主播关键词搜索，花椒现补精确主播号/官方主页查询与最多三页公开推荐关键词筛选。弹幕与 Android/Windows 原生验收仍待完成。花椒空页仍有 more 时沿原生游标有界继续，游标按页面和刷新批次隔离，不用结果条数代替结束信号。
+当前 Android 候选 bee143e2 已包含克拉克拉、花椒、OPENREC 和 Picarto 响应收尾修订；完整门禁/打包通过，尚未安装，后续 TTing 和源策略输入链未入包。Windows f3de664a 未随本批更新，原生能力证据仍按各平台分列。
+猫耳和映客已应用接入；猫耳 Windows 原生短录有独立证据，映客已有公开接口和生产地址解析，并补齐精确 UID/官网链接查询及公开精选昵称筛选。昵称筛选只覆盖当前有限精选，不代表全站主播索引。
+Picarto 已进入 Android 候选并取得部分原生证据。当前源码新增官网动态直播分类与原生分类分页、主播档案原生搜索；这些更新尚未进入原生候选。
+TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入与恢复；Android 80b7431c已覆盖安装并解除首段401，low出现实际画面，但短录文件严格解码仍失败。当前源码另补官网当前直播搜索与频道根链接精确查询；根链接可返回未开播频道，但电影/归档链接不替换为当前直播。首次high/首帧、完整文件与长录仍待验收，现有 Android/Windows 候选早于这项搜索修订。
 参考项目尚未接入的平台单列于 [平台扩展差距表](PLATFORM_EXPANSION_AUDIT_2026_09_07.md)，不计作本项目已支持。
 
 源码开发中的 AcFun（正式 v3.1.8 发布包不含；当前 af88a032 Android Debug 候选已包含）：已接入官网直播分类与目录、包含未开播作者的
 原生搜索、直播分享链接、游客取流、画质/线路、录制输入和在线人数开关。
 搜索按实际条目衔接官网的稀疏分页；`onlineCount`、点赞、粉丝分别处理。
 远端弹幕尚未接入，房间内会说明并保留本地互动入口。完整录制文件、实际观看和正式产物
-仍待验收，见 [AcFun 接入审查](ACFUN_NAVIGATION_AUDIT_2026_09_05.md)。
+仍待验收。
 
 ### 当前源码能力表
 
@@ -62,12 +62,12 @@ TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入�
 | 微博直播 | 有限公开推荐快照，目录直播状态保持未知 | 精确场次 ID/官方观看 URL，含回放元数据；当前公开推荐快照可按昵称筛选，不宣称全站主播搜索或分页查询 | 当前未接入 | 未取得人数，保持未知；不把 UID/互动数当观众数 |
 | SHOWROOM | 官网公开 onlives 快照与原生分类 | 同一直播快照内的直播关键词分页；直播间链接可查询未开播状态 | 当前未接入 | `view_num` 作为本场累计观看，不当作并发在线人数 |
 | CHZZK | 官方公开热门直播游标目录 | 原生频道搜索，包含开播和未开播频道 | 当前未接入 | `cvExposure=true` 时展示 `concurrentUserCount` 并发人数，否则保持未知 |
-| Kick | 官方公开直播分页 | 原生有界搜索，直播匹配和未开播频道合并去重 | [公开 Pusher 聊天](KICK_PUBLIC_CHAT_AUDIT_2026_09_23.md)；解析独立 chatroom ID，确认订阅后接收聊天，双端原生消息验收待执行 | `show_view_count=false` 时保持未知，其他公开 `viewer_count` 作为并发人数 |
+| Kick | 官方公开直播分页 | 原生有界搜索，直播匹配和未开播频道合并去重 | 公开 Pusher 聊天；解析独立 chatroom ID，确认订阅后接收聊天，双端原生消息验收待执行 | `show_view_count=false` 时保持未知，其他公开 `viewer_count` 作为并发人数 |
 | 17LIVE | 官网日本区公开推荐 sections，保留原生游标；只展示已核验当前直播，不宣称全站目录 | 官网当前直播关键词有限窗口，不含未开播昵称；精确房间号及官方直播间/主播主页链接仍可返回未开播状态 | 当前未接入 | `liveViewerCount` 为当前观看，`viewerCount` 为本场累计观看，分别展示 |
 | LiveMe | 官网公开热门目录，保留原生分页 | 原生主播关键词分页，包含未开播主播；直播间、主播主页和旧场次链接可回流为稳定短号 | 当前未接入 | `heat` 为平台热度、`playnumber` 为当前观看、`watchnumber` 为本场累计观看，三者分列 |
 | TikTok LIVE | 游客推荐目录依赖网页会话，当前页面保留明确范围说明 | 精确账号、@账号、官方主页/直播间/直播分享链接；可返回未开播账号 | 当前未接入 | `liveRoomStats.userCount` 为当前观看，`enterCount` 为累计进房，分别展示 |
 | YouTube Live | 首阶段保持范围说明；公开推荐目录依赖动态网页会话 | 精确视频 ID、观看/直播/短链/嵌入链接，以及频道或 `@handle` 的当前直播发现 | 当前未接入 | 仅使用直播页专用并发观看字段；普通 `viewCount` 不作当前在线人数 |
-| Bigo Live | 官网有限公开推荐快照，本地分页且不宣称全站目录 | 当前推荐快照内按昵称/标题筛选；精确 Bigo ID 与官方房间链接可返回未开播或访问受限状态。官网公开搜索接口本轮返回空数据，关键词范围不宣称全站；见 [Bigo 公开快照搜索审计](BIGO_PUBLIC_SNAPSHOT_SEARCH_AUDIT_2026_09_23.md) | 当前未接入 | 目录 `user_count` 为当前直播在线；房间详情缺少并发字段时保持未知 |
+| Bigo Live | 官网有限公开推荐快照，本地分页且不宣称全站目录 | 当前推荐快照内按昵称/标题筛选；精确 Bigo ID 与官方房间链接可返回未开播或访问受限状态。官网公开搜索接口本轮返回空数据，关键词范围不宣称全站| 当前未接入 | 目录 `user_count` 为当前直播在线；房间详情缺少并发字段时保持未知 |
 | PandaTV（韩国） | 官方公开直播目录，原生 offset/limit 分页 | 官网 LIVE 当前直播标题/主播搜索与 BJ 主播搜索合并，含未开播主播；两源各自按原生 offset/limit 分页；精确频道 ID 与官方直播间/频道链接保留 | 当前未接入 | `user` 为当前在线；`playCnt` 为本场播放计数，两者分列，BJ 排名分数不作观看人数 |
 | PopkonTV | 官网公开直播目录，热门/最新/新人/热榜四种原生排序与分页 | 原生频道 ID、昵称关键词与官方直播链接搜索，包含未开播主播 | 当前未接入 | `watchCnt` 为当前在线；`totalWatchCnt` 为本场累计观看；`bookmark` 为收藏/关注，分列展示 |
 | Shopee Live（印尼） | 官网首页有限公开直播推荐快照，不宣称全站目录 | 当前快照标题关键词、精确场次 ID 与官方分享链接 | 当前未接入 | 目录 `view_count` 与详情 `viewer_count` 为当前观看；`member_cnt` 不作并发人数 |
@@ -75,7 +75,7 @@ TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入�
 | NimoTV | 官网首页公开推荐有限快照 | 当前快照关键词、精确频道号、频道别名与官方房间链接，包含未开播状态 | 当前未接入 | 官网卡片与直播页 `viewerNum` 为当前观看；下播或缺值时保持未知 |
 | Dailymotion | 官网公开 API 的原生直播目录，保留 `page/limit/has_more` | 直播节目关键词、精确视频 ID、官方视频链接；精确频道名可返回当前直播，已结束的直播视频 ID 可返回离线 | 当前未接入 | 公开 API 未返回已核验的并发人数，保持未知；不以累计播放量替代 |
 | Rumble | 官网公开直播目录，保留原生 `page` 与 `rel=next` | 当前直播目录内按标题、频道、分类匹配；精确直播页和频道链接 | 当前未接入 | 直播卡片及直播页动态字段为当前观看；VideoObject `userInteractionCount` 为累计观看，分列展示；HLS master 保留换行解析 |
-| GoodGame | 官网 API 的 GoodGame 原生直播目录，保留每页 50 条和服务端总量 | 精确频道/播放器链接；关键词扫描当前直播目录最多 10 个原生页、按 30 秒快照本地分页，包含前页无匹配而后页有匹配的结果；超出 10 页的范围不宣称全站搜索 | [官网 Chat v2 游客只读 WebSocket](GOODGAME_PUBLIC_CHAT_AUDIT_2026_09_23.md)，按数字频道 ID 加入并接收当前消息；双端原生消息验收待执行 | `viewers` 为当前观看；`rating`、premium 计数与粉丝分别处理 |
+| GoodGame | 官网 API 的 GoodGame 原生直播目录，保留每页 50 条和服务端总量 | 精确频道/播放器链接；关键词扫描当前直播目录最多 10 个原生页、按 30 秒快照本地分页，包含前页无匹配而后页有匹配的结果；超出 10 页的范围不宣称全站搜索 | 官网 Chat v2 游客只读 WebSocket，按数字频道 ID 加入并接收当前消息；双端原生消息验收待执行 | `viewers` 为当前观看；`rating`、premium 计数与粉丝分别处理 |
 | FC2 Live | 官网普通内容有限快照；公开分类在同一快照内筛选 | 精确频道号/官网房间链接，含未开播；关键词在当前快照内匹配 | 当前未接入 | `count` 为当前观看，`total` 为本场累计观看；付费/登录/门票房间保持受限状态 |
 | Steam Broadcasts | 官网热门社区直播原生分页，每页 10 条 | 当前目录页内按游戏、主播和标题匹配；精确 SteamID64/官方观看链接查询 | 当前未接入 | 目录和观看接口分别返回当前并发观看数；受限账号保持未知状态 |
 | 京东直播 | 官网精选原生分页，每页最多 30 个直播卡片 | 当前目录页内按场次、作者、主播和标题匹配；精确场次 ID/官方房间链接查询 | 当前未接入 | 官网 `pv` 只标为观看，按累计观看展示，不冒充当前并发人数 |
@@ -90,7 +90,7 @@ TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入�
 
 搜索页会直接显示当前平台的覆盖范围，并提供“包含未开播”筛选。平台选择栏使用独立水平列表：项目超过屏幕宽度时可横向访问，首尾为硬边界，不使用无对应内容页的 `TabBar` 自动定位。综合排序固定把直播中房间放在前面，再比较当前观看口径、粉丝数和主页平台顺序；“平台优先”直接使用“平台显示设置”的拖动顺序，“观众优先”和“粉丝优先”则调整对应字段的比较次序。粉丝字段只在平台搜索响应明确提供时参与，缺少该字段的结果保留为稳定次序；快手使用网页搜索入口，IPTV 只查找本机导入频道。每个平台单独维护翻页结束状态，空页或重复页会停止继续请求。
 
-工具箱剪贴板预填与房间链接解析共用已核验的房间 URL 合同；官网首页、搜索/分类页与录像链接不会仅凭平台域名触发自动填入。抖音 `www.douyin.com/video/{id}` 是作品链接，不以尾部视频号冒充当前直播房间号；既有精确房间根链接和官方直播分享链接继续解析，见[链接预检审计](TOOLBOX_ROOM_LINK_PREFILTER_AUDIT_2026_09_23.md)。
+工具箱剪贴板预填与房间链接解析共用已核验的房间 URL 合同；官网首页、搜索/分类页与录像链接不会仅凭平台域名触发自动填入。抖音 `www.douyin.com/video/{id}` 是作品链接，不以尾部视频号冒充当前直播房间号；既有精确房间根链接和官方直播分享链接继续解析。
 
 “全部”搜索并发请求各原生平台，但按单个平台完成顺序渐进显示，某个平台超过 12 秒会被标记为本轮部分失败，不再阻塞其他结果。搜索页生命周期内复用同一组适配器，Twitch 等游标分页状态不会因每次读取平台列表而丢失。网页继续搜索可从 Bilibili、斗鱼、虎牙、抖音、快手、网易 CC、Twitch、SOOP、YY、AcFun、Picarto、TwitCasting、SHOWROOM、CHZZK、Kick、17LIVE、LiveMe、TikTok LIVE、YouTube Live、Bigo Live、PandaTV、PopkonTV、Shopee Live、VK Video Live、NimoTV、Dailymotion、Rumble、GoodGame、FC2 Live、Steam Broadcasts、京东直播、淘宝直播、酷狗直播、百度直播、六间房直播和 LOOK 直播的已支持直播间链接识别“平台 + 房间号”；搜索/分类页和相似伪装域名会被忽略。
 
@@ -101,7 +101,7 @@ TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入�
 - 哔哩哔哩的列表 `online` 与弹幕心跳、斗鱼公开 `ol/hot`、虎牙 `totalCount/userCount/iAttendeeCount` 都是热度，均不换写成真实人数。由此避免把几百万热度显示为几百万人同时在线。
 - 切换全局口径或分平台开关后，收藏与搜索现有结果会立即重新排序，热门页会刷新当前平台的候选池后重排；在线模式把已启用且支持并发人数的平台排在仅提供热度/累计值的平台之前。网易 CC 在线模式一次取 100 个热度候选后按并发人数排序，避免只在每 20 张卡片内部重排。
 
-猫耳 FM 的精确查询沿用房间详情接口，只读取房间元数据；官网直播间搜索现按 `s/p/page_size` 原生分页并保留未开播房间，媒体线路留待真正进房时解析。见[精确房间查询记录](MISSEVAN_EXACT_ROOM_SEARCH_AUDIT_2026_09_23.md)与[官网关键词搜索审计](MISSEVAN_NATIVE_KEYWORD_SEARCH_AUDIT_2026_09_23.md)。
+猫耳 FM 的精确查询沿用房间详情接口，只读取房间元数据；官网直播间搜索现按 `s/p/page_size` 原生分页并保留未开播房间，媒体线路留待真正进房时解析。。
 
 ## 画质与播放线路契约
 
@@ -159,39 +159,39 @@ TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入�
 
 2026-09-21 的 YouTube Live 首阶段生产探测使用本机 Clash 请求官方 Sky News 当前直播：频道 `/@SkyNews/live` 的 canonical 稳定回流到视频 `xDWQ3LkccY8`；watch page、Innertube player 与 HLS master 均返回 HTTP 200，播放器同时给出 HLS/DASH，HLS master 含 144p～1080p60 共 6 个音视频复合变体，页面专用 renderer 返回 `watching now` 并发数。该证据验证公开接口与媒体合同，不代替 Android/Windows 原生播放或录制验收。实现契约同时对照 [Streamlink 当前 YouTube 插件](https://github.com/streamlink/streamlink/blob/master/src/streamlink/plugins/youtube.py)与 [yt-dlp 当前字段合同](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/extractor/common.py)。
 
-2026-09-21 的 Bigo Live token 流程已在线取得公开直播状态与 HLS 地址；本机到媒体 authority 的非标准 1453 端口在 TLS 握手阶段收到 EOF，因此没有把该 URL 记作原生媒体通过。当前源码已按 [Streamlink Bigo 插件](https://github.com/streamlink/streamlink/blob/master/src/streamlink/plugins/bigo.py)接入 token、受保护 HLS 标签、两包 TS 前缀转换与 owned playback/recording relay；详细边界见 [Bigo Web 媒体检查点](BIGO_WEB_MEDIA_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 Bigo Live token 流程已在线取得公开直播状态与 HLS 地址；本机到媒体 authority 的非标准 1453 端口在 TLS 握手阶段收到 EOF，因此没有把该 URL 记作原生媒体通过。当前源码已按 [Streamlink Bigo 插件](https://github.com/streamlink/streamlink/blob/master/src/streamlink/plugins/bigo.py)接入 token、受保护 HLS 标签、两包 TS 前缀转换与 owned playback/recording relay；详细边界。
 
-2026-09-21 的 PandaTV 生产探测从官方目录取得当前直播，精确频道接口确认主播身份，观看接口返回带时效 token 的 AWS IVS HLS。使用官网 Origin/Referer 请求主清单得到 HTTP 200 与 `#EXTM3U`，并解析出 1080p60、720p60、480p、360p、160p 五档变体；源码已接入目录、精确频道、访问状态、画质、播放/录制恢复与链接回流。详细证据和边界见 [PandaTV 合同检查点](PANDALIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 PandaTV 生产探测从官方目录取得当前直播，精确频道接口确认主播身份，观看接口返回带时效 token 的 AWS IVS HLS。使用官网 Origin/Referer 请求主清单得到 HTTP 200 与 `#EXTM3U`，并解析出 1080p60、720p60、480p、360p、160p 五档变体；源码已接入目录、精确频道、访问状态、画质、播放/录制恢复与链接回流。详细证据和边界。
 
-2026-09-21 的 PopkonTV 生产探测从官网 `/broadcast/v3.1/livelist` 取得当前直播与原生分页，从 `/broadcast/v1.1/search/all` 同时取得直播和未开播主播，并由游客观看接口生成时效 HLS。使用官网 Origin/Referer 读取主清单返回 HTTP 200、`application/vnd.apple.mpegurl` 与 `#EXTM3U`，当前样本列出 1080p 变体；源码已接入四种目录排序、搜索、访问状态、在线/累计口径、播放/录制刷新与链接回流。详细证据见 [PopkonTV 合同检查点](POPKONTV_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 PopkonTV 生产探测从官网 `/broadcast/v3.1/livelist` 取得当前直播与原生分页，从 `/broadcast/v1.1/search/all` 同时取得直播和未开播主播，并由游客观看接口生成时效 HLS。使用官网 Origin/Referer 读取主清单返回 HTTP 200、`application/vnd.apple.mpegurl` 与 `#EXTM3U`，当前样本列出 1080p 变体；源码已接入四种目录排序、搜索、访问状态、在线/累计口径、播放/录制刷新与链接回流。详细证据。
 
-2026-09-21 的 Shopee Live 生产探测从 Indonesia 官网首页接口取得 10 条当前直播推荐及实时观看字段；官网会话模块在同一浏览器上下文生成动态指纹/SAP 请求头并返回短时 FLV。使用官网 Referer 读取该媒体返回 HTTP 200、`video/x-flv`，字节前缀为标准 `FLV` 文件头。源码已接入有限目录、快照关键词与精确场次搜索、官方分享链接、动态浏览器解析、FLV 画质、到期续期和录制恢复。详细证据见 [Shopee Live 合同检查点](SHOPEE_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 Shopee Live 生产探测从 Indonesia 官网首页接口取得 10 条当前直播推荐及实时观看字段；官网会话模块在同一浏览器上下文生成动态指纹/SAP 请求头并返回短时 FLV。使用官网 Referer 读取该媒体返回 HTTP 200、`video/x-flv`，字节前缀为标准 `FLV` 文件头。源码已接入有限目录、快照关键词与精确场次搜索、官方分享链接、动态浏览器解析、FLV 画质、到期续期和录制恢复。详细证据。
 
-2026-09-21 的 VK Video Live 生产探测从官网当前页面取得公开分类、在线目录与原生频道搜索请求；搜索包含开播和未开播频道，房间接口返回并发、累计观看、主播身份与两条带签名 HLS master。使用官网 Origin/Referer 读取 master 返回 HTTP 200、`application/vnd.apple.mpegurl` 与 `#EXTM3U`，当前样本解析出 1080p、720p、480p、360p、240p 五档变体，实际变体清单同样返回 HTTP 200。源码已接入分类、目录、搜索、链接迁移、画质/线路、到期续期和录制恢复；详细证据见 [VK Video Live 合同检查点](VK_VIDEO_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 VK Video Live 生产探测从官网当前页面取得公开分类、在线目录与原生频道搜索请求；搜索包含开播和未开播频道，房间接口返回并发、累计观看、主播身份与两条带签名 HLS master。使用官网 Origin/Referer 读取 master 返回 HTTP 200、`application/vnd.apple.mpegurl` 与 `#EXTM3U`，当前样本解析出 1080p、720p、480p、360p、240p 五档变体，实际变体清单同样返回 HTTP 200。源码已接入分类、目录、搜索、链接迁移、画质/线路、到期续期和录制恢复；详细证据。
 
-2026-09-21 的 NimoTV 生产探测从官网当前首页取得公开直播样本，移动房间页直接返回稳定房间号、主播、标题、分类、当前观看与十六进制媒体包。解码后按平台 ratio 生成 1080p、720p、480p、360p、240p 五档 HTTPS FLV；当前签名样本读取返回 HTTP 200，字节前缀为标准 `FLV` 文件头。源码已接入精确频道/别名、官方链接、状态、五档画质、到期续期与录制恢复；详细证据见 [NimoTV 合同检查点](NIMOTV_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 NimoTV 生产探测从官网当前首页取得公开直播样本，移动房间页直接返回稳定房间号、主播、标题、分类、当前观看与十六进制媒体包。解码后按平台 ratio 生成 1080p、720p、480p、360p、240p 五档 HTTPS FLV；当前签名样本读取返回 HTTP 200，字节前缀为标准 `FLV` 文件头。源码已接入精确频道/别名、官方链接、状态、五档画质、到期续期与录制恢复；详细证据。
 
-2026-09-21 的 Dailymotion 生产探测从官网公开 API 取得原生直播分页、搜索、节目/频道身份与明确 `mode/onair` 状态；官方嵌入播放器动态取得签名 HLS master，当前样本返回 380p、240p、480@60 三档 `*.dmcdn.net` rendition，独立 rendition 请求返回 HTTP 200 与 HLS 清单字节。源码已接入目录、搜索、链接回流、动态画质、播放/录制恢复；详细证据见 [Dailymotion 合同检查点](DAILYMOTION_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 Dailymotion 生产探测从官网公开 API 取得原生直播分页、搜索、节目/频道身份与明确 `mode/onair` 状态；官方嵌入播放器动态取得签名 HLS master，当前样本返回 380p、240p、480@60 三档 `*.dmcdn.net` rendition，独立 rendition 请求返回 HTTP 200 与 HLS 清单字节。源码已接入目录、搜索、链接回流、动态画质、播放/录制恢复；详细证据。
 
-2026-09-21 的 Rumble 生产探测从官网 `/browse/live` 取得原生分页与当前直播卡片，卡片 `videostream__number` 和累计 `data-views` 分开保存。直播页确认公开页面 ID 与嵌入播放器 ID 是两套身份；浏览器会话观察到 `/live-hls-dvr/…/playlist.m3u8`，读取返回 HTTP 200，并解析 1080p、720p、360p 三档 `*.rumble.cloud` 变体。源码已接入目录、本机目录匹配、精确链接、动态画质、播放/录制恢复；详细证据见 [Rumble 合同检查点](RUMBLE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 Rumble 生产探测从官网 `/browse/live` 取得原生分页与当前直播卡片，卡片 `videostream__number` 和累计 `data-views` 分开保存。直播页确认公开页面 ID 与嵌入播放器 ID 是两套身份；浏览器会话观察到 `/live-hls-dvr/…/playlist.m3u8`，读取返回 HTTP 200，并解析 1080p、720p、360p 三档 `*.rumble.cloud` 变体。源码已接入目录、本机目录匹配、精确链接、动态画质、播放/录制恢复；详细证据。
 
-2026-09-21 的 GoodGame 生产探测从官网 API v4 取得 84 条直播的服务端总量、每页 50 条目录、频道身份、游戏、当前观看、粉丝和短时 HLS。当前样本返回 `source`、720p、480p、240p 四档，720p 清单读取为 HTTP 200 与标准 `#EXTM3U`，声明 H.264/AAC、1280×720、24fps。源码已接入分页目录、精确频道/播放器链接、目录内搜索、动态画质、到期刷新与播放/录制恢复；详细证据见 [GoodGame 合同检查点](GOODGAME_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 GoodGame 生产探测从官网 API v4 取得 84 条直播的服务端总量、每页 50 条目录、频道身份、游戏、当前观看、粉丝和短时 HLS。当前样本返回 `source`、720p、480p、240p 四档，720p 清单读取为 HTTP 200 与标准 `#EXTM3U`，声明 H.264/AAC、1280×720、24fps。源码已接入分页目录、精确频道/播放器链接、目录内搜索、动态画质、到期刷新与播放/录制恢复；详细证据。
 
-2026-09-21 的 FC2 Live 生产探测从官网动态接口取得 64 个当前目录条目；房间接口分列当前 `count` 与累计 `total`，控制接口签发短时 WebSocket。保持控制会话后取得同频道 HLS master，实际读取返回 HTTP 200 与标准 `#EXTM3U`，当前样本含 270 kbps、720 kbps、2.16 Mbps、3.6 Mbps 四个 H.264/AAC 变体。源码已接入有限目录、分类、本机关键词与精确房间搜索、访问状态、owned playback/recording relay 和恢复；详细证据见 [FC2 Live 合同检查点](FC2LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 FC2 Live 生产探测从官网动态接口取得 64 个当前目录条目；房间接口分列当前 `count` 与累计 `total`，控制接口签发短时 WebSocket。保持控制会话后取得同频道 HLS master，实际读取返回 HTTP 200 与标准 `#EXTM3U`，当前样本含 270 kbps、720 kbps、2.16 Mbps、3.6 Mbps 四个 H.264/AAC 变体。源码已接入有限目录、分类、本机关键词与精确房间搜索、访问状态、owned playback/recording relay 和恢复；详细证据。
 
-2026-09-21 的 Steam Broadcasts 生产探测从官网匿名热门接口连续取得两页、每页 10 条当前直播；目录卡片同时提供 SteamID64、游戏、主播、封面和当前观看。`getbroadcastmpd` 对当前样本返回 `ready`、当前观看数、DASH 与 HLS，HLS master 实际读取为 HTTP 200，含 1080p60、720p30、480p30、360p30 四档 H.264/AAC 变体。源码已接入原生分页、页内搜索、精确链接、身份/媒体域约束、自适应 HLS、播放/录制恢复；详细证据见 [Steam Broadcasts 合同检查点](STEAM_BROADCAST_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的 Steam Broadcasts 生产探测从官网匿名热门接口连续取得两页、每页 10 条当前直播；目录卡片同时提供 SteamID64、游戏、主播、封面和当前观看。`getbroadcastmpd` 对当前样本返回 `ready`、当前观看数、DASH 与 HLS，HLS master 实际读取为 HTTP 200，含 1080p60、720p30、480p30、360p30 四档 H.264/AAC 变体。源码已接入原生分页、页内搜索、精确链接、身份/媒体域约束、自适应 HLS、播放/录制恢复；详细证据。
 
-2026-09-21 的京东直播生产探测从官网匿名精选接口取得第一页 30 个直播卡片及第二页另外 30 个直播卡片；卡片提供场次、作者、主播、标题、封面和累计观看。当前样本的播放接口返回直播状态、HLS 与 FLV；HLS 实际读取为 HTTP 200 和连续 TS 分片，FLV 前缀实测为标准 `FLV`。源码已接入原生分页、页内搜索、精确链接、状态与媒体域约束、HLS/FLV 线路和播放/录制恢复；详细证据见 [京东直播合同检查点](JD_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的京东直播生产探测从官网匿名精选接口取得第一页 30 个直播卡片及第二页另外 30 个直播卡片；卡片提供场次、作者、主播、标题、封面和累计观看。当前样本的播放接口返回直播状态、HLS 与 FLV；HLS 实际读取为 HTTP 200 和连续 TS 分片，FLV 前缀实测为标准 `FLV`。源码已接入原生分页、页内搜索、精确链接、状态与媒体域约束、HLS/FLV 线路和播放/录制恢复；详细证据。
 
-2026-09-21 的淘宝直播生产探测先由匿名 MTop 响应签发短时 `_m_h5_tk` 会话，再以 `MD5(token&t&appKey&data)` 取得当前直播详情；主播账号 `1759494485` 解析到当前场次并返回五档定义、累计观看与粉丝字段。HLS 主清单实际读取为 HTTP 200 和连续 TS 分片，FLV 前缀实测为标准 `FLV`。源码已接入精确场次/主播身份、官方链接与分享短链、匿名签名、状态、画质去重、HLS/FLV、到期续期和播放/录制恢复；详细证据见 [淘宝直播合同检查点](TAOBAO_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的淘宝直播生产探测先由匿名 MTop 响应签发短时 `_m_h5_tk` 会话，再以 `MD5(token&t&appKey&data)` 取得当前直播详情；主播账号 `1759494485` 解析到当前场次并返回五档定义、累计观看与粉丝字段。HLS 主清单实际读取为 HTTP 200 和连续 TS 分片，FLV 前缀实测为标准 `FLV`。源码已接入精确场次/主播身份、官方链接与分享短链、匿名签名、状态、画质去重、HLS/FLV、到期续期和播放/录制恢复；详细证据。
 
-2026-09-21 的酷狗直播生产探测从官网读取 14 个当前分类，并验证推荐目录及分类目录的原生分页、主播搜索的开播/未开播结果、精确房间状态和媒体合同。当前直播样本返回两条 CDN、稳定 rate/codec/layout 描述及房间绑定签名；HTTPS FLV 实际读取为 HTTP 200、`video/x-flv` 且字节前缀为标准 `FLV`。源码已接入目录、分类、搜索、精确链接、指标分列、签名媒体校验、到期续期及播放/录制恢复；详细证据见 [酷狗直播合同检查点](KUGOU_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的酷狗直播生产探测从官网读取 14 个当前分类，并验证推荐目录及分类目录的原生分页、主播搜索的开播/未开播结果、精确房间状态和媒体合同。当前直播样本返回两条 CDN、稳定 rate/codec/layout 描述及房间绑定签名；HTTPS FLV 实际读取为 HTTP 200、`video/x-flv` 且字节前缀为标准 `FLV`。源码已接入目录、分类、搜索、精确链接、指标分列、签名媒体校验、到期续期及播放/录制恢复；详细证据。
 
-2026-09-21 的百度直播生产探测从官网当前 PC 客户端合同取得推荐页 10 个正在直播的房间与七个分类，目录保留官方 `session_id/refresh_index` 分页状态；房间 `11572411040` 的明细返回 1080P/720P/540P FLV 及默认 HLS。两条当前 HLS 样本读取为 HTTP 206、`application/x-mpegURL` 与 `#EXTM3U`，两条 FLV 样本读取为 HTTP 200、`video/x-flv` 与标准 `FLV` 文件头。源码已接入目录、分类、精确房间/链接、状态、指标分列、画质、播放/录制恢复；详细证据见 [百度直播合同检查点](BAIDU_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的百度直播生产探测从官网当前 PC 客户端合同取得推荐页 10 个正在直播的房间与七个分类，目录保留官方 `session_id/refresh_index` 分页状态；房间 `11572411040` 的明细返回 1080P/720P/540P FLV 及默认 HLS。两条当前 HLS 样本读取为 HTTP 206、`application/x-mpegURL` 与 `#EXTM3U`，两条 FLV 样本读取为 HTTP 200、`video/x-flv` 与标准 `FLV` 文件头。源码已接入目录、分类、精确房间/链接、状态、指标分列、画质、播放/录制恢复；详细证据。
 
-2026-09-21 的六间房直播生产探测从官网大厅服务端变量解析出 411 条当前直播和平台原始分类，官网昵称搜索同时返回当前主播与未开播主播身份；房间页把公开房号 `8838` 绑定到主播 UID `56182128`，移动房间接口返回当前场次 `222415076`、粉丝、分辨率、码率和 FLV 标识。当前 FLV 经官方 302 调度后返回 HTTP 200、`video/x-flv` 与标准 `FLV` 文件头；源码已接入目录、分类、昵称/精确搜索、链接、状态、热度/粉丝分列、媒体身份校验及播放/录制恢复。详细证据见 [六间房直播合同检查点](SIXROOM_CONTRACT_CHECKPOINT_2026_09_21.md)。
+2026-09-21 的六间房直播生产探测从官网大厅服务端变量解析出 411 条当前直播和平台原始分类，官网昵称搜索同时返回当前主播与未开播主播身份；房间页把公开房号 `8838` 绑定到主播 UID `56182128`，移动房间接口返回当前场次 `222415076`、粉丝、分辨率、码率和 FLV 标识。当前 FLV 经官方 302 调度后返回 HTTP 200、`video/x-flv` 与标准 `FLV` 文件头；源码已接入目录、分类、昵称/精确搜索、链接、状态、热度/粉丝分列、媒体身份校验及播放/录制恢复。详细证据。
 
-2026-09-22 的 LOOK 直播生产探测通过官网当前网页合同分别取得 4 条视频推荐和 17 条可用语音推荐；当前视频房间 `21623631` 与语音房间均返回绑定本场 session 的 HLS/FLV。HLS 实际读取为 HTTP 200 与 `#EXTM3U`，视频 FLV 实际读取为 HTTP 200、`video/x-flv` 与标准 `FLV` 文件头。源码已接入视频/语音目录、精确房间与官方链接、当前页关键词筛选、状态、当前观看/热度分列、网页媒体白名单、客户端专用房型提示及播放/录制恢复；详细证据见 [LOOK 直播合同检查点](LOOK_LIVE_CONTRACT_CHECKPOINT_2026_09_22.md)。
+2026-09-22 的 LOOK 直播生产探测通过官网当前网页合同分别取得 4 条视频推荐和 17 条可用语音推荐；当前视频房间 `21623631` 与语音房间均返回绑定本场 session 的 HLS/FLV。HLS 实际读取为 HTTP 200 与 `#EXTM3U`，视频 FLV 实际读取为 HTTP 200、`video/x-flv` 与标准 `FLV` 文件头。源码已接入视频/语音目录、精确房间与官方链接、当前页关键词筛选、状态、当前观看/热度分列、网页媒体白名单、客户端专用房型提示及播放/录制恢复；详细证据。
 
 ```powershell
 python tool/interface_probe.py

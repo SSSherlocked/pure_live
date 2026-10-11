@@ -2,7 +2,7 @@
 
 ## Reporting
 
-请优先使用 GitHub 仓库的 **Security → Report a vulnerability** 私下提交漏洞。报告中请包含受影响版本、复现步骤、影响范围和建议修复方式；请勿在公开 Issue 中附带 Cookie、令牌、签名文件或个人直播源。
+请优先使用本仓库的 [**Security → Report a vulnerability**](https://github.com/SSSherlocked/pure_live/security/advisories/new) 私下提交漏洞。报告中请包含受影响版本、复现步骤、影响范围和建议修复方式；请勿在公开 Issue 中附带 Cookie、令牌、签名文件或个人直播源。
 
 ## Secrets and signing material
 

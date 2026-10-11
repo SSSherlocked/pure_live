@@ -4,9 +4,8 @@ import urllib.error
 import sys
 import os
 
-# GitHub Actions 中自动使用当前仓库，本地运行时默认使用维护分支仓库。
-REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "liuchuancong/pure_live")
-UPSTREAM_REPOSITORY = "liuchuancong/pure_live"
+# GitHub Actions 中自动使用当前仓库，本地运行时默认使用本仓库。
+REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "SSSherlocked/pure_live")
 OUTPUT_FILE = "assets/releases.json"
 PAGE_SIZE = 100
 
@@ -80,7 +79,8 @@ def fetch_all_releases(repository):
             f"https://api.github.com/repos/{repository}/releases"
             f"?per_page={PAGE_SIZE}&page={page}"
         )
-        batch = fetch_data(url, allow_empty=page > 1)
+        # 尚未发布任何版本时第一页也可能为空。
+        batch = fetch_data(url, allow_empty=True)
         if not isinstance(batch, list):
             print("❌ 错误：发布历史接口返回了非列表数据", file=sys.stderr)
             sys.exit(1)
@@ -93,13 +93,8 @@ def fetch_all_releases(repository):
 def main():
     # 核心修改：网络获取与严格校验
     data = fetch_all_releases(REPOSITORY)
-
-    # 维护分支保留上游旧版本记录；同名标签优先使用当前仓库的 Release。
-    if REPOSITORY != UPSTREAM_REPOSITORY:
-        upstream_data = fetch_all_releases(UPSTREAM_REPOSITORY)
-        current_tags = {release.get("tag_name") for release in data}
-        data.extend(release for release in upstream_data if release.get("tag_name") not in current_tags)
-        data.sort(key=lambda release: release.get("published_at") or "", reverse=True)
+    # 只收录应用版本（vX.Y.Z）；native-ffmpeg-* 等依赖镜像 Release 不进入版本历史。
+    data = [release for release in data if str(release.get("tag_name", "")).startswith("v")]
 
     if isinstance(data, dict):
         data = [data]

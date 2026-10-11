@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory = $true)] [string] $Tag,
     [string] $ArtifactDirectory,
-    [string] $Repository = 'liuchuancong/pure_live',
+    [string] $Repository = 'SSSherlocked/pure_live',
     [ValidateSet('Current', 'Android', 'Windows')]
     [string] $Platform = 'Current',
     [switch] $CreateTag,

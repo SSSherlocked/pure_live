@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/kernel/mpv_option_labels.dart';
 
-/// Full-page picker for one mpv output/decoder option (layout after
-/// liuchuancong/pure_live's decoder, renderer and audio pages).
+/// Full-page picker for one mpv output/decoder option (layout after the
+/// original project's decoder, renderer and audio pages).
 class MpvOptionPage extends StatelessWidget {
   const MpvOptionPage({super.key, required this.kind, required this.title, required this.value});
 

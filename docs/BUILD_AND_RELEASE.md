@@ -2,7 +2,7 @@
 
 本仓库采用“本机优先、Actions 手动兜底”的流程，固定使用 Flutter `3.47.5`。`pubspec.lock`、Git 依赖提交和 FFmpeg 产物地址均已固定，便于复现结果。平台范围、CPU/RAM 配额、缓存、互斥和记录格式以 [`BUILD_POLICY.md`](../BUILD_POLICY.md) 为准。
 
-当前候选、提交、门禁和平台阻塞统一见 [`ACCEPTANCE_STATUS_3_2_0.md`](ACCEPTANCE_STATUS_3_2_0.md)；本页不复制会快速过期的版本快照。历史 v3.0.0 交付证据保留在 [`STAGE_UPDATE_3_0_0.md`](STAGE_UPDATE_3_0_0.md)。
+当前候选、提交、门禁和平台阻塞统一见 [`ACCEPTANCE_STATUS_3_2_0.md`](ACCEPTANCE_STATUS_3_2_0.md)；本页不复制会快速过期的版本快照。历史 v3.0.0 交付证据保留在。
 
 ## 前置环境
 
@@ -89,6 +89,8 @@ Windows Release 便携 ZIP 与 EXE 安装包会把当前 Visual C++ 工具链解
 
 ### Android 正式签名
 
+本仓库的正式 APK 使用维护者自己的发布密钥签名，证书与原项目不同，因此不能覆盖安装原项目发布的 APK。
+
 在 `android/key.properties` 中配置以下字段，密钥文件放在仓库外部：
 
 ```properties
@@ -133,7 +135,7 @@ Ubuntu 24.04 构建会同时安装 `libva`、VDPAU、PulseAudio、Wayland、EGL 
 
 ## 单独命令
 
-Android、Windows、Linux、macOS 与 iOS 的 FFmpeg Kit 使用项目[原生依赖资产预发布](https://github.com/liuchuancong/pure_live/releases/tag/native-ffmpeg-9.0.2-b1)中的 FFmpeg `n9.0.2`；不是应用版本号。运行本机完整构建脚本时会先校验下载文件的 SHA-256。直接执行下列 Flutter 命令前，也可先运行 `tool/prefetch_android_native.ps1`；最终以 APK 内 `libffmpegkit.so` 和 Windows `libffmpegkit.dll` 的版本、哈希与实际运行结果为准。Android AAR 包含 `arm64-v8a`、`armeabi-v7a`、`x86_64`；其中 arm64 与 x86_64 ELF `LOAD` 段按 16 KiB 对齐。Linux 资产使用 Ubuntu 24.04 基线，不能混用更高 glibc 环境编出的 ZIP。Apple 两端使用各自的 universal XCFramework ZIP，并在应用构建后校验实际打包的 Mach-O 架构与 `n9.0.2` 标记。
+Android、Windows、Linux、macOS 与 iOS 的 FFmpeg Kit 使用项目[原生依赖资产预发布](https://github.com/SSSherlocked/pure_live/releases/tag/native-ffmpeg-9.0.2-b1)中的 FFmpeg `n9.0.2`；不是应用版本号。运行本机完整构建脚本时会先校验下载文件的 SHA-256。直接执行下列 Flutter 命令前，也可先运行 `tool/prefetch_android_native.ps1`；最终以 APK 内 `libffmpegkit.so` 和 Windows `libffmpegkit.dll` 的版本、哈希与实际运行结果为准。Android AAR 包含 `arm64-v8a`、`armeabi-v7a`、`x86_64`；其中 arm64 与 x86_64 ELF `LOAD` 段按 16 KiB 对齐。Linux 资产使用 Ubuntu 24.04 基线，不能混用更高 glibc 环境编出的 ZIP。Apple 两端使用各自的 universal XCFramework ZIP，并在应用构建后校验实际打包的 Mach-O 架构与 `n9.0.2` 标记。
 
 ```powershell
 .\tool\flutterw.ps1 pub get --enforce-lockfile
@@ -189,9 +191,8 @@ python .\tool\update_releases.py
 
 | 变量 | 作用 | 出现在 |
 | --- | --- | --- |
-| `PURELIVE_UPDATE_OWNER` / `PURELIVE_UPDATE_REPOSITORY` | 本仓库自身的发布 | `assets/version.json` 的 `download_url`、`assets/releases.json`、发布工作流的说明与附件链接、`audit-upstream.yml` 的对比远端 |
+| `PURELIVE_UPDATE_OWNER` / `PURELIVE_UPDATE_REPOSITORY` | 本仓库自身的发布 | `assets/version.json` 的 `download_url`、`assets/releases.json`、发布工作流的说明与附件链接 |
 | `PURELIVE_NATIVE_OWNER` / `PURELIVE_NATIVE_REPOSITORY` | 构建时下载的原生库（FFmpeg、libmpv）所在仓库 | `pubspec.yaml` 的 `ffmpeg_kit_extended_config`、`third_party/media_kit/hook/native_bundles.json`、`tool/prefetch_android_native.ps1` |
-| `PURELIVE_TV_REPOSITORY` | 发布说明里引用的 TV 端仓库 | 两个发布工作流的 Release 说明 |
 
 `PURELIVE_UPDATE_OWNER`/`PURELIVE_UPDATE_REPOSITORY` 另会生成 `lib/gen/env.g.dart`（运行时更新检查使用）：
 
@@ -215,6 +216,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/flutterw.ps1 pub run en
 3. 按本轮发布范围串行运行 `tool/build_local_release.ps1 -Target <目标> -Configuration Release -SkipQuality`，逐个平台核对产物、构建记录和 SHA-256。
 4. 当前任务明确安排设备验收时，再运行 `tool/install_android_local.ps1` 覆盖安装并启动；正式 Release 使用仓库持久签名验证升级链。
 5. 提交并推送 `master`，创建与该提交一致的 tag 和草稿 Release；Android 本地暂存包通过 `sign-staged-android` 正式签名后再公开发布。
-6. 在 [维护分支 Releases](https://github.com/liuchuancong/pure_live/releases) 核对附件、固定证书指纹、校验文件和源码提交，随后刷新 `assets/releases.json` 并推送 `[skip ci]` 索引提交。
+6. 在 [本仓库 Releases](https://github.com/SSSherlocked/pure_live/releases) 核对附件、固定证书指纹、校验文件和源码提交，随后刷新 `assets/releases.json` 并推送 `[skip ci]` 索引提交。
 
 返回 [文档索引](README.md)。

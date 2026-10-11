@@ -24,8 +24,6 @@ $ErrorActionPreference = 'Stop'
 #       the native bundles (FFmpeg, libmpv) the build downloads: pubspec.yaml's
 #       ffmpeg_kit_extended_config, media_kit's native_bundles.json and the
 #       Android prefetch script
-#   PURELIVE_TV_REPOSITORY
-#       the TV companion repository named in release notes
 #
 # Third-party URLs (Predidit's libmpv builds, akashskypatel's ffmpeg-kit
 # builders) are deliberately left alone: they are upstream projects, not this
@@ -56,7 +54,6 @@ $selfOwner = Get-Setting 'PURELIVE_UPDATE_OWNER'
 $selfRepo = Get-Setting 'PURELIVE_UPDATE_REPOSITORY'
 $nativeOwner = Get-Setting 'PURELIVE_NATIVE_OWNER'
 $nativeRepo = Get-Setting 'PURELIVE_NATIVE_REPOSITORY'
-$tvRepo = Get-Setting 'PURELIVE_TV_REPOSITORY'
 
 # One entry per file: the repository whose URLs belong to which role. A URL is
 # rewritten when its repository name matches, whatever owner it currently
@@ -64,16 +61,14 @@ $tvRepo = Get-Setting 'PURELIVE_TV_REPOSITORY'
 $targets = @(
     @{ Path = 'pubspec.yaml'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (ffmpeg_kit_extended_config)' },
     @{ Path = 'tool/prefetch_android_native.ps1'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (Android prefetch)' },
+    @{ Path = 'tool/prefetch_linux_native.sh'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (Linux prefetch)' },
     @{ Path = 'third_party/media_kit/hook/native_bundles.json'; Repo = $nativeRepo; Owner = $nativeOwner; Note = 'native bundles (libmpv)' },
     @{ Path = 'assets/version.json'; Repo = $selfRepo; Owner = $selfOwner; Note = 'download link' },
     @{ Path = 'assets/releases.json'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release history' },
     @{ Path = '.github/workflows/build_pure_live_release.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release notes and asset links' },
     @{ Path = '.github/workflows/feature-build.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'release notes and asset links' },
-    @{ Path = '.github/workflows/audit-upstream.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'upstream comparison remote' },
     @{ Path = '.github/workflows/stage-hosted-artifacts.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'staged asset links' },
-    @{ Path = '.github/workflows/publish-staged-release.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'staged asset links' },
-    @{ Path = '.github/workflows/build_pure_live_release.yml'; Repo = $tvRepo; Owner = $selfOwner; Note = 'TV repository link' },
-    @{ Path = '.github/workflows/feature-build.yml'; Repo = $tvRepo; Owner = $selfOwner; Note = 'TV repository link' }
+    @{ Path = '.github/workflows/publish-staged-release.yml'; Repo = $selfRepo; Owner = $selfOwner; Note = 'staged asset links' }
 )
 
 $problems = New-Object System.Collections.Generic.List[string]

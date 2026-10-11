@@ -1,6 +1,6 @@
 # 3.2.0 完整验收入口
 
-本页只负责执行顺序和门禁。当前数字与主要阻塞见[状态快照](ACCEPTANCE_STATUS_3_2_0.md)，62 个 Android/Windows 编号状态见[验收矩阵](ACCEPTANCE_MATRIX_3_1_0.md)，完整用户可见案例见[客户端测试计划](FULL_CLIENT_TEST_PLAN_2026_08_28.md)，Issue 决策见[中央台账](ISSUE_TRIAGE_LEDGER_3_2_0.md)。旧的逐批时间线已移至[历史归档](ACCEPTANCE_HISTORY_3_2_0.md)。
+本页只负责执行顺序和门禁。当前数字与主要阻塞见[状态快照](ACCEPTANCE_STATUS_3_2_0.md)，62 个 Android/Windows 编号状态见[验收矩阵](ACCEPTANCE_MATRIX_3_1_0.md)，完整用户可见案例，Issue 决策见[中央台账](ISSUE_TRIAGE_LEDGER_3_2_0.md)。旧的逐批时间线已移至[历史归档](ACCEPTANCE_HISTORY_3_2_0.md)。
 
 ## 一次只走一条最短证据链
 

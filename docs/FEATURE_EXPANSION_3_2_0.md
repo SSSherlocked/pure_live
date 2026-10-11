@@ -69,24 +69,24 @@
 
 | 状态 | 平台 | 当前基础 | 下一交付 |
 | --- | --- | --- | --- |
-| 进行中 | 战旗直播 | 房间元数据、H5 v3 矩阵、公共访客会话、签名、Ali 调度、有界媒体验证及内部 LiveSite | 新生产样本媒体通过后完成应用注册与播放/录制入口，见[检查点](ZHANQI_MEDIA_PROBE_CHECKPOINT_2026_09_21.md) |
-| 生命周期归档 | 一直播 | 历史官方域名当前 DNS 失效；旧 API 合同已留档 | 仅在取得官方迁移入口和当前媒体证据后恢复实施，见[检查点](LEGACY_PLATFORM_LIFECYCLE_CHECKPOINT_2026_09_21.md) |
-| 生命周期归档 | 企鹅电竞 | 官方已于 2022-06-07 停止服务 | 旧适配器仅作历史资料，不计入当前可用平台，见[检查点](LEGACY_PLATFORM_LIFECYCLE_CHECKPOINT_2026_09_21.md) |
-| 进行中 | 浪 Live | 当前 APK 合同、精确 ID/官方链接、状态、FLV/HLS 与内部 LiveSite 已实现 | 从可访问区域取得当前生产响应并完成媒体前缀验证后注册，见[检查点](LANGLIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
+| 进行中 | 战旗直播 | 房间元数据、H5 v3 矩阵、公共访客会话、签名、Ali 调度、有界媒体验证及内部 LiveSite | 新生产样本媒体通过后完成应用注册与播放/录制入口|
+| 生命周期归档 | 一直播 | 历史官方域名当前 DNS 失效；旧 API 合同已留档 | 仅在取得官方迁移入口和当前媒体证据后恢复实施|
+| 生命周期归档 | 企鹅电竞 | 官方已于 2022-06-07 停止服务 | 旧适配器仅作历史资料，不计入当前可用平台|
+| 进行中 | 浪 Live | 当前 APK 合同、精确 ID/官方链接、状态、FLV/HLS 与内部 LiveSite 已实现 | 从可访问区域取得当前生产响应并完成媒体前缀验证后注册|
 
 ## C. 第二批平台扩展
 
 | 批次 | 平台 | 首个交付 |
 | --- | --- | --- |
-| C2 | WinkTV | 官方已于 2025-06-02 结束独立服务并并入 PandaTV；旧接口仅作历史资料，见[检查点](SECOND_BATCH_PLATFORM_LIFECYCLE_CHECKPOINT_2026_09_21.md) |
-| C2 | PopkonTV | 已注册：官网目录/排序、频道与昵称搜索、访问状态、游客 HLS 会话、画质、播放/录制恢复；见[检查点](POPKONTV_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C2 | PandaTV（韩国） | 已注册：官方目录、精确频道、状态、HLS 多画质与 Origin/Referer；见[检查点](PANDALIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C2 | Steam Broadcasts | 已注册：匿名社区直播分页、SteamID64/官方观看链接、当前观看、账号状态、自适应 HLS 与恢复；见[检查点](STEAM_BROADCAST_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C2 | Shopee Live | 已注册：区域店铺/场次链接、有限目录、搜索、状态、浏览器动态 FLV、续期与恢复；见[检查点](SHOPEE_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C2 | 淘宝直播 | 已注册：精确场次/主播及分享、签名详情、HLS/FLV；公开目录待补，见[检查点](TAOBAO_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C2 | 京东直播 | 已注册：官网精选分页、场次/官方链接、状态、累计观看、HLS/FLV 与恢复；见[检查点](JD_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C3 | 百度直播 | 已注册：推荐/七分类原生分页、精确房间、FLV/HLS；昵称搜索待补，见[检查点](BAIDU_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
-| C3 | 酷狗直播 | 已注册：动态分类、推荐/分类原生分页、主播搜索（含未开播）、精确房间、指标分列、签名 HTTPS FLV、续期与恢复；远端聊天待后续协议核验，见[检查点](KUGOU_LIVE_CONTRACT_CHECKPOINT_2026_09_21.md) |
+| C2 | WinkTV | 官方已于 2025-06-02 结束独立服务并并入 PandaTV；旧接口仅作历史资料|
+| C2 | PopkonTV | 已注册：官网目录/排序、频道与昵称搜索、访问状态、游客 HLS 会话、画质、播放/录制恢复|
+| C2 | PandaTV（韩国） | 已注册：官方目录、精确频道、状态、HLS 多画质与 Origin/Referer|
+| C2 | Steam Broadcasts | 已注册：匿名社区直播分页、SteamID64/官方观看链接、当前观看、账号状态、自适应 HLS 与恢复|
+| C2 | Shopee Live | 已注册：区域店铺/场次链接、有限目录、搜索、状态、浏览器动态 FLV、续期与恢复|
+| C2 | 淘宝直播 | 已注册：精确场次/主播及分享、签名详情、HLS/FLV；公开目录待补|
+| C2 | 京东直播 | 已注册：官网精选分页、场次/官方链接、状态、累计观看、HLS/FLV 与恢复|
+| C3 | 百度直播 | 已注册：推荐/七分类原生分页、精确房间、FLV/HLS；昵称搜索待补|
+| C3 | 酷狗直播 | 已注册：动态分类、推荐/分类原生分页、主播搜索（含未开播）、精确房间、指标分列、签名 HTTPS FLV、续期与恢复；远端聊天待后续协议核验|
 | C3 | 知乎直播 | 活动/直播间识别、状态、媒体和回放分类 |
 | C3 | 咪咕直播 | 节目/频道识别、HLS/DASH、请求头与 DRM 状态分类 |
 

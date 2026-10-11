@@ -10,17 +10,14 @@ class AppConfig {
   static String get pureliveUpdateRepository => instance.pureliveUpdateRepository;
   static String get pureliveNativeOwner => instance.pureliveNativeOwner;
   static String get pureliveNativeRepository => instance.pureliveNativeRepository;
-  static String get pureliveTvRepository => instance.pureliveTvRepository;
 }
 
 class AppConfigData {
-  final String pureliveUpdateOwner = 'liuchuancong';
+  final String pureliveUpdateOwner = 'SSSherlocked';
 
   final String pureliveUpdateRepository = 'pure_live';
 
-  final String pureliveNativeOwner = 'wzgrx';
+  final String pureliveNativeOwner = 'SSSherlocked';
 
   final String pureliveNativeRepository = 'pure_live';
-
-  final String pureliveTvRepository = 'pure_live_TV';
 }

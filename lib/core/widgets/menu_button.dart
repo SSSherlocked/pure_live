@@ -5,57 +5,73 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 
 class MenuButton extends StatelessWidget {
-  const MenuButton({super.key});
+  const MenuButton({super.key, this.railActions = false, this.showRecord = true});
 
-  final menuRoutes = const [RoutePath.kSettings, RoutePath.kAbout, RoutePath.kHistory, RoutePath.kBackup];
+  /// Wide-layout navigation rail mode: the menu also holds 多画面 / 链接解析 /
+  /// 全平台搜索 / 录制中心, and leaves out 设置, which the rail shows at its
+  /// bottom edge.
+  final bool railActions;
+
+  /// Whether 录制中心 is offered in [railActions] mode.
+  final bool showRecord;
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton(
+    return PopupMenuButton<String>(
       tooltip: i18n('menu'),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       offset: const Offset(12, 0),
       position: PopupMenuPosition.under,
       child: const SizedBox.square(dimension: kMinInteractiveDimension, child: Icon(Icons.menu_rounded)),
-      onSelected: (int index) async {
-        if (index == 4) {
-          try {
-            await WindowsMultiInstanceLauncher.launch();
-          } catch (_) {
-            ToastUtil.show(i18n('open_new_window_failed'));
-          }
-          return;
+      onSelected: (String action) async {
+        switch (action) {
+          case 'multiview':
+            await AppNavigator.toMultiview();
+          case 'toolbox':
+            Get.toNamed(RoutePath.kToolbox);
+          case 'search':
+            Get.toNamed(RoutePath.kSearch);
+          case 'record':
+            Get.toNamed(RoutePath.kRecordPage);
+          case 'settings':
+            Get.toNamed(RoutePath.kSettings);
+          case 'about':
+            Get.toNamed(RoutePath.kAbout);
+          case 'history':
+            Get.toNamed(RoutePath.kHistory);
+          case 'backup':
+            Get.toNamed(RoutePath.kBackup);
+          case 'new_window':
+            try {
+              await WindowsMultiInstanceLauncher.launch();
+            } catch (_) {
+              ToastUtil.show(i18n('open_new_window_failed'));
+            }
         }
-        Get.toNamed(menuRoutes[index]);
       },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 0,
+      itemBuilder: (context) {
+        PopupMenuItem<String> item(String value, IconData icon, String text) => PopupMenuItem<String>(
+          value: value,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: MenuListTile(leading: const Icon(Remix.settings_5_line), text: i18n('settings_title')),
-        ),
-        PopupMenuItem(
-          value: 1,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: MenuListTile(leading: const Icon(Remix.information_line), text: i18n('about')),
-        ),
-        PopupMenuItem(
-          value: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: MenuListTile(leading: const Icon(Remix.history_line), text: i18n('history')),
-        ),
-        PopupMenuItem(
-          value: 3,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: MenuListTile(leading: const Icon(Remix.cloud_line), text: i18n('backup_recover')),
-        ),
-        if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
-          PopupMenuItem(
-            value: 4,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: MenuListTile(leading: const Icon(Icons.add_to_photos_outlined), text: i18n('open_new_window')),
-          ),
-      ],
+          child: MenuListTile(leading: Icon(icon), text: text),
+        );
+        return [
+          if (railActions) ...[
+            if (SettingsService.to.app.enableMultiView.v)
+              item('multiview', Remix.layout_grid_line, i18n('multiview_title')),
+            item('toolbox', Remix.link, i18n('toolbox_title')),
+            item('search', CustomIcons.search, i18n('search_all_platforms')),
+            if (showRecord) item('record', Remix.download_2_line, i18n('record_center')),
+            const PopupMenuDivider(),
+          ] else
+            item('settings', Remix.settings_5_line, i18n('settings_title')),
+          item('about', Remix.information_line, i18n('about')),
+          item('history', Remix.history_line, i18n('history')),
+          item('backup', Remix.cloud_line, i18n('backup_recover')),
+          if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
+            item('new_window', Icons.add_to_photos_outlined, i18n('open_new_window')),
+        ];
+      },
     );
   }
 }

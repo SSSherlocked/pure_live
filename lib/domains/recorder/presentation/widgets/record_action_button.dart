@@ -73,16 +73,19 @@ class _RecordActionButtonState extends State<RecordActionButton> {
         message: label,
         child: SizedBox(
           width: widget.compactHeader ? kMinInteractiveDimension : null,
-          height: kMinInteractiveDimension,
+          // The expanded header button matches the 32 px 关注 button.
+          height: widget.compactHeader ? kMinInteractiveDimension : 32,
           child: FilledButton(
             key: const ValueKey('record-action-button'),
             style: FilledButton.styleFrom(
               backgroundColor: backgroundColor,
               foregroundColor: foregroundColor,
-              padding: widget.compactHeader ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 8),
-              minimumSize: const Size(kMinInteractiveDimension, kMinInteractiveDimension),
+              padding: widget.compactHeader ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 10),
+              minimumSize: widget.compactHeader
+                  ? const Size(kMinInteractiveDimension, kMinInteractiveDimension)
+                  : const Size(kMinInteractiveDimension, 32),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(widget.compactHeader ? 12 : 6)),
               elevation: 0,
             ),
             onPressed: _busy ? null : () => unawaited(_handlePressed(context, room)),

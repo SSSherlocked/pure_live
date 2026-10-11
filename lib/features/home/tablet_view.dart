@@ -84,47 +84,29 @@ class HomeTabletView extends StatelessWidget {
             return Row(
               children: [
                 NavigationRail(
-                  groupAlignment: 0.9,
+                  // Destinations follow the menu button directly; 设置 sits at
+                  // the bottom edge. 多画面 / 链接解析 / 全平台搜索 / 录制中心
+                  // live in the menu.
+                  groupAlignment: -1,
+                  minWidth: 64,
                   labelType: NavigationRailLabelType.all,
-                  leading: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Padding(padding: EdgeInsets.all(12), child: MenuButton()),
-                      Obx(
-                        () => SettingsService.to.app.enableMultiView.v
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 0, bottom: 12, left: 12, right: 12),
-                                child: IconButton(
-                                  onPressed: AppNavigator.toMultiview,
-                                  tooltip: i18n('multiview_title'),
-                                  icon: const Icon(Remix.layout_grid_line),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 0, bottom: 12, left: 12, right: 12),
+                  leading: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: MenuButton(railActions: true, showRecord: showRecord),
+                  ),
+                  trailing: Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
                         child: IconButton(
-                          onPressed: () => Get.toNamed(RoutePath.kToolbox),
-                          icon: const Icon(Remix.link),
+                          key: const ValueKey('home-rail-settings'),
+                          tooltip: i18n('settings_title'),
+                          onPressed: () => Get.toNamed(RoutePath.kSettings),
+                          icon: const Icon(Remix.settings_5_line),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 0, bottom: 12, left: 12, right: 12),
-                        child: IconButton(
-                          onPressed: () => Get.toNamed(RoutePath.kSearch),
-                          icon: const Icon(CustomIcons.search),
-                        ),
-                      ),
-                      if (showRecord)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 0, bottom: 12, left: 12, right: 12),
-                          child: IconButton(
-                            onPressed: () => Get.toNamed(RoutePath.kRecordPage),
-                            icon: const Icon(Remix.download_2_line),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                   destinations: destinations,
                   selectedIndex: activeSelectedIndex,

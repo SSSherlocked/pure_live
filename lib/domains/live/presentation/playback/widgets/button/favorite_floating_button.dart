@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
@@ -81,13 +79,15 @@ class _FavoriteFloatingButtonState extends State<FavoriteFloatingButton> {
       return FilledButton(
         key: const ValueKey('favorite-action-button-expanded'),
         style: ButtonStyle(
-          padding: WidgetStateProperty.all(Platform.isWindows ? const EdgeInsets.all(12) : const EdgeInsets.all(5)),
+          // Same 32 px height as the other header actions and the list toolbars.
+          padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 12)),
           backgroundColor: WidgetStateProperty.all(
             isFavorite ? Get.theme.colorScheme.primary.withAlpha(125) : Get.theme.colorScheme.primary,
           ),
           shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
           textStyle: WidgetStateProperty.all(AppTextStyles.t12),
-          minimumSize: WidgetStateProperty.all(const Size(kMinInteractiveDimension, kMinInteractiveDimension)),
+          minimumSize: WidgetStateProperty.all(const Size(kMinInteractiveDimension, 32)),
+          fixedSize: WidgetStateProperty.all(const Size.fromHeight(32)),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         onPressed: _pending ? null : () => _toggleFavorite(context, isFavorite),

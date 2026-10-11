@@ -483,7 +483,7 @@ class TopActionBar extends StatelessWidget {
                       switch (slot) {
                         TopActionTrailingSlot.roomHistory => IconButton(
                           key: const ValueKey('fullscreen-room-history'),
-                          icon: const Icon(Icons.favorite_border_rounded),
+                          icon: const Icon(Icons.swap_horiz_outlined),
                           tooltip: i18n('follow'),
                           visualDensity: VisualDensity.standard,
                           constraints: const BoxConstraints(

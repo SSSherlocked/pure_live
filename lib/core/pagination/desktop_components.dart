@@ -1,6 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:pure_live/core/index.dart';
 
+/// Height shared by the refresh button, page numbers and the jump field.
+const double _controlHeight = 32;
+
 class DesktopPaginationBar extends StatefulWidget {
   final BasePageScrollAndStateBone controller;
   final bool showSelector;
@@ -112,7 +115,10 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
                   OutlinedButton.icon(
                     onPressed: controller.loadding.value ? null : () => controller.refreshData(),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(0, _controlHeight),
+                      fixedSize: const Size.fromHeight(_controlHeight),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     ),
                     icon: const Icon(Icons.refresh_rounded, size: 16),
@@ -163,14 +169,16 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: SizedBox(
                           width: 50,
-                          // The field grows with the configured text metrics.
+                          height: _controlHeight,
                           child: TextField(
                             controller: _inputController,
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             style: AppTextStyles.t13.copyWith(height: 1.2),
+                            textAlignVertical: TextAlignVertical.center,
                             decoration: InputDecoration(
+                              isDense: true,
                               contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 4),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
                             ),
@@ -199,8 +207,8 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
         borderRadius: BorderRadius.circular(6),
         onTap: (isCurrent || controller.loadding.value) ? null : () => controller.goToPage(pageNum),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          constraints: const BoxConstraints(minWidth: _controlHeight, minHeight: _controlHeight, maxHeight: _controlHeight),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isCurrent ? theme.colorScheme.primary : Colors.transparent,

@@ -51,7 +51,7 @@ class PlayOther extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 10, right: 2),
                 child: Row(
                   children: [
-                    Icon(Icons.favorite_rounded, size: 17, color: theme.colorScheme.primary),
+                    Icon(Icons.swap_horiz_rounded, size: 17, color: theme.colorScheme.primary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(

@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/domains/live/data/history_controller.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
 import 'package:pure_live/core/widgets/refresh_indicators.dart';
@@ -200,6 +201,13 @@ class _HistoryPageState extends State<HistoryPage> {
             final width = constraint.maxWidth;
             int crossAxisCount = width > 1280 ? 4 : (width > 960 ? 3 : (width > 640 ? 2 : 1));
             if (dense) crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
+            final sizing = resolveRoomGridSizing(
+              width: width,
+              autoColumns: crossAxisCount,
+              spacing: SettingsService.to.theme.crossAxisSpacing.v,
+              basePadding: 6,
+              fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+            );
             final indicators = appRefreshIndicators(context, maxWidth: width);
             return EasyRefresh(
               header: indicators.header,
@@ -210,10 +218,10 @@ class _HistoryPageState extends State<HistoryPage> {
               child: rooms.isEmpty
                   ? EmptyView(icon: Icons.history_rounded, title: i18n("empty_history"), subtitle: '')
                   : WaterfallFlow.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding, vertical: 6),
                       gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
                         lastChildLayoutTypeBuilder: (index) => LastChildLayoutType.none,
-                        crossAxisCount: crossAxisCount,
+                        crossAxisCount: sizing.columns,
                         crossAxisSpacing: SettingsService.to.theme.crossAxisSpacing.v,
                         mainAxisSpacing: SettingsService.to.theme.mainAxisSpacing.v,
                       ),

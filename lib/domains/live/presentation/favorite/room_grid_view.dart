@@ -1,5 +1,6 @@
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
@@ -42,6 +43,13 @@ class RoomGridView extends GetView<FavoriteController> {
           if (dense) {
             crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
           }
+          final sizing = resolveRoomGridSizing(
+            width: width,
+            autoColumns: crossAxisCount,
+            spacing: spacing,
+            basePadding: 12,
+            fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+          );
 
           Widget buildScrollable(ScrollPhysics physics) {
             if (displayList.isEmpty) {
@@ -65,9 +73,9 @@ class RoomGridView extends GetView<FavoriteController> {
               );
             }
 
-            final itemWidth = (width - 24 - spacing * (crossAxisCount - 1)) / crossAxisCount;
+            final itemWidth = sizing.itemWidth;
             return GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding, vertical: 12),
               controller: scrollController,
               physics: physics,
               scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
@@ -75,7 +83,7 @@ class RoomGridView extends GetView<FavoriteController> {
               addRepaintBoundaries: true,
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
+                crossAxisCount: sizing.columns,
                 crossAxisSpacing: spacing,
                 mainAxisSpacing: mainAxisSpacing,
                 mainAxisExtent: RoomCardLayoutMetrics.gridMainAxisExtent(

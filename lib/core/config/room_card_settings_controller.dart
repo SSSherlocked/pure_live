@@ -271,6 +271,31 @@ class RoomCardSettingsController extends GetxController {
   final RxString desktopPreset;
   final Rx<RoomCardAppearance> mobileConfig;
   final Rx<RoomCardAppearance> desktopConfig;
+
+  /// Fixed card width for room grids, per viewport. 0 keeps the automatic
+  /// layout (columns by window width, cards stretch to fill); a width keeps
+  /// every card that size and fits as many columns as the window allows.
+  final RxDouble mobileCardWidth = hiveDouble('room_card_mobile_width', autoCardWidth);
+  final RxDouble desktopCardWidth = hiveDouble('room_card_desktop_width', autoCardWidth);
+
+  static const double autoCardWidth = 0;
+  static const double minCardWidth = 140;
+  static const double maxCardWidth = 600;
+  static const double defaultFixedCardWidth = 320;
+
+  static double normalizeCardWidth(double value) {
+    if (!value.isFinite || value <= 0) return autoCardWidth;
+    return value.clamp(minCardWidth, maxCardWidth).toDouble();
+  }
+
+  RxDouble cardWidthRxFor(RoomCardViewport viewport) {
+    return viewport == RoomCardViewport.mobile ? mobileCardWidth : desktopCardWidth;
+  }
+
+  double cardWidthFor(RoomCardViewport viewport) => normalizeCardWidth(cardWidthRxFor(viewport).v);
+
+  /// The fixed card width for this device, or 0 for automatic.
+  double get currentCardWidth => cardWidthFor(currentViewport);
   final List<Worker> _workers = [];
 
   static RoomCardPreset normalizePreset(String? value) {

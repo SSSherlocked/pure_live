@@ -2566,5 +2566,8 @@
   "search_all_platforms": "全平台搜索",
   "chat_list_display": "弹幕列表显示",
   "chat_list_font_size": "列表字体大小",
-  "chat_list_item_spacing": "列表弹幕间距"
+  "chat_list_item_spacing": "列表弹幕间距",
+  "room_card_fixed_width": "固定卡片宽度",
+  "room_card_fixed_width_subtitle": "关闭时卡片随窗口自动缩放；开启后卡片保持固定宽度，窗口变化只改变列数",
+  "room_card_width": "卡片宽度"
 }

@@ -2566,5 +2566,8 @@
   "search_all_platforms": "Search all platforms",
   "chat_list_display": "Chat list display",
   "chat_list_font_size": "List text size",
-  "chat_list_item_spacing": "List message spacing"
+  "chat_list_item_spacing": "List message spacing",
+  "room_card_fixed_width": "Fixed card width",
+  "room_card_fixed_width_subtitle": "Off: cards scale with the window. On: cards keep a fixed width and only the column count changes",
+  "room_card_width": "Card width"
 }

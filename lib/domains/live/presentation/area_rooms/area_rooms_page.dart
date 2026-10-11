@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/domains/live/presentation/areas/category_artwork.dart';
 import 'package:pure_live/domains/live/presentation/area_rooms/area_rooms_controller.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
@@ -55,14 +56,21 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
                   final width = constraint.maxWidth;
                   final crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
                   final spacing = SettingsService.to.theme.crossAxisSpacing.v;
-                  final itemWidth = (width - 12 - spacing * (crossAxisCount - 1)) / crossAxisCount;
+                  final sizing = resolveRoomGridSizing(
+                    width: width,
+                    autoColumns: crossAxisCount,
+                    spacing: spacing,
+                    basePadding: 6,
+                    fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+                  );
+                  final itemWidth = sizing.itemWidth;
                   return GridView.builder(
                     scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
                     addAutomaticKeepAlives: false,
                     addRepaintBoundaries: true,
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
+                      crossAxisCount: sizing.columns,
                       crossAxisSpacing: spacing,
                       mainAxisSpacing: SettingsService.to.theme.mainAxisSpacing.v,
                       mainAxisExtent: RoomCardLayoutMetrics.gridMainAxisExtent(
@@ -72,7 +80,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
                         textScaler: MediaQuery.textScalerOf(context),
                       ),
                     ),
-                    padding: const EdgeInsets.fromLTRB(6, 6, 6, 80),
+                    padding: EdgeInsets.fromLTRB(sizing.horizontalPadding, 6, sizing.horizontalPadding, 80),
                     controller: scrollController,
                     itemCount: list.length,
                     itemBuilder: (context, index) {

@@ -145,6 +145,31 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 displayValue: config.cornerRadius.toStringAsFixed(0),
                 onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(cornerRadius: value)),
               ),
+              // Card size: automatic (scales with the window) or a fixed width
+              // per device class; the grid then only changes its column count.
+              context.buildTile(
+                icon: Remix.aspect_ratio_line,
+                title: i18n('room_card_fixed_width'),
+                subtitle: i18n('room_card_fixed_width_subtitle'),
+                trailing: Switch(
+                  key: ValueKey('room-card-fixed-width-${_viewport.name}'),
+                  value: controller.cardWidthFor(_viewport) > 0,
+                  onChanged: (on) => controller.cardWidthRxFor(_viewport).v = on
+                      ? RoomCardSettingsController.defaultFixedCardWidth
+                      : RoomCardSettingsController.autoCardWidth,
+                ),
+              ),
+              if (controller.cardWidthFor(_viewport) > 0)
+                context.buildSliderTile(
+                  context,
+                  icon: Remix.ruler_line,
+                  title: i18n('room_card_width'),
+                  value: controller.cardWidthFor(_viewport),
+                  min: RoomCardSettingsController.minCardWidth,
+                  max: RoomCardSettingsController.maxCardWidth,
+                  displayValue: controller.cardWidthFor(_viewport).toStringAsFixed(0),
+                  onChanged: (value) => controller.cardWidthRxFor(_viewport).v = value.roundToDouble(),
+                ),
             ]),
             const SizedBox(height: 16),
             Text(

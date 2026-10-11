@@ -1,6 +1,7 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 
 class PopularGridView extends StatelessWidget {
@@ -14,7 +15,7 @@ class PopularGridView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraint) {
         final width = constraint.maxWidth;
-        final crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
+        final autoColumns = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
         return BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
           showScrollToTopBtn: SettingsService.to.page.showScrollToTopBtn.v,
@@ -28,8 +29,16 @@ class PopularGridView extends StatelessWidget {
             buttonText: i18n('refresh'),
             onButtonPressed: () => controller.refreshData(),
           ),
-          contentBuilder: (context, list, scrollController) {
+          contentBuilder: (context, list, scrollController) => Obx(() {
             final spacing = SettingsService.to.theme.crossAxisSpacing.v;
+            final sizing = resolveRoomGridSizing(
+              width: width,
+              autoColumns: autoColumns,
+              spacing: spacing,
+              basePadding: 6,
+              fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+            );
+            final crossAxisCount = sizing.columns;
             final rows = (list.length + crossAxisCount - 1) ~/ crossAxisCount;
             // RoomCard owns its text metrics. A fixed 72-pixel caption area
             // clips scaled text; lazy natural-height rows retain the columns
@@ -41,7 +50,7 @@ class PopularGridView extends StatelessWidget {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding, vertical: 6),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, row) => Padding(
@@ -82,7 +91,7 @@ class PopularGridView extends StatelessWidget {
                 ),
               ],
             );
-          },
+          }),
         );
       },
     );

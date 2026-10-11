@@ -911,23 +911,44 @@ class RoomCard extends StatelessWidget {
     });
   }
 
-  Widget _buildCompactPlatformBadge(bool isDark) {
+  Widget _buildCoverPlatformBadge() {
     return Container(
-      key: const ValueKey('room-card-platform-badge'),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: dense ? 7 : 8, vertical: dense ? 3 : 4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[800] : Colors.grey[100],
-        borderRadius: BorderRadius.circular(7),
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        room.platform?.toUpperCase() ?? '',
+        i18n('site_${room.platform ?? ''}'),
+        maxLines: 1,
+        style: (dense ? AppTextStyles.t11 : AppTextStyles.t12).copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// The platform tag of the compact row, styled like the 关注 panel's tag.
+  Widget _buildCompactPlatformBadge(bool isDark) {
+    final colors = Get.theme.colorScheme;
+    return Container(
+      key: const ValueKey('room-card-platform-badge'),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: .75),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.outline.withValues(alpha: .2), width: .5),
+      ),
+      child: Text(
+        i18n('site_${room.platform ?? ''}'),
         maxLines: 1,
         overflow: TextOverflow.fade,
         softWrap: false,
         style: AppTextStyles.t11.copyWith(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: isDark ? Colors.grey[300] : Colors.grey[800],
+          color: colors.onSurfaceVariant,
         ),
       ),
     );
@@ -958,7 +979,7 @@ class RoomCard extends StatelessWidget {
           ),
         );
       } else if (config.showAudience && room.isLiveNow) {
-        children.add(_buildAudienceMetric(dense: true));
+        children.add(_buildAudienceMetric(dense: true, inline: true));
       } else if (config.showReplayBadge && room.isRecord == true) {
         children.add(
           CountChip(icon: Icons.videocam_rounded, count: i18n('replay'), dense: true, color: Get.theme.primaryColor),
@@ -972,6 +993,25 @@ class RoomCard extends StatelessWidget {
         ),
       );
     }
+
+    // Platform tag above, heat below, like the 关注 panel's rows.
+    final metrics = List<Widget>.of(children);
+    children
+      ..clear()
+      ..addAll([
+        if (metrics.isNotEmpty)
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (var index = 0; index < metrics.length; index++) ...[
+                if (index > 0) const SizedBox(height: 3),
+                metrics[index],
+              ],
+            ],
+          ),
+      ]);
 
     if (showDelete) {
       children.add(
@@ -1042,30 +1082,36 @@ class RoomCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    room.title ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: (dense ? AppTextStyles.t13 : AppTextStyles.t15).copyWith(
-                      height: 1.2,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  // Like the 关注 panel: streamer first, room title below.
                   if (config.showAnchorName) ...[
-                    SizedBox(height: dense ? 2 : 3),
                     Text(
                       room.nick ?? '',
                       key: const ValueKey('room-card-anchor-name'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: (dense ? AppTextStyles.t12 : AppTextStyles.t13).copyWith(
+                      style: (dense ? AppTextStyles.t13 : AppTextStyles.t15).copyWith(
                         height: 1.2,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.grey[400] : Colors.grey[700],
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
+                    SizedBox(height: dense ? 2 : 3),
                   ],
+                  Text(
+                    room.title ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: (config.showAnchorName
+                            ? (dense ? AppTextStyles.t12 : AppTextStyles.t13)
+                            : (dense ? AppTextStyles.t13 : AppTextStyles.t15))
+                        .copyWith(
+                          height: 1.2,
+                          fontWeight: config.showAnchorName ? FontWeight.w500 : FontWeight.w700,
+                          color: config.showAnchorName
+                              ? (isDark ? Colors.grey[400] : Colors.grey[700])
+                              : (isDark ? Colors.white : Colors.black87),
+                        ),
+                  ),
                 ],
               ),
             ),
@@ -1091,12 +1137,18 @@ class RoomCard extends StatelessWidget {
           final textScale = MediaQuery.textScalerOf(context).scale(1);
           final showAutomaticPlatformBadge =
               config.automaticPlatformBadge && !dense && constraints.maxWidth >= 280 && textScale < 1.8;
+          final compact = config.layout == RoomCardLayout.compact;
+          final colors = Theme.of(context).colorScheme;
           return Card(
             key: const ValueKey('room-card-surface'),
             margin: EdgeInsets.zero,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
-            color: isDark ? Colors.grey[900] : Colors.white,
+            // The compact row matches the 关注 panel: a bordered rounded tile.
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radius),
+              side: compact ? BorderSide(color: colors.outlineVariant.withValues(alpha: .55)) : BorderSide.none,
+            ),
+            color: compact ? colors.surfaceContainerLow : (isDark ? Colors.grey[900] : Colors.white),
             child: InkWell(
               borderRadius: BorderRadius.circular(radius),
               onTap: () => onTap(context),
@@ -1127,7 +1179,22 @@ class RoomCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            if (config.showReplayBadge && room.isRecord == true)
+                            // Platform (top-left) and heat (top-right): each on its
+                            // own translucent black pill.
+                            if (config.showPlatformBadge || showAutomaticPlatformBadge)
+                              Positioned(
+                                key: const ValueKey('room-card-platform-badge'),
+                                left: 8,
+                                top: 8,
+                                child: _buildCoverPlatformBadge(),
+                              ),
+                            if (config.showAudience && room.isLiveNow && !statusPending)
+                              Positioned(
+                                right: showDelete ? (dense ? 44 : 48) : 8,
+                                top: 8,
+                                child: _buildAudienceMetric(dense: dense),
+                              ),
+                            if (config.showReplayBadge && room.isRecord == true && !room.isLiveNow)
                               Positioned(
                                 key: const ValueKey('room-card-replay-badge'),
                                 right: showDelete ? (dense ? 44 : 48) : 8,
@@ -1228,22 +1295,6 @@ class RoomCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              if (config.showPlatformBadge || showAutomaticPlatformBadge) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  i18n('site_${room.platform ?? ''}'),
-                                  key: const ValueKey('room-card-platform-badge'),
-                                  maxLines: 1,
-                                  style: (dense ? AppTextStyles.t11 : AppTextStyles.t12).copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[700],
-                                  ),
-                                ),
-                              ],
-                              if (config.showAudience && room.isLiveNow && !statusPending) ...[
-                                const SizedBox(width: 6),
-                                _buildAudienceMetric(dense: dense, inline: true),
-                              ],
                             ],
                           ),
                         ),

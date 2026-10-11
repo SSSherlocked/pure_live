@@ -38,11 +38,12 @@ class RoomCardAppearance {
   static const double minCornerRadius = 0;
   static const double maxCornerRadius = 32;
 
+  // The compact row follows the 关注 panel: platform tag and heat on the right.
   static const compact = RoomCardAppearance(
     layout: RoomCardLayout.compact,
     showAvatar: true,
     showAnchorName: true,
-    showPlatformBadge: false,
+    showPlatformBadge: true,
     automaticPlatformBadge: false,
     showAudience: true,
     showReplayBadge: true,
@@ -248,7 +249,7 @@ class RoomCardAppearance {
 
 class RoomCardSettingsController extends GetxController {
   RoomCardSettingsController()
-    : mobilePreset = hiveString('room_card_mobile_preset', RoomCardPreset.standard.storageKey),
+    : mobilePreset = hiveString('room_card_mobile_preset', defaultPresetFor(RoomCardViewport.mobile).storageKey),
       desktopPreset = hiveString('room_card_desktop_preset', RoomCardPreset.standard.storageKey),
       mobileConfig = hiveObject<RoomCardAppearance>(
         'room_card_mobile_config',
@@ -306,8 +307,18 @@ class RoomCardSettingsController extends GetxController {
     );
   }
 
+  /// Phones default to the compact rows; desktops to cover cards.
+  static RoomCardPreset defaultPresetFor(RoomCardViewport viewport) =>
+      viewport == RoomCardViewport.mobile ? RoomCardPreset.compact : RoomCardPreset.standard;
+
   static RoomCardAppearance _storedPresetFallback(String key) {
-    return RoomCardAppearance.fromPreset(normalizePreset(HivePrefUtil.getString(key)));
+    final stored = HivePrefUtil.getString(key);
+    if (stored == null || stored.trim().isEmpty) {
+      return RoomCardAppearance.fromPreset(
+        defaultPresetFor(key == 'room_card_mobile_preset' ? RoomCardViewport.mobile : RoomCardViewport.desktop),
+      );
+    }
+    return RoomCardAppearance.fromPreset(normalizePreset(stored));
   }
 
   @override
@@ -361,7 +372,7 @@ class RoomCardSettingsController extends GetxController {
     presetRxFor(viewport).v = _matchingPreset(normalized).storageKey;
   }
 
-  void reset(RoomCardViewport viewport) => applyPreset(viewport, RoomCardPreset.standard);
+  void reset(RoomCardViewport viewport) => applyPreset(viewport, defaultPresetFor(viewport));
 
   static RoomCardPreset _matchingPreset(RoomCardAppearance config) {
     if (config == RoomCardAppearance.compact) return RoomCardPreset.compact;

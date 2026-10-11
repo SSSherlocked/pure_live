@@ -130,18 +130,23 @@ class DesktopManager {
             // knows only about the live room, so a recording in PiP left the
             // chrome painted over the compact picture.
             final pipMode = windowsPipActive.value;
-            if (fullscreen && !pipMode) {
-              return Stack(
-                children: [
-                  Positioned.fill(child: content),
-                  const Positioned(top: 0, right: 0, child: FullscreenWindowControls()),
-                ],
-              );
-            }
+            // One shape in every state. `content` holds the app's Router, and
+            // swapping its parent (a Stack in fullscreen, a Column otherwise)
+            // remounted it: a fresh Router re-navigates to the current location,
+            // so every fullscreen switch pushed a second live room page.
             return Column(
               children: [
                 if (!fullscreen && !pipMode) const CustomTitleBar(),
-                Expanded(child: content),
+                Expanded(
+                  key: const ValueKey('app-content'),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(child: content),
+                      if (fullscreen && !pipMode)
+                        const Positioned(top: 0, right: 0, child: FullscreenWindowControls()),
+                    ],
+                  ),
+                ),
               ],
             );
           }),

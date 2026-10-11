@@ -59,8 +59,13 @@ class _MacOSWindowButtonInsetState extends State<MacOSWindowButtonInset> with Wi
 
   @override
   Widget build(BuildContext context) {
-    if (!_enabled || _fullScreen) return widget.child;
+    if (!_enabled) return widget.child;
     final media = MediaQuery.of(context);
+    // Keep the MediaQuery in fullscreen too. The child holds the app's Router,
+    // and dropping the wrapper remounted it: a fresh Router re-navigates to the
+    // current location, so entering or leaving fullscreen pushed a second live
+    // room page (a second flash, and one more Back to leave).
+    if (_fullScreen) return MediaQuery(data: media, child: widget.child);
     EdgeInsets withInset(EdgeInsets insets) =>
         insets.copyWith(top: insets.top < macOSWindowButtonInset ? macOSWindowButtonInset : insets.top);
     return MediaQuery(

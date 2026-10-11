@@ -236,6 +236,10 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
             navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver(), PopupRouteTracker.instance],
             builder: FlutterSmartDialog.init(
               builder: (context, child) {
+                // `child` holds the app's Router. Every wrapper below must keep
+                // one widget shape in all states: a wrapper that appears or
+                // changes type remounts the Router, and a fresh Router
+                // re-navigates to the current location (a duplicate page).
                 Widget resultWidget = child ?? const SizedBox.shrink();
                 if (Platform.isAndroid) {
                   resultWidget = AdaptiveRefreshRateScope(

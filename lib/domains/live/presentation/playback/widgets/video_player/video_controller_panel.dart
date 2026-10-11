@@ -155,6 +155,7 @@ class VideoControllerPanel extends StatefulWidget {
 
 class _VideoControllerPanelState extends State<VideoControllerPanel> {
   static const barHeight = 56.0;
+  final MenuController _moreMenu = MenuController();
   Offset? _lastTapGlobalPosition;
   Offset? _lastTapLocalPosition;
 
@@ -343,9 +344,34 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                 TopActionBar(
                   controller: controller,
                   barHeight: barHeight,
+                  moreMenu: _moreMenu,
                   // A portrait fullscreen owns the whole screen, so its top bar is
                   // the one that has to clear the notch on its own.
                   portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                ),
+                // Fixed anchor for the ⋯ menu at the top-right of the player.
+                // It does not move with the auto-hiding top bar, so an open
+                // menu stays put when the bar slides away.
+                Builder(
+                  builder: (context) {
+                    final insets = playerBarInsets(
+                      context,
+                      portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                    );
+                    return Positioned(
+                      top: insets.top,
+                      right: 8 + insets.right,
+                      child: PlayerMoreMenuAnchor(
+                        menu: _moreMenu,
+                        size: const Size(kMinInteractiveDimension, barHeight),
+                        isAudioOnly: () => controller.isAudioOnly,
+                        onToggleAudioOnly: () {
+                          controller.enableController();
+                          controller.toggleAudioOnly();
+                        },
+                      ),
+                    );
+                  },
                 ),
                 BottomActionBar(
                   controller: controller,
@@ -389,10 +415,19 @@ class ErrorWidget extends StatelessWidget {
 
 // Top action bar widgets
 class TopActionBar extends StatelessWidget {
-  const TopActionBar({super.key, required this.controller, required this.barHeight, this.portraitFullscreen = false});
+  const TopActionBar({
+    super.key,
+    required this.controller,
+    required this.barHeight,
+    required this.moreMenu,
+    this.portraitFullscreen = false,
+  });
 
   final VideoController controller;
   final double barHeight;
+
+  /// Opens the ⋯ menu, which hangs off a fixed anchor outside this bar.
+  final MenuController moreMenu;
 
   /// Whether this bar is the whole screen's top chrome, which is what makes the
   /// immersive-notch fallback apply.
@@ -531,14 +566,7 @@ class TopActionBar extends StatelessWidget {
                       },
                     // ⋯ (画面比例 / 纯音频) closes the top-right group, inline and
                     // in fullscreen alike.
-                    PlayerMoreMenuButton(
-                      key: const ValueKey('player-top-more-menu'),
-                      isAudioOnly: () => controller.isAudioOnly,
-                      onToggleAudioOnly: () {
-                        controller.enableController();
-                        controller.toggleAudioOnly();
-                      },
-                    ),
+                    PlayerMoreMenuButton(key: const ValueKey('player-top-more-menu'), menu: moreMenu),
                   ],
                 ),
               ),

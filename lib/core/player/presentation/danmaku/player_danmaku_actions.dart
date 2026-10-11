@@ -219,15 +219,24 @@ class DanmakuSettingsDialog extends StatelessWidget {
   }
 }
 
-/// The "⋯" button at the top-left of the player.
+/// The player's ⋯ menu: 画面比例 (a submenu of every video-fit mode, the
+/// current one checked) and, when the host supplies it, 纯音频.
 ///
-/// Opens a menu whose 画面比例 entry expands a submenu with every video-fit
-/// mode; the current one is checked. The room and a recording share the
-/// stored index (`SettingsService.to.player.videoFitIndex`).
-class PlayerMoreMenuButton extends StatelessWidget {
-  const PlayerMoreMenuButton({super.key, this.iconColor = Colors.white, this.isAudioOnly, this.onToggleAudioOnly});
+/// The menu is attached to this invisible anchor, which the host places at a
+/// fixed spot on the player rather than inside the auto-hiding top bar: the
+/// open menu stays where it is when the bar slides away. [PlayerMoreMenuButton]
+/// only opens and closes it.
+class PlayerMoreMenuAnchor extends StatelessWidget {
+  const PlayerMoreMenuAnchor({
+    super.key,
+    required this.menu,
+    required this.size,
+    this.isAudioOnly,
+    this.onToggleAudioOnly,
+  });
 
-  final Color iconColor;
+  final MenuController menu;
+  final Size size;
 
   /// Reads the room's audio-only state (an observable); with
   /// [onToggleAudioOnly] it adds the 纯音频 entry.
@@ -237,6 +246,7 @@ class PlayerMoreMenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
+      controller: menu,
       menuChildren: [
         SubmenuButton(
           key: const ValueKey('player-more-video-fit'),
@@ -253,7 +263,12 @@ class PlayerMoreMenuButton extends StatelessWidget {
                         : null,
                   ),
                   onPressed: () => SettingsService.to.player.videoFitIndex.v = index,
-                  child: Text(i18n(option['desc'] as String)),
+                  // A little room after the label balances the check mark
+                  // on the left.
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 16),
+                    child: Text(i18n(option['desc'] as String)),
+                  ),
                 ),
               ),
           ],
@@ -269,20 +284,33 @@ class PlayerMoreMenuButton extends StatelessWidget {
             ),
           ),
       ],
-      builder: (context, menu, child) => IconButton(
-        key: const ValueKey('player-more-menu'),
-        visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
-        color: iconColor,
-        icon: const Icon(Icons.more_horiz_rounded),
-        onPressed: () {
-          if (menu.isOpen) {
-            menu.close();
-          } else {
-            menu.open();
-          }
-        },
-      ),
+      child: SizedBox.fromSize(size: size),
+    );
+  }
+}
+
+/// The ⋯ button in the player's top bar; opens [PlayerMoreMenuAnchor].
+class PlayerMoreMenuButton extends StatelessWidget {
+  const PlayerMoreMenuButton({super.key, required this.menu, this.iconColor = Colors.white});
+
+  final MenuController menu;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      key: const ValueKey('player-more-menu'),
+      visualDensity: VisualDensity.standard,
+      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+      color: iconColor,
+      icon: const Icon(Icons.more_horiz_rounded),
+      onPressed: () {
+        if (menu.isOpen) {
+          menu.close();
+        } else {
+          menu.open();
+        }
+      },
     );
   }
 }

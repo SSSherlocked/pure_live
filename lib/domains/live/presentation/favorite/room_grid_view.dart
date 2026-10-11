@@ -39,10 +39,7 @@ class RoomGridView extends GetView<FavoriteController> {
           final mainAxisSpacing = SettingsService.to.theme.mainAxisSpacing.v;
           final roomCardAppearance = SettingsService.to.roomCard.resolve();
           final isVerifyingFavorites = controller.isVerifyingFavorites.value;
-          var crossAxisCount = width > 1280 ? 4 : (width > 960 ? 3 : (width > 640 ? 2 : 1));
-          if (dense) {
-            crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
-          }
+          final crossAxisCount = roomGridAutoColumns(width, dense: dense);
           final sizing = resolveRoomGridSizing(
             width: width,
             autoColumns: crossAxisCount,

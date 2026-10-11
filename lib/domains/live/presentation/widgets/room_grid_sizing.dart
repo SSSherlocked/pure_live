@@ -9,6 +9,12 @@ class RoomGridSizing {
   final double horizontalPadding;
 }
 
+/// Automatic column count of the followed-rooms and history grids.
+int roomGridAutoColumns(double width, {required bool dense}) {
+  if (dense) return width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
+  return width > 1280 ? 4 : (width > 960 ? 3 : (width > 640 ? 2 : 1));
+}
+
 /// Resolves the grid for [width].
 ///
 /// [fixedCardWidth] of 0 keeps the automatic layout: [autoColumns] columns

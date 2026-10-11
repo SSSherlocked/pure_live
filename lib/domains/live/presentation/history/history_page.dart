@@ -199,8 +199,7 @@ class _HistoryPageState extends State<HistoryPage> {
         return LayoutBuilder(
           builder: (context, constraint) {
             final width = constraint.maxWidth;
-            int crossAxisCount = width > 1280 ? 4 : (width > 960 ? 3 : (width > 640 ? 2 : 1));
-            if (dense) crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
+            final crossAxisCount = roomGridAutoColumns(width, dense: dense);
             final sizing = resolveRoomGridSizing(
               width: width,
               autoColumns: crossAxisCount,

@@ -2,6 +2,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 
 class RoomCardSettingsPage extends StatefulWidget {
   const RoomCardSettingsPage({super.key});
@@ -29,6 +30,23 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
     popularity: '12800',
     liveStatus: LiveStatus.live,
   );
+
+  /// Width a card gets in the 关注 grid: the fixed width when set, otherwise
+  /// the automatic column width for this window (or a typical phone/desktop
+  /// window when previewing the other device class).
+  double _previewCardWidth(BuildContext context, RoomCardSettingsController controller) {
+    final width = _viewport == controller.currentViewport
+        ? MediaQuery.sizeOf(context).width
+        : (_viewport == RoomCardViewport.mobile ? 390.0 : 1280.0);
+    final sizing = resolveRoomGridSizing(
+      width: width,
+      autoColumns: roomGridAutoColumns(width, dense: SettingsService.to.app.enableDenseFavorites.v),
+      spacing: SettingsService.to.theme.crossAxisSpacing.v,
+      basePadding: 12,
+      fixedCardWidth: controller.cardWidthFor(_viewport),
+    );
+    return sizing.itemWidth;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +86,15 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             ),
             const SizedBox(height: 20),
             context.buildGroupTitle(i18n('room_card_preview')),
+            // Drawn at the width and density the 关注 grid gives a card, so
+            // what shows here is what the grid shows.
             Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
+              child: SizedBox(
+                width: _previewCardWidth(context, controller),
                 child: RoomCard(
                   key: ValueKey('room-card-preview-${_viewport.name}'),
                   room: _previewRoom,
-                  dense: _viewport == RoomCardViewport.mobile,
+                  dense: SettingsService.to.app.enableDenseFavorites.v,
                   settingsViewport: _viewport,
                 ),
               ),

@@ -303,7 +303,8 @@ class RoomCard extends StatelessWidget {
     required double availableWidth,
     required double textScale,
   }) {
-    final minimumMetricWidth = showDelete ? 360.0 : (dense ? 260.0 : 300.0);
+    // Low enough for a two-column phone grid; the title gives way first.
+    final minimumMetricWidth = showDelete ? 280.0 : (dense ? 180.0 : 200.0);
     final canShowMetrics = availableWidth >= minimumMetricWidth && textScale < 1.8;
     final children = <Widget>[];
 

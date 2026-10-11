@@ -2556,5 +2556,11 @@
   "player_play": "Play",
   "player_pause": "Pause",
   "player_back_to_room": "Back to the room",
-  "live_sc_read_failed": "Super Chat lookup failed"
+  "live_sc_read_failed": "Super Chat lookup failed",
+  "now_watching": "Watching",
+  "live_panel_settings": "Live room side panel",
+  "live_panel_tab_order": "Panel tab order",
+  "live_panel_tab_order_subtitle": "Drag to reorder the side panel tabs on the player page",
+  "live_panel_width": "Panel width",
+  "live_panel_width_subtitle": "Width of the side panel next to the video in wide layouts"
 }

@@ -11,16 +11,98 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
 
-class PlayOther extends StatefulWidget {
+/// Fullscreen "关注" panel: the same followed-room switcher as the room
+/// panel's 关注 tab, shown as a dialog docked to the right edge.
+class PlayOther extends StatelessWidget {
   const PlayOther({required this.controller, super.key});
 
   final LivePlayController controller;
 
   @override
-  State<PlayOther> createState() => _PlayOtherState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final layout = resolveContentFirstPanelLayout(MediaQuery.sizeOf(context), ContentFirstPanelKind.roomHistory);
+    final headerHeight = resolveRoomHistoryTextMetrics(
+      textScaler: MediaQuery.textScalerOf(context),
+      headerFontSize: theme.textTheme.titleSmall?.fontSize ?? 14,
+      headerLineHeight: theme.textTheme.titleSmall?.height ?? 1.25,
+      tabFontSize: theme.textTheme.labelMedium?.fontSize ?? 12,
+      tabLineHeight: theme.textTheme.labelMedium?.height ?? 1.33,
+      titleFontSize: theme.textTheme.labelMedium?.fontSize ?? 12,
+      titleLineHeight: theme.textTheme.labelMedium?.height ?? 1.33,
+      detailFontSize: theme.textTheme.labelSmall?.fontSize ?? 11,
+      detailLineHeight: theme.textTheme.labelSmall?.height ?? 1.45,
+    ).headerHeight;
+
+    return Dialog(
+      key: const ValueKey('fullscreen-room-history-dialog'),
+      alignment: Alignment.centerRight,
+      insetPadding: layout.insetPadding,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: SizedBox(
+        width: layout.size.width,
+        height: layout.size.height,
+        child: Column(
+          children: [
+            SizedBox(
+              height: headerHeight,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10, right: 2),
+                child: Row(
+                  children: [
+                    Icon(Icons.favorite_rounded, size: 17, color: theme.colorScheme.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        i18n('follow'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    IconButton(
+                      key: const ValueKey('room-history-close'),
+                      tooltip: i18n('close'),
+                      visualDensity: VisualDensity.standard,
+                      constraints: const BoxConstraints.tightFor(
+                        width: contentFirstPanelHeaderActionExtent,
+                        height: contentFirstPanelHeaderActionExtent,
+                      ),
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(Icons.close_rounded, size: 18),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: FollowRoomSwitcher(controller: controller, onSwitch: () => Navigator.of(context).pop()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _PlayOtherState extends State<PlayOther> with SingleTickerProviderStateMixin {
+/// Followed rooms split into 已开播 / 录播 / 观看记录, one tap away from
+/// replacing the room being watched. Used by the room panel's 关注 tab and
+/// by the fullscreen [PlayOther] panel.
+class FollowRoomSwitcher extends StatefulWidget {
+  const FollowRoomSwitcher({required this.controller, this.onSwitch, super.key});
+
+  final LivePlayController controller;
+
+  /// Runs before switching, e.g. to close the hosting dialog.
+  final VoidCallback? onSwitch;
+
+  @override
+  State<FollowRoomSwitcher> createState() => _FollowRoomSwitcherState();
+}
+
+class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTickerProviderStateMixin {
   late final TabController tabController;
 
   final onlineRooms = <LiveRoom>[].obs;
@@ -30,6 +112,8 @@ class _PlayOtherState extends State<PlayOther> with SingleTickerProviderStateMix
   final refreshing = false.obs;
 
   StreamSubscription<dynamic>? subscription;
+  Worker? _favoritesWorker;
+  Worker? _historyWorker;
 
   @override
   void initState() {
@@ -40,9 +124,14 @@ class _PlayOtherState extends State<PlayOther> with SingleTickerProviderStateMix
     _updateRooms();
 
     subscription = EventBus.instance.listen('refresh_favorite_finish', (_) => _updateRooms());
+    // The 关注 tab stays mounted for the whole room session, so follow list
+    // and history edits must show up without reopening it.
+    _favoritesWorker = ever(FavoriteRoomController.to.favoriteRooms, (_) => _updateRooms());
+    _historyWorker = ever(HistoryController.to.historyRooms, (_) => _updateRooms());
   }
 
   void _updateRooms() {
+    if (!mounted) return;
     final allRooms = FavoriteRoomController.to.favoriteRooms.v;
 
     final liveList = allRooms.where((room) => room.isLiveNow && room.isRecord == false).toList()
@@ -71,12 +160,15 @@ class _PlayOtherState extends State<PlayOther> with SingleTickerProviderStateMix
   void dispose() {
     tabController.dispose();
     subscription?.cancel();
+    _favoritesWorker?.dispose();
+    _historyWorker?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
     final textMetrics = resolveRoomHistoryTextMetrics(
       textScaler: MediaQuery.textScalerOf(context),
@@ -90,139 +182,102 @@ class _PlayOtherState extends State<PlayOther> with SingleTickerProviderStateMix
       detailLineHeight: textTheme.labelSmall?.height ?? 1.45,
     );
 
-    final layout = resolveContentFirstPanelLayout(MediaQuery.sizeOf(context), ContentFirstPanelKind.roomHistory);
-
-    return Dialog(
-      key: const ValueKey('fullscreen-room-history-dialog'),
-      alignment: Alignment.centerRight,
-      insetPadding: layout.insetPadding,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: SizedBox(
-        width: layout.size.width,
-        height: layout.size.height,
-        child: Column(
-          children: [
-            SizedBox(
-              height: textMetrics.headerHeight,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 10, right: 2),
-                child: Row(
-                  children: [
-                    Icon(Icons.video_library_rounded, size: 17, color: theme.colorScheme.primary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        i18n('switch_live_room'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 4, 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: textMetrics.tabBarHeight,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerHighest.withValues(alpha: .6),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ScrollableTabBar(
+                    controller: tabController,
+                    isScrollable: textMetrics.scrollTabs,
+                    tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
+                    physics: const PureLiveBoundedScrollPhysics(),
+                    labelColor: colors.onPrimaryContainer,
+                    unselectedLabelColor: colors.onSurfaceVariant,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(color: colors.primaryContainer, borderRadius: BorderRadius.circular(8)),
+                    dividerHeight: 0,
+                    splashBorderRadius: BorderRadius.circular(8),
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                    tabs: [
+                      _CompactTab(
+                        icon: Icons.sensors_rounded,
+                        label: i18n('online_room_title'),
+                        height: textMetrics.tabBarHeight - 6,
+                        shrinkToFit: !textMetrics.scrollTabs,
                       ),
-                    ),
-                    Obx(
-                      () => IconButton(
-                        key: const ValueKey('room-history-refresh'),
-                        tooltip: i18n('refresh'),
-                        visualDensity: VisualDensity.standard,
-                        constraints: const BoxConstraints.tightFor(
-                          width: contentFirstPanelHeaderActionExtent,
-                          height: contentFirstPanelHeaderActionExtent,
-                        ),
-                        padding: EdgeInsets.zero,
-                        onPressed: refreshing.value
-                            ? null
-                            : () {
-                                refreshing.value = true;
-                                EventBus.instance.emit('refresh_favorite_rooms', true);
-                              },
-                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                      _CompactTab(
+                        icon: Icons.fiber_smart_record_rounded,
+                        label: i18n('recording_room_title'),
+                        height: textMetrics.tabBarHeight - 6,
+                        shrinkToFit: !textMetrics.scrollTabs,
                       ),
-                    ),
-                    IconButton(
-                      key: const ValueKey('room-history-close'),
-                      tooltip: i18n('close'),
-                      visualDensity: VisualDensity.standard,
-                      constraints: const BoxConstraints.tightFor(
-                        width: contentFirstPanelHeaderActionExtent,
-                        height: contentFirstPanelHeaderActionExtent,
+                      _CompactTab(
+                        icon: Icons.history_rounded,
+                        label: i18n('watch_history'),
+                        height: textMetrics.tabBarHeight - 6,
+                        shrinkToFit: !textMetrics.scrollTabs,
                       ),
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: textMetrics.tabBarHeight,
-              child: ScrollableTabBar(
-                controller: tabController,
-                isScrollable: textMetrics.scrollTabs,
-                tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
-                physics: const PureLiveBoundedScrollPhysics(),
-                labelColor: theme.colorScheme.primary,
-                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                indicatorSize: TabBarIndicatorSize.label,
-                dividerHeight: 0,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                tabs: [
-                  _CompactTab(
-                    icon: Icons.sensors_rounded,
-                    label: i18n('online_room_title'),
-                    height: textMetrics.tabBarHeight,
-                    shrinkToFit: !textMetrics.scrollTabs,
-                  ),
-                  _CompactTab(
-                    icon: Icons.fiber_smart_record_rounded,
-                    label: i18n('recording_room_title'),
-                    height: textMetrics.tabBarHeight,
-                    shrinkToFit: !textMetrics.scrollTabs,
-                  ),
-                  _CompactTab(
-                    icon: Icons.history_rounded,
-                    label: i18n('watch_history'),
-                    height: textMetrics.tabBarHeight,
-                    shrinkToFit: !textMetrics.scrollTabs,
-                  ),
-                ],
+              Obx(
+                () => IconButton(
+                  key: const ValueKey('room-history-refresh'),
+                  tooltip: i18n('refresh'),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: refreshing.value
+                      ? null
+                      : () {
+                          refreshing.value = true;
+                          EventBus.instance.emit('refresh_favorite_rooms', true);
+                        },
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                ),
               ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: Stack(
-                children: [
-                  Obx(
-                    () => loadingFinish.value
-                        ? TabBarView(
-                            controller: tabController,
-                            physics: const PureLiveBoundedScrollPhysics(),
-                            children: [
-                              _buildRoomGrid(onlineRooms, history: false, textMetrics: textMetrics),
-                              _buildRoomGrid(recordingRooms, history: false, textMetrics: textMetrics),
-                              _buildRoomGrid(historyRooms, history: true, textMetrics: textMetrics),
-                            ],
-                          )
-                        : AppStatusView(type: AppStatusType.loading, title: '', subtitle: ''),
-                  ),
-                  Obx(
-                    () => refreshing.value
-                        ? const Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            child: LinearProgressIndicator(minHeight: 2, backgroundColor: Colors.transparent),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        Expanded(
+          child: Stack(
+            children: [
+              Obx(
+                () => loadingFinish.value
+                    ? TabBarView(
+                        controller: tabController,
+                        physics: const PureLiveBoundedScrollPhysics(),
+                        children: [
+                          _buildRoomGrid(onlineRooms, history: false, textMetrics: textMetrics),
+                          _buildRoomGrid(recordingRooms, history: false, textMetrics: textMetrics),
+                          _buildRoomGrid(historyRooms, history: true, textMetrics: textMetrics),
+                        ],
+                      )
+                    : AppStatusView(type: AppStatusType.loading, title: '', subtitle: ''),
+              ),
+              Obx(
+                () => refreshing.value
+                    ? const Positioned(
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        child: LinearProgressIndicator(minHeight: 2, backgroundColor: Colors.transparent),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -245,32 +300,39 @@ class _PlayOtherState extends State<PlayOther> with SingleTickerProviderStateMix
         final cardWidth = math.max(0.0, (availableWidth - spacing * (columns - 1)) / columns);
         final rowExtent = cardMode ? math.max(80.0, cardWidth * 9 / 16 + infoHeight) : avatarRowHeight;
 
-        return GridView.builder(
-          key: ValueKey(history ? 'watch-history-grid' : 'live-room-grid'),
-          padding: const EdgeInsets.all(padding),
-          physics: const PureLiveScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisExtent: rowExtent,
-            mainAxisSpacing: spacing,
-            crossAxisSpacing: spacing,
-          ),
-          itemCount: rooms.length,
-          itemBuilder: (context, index) {
-            final room = rooms[index];
+        return Obx(() {
+          final current = widget.controller.state.value.room.detail;
+          return GridView.builder(
+            key: ValueKey(history ? 'watch-history-grid' : 'live-room-grid'),
+            padding: const EdgeInsets.fromLTRB(padding, 2, padding, padding),
+            physics: const PureLiveScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisExtent: rowExtent,
+              mainAxisSpacing: spacing,
+              crossAxisSpacing: spacing,
+            ),
+            itemCount: rooms.length,
+            itemBuilder: (context, index) {
+              final room = rooms[index];
+              final playing = current != null && room.hasSameIdentity(current);
 
-            return _RoomSwitchCard(
-              room: room,
-              history: history,
-              cardMode: cardMode,
-              infoHeight: infoHeight,
-              onTap: () {
-                Navigator.of(context).pop();
-                widget.controller.switchRoom(room);
-              },
-            );
-          },
-        );
+              return _RoomSwitchCard(
+                room: room,
+                history: history,
+                cardMode: cardMode,
+                infoHeight: infoHeight,
+                playing: playing,
+                onTap: playing
+                    ? null
+                    : () {
+                        widget.onSwitch?.call();
+                        widget.controller.switchRoom(room);
+                      },
+              );
+            },
+          );
+        });
       },
     );
   }
@@ -309,15 +371,19 @@ class _RoomSwitchCard extends StatelessWidget {
     required this.cardMode,
     required this.infoHeight,
     required this.onTap,
+    this.playing = false,
   });
 
   final LiveRoom room;
   final bool history;
 
+  /// The room currently on screen: highlighted and not tappable.
+  final bool playing;
+
   final bool cardMode;
 
   final double infoHeight;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   String _historyLabel() {
     final value = room.lastWatchedAt;
@@ -343,7 +409,9 @@ class _RoomSwitchCard extends StatelessWidget {
 
     final nick = room.nick?.trim() ?? '';
 
-    final meta = history
+    final meta = playing
+        ? i18n('now_watching')
+        : history
         ? _historyLabel()
         : audience.isEmpty
         ? i18n('audience_unknown')
@@ -356,9 +424,12 @@ class _RoomSwitchCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Ink(
           decoration: BoxDecoration(
-            color: colors.surfaceContainerLow,
+            color: playing ? colors.primaryContainer.withValues(alpha: .45) : colors.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.outlineVariant.withValues(alpha: .55)),
+            border: Border.all(
+              color: playing ? colors.primary : colors.outlineVariant.withValues(alpha: .55),
+              width: playing ? 1.5 : 1,
+            ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -426,7 +497,11 @@ class _RoomSwitchCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: history ? colors.onSurfaceVariant : Colors.orange.shade700,
+                  color: playing
+                      ? colors.primary
+                      : history
+                      ? colors.onSurfaceVariant
+                      : Colors.orange.shade700,
                   fontWeight: FontWeight.w600,
                 ),
               ),

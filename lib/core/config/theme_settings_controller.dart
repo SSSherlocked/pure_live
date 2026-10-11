@@ -3,6 +3,7 @@ import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
 
 class ThemeSettingsController extends GetxController {
   static const String defaultThemeModeName = 'System';
@@ -22,6 +23,14 @@ class ThemeSettingsController extends GetxController {
   final RxDouble mainAxisSpacing = hiveDouble('mainAxisSpacing', defaultSpacing);
   final RxString loadingStyle = hiveString('loadingStyle', AppConsts.defaultLoadingStyleKey);
   final RxString loadingStyleColorSwitch = hiveString('loadingStyleColorSwitch', '');
+
+  /// Order of the live room side panel sections (comma-separated ids).
+  final RxString livePanelTabOrder = hiveString('livePanelTabOrder', LivePanelTab.defaultOrderValue);
+
+  /// Preferred width of the live room side panel in the split layout.
+  final RxDouble livePanelWidth = hiveDouble('livePanelWidth', LivePanelWidth.defaultValue);
+
+  List<LivePanelTab> get resolvedLivePanelTabOrder => LivePanelTab.decode(livePanelTabOrder.v);
 
   String get resolvedThemeModeName => normalizeThemeMode(themeModeName.v);
   ThemeMode get themeMode => AppConsts.themeModes[resolvedThemeModeName]!;

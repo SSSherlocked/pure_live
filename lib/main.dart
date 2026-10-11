@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/macos_window_button_inset.dart';
 import 'package:pure_live/app/router/app_pages.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -250,6 +251,9 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
                 resultWidget = WallpaperCanvasTransparency(child: MaterialUiThemeBridge(child: resultWidget));
                 if (PlatformUtils.isDesktopNotMac) {
                   resultWidget = DesktopManager.buildWithTitleBar(resultWidget);
+                }
+                if (PlatformUtils.isMacOS) {
+                  resultWidget = MacOSWindowButtonInset(child: resultWidget);
                 }
                 resultWidget = AppBackgroundLayer(child: resultWidget);
                 return MediaQuery(

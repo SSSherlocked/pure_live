@@ -6,7 +6,6 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/share_command_handler.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
-import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_timer_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_volume_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_link_dialog.dart';
@@ -44,10 +43,6 @@ class LivePlayMenuButton extends StatelessWidget {
         _openLiveRoom();
         break;
 
-      case 1:
-        _switchLiveRoom(context);
-        break;
-
       case 2:
         _castScreen(context);
         break;
@@ -78,15 +73,6 @@ class LivePlayMenuButton extends StatelessWidget {
 
   void _openLiveRoom() {
     controller.openNaviteAPP();
-  }
-
-  void _switchLiveRoom(BuildContext context) {
-    unawaited(
-      showDialog<void>(
-        context: context,
-        builder: (_) => PlayOther(controller: controller),
-      ),
-    );
   }
 
   void _castScreen(BuildContext context) {
@@ -157,8 +143,6 @@ class LivePlayMenuButton extends StatelessWidget {
   List<PopupMenuEntry<int>> _buildItems(BuildContext context) {
     return [
       _item(value: 0, icon: Icons.open_in_new_rounded, text: i18n('open_live_room')),
-
-      _item(value: 1, icon: Icons.swap_horiz_outlined, text: i18n('switch_live_room')),
 
       _item(value: 2, icon: Remix.tv_2_line, text: i18n('cast_screen')),
 

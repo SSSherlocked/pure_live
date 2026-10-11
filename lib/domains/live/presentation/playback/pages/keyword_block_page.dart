@@ -1,7 +1,7 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:remixicon/remixicon.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 
 class KeywordBlockPage extends StatefulWidget {
   const KeywordBlockPage({super.key});
@@ -325,23 +325,18 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
           ),
           const SizedBox(height: 4),
 
-          Transform.translate(
-            offset: const Offset(-8, 0),
-            child: SizedBox(
-              width: double.infinity,
-              child: SfSlider(
-                min: min,
-                max: max,
-                value: value,
-                stepSize: stepSize,
-                activeColor: theme.colorScheme.primary,
-                inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                semanticFormatterCallback: (dynamic semanticValue) =>
-                    '$title, ${semanticValueBuilder((semanticValue as num).toDouble())}',
-                onChanged: (dynamic value) {
-                  onChanged(value as double);
-                },
-              ),
+          SizedBox(
+            width: double.infinity,
+            child: ThumbOnlySlider(
+              min: min,
+              max: max,
+              value: value,
+              stepSize: stepSize,
+              activeColor: theme.colorScheme.primary,
+              inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+              semanticFormatterCallback: (semanticValue) =>
+                '$title, ${semanticValueBuilder(semanticValue)}',
+              onChanged: onChanged,
             ),
           ),
         ],

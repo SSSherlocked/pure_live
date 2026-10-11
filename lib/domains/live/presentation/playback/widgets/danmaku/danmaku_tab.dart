@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/follow_rooms_page.dart';
@@ -26,21 +27,27 @@ class DanmakuTabView extends GetView<LivePlayController> {
                 controller: controller.tabController,
                 physics: const PureLiveBoundedScrollPhysics(),
                 children: [
-                  SettingsService.to.danmaku.hideDanmaku.v
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(i18n('danmaku_display_disabled_hint'), textAlign: TextAlign.center),
-                          ),
-                        )
-                      : DanmakuListView(room: state.room.detail!, controller: controller),
-                  // RxList mutations do not invalidate this outer Obx unless
-                  // its value is read while building. Snapshot it here so new
-                  // SC entries appear immediately without switching tabs.
-                  Obx(() => SuperChatPage(messages: controller.superChats.toList(growable: false))),
-                  DanmakuSettingsPage(controller: state.player.videoController!),
-                  const KeywordBlockPage(),
-                  FollowRoomsPage(controller: controller),
+                  for (final tab in controller.panelTabs)
+                    switch (tab) {
+                      LivePanelTab.danmakuList =>
+                        SettingsService.to.danmaku.hideDanmaku.v
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Text(i18n('danmaku_display_disabled_hint'), textAlign: TextAlign.center),
+                                ),
+                              )
+                            : DanmakuListView(room: state.room.detail!, controller: controller),
+                      // RxList mutations do not invalidate this outer Obx unless
+                      // its value is read while building. Snapshot it here so new
+                      // SC entries appear immediately without switching tabs.
+                      LivePanelTab.superChat => Obx(
+                        () => SuperChatPage(messages: controller.superChats.toList(growable: false)),
+                      ),
+                      LivePanelTab.danmakuSettings => DanmakuSettingsPage(controller: state.player.videoController!),
+                      LivePanelTab.blockList => const KeywordBlockPage(),
+                      LivePanelTab.follow => FollowRoomsPage(controller: controller),
+                    },
                 ],
               ),
             ),
@@ -51,7 +58,7 @@ class DanmakuTabView extends GetView<LivePlayController> {
   }
 }
 
-/// The four portrait room sections are navigation, not a free-scrolling chip
+/// The room panel sections are navigation, not a free-scrolling chip
 /// strip. Giving them equal bounded widths keeps the row fixed while the
 /// associated [TabBarView] remains swipeable between its first and last page.
 class DanmakuSectionTabBar extends StatelessWidget {

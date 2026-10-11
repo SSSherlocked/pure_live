@@ -3,6 +3,8 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:pure_live/shared/platforms/emoji_manager.dart';
@@ -86,13 +88,12 @@ class LivePlayController extends GetxController
   late Site currentSite;
   late TabController tabController;
 
-  final List<String> tabs = [
-    i18n('danmaku_list'),
-    i18n('super_chat'),
-    i18n('danmaku_settings'),
-    i18n('block_list'),
-    i18n('follow'),
-  ];
+  /// Side panel sections in the user's order, fixed for this room session.
+  late final List<LivePanelTab> panelTabs = Get.isRegistered<ThemeSettingsController>()
+      ? SettingsService.to.theme.resolvedLivePanelTabOrder
+      : LivePanelTab.defaultOrder;
+
+  late final List<String> tabs = [for (final tab in panelTabs) i18n(tab.labelKey)];
 
   bool _floatingResourcesReleased = false;
   bool _ownerClosed = false;

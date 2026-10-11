@@ -1,0 +1,56 @@
+/// Sections of the live room side panel, in the order users can rearrange.
+enum LivePanelTab {
+  danmakuList('danmaku_list'),
+  superChat('super_chat'),
+  follow('follow'),
+  danmakuSettings('danmaku_settings'),
+  blockList('block_list');
+
+  const LivePanelTab(this.id);
+
+  /// Stable id stored in preferences; also the section's i18n key.
+  final String id;
+
+  String get labelKey => id;
+
+  /// Default order: 关注 sits right after 醒目留言.
+  static const List<LivePanelTab> defaultOrder = [danmakuList, superChat, follow, danmakuSettings, blockList];
+
+  static String encode(List<LivePanelTab> order) => order.map((tab) => tab.id).join(',');
+
+  static final String defaultOrderValue = encode(defaultOrder);
+
+  /// Parses a stored order. Unknown or repeated ids are dropped and sections
+  /// missing from the value are appended in their default position order, so
+  /// every section always appears exactly once.
+  static List<LivePanelTab> decode(String? raw) {
+    final result = <LivePanelTab>[];
+    for (final id in (raw ?? '').split(',')) {
+      final match = LivePanelTab.values.where((tab) => tab.id == id.trim());
+      if (match.isNotEmpty && !result.contains(match.first)) result.add(match.first);
+    }
+    for (final tab in defaultOrder) {
+      if (!result.contains(tab)) result.add(tab);
+    }
+    return result;
+  }
+}
+
+/// Width of the live room side panel in the desktop/landscape split.
+abstract final class LivePanelWidth {
+  static const double min = 240;
+  static const double max = 420;
+  static const double defaultValue = 300;
+
+  /// Never let the panel take more than this share of the window.
+  static const double maxShare = 0.45;
+
+  static double normalize(double value) => value.isFinite ? value.clamp(min, max).toDouble() : defaultValue;
+
+  /// The width used for a window [availableWidth] wide.
+  static double resolve(double preferred, double availableWidth) {
+    final width = normalize(preferred);
+    final cap = availableWidth * maxShare;
+    return cap < min ? width.clamp(0, cap).toDouble() : width.clamp(min, cap).toDouble();
+  }
+}

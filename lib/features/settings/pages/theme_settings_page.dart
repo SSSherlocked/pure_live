@@ -3,6 +3,8 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/features/settings/pages/live_panel_tab_order_page.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/features/settings/pages/page_settings_page.dart';
 import 'package:pure_live/features/settings/pages/font_settings_page.dart';
@@ -181,6 +183,29 @@ class ThemeSettingsPage extends GetView<SettingsService> {
               child: Align(
                 alignment: Alignment.center,
                 child: Text(i18n("text_size_preview"), style: TextStyle(color: theme.colorScheme.outline)),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("live_panel_settings")),
+          context.buildModernCard([
+            context.buildTile(
+              icon: Remix.drag_move_2_line,
+              title: i18n("live_panel_tab_order"),
+              subtitle: i18n("live_panel_tab_order_subtitle"),
+              onTap: () => Get.to(() => const LivePanelTabOrderPage()),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Remix.layout_right_2_line,
+                title: i18n("live_panel_width"),
+                subtitle: i18n("live_panel_width_subtitle"),
+                value: LivePanelWidth.normalize(SettingsService.to.theme.livePanelWidth.v),
+                min: LivePanelWidth.min,
+                max: LivePanelWidth.max,
+                displayValue: '${LivePanelWidth.normalize(SettingsService.to.theme.livePanelWidth.v).round()}',
+                onChanged: (val) => SettingsService.to.theme.livePanelWidth.v = val.roundToDouble(),
               ),
             ),
           ]),

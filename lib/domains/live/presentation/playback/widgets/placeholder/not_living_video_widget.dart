@@ -61,8 +61,8 @@ class NotLivingVideoWidget extends StatelessWidget {
 
           if (GlobalPlayerService.instance.player.fullscreenUI) ...[
             IconButton(
-              icon: const Icon(Icons.swap_horiz_outlined),
-              tooltip: i18n('switch_live_room'),
+              icon: const Icon(Icons.favorite_border_rounded),
+              tooltip: i18n('follow'),
               visualDensity: VisualDensity.standard,
               constraints: const BoxConstraints(
                 minWidth: kMinInteractiveDimension,

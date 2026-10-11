@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
@@ -109,6 +110,27 @@ bool startsInSystemHomeGestureZone({required Offset localPosition, required Size
   return localPosition.dy >= surfaceSize.height - zoneHeight;
 }
 
+/// Status-bar / notification-shade strip at the top of the screen.
+///
+/// Pulling the notification shade down starts on the screen's top edge; in
+/// landscape and fullscreen the video reaches that edge, so the same swipe used
+/// to also change brightness or volume. Drags that start this close to the
+/// top of the screen are left to the system.
+const double systemTopGestureZoneHeight = 40;
+
+/// Vertical travel a drag needs before it changes brightness or volume.
+///
+/// Shorter, accidental movements (a tap that slides, a scroll that started on
+/// the video) never change a level; once past the threshold only the travel
+/// beyond it counts, so the value does not jump.
+const double playerGestureActivationDistance = 24;
+
+/// Whether a drag's global start lies in the status-bar / shade strip.
+@visibleForTesting
+bool startsInSystemTopGestureZone({required double globalDy, required double topInset}) {
+  return globalDy <= topInset + systemTopGestureZoneHeight;
+}
+
 /// The full-surface gesture layer every player shares.
 ///
 /// A vertical drag on the left half changes screen brightness, on the right half
@@ -164,6 +186,10 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   double _value = 1;
   bool _systemGesture = false;
 
+  /// Vertical travel of the current drag not yet past the activation distance.
+  double _pendingTravel = 0;
+  bool _activated = false;
+
   @override
   void dispose() {
     _hideTimer?.cancel();
@@ -218,17 +244,35 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   }
 
   void _onVerticalDragStart(DragStartDetails details) {
-    _systemGesture = startsInSystemHomeGestureZone(localPosition: details.localPosition, surfaceSize: _surfaceSize);
+    final media = MediaQuery.of(context);
+    final topInset = math.max(media.viewPadding.top, media.systemGestureInsets.top);
+    _systemGesture =
+        startsInSystemHomeGestureZone(localPosition: details.localPosition, surfaceSize: _surfaceSize) ||
+        startsInSystemTopGestureZone(globalDy: details.globalPosition.dy, topInset: topInset);
+    _pendingTravel = 0;
+    _activated = false;
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     if (!widget.enabled || _systemGesture) return;
-    unawaited(_apply(details.localPosition, details.delta, _surfaceSize));
+    var delta = details.delta;
+    if (!_activated) {
+      _pendingTravel += delta.dy;
+      if (_pendingTravel.abs() < playerGestureActivationDistance) return;
+      _activated = true;
+      final excess = _pendingTravel - playerGestureActivationDistance * _pendingTravel.sign;
+      delta = Offset(delta.dx, excess);
+    }
+    unawaited(_apply(details.localPosition, delta, _surfaceSize));
   }
 
-  void _onVerticalDragEnd(DragEndDetails details) {
+  void _resetDrag() {
     _systemGesture = false;
+    _pendingTravel = 0;
+    _activated = false;
   }
+
+  void _onVerticalDragEnd(DragEndDetails details) => _resetDrag();
 
   IconData get _icon {
     if (_side == PlayerDragSide.brightness) {
@@ -259,7 +303,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
         onVerticalDragStart: _onVerticalDragStart,
         onVerticalDragUpdate: _onVerticalDragUpdate,
         onVerticalDragEnd: _onVerticalDragEnd,
-        onVerticalDragCancel: () => _systemGesture = false,
+        onVerticalDragCancel: _resetDrag,
         child: Stack(
           fit: StackFit.expand,
           children: [

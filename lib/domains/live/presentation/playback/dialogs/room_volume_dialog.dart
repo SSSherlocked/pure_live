@@ -282,7 +282,14 @@ class _VolumeRow extends StatelessWidget {
             ),
           ],
         ),
-        Slider(key: sliderKey, value: value, min: 0, max: 1, onChanged: disabled ? null : onChanged),
+        Slider(
+          key: sliderKey,
+          value: value,
+          min: 0,
+          max: 1,
+          allowedInteraction: SliderInteraction.slideThumb,
+          onChanged: disabled ? null : onChanged,
+        ),
       ],
     );
   }

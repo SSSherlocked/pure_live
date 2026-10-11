@@ -1,7 +1,7 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_viewing_preset.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
@@ -86,108 +86,49 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
   }
 
   Widget _buildTemplateSection(ThemeData theme) {
-    return Obx(() {
-      final activePreset = _matchingPreset();
+    ButtonStyle buttonStyle() => OutlinedButton.styleFrom(
+      foregroundColor: theme.colorScheme.primary,
+      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.45)),
+      visualDensity: VisualDensity.standard,
+      tapTargetSize: MaterialTapTargetSize.padded,
+      minimumSize: const Size(kMinInteractiveDimension, kMinInteractiveDimension),
+      padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 10 : 12),
+    );
 
-      final content = Padding(
-        padding: EdgeInsets.all(isEmbedded ? 10 : 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: isEmbedded ? 6 : 8,
-              runSpacing: isEmbedded ? 6 : 8,
-              children: [
-                for (final preset in DanmakuViewingPreset.values)
-                  ChoiceChip(
-                    key: ValueKey('danmaku-template-${preset.id}'),
-                    selected: activePreset?.id == preset.id,
-                    showCheckmark: false,
-                    backgroundColor: isEmbedded ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerHighest,
-                    selectedColor: theme.colorScheme.primary,
-                    side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.35)),
-                    labelStyle: TextStyle(
-                      color: activePreset?.id == preset.id ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                      fontSize: isEmbedded ? 12 : null,
-                    ),
-                    visualDensity: VisualDensity.standard,
-                    materialTapTargetSize: MaterialTapTargetSize.padded,
-                    avatar: SizedBox(
-                      width: isEmbedded ? 16 : 18,
-                      child: activePreset?.id == preset.id
-                          ? Icon(Icons.check_rounded, size: isEmbedded ? 16 : 18, color: theme.colorScheme.onPrimary)
-                          : preset.id == 'best'
-                          ? Icon(
-                              Icons.auto_awesome_rounded,
-                              size: isEmbedded ? 16 : 18,
-                              color: theme.colorScheme.primary,
-                            )
-                          : const Opacity(opacity: 0, child: Icon(Icons.check_rounded, size: 18)),
-                    ),
-                    label: Text(i18n(preset.labelKey)),
-                    onSelected: (_) => _applyPreset(preset),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 6, left: 4),
-                  child: Text(i18n('danmaku_preset_hint'), style: theme.textTheme.bodySmall),
-                ),
-
-                OutlinedButton.icon(
-                  onPressed: _saveTemplate,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.primary,
-                    side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.45)),
-                    visualDensity: VisualDensity.standard,
-                    tapTargetSize: MaterialTapTargetSize.padded,
-                    minimumSize: const Size(kMinInteractiveDimension, kMinInteractiveDimension),
-                    padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 10 : 12),
-                  ),
-                  icon: Icon(Icons.save_outlined, size: isEmbedded ? 16 : 18),
-                  label: Text(i18n('save_current_template'), style: TextStyle(fontSize: isEmbedded ? 12 : null)),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _restoreTemplate,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.primary,
-                    side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.45)),
-                    visualDensity: VisualDensity.standard,
-                    tapTargetSize: MaterialTapTargetSize.padded,
-                    minimumSize: const Size(kMinInteractiveDimension, kMinInteractiveDimension),
-                    padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 10 : 12),
-                  ),
-                  icon: Icon(Icons.restore_rounded, size: isEmbedded ? 16 : 18),
-                  label: Text(i18n('restore_saved_template'), style: TextStyle(fontSize: isEmbedded ? 12 : null)),
-                ),
-              ],
-            ),
-            SizedBox(height: isEmbedded ? 8 : 10),
-            Text(
-              '${i18n('danmaku_best_preset_desc')}\n'
-              '${i18n('danmaku_realtime_hint')}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                height: 1.45,
-                fontSize: isEmbedded ? 11 : null,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-
-      if (isEmbedded) {
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(18),
+    final content = Padding(
+      padding: EdgeInsets.all(isEmbedded ? 10 : 12),
+      child: Wrap(
+        spacing: isEmbedded ? 6 : 8,
+        runSpacing: isEmbedded ? 6 : 8,
+        children: [
+          OutlinedButton.icon(
+            onPressed: _saveTemplate,
+            style: buttonStyle(),
+            icon: Icon(Icons.save_outlined, size: isEmbedded ? 16 : 18),
+            label: Text(i18n('save_current_template'), style: TextStyle(fontSize: isEmbedded ? 12 : null)),
           ),
-          child: content,
-        );
-      }
+          OutlinedButton.icon(
+            onPressed: _restoreTemplate,
+            style: buttonStyle(),
+            icon: Icon(Icons.restore_rounded, size: isEmbedded ? 16 : 18),
+            label: Text(i18n('restore_saved_template'), style: TextStyle(fontSize: isEmbedded ? 12 : null)),
+          ),
+        ],
+      ),
+    );
 
-      return context.buildModernCard([content]);
-    });
+    if (isEmbedded) {
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: content,
+      );
+    }
+
+    return context.buildModernCard([content]);
   }
 
   @override
@@ -476,41 +417,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     );
   }
 
-  DanmakuViewingPreset? _matchingPreset() {
-    for (final preset in DanmakuViewingPreset.values) {
-      if (preset.matches(
-        area: controller.danmakuArea.v,
-        top: controller.danmakuTopArea.v,
-        bottom: controller.danmakuBottomArea.v,
-        speed: controller.danmakuSpeed.v,
-        fontSize: controller.danmakuFontSize.v,
-        fontWeight: controller.danmakuFontWeight.v,
-        fontBorder: controller.danmakuFontBorder.v,
-        opacity: controller.danmakuOpacity.v,
-        stroke: controller.enableDanmakuStroke.v,
-        autoFps: SettingsService.to.danmaku.danmakuAutoFps.v,
-      )) {
-        return preset;
-      }
-    }
-    return null;
-  }
-
-  void _applyPreset(DanmakuViewingPreset preset) {
-    controller.danmakuArea.v = preset.area;
-    controller.danmakuTopArea.v = preset.top;
-    controller.danmakuBottomArea.v = preset.bottom;
-    controller.danmakuSpeed.v = preset.speed;
-    controller.danmakuFontSize.v = preset.fontSize;
-    controller.danmakuFontWeight.v = preset.fontWeight;
-    controller.danmakuFontBorder.v = preset.fontBorder;
-    controller.danmakuOpacity.v = preset.opacity;
-    controller.enableDanmakuStroke.v = preset.stroke;
-    SettingsService.to.danmaku.danmakuAutoFps.v = true;
-    setState(() {});
-    ToastUtil.show(i18n('danmaku_template_applied'));
-  }
-
   void _saveTemplate() {
     final settings = SettingsService.to.danmaku;
     settings.savedDanmakuTemplate.v = DanmakuViewingTemplate(
@@ -606,21 +512,18 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             ],
           ),
           const SizedBox(height: 4),
-          Transform.translate(
-            offset: const Offset(-8, 0),
-            child: SizedBox(
-              width: double.infinity,
-              child: SfSlider(
-                min: min,
-                max: max,
-                value: value,
-                stepSize: stepSize,
-                activeColor: theme.colorScheme.primary,
-                inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                semanticFormatterCallback: (dynamic semanticValue) =>
-                    '$title, ${semanticValueBuilder((semanticValue as num).toDouble())}',
-                onChanged: (dynamic v) => onChanged(v as double),
-              ),
+          SizedBox(
+            width: double.infinity,
+            child: ThumbOnlySlider(
+              min: min,
+              max: max,
+              value: value,
+              stepSize: stepSize,
+              activeColor: theme.colorScheme.primary,
+              inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+              semanticFormatterCallback: (semanticValue) =>
+                '$title, ${semanticValueBuilder(semanticValue)}',
+              onChanged: onChanged,
             ),
           ),
         ],

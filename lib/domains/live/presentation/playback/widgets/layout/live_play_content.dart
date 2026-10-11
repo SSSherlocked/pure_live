@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
@@ -93,24 +95,29 @@ class LivePlayNormalLayout extends StatelessWidget {
           );
         }
 
-        final panelWidth = (constraints.maxWidth * 0.34).clamp(300.0, 400.0);
-        return Row(
-          key: const ValueKey('live-play-desktop-split'),
-          children: [
-            Expanded(child: video),
-            SizedBox(
-              key: const ValueKey('live-play-desktop-panel'),
-              width: panelWidth,
-              child: Column(
-                children: [
-                  resolution,
-                  const Divider(height: 1),
-                  Expanded(child: danmaku),
-                ],
+        Widget split(double preferredWidth) {
+          final panelWidth = LivePanelWidth.resolve(preferredWidth, constraints.maxWidth);
+          return Row(
+            key: const ValueKey('live-play-desktop-split'),
+            children: [
+              Expanded(child: video),
+              SizedBox(
+                key: const ValueKey('live-play-desktop-panel'),
+                width: panelWidth,
+                child: Column(
+                  children: [
+                    resolution,
+                    const Divider(height: 1),
+                    Expanded(child: danmaku),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
+            ],
+          );
+        }
+
+        if (!Get.isRegistered<ThemeSettingsController>()) return split(LivePanelWidth.defaultValue);
+        return Obx(() => split(SettingsService.to.theme.livePanelWidth.v));
       },
     );
   }

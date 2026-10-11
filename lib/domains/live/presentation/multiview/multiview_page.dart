@@ -764,6 +764,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
                     Expanded(
                       child: Slider(
                         value: value,
+                        allowedInteraction: SliderInteraction.slideThumb,
                         onChanged: (v) {
                           setSheetState(() => value = v);
                           unawaited(controller.setCellVolume(cellIndex, v));

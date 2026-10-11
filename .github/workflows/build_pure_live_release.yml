@@ -9,7 +9,7 @@ on:
         type: boolean
         default: true
       build_windows:
-        description: Build Windows EXE, MSIX and portable ZIP
+        description: Build Windows EXE and portable ZIP
         required: true
         type: boolean
         default: true
@@ -202,7 +202,7 @@ jobs:
           if-no-files-found: error
           retention-days: 3
   windows:
-    name: Windows EXE + MSIX + Portable
+    name: Windows EXE + Portable
     if: >-
       ${{
         always() &&
@@ -214,38 +214,6 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Decode MSIX Certificate
-        shell: pwsh
-        env:
-          CERTIFICATE: ${{ secrets.CERTIFICATE }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          $certBase64 = "$env:CERTIFICATE".Trim() -replace '\s+', ''
-          if ([string]::IsNullOrEmpty($certBase64)) {
-            Write-Error "CERTIFICATE secret is empty!"
-          }
-          $certBytes = [System.Convert]::FromBase64String($certBase64)
-          $certPath = Join-Path (Get-Location) "certificate.pfx"
-          [IO.File]::WriteAllBytes($certPath, $certBytes)
-          "FINAL_CERT_PATH=$certPath" >> $env:GITHUB_ENV
-      - name: Update MSIX make_config.yaml
-        shell: pwsh
-        env:
-          CERT_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          $configPath = "windows/packaging/msix/make_config.yaml"
-          if (!(Test-Path $configPath)) {
-            Write-Error "Config file not found: $configPath"
-          }
-          if ([string]::IsNullOrEmpty($env:CERT_PASSWORD)) {
-            Write-Error "CERTIFICATE_PASSWORD secret is empty!"
-          }
-          $absolutePath = $env:FINAL_CERT_PATH -replace '\\', '/'
-          $content = Get-Content $configPath -Raw
-          $content = $content -replace 'certificate_path:\s*.*', "certificate_path: $absolutePath"
-          $content = $content -replace '(?m)^(\s*certificate_password:\s*).*$', "`${1}'$($env:CERT_PASSWORD)'"
-          Set-Content -Path $configPath -Value $content
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -276,13 +244,13 @@ jobs:
           }
       - uses: ./.github/actions/get-version
         id: version
-      - name: Package Windows EXE and MSIX
+      - name: Package Windows EXE
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
           fastforge package `
             --platform windows `
-            --targets exe,msix
+            --targets exe
       - name: Locate Windows release bundle
         id: bundle
         shell: pwsh
@@ -347,19 +315,12 @@ jobs:
             Write-Error "Windows EXE package not found."
           }
           Copy-Item $exeFile.FullName "PureLive-$version-windows-x64-setup.exe" -Force
-
-          $msixFile = Get-ChildItem $distDir -Recurse -Filter "*.msix" | Select-Object -First 1
-          if (!$msixFile) {
-            Write-Error "Windows MSIX package not found."
-          }
-          Copy-Item $msixFile.FullName "PureLive-$version-windows-x64.msix" -Force
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-windows
           path: |
             PureLive-*-windows-x64-setup.exe
-            PureLive-*-windows-x64.msix
             PureLive-*-windows-x64-portable.zip
           if-no-files-found: error
           retention-days: 3
@@ -829,6 +790,7 @@ jobs:
         shell: bash
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
+          REPOSITORY: ${{ github.repository }}
           RELEASE_DESCRIPTION: ${{ fromJson(steps.version.outputs.content).version_desc }}
         run: |
           set -euo pipefail
@@ -837,11 +799,10 @@ jobs:
           |版本|下载地址|
           |---|---|
           |TV版|[pure_live_TV](https://github.com/liuchuancong/pure_live_TV/releases/latest)|
-          |Windows/macOS/Android/iOS版|[pure_live](https://github.com/liuchuancong/pure_live/releases/latest)|
+          |Windows/macOS/Android/iOS版|[pure_live](https://github.com/$REPOSITORY/releases/latest)|
           ### 🖥️ Windows 版
           - **Portable ZIP**：解压即用，无需安装
           - **EXE 安装包**：适合所有用户
-          - **MSIX 包**：现代应用格式，支持干净卸载
           - 适配：Windows 10/11 x64
           ### 🍎 macOS 版
           - macOS 桌面版
@@ -852,7 +813,7 @@ jobs:
           - ARM64-v8a
           - ARMv7
           - x86_64
-          - 统一 SHA256 校验文件：[**ANDROID_SHA256SUM.txt**](https://github.com/liuchuancong/pure_live/releases/download/$RELEASE_TAG/ANDROID_SHA256SUM.txt)
+          - 统一 SHA256 校验文件：[**ANDROID_SHA256SUM.txt**](https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/ANDROID_SHA256SUM.txt)
           ### 🐧 Linux 版
           - Linux x64
           - **DEB 安装包**：适合 Debian/Ubuntu 及其衍生发行版
@@ -862,7 +823,7 @@ jobs:
           - TrollStore / ad-hoc IPA
           - ARM64
           ### 🔧 Build Metadata
-          [**BUILD_METADATA.json**](https://github.com/liuchuancong/pure_live/releases/download/$RELEASE_TAG/BUILD_METADATA.json)
+          [**BUILD_METADATA.json**](https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/BUILD_METADATA.json)
           ### 📝 本次更新
           $RELEASE_DESCRIPTION
           EOF

@@ -2535,5 +2535,8 @@
   "timer_settings": "定时设置",
   "software_update": "软件更新",
   "font_group_settings": "字体设置",
-  "backup_section_recorder": "录制设置"
+  "backup_section_recorder": "录制设置",
+  "rail_settings": "侧边栏",
+  "rail_show_labels": "显示底部文字",
+  "rail_show_labels_subtitle": "在侧边栏图标下方显示页面名称"
 }

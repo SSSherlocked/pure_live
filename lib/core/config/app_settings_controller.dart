@@ -58,6 +58,7 @@ class AppSettingsController extends GetxController {
   // Defaulting missing keys to true keeps upgrades feature-compatible while
   // still allowing users to hide either entry explicitly.
   final RxBool enableMultiView = hiveBool('enableMultiView', true);
+  final RxBool showRailLabels = hiveBool('showRailLabels', true);
   final RxBool enableNewWindowPlay = hiveBool('enableNewWindowPlay', true);
 
   AppRefreshRateMode get refreshRateMode => AppRefreshRateMode.parse(refreshRateModeName.v);
@@ -208,6 +209,7 @@ class AppSettingsController extends GetxController {
       'realOnlinePlatforms': resolvedRealOnlinePlatforms,
       'savedMenuIds': savedMenuIds.v,
       'enableMultiView': enableMultiView.v,
+      'showRailLabels': showRailLabels.v,
       'enableNewWindowPlay': enableNewWindowPlay.v,
     };
   }
@@ -237,6 +239,7 @@ class AppSettingsController extends GetxController {
         normalizeMenuIds(List<String>.from(json['savedMenuIds'] ?? HomeMenu.values.map((e) => e.id).toList())),
       ),
       'enableMultiView': typed<bool>(json['enableMultiView'] ?? true),
+      'showRailLabels': typed<bool>(json['showRailLabels'] ?? true),
       'enableNewWindowPlay': typed<bool>(json['enableNewWindowPlay'] ?? true),
     };
   }
@@ -259,6 +262,7 @@ class AppSettingsController extends GetxController {
     _repairRealOnlinePlatforms();
     savedMenuIds.v = parsed['savedMenuIds'];
     enableMultiView.v = parsed['enableMultiView'];
+    showRailLabels.v = parsed['showRailLabels'];
     enableNewWindowPlay.v = parsed['enableNewWindowPlay'];
   }
 
@@ -285,6 +289,7 @@ class AppSettingsController extends GetxController {
         List<String>.from(app['savedMenuIds'] ?? HomeMenu.values.map((menu) => menu.id).toList()),
       ),
       'enableMultiView': app['enableMultiView'] ?? true,
+      'showRailLabels': app['showRailLabels'] ?? true,
       'enableNewWindowPlay': app['enableNewWindowPlay'] ?? true,
     };
   }

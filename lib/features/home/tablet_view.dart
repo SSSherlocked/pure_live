@@ -83,38 +83,42 @@ class HomeTabletView extends StatelessWidget {
 
             return Row(
               children: [
-                NavigationRail(
-                  // Destinations follow the menu button directly; 设置 sits at
-                  // the bottom edge. 多画面 / 链接解析 / 全平台搜索 / 录制中心
-                  // live in the menu.
-                  groupAlignment: -1,
-                  minWidth: 64,
-                  labelType: NavigationRailLabelType.all,
-                  leading: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: MenuButton(railActions: true, showRecord: showRecord),
-                  ),
-                  trailing: Expanded(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: IconButton(
-                          key: const ValueKey('home-rail-settings'),
-                          tooltip: i18n('settings_title'),
-                          onPressed: () => Get.toNamed(RoutePath.kSettings),
-                          icon: const Icon(Remix.settings_5_line),
+                Obx(
+                  () => NavigationRail(
+                    // Destinations follow the menu button directly; 设置 sits at
+                    // the bottom edge. 多画面 / 链接解析 / 全平台搜索 / 录制中心
+                    // live in the menu.
+                    groupAlignment: -1,
+                    minWidth: 64,
+                    labelType: SettingsService.to.app.showRailLabels.v
+                        ? NavigationRailLabelType.all
+                        : NavigationRailLabelType.none,
+                    leading: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: MenuButton(railActions: true, showRecord: showRecord),
+                    ),
+                    trailing: Expanded(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: IconButton(
+                            key: const ValueKey('home-rail-settings'),
+                            tooltip: i18n('settings_title'),
+                            onPressed: () => Get.toNamed(RoutePath.kSettings),
+                            icon: const Icon(Remix.settings_5_line),
+                          ),
                         ),
                       ),
                     ),
+                    destinations: destinations,
+                    selectedIndex: activeSelectedIndex,
+                    onDestinationSelected: (int virtualIndex) {
+                      if (virtualIndex >= 0 && virtualIndex < virtualToRealMap.length) {
+                        onDestinationSelected(virtualToRealMap[virtualIndex]);
+                      }
+                    },
                   ),
-                  destinations: destinations,
-                  selectedIndex: activeSelectedIndex,
-                  onDestinationSelected: (int virtualIndex) {
-                    if (virtualIndex >= 0 && virtualIndex < virtualToRealMap.length) {
-                      onDestinationSelected(virtualToRealMap[virtualIndex]);
-                    }
-                  },
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(

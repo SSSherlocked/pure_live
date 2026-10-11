@@ -2535,5 +2535,8 @@
   "timer_settings": "Timer",
   "software_update": "Software Update",
   "font_group_settings": "Fonts",
-  "backup_section_recorder": "Recording settings"
+  "backup_section_recorder": "Recording settings",
+  "rail_settings": "Sidebar",
+  "rail_show_labels": "Show labels",
+  "rail_show_labels_subtitle": "Show page names under the sidebar icons"
 }

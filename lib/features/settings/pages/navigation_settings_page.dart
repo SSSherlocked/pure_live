@@ -31,6 +31,16 @@ class NavigationSettingsPage extends StatelessWidget {
             ]),
             const SizedBox(height: 16),
           ],
+          context.buildGroupTitle(i18n("rail_settings")),
+          context.buildModernCard([
+            context.buildSwitchTile(
+              title: i18n("rail_show_labels"),
+              subtitle: i18n("rail_show_labels_subtitle"),
+              value: SettingsService.to.app.showRailLabels,
+              icon: Remix.font_size,
+            ),
+          ]),
+          const SizedBox(height: 16),
           _buildTipBanner(theme),
           const SizedBox(height: 16),
           context.buildGroupTitle(i18n("navigation_display_settings")),

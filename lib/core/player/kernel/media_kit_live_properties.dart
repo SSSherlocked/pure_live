@@ -147,7 +147,11 @@ abstract final class MediaKitLiveProperties {
     return mkv.VideoControllerConfiguration(
       vo: vo,
       hwdec: hwdec,
-      enableHardwareAcceleration: segment.enableCodec && !(Platform.isMacOS && hwdec == 'no'),
+      // macOS always renders through the software texture. media_kit's
+      // OpenGL texture (TextureHW) crashes inside CFBundle while resolving GL
+      // symbols during mpv_render_context_create. videotoolbox-copy still
+      // decodes in hardware and hands system-memory frames to that texture.
+      enableHardwareAcceleration: segment.enableCodec && !Platform.isMacOS,
     );
   }
 
@@ -156,8 +160,9 @@ abstract final class MediaKitLiveProperties {
   /// Software stays the default. When the user opts in through the custom
   /// output switch, every hardware pick (including `auto` and the zero-copy
   /// `videotoolbox`) resolves to `videotoolbox-copy`: it decodes with
-  /// VideoToolbox but hands mpv system-memory frames, which avoids the
-  /// IOSurface sharing with the Flutter texture that crashed the app.
+  /// VideoToolbox but hands mpv system-memory frames, which the software
+  /// texture can draw; the zero-copy path needs the OpenGL texture, which
+  /// crashes on macOS.
   @visibleForTesting
   static String? macosHardwareDecoder(PlayerEngineOutput segment) {
     if (!segment.enableCodec || !segment.customPlayerOutput) return null;

@@ -51,7 +51,12 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
                     detail.nick ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    // One step above the 标题 size (16 by default), regular
+                    // weight: it follows the font settings.
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontSize: (theme.textTheme.titleMedium?.fontSize ?? 15) + 1,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
                 if (platform.isNotEmpty) ...[

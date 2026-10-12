@@ -3,6 +3,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
+import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
 
 class RoomCardSettingsPage extends StatefulWidget {
   const RoomCardSettingsPage({super.key});
@@ -160,6 +161,19 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 max: RoomCardAppearance.maxCornerRadius,
                 displayValue: config.cornerRadius.toStringAsFixed(0),
                 onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(cornerRadius: value)),
+              ),
+              // Gaps between cards in the grids, from the former 主题定制 group.
+              context.buildTile(
+                icon: Remix.arrow_left_right_line,
+                title: i18n("cross_axis_spacing"),
+                subtitle: i18n("cross_axis_spacing_subtitle"),
+                onTap: () => const ThemeSettingsPage().showCrossAxisSpacingDialog(context),
+              ),
+              context.buildTile(
+                icon: Remix.arrow_up_down_line,
+                title: i18n("main_axis_spacing"),
+                subtitle: i18n("main_axis_spacing_subtitle"),
+                onTap: () => const ThemeSettingsPage().showMainAxisSpacingDialog(context),
               ),
             ]),
             const SizedBox(height: 20),

@@ -832,7 +832,7 @@
   "auto_sync_disabled": "已关闭自动同步",
   "sync": "同步",
   "auto_sync": "自动同步",
-  "theme_customization_desc": "主题模式与颜色、卡片、字体与侧栏",
+  "theme_customization_desc": "主题模式与颜色、动态取色、纯黑背景",
   "display_mode": "显示模式",
   "display_mode_auto": "自动",
   "display_mode_phone": "手机",
@@ -975,7 +975,7 @@
   "version_history_unnamed_file": "未命名文件",
   "download_files": "下载文件",
   "room_card_settings": "房间卡片设置",
-  "room_card_settings_subtitle": "分别定制移动端和桌面端房间卡片的可见信息",
+  "room_card_settings_subtitle": "卡片布局、宽度、圆角、显示内容与网格间距",
   "room_card_target": "应用到",
   "room_card_mobile": "移动端",
   "room_card_desktop": "桌面端",
@@ -1898,5 +1898,7 @@
   "pure_black_dark_subtitle": "仅在深色模式下生效，页面背景改为纯黑",
   "danmaku_display_area": "弹幕显示区域",
   "danmaku_filter_group": "弹幕过滤",
-  "danmaku_settings_entry_subtitle": "显示、字体、过滤与弹幕列表样式"
+  "danmaku_settings_entry_subtitle": "显示、字体、过滤与弹幕列表样式",
+  "font_group_settings_subtitle": "界面字体、各级字号与全局缩放",
+  "live_panel_settings_subtitle": "侧栏标签顺序与宽度"
 }

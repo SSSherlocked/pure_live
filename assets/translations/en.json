@@ -831,7 +831,7 @@
   "auto_sync_disabled": "Auto sync disabled",
   "sync": "Sync",
   "auto_sync": "Auto Sync",
-  "theme_customization_desc": "Theme mode and colour, cards, fonts and side panel",
+  "theme_customization_desc": "Theme mode and colour, dynamic colour, pure black",
   "display_mode": "Display mode",
   "display_mode_auto": "Automatic",
   "display_mode_phone": "Phone",
@@ -975,7 +975,7 @@
   "version_history_unnamed_file": "Unnamed file",
   "download_files": "Download Files",
   "room_card_settings": "Room Card Settings",
-  "room_card_settings_subtitle": "Customize visible card details separately for mobile and desktop",
+  "room_card_settings_subtitle": "Card layout, width, corners, content and grid spacing",
   "room_card_target": "Apply to",
   "room_card_mobile": "Mobile",
   "room_card_desktop": "Desktop",
@@ -1898,5 +1898,7 @@
   "pure_black_dark_subtitle": "Dark mode only: page backgrounds turn pure black",
   "danmaku_display_area": "Danmaku area",
   "danmaku_filter_group": "Danmaku filters",
-  "danmaku_settings_entry_subtitle": "Display, font, filters and chat list style"
+  "danmaku_settings_entry_subtitle": "Display, font, filters and chat list style",
+  "font_group_settings_subtitle": "Interface font, text sizes and overall scale",
+  "live_panel_settings_subtitle": "Side panel tab order and width"
 }

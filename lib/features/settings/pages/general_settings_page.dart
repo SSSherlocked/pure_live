@@ -9,6 +9,7 @@ import 'package:pure_live/features/settings/pages/font_family_manager_page.dart'
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
+import 'package:pure_live/features/settings/pages/room_card_settings_page.dart';
 import 'package:pure_live/features/settings/pages/navigation_settings_page.dart';
 import 'package:pure_live/features/settings/widgets/network_proxy_settings_section.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
@@ -33,6 +34,27 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               title: i18n("theme_customization"),
               subtitle: i18n("theme_customization_desc"),
               onTap: () => Get.to(() => const ThemeSettingsPage()),
+            ),
+            KeyedSubtree(
+              key: const ValueKey('room-card-settings-entry'),
+              child: context.buildTile(
+                icon: Remix.layout_grid_line,
+                title: i18n('room_card_settings'),
+                subtitle: i18n('room_card_settings_subtitle'),
+                onTap: () => Get.to(() => const RoomCardSettingsPage()),
+              ),
+            ),
+            context.buildTile(
+              icon: Remix.font_size,
+              title: i18n("font_group_settings"),
+              subtitle: i18n("font_group_settings_subtitle"),
+              onTap: () => Get.to(() => const ThemeSettingsPage(section: ThemeSettingsSection.fonts)),
+            ),
+            context.buildTile(
+              icon: Remix.layout_right_2_line,
+              title: i18n("live_panel_settings"),
+              subtitle: i18n("live_panel_settings_subtitle"),
+              onTap: () => Get.to(() => const ThemeSettingsPage(section: ThemeSettingsSection.livePanel)),
             ),
             Obx(() {
               final mode = SettingsService.to.theme.displayMode;

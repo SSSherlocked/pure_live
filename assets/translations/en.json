@@ -2554,5 +2554,7 @@
   "chat_list_color_name": "Colour the name",
   "chat_list_color_name_subtitle": "Show the sender's name in the danmaku colour",
   "chat_list_show_avatar": "Show avatars",
-  "chat_list_show_avatar_subtitle": "Show the sender's avatar before each message (Bilibili only for now)"
+  "chat_list_show_avatar_subtitle": "Show the sender's avatar before each message (Bilibili only for now)",
+  "chat_list_show_fans_badge": "Show fan badges",
+  "chat_list_show_fans_badge_subtitle": "Show the fan badge and level before the name (Bilibili, Missevan, LOOK, KuGou)"
 }

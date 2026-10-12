@@ -2554,5 +2554,7 @@
   "chat_list_color_name": "用户名着色",
   "chat_list_color_name_subtitle": "发送者名称也使用弹幕颜色",
   "chat_list_show_avatar": "显示用户头像",
-  "chat_list_show_avatar_subtitle": "在消息前显示发送者头像（目前仅哔哩哔哩提供）"
+  "chat_list_show_avatar_subtitle": "在消息前显示发送者头像（目前仅哔哩哔哩提供）",
+  "chat_list_show_fans_badge": "显示粉丝牌",
+  "chat_list_show_fans_badge_subtitle": "在用户名前显示粉丝牌和等级（哔哩哔哩、猫耳 FM、LOOK、酷狗）"
 }

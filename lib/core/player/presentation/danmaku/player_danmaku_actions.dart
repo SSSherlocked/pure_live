@@ -105,7 +105,8 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
     try {
       await showDialog<void>(
         context: context,
-        barrierColor: Colors.black.withValues(alpha: 0.58),
+        // The side panel leaves the picture undimmed.
+        barrierColor: Colors.transparent,
         useSafeArea: true,
         builder: (_) => DanmakuSettingsDialog(
           controller: controller,

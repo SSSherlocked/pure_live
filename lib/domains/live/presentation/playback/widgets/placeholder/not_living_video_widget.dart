@@ -72,6 +72,8 @@ class NotLivingVideoWidget extends StatelessWidget {
                 unawaited(
                   showDialog<void>(
                     context: context,
+                    // The side panel leaves the picture undimmed.
+                    barrierColor: Colors.transparent,
                     builder: (_) => CompactText(child: PlayOther(controller: controller)),
                   ),
                 );

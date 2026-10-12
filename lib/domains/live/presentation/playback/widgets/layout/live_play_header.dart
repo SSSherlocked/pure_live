@@ -39,7 +39,9 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
               return const SizedBox.shrink();
             }
             final platform = detail.platform ?? '';
-            final area = detail.area;
+            final textTheme = Theme.of(context).textTheme;
+            // The streamer's name leads; the platform is a small, muted second
+            // line; the category is left out.
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,13 +50,16 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
                   detail.nick ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall,
+                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  area == null || area.isEmpty ? i18n('site_$platform') : '${i18n("site_$platform")} / $area',
+                  i18n('site_$platform'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: (textTheme.labelSmall?.fontSize ?? 11) - 1,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             );

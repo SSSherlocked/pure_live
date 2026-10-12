@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
@@ -102,6 +103,20 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 max: 28,
                 displayValue: SettingsService.to.danmaku.chatListFontSize.v.round().toString(),
                 onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = v.roundToDouble(),
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Icons.format_bold_rounded,
+                title: i18n('chat_list_font_weight'),
+                value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
+                min: 100,
+                max: 900,
+                displayValue: i18n(
+                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListFontWeight.v] ?? 'font_weight_normal',
+                ),
+                onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
               ),
             ),
             Obx(

@@ -446,6 +446,7 @@ class DanmakuItem extends StatelessWidget {
     return Obx(() {
       final settings = SettingsService.to.danmaku;
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
+      final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final spacing = settings.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble();
       return _buildCard(
         context,
@@ -454,6 +455,7 @@ class DanmakuItem extends StatelessWidget {
         textColor,
         fontSize,
         spacing,
+        fontWeight: fontWeight,
         bubble: settings.chatListBubble.v,
         colorMode: settings.resolvedChatListColorMode,
         colorName: settings.chatListColorName.v,
@@ -470,13 +472,14 @@ class DanmakuItem extends StatelessWidget {
     Color textColor,
     double fontSize,
     double spacing, {
+    required FontWeight fontWeight,
     required bool bubble,
     required ChatListColorMode colorMode,
     required bool colorName,
     required bool showAvatar,
     required bool showFansBadge,
   }) {
-    final base = AppTextStyles.t14.copyWith(fontSize: fontSize);
+    final base = AppTextStyles.t14.copyWith(fontSize: fontSize, fontWeight: fontWeight);
     final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
     return RepaintBoundary(
       child: Padding(

@@ -74,7 +74,12 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
     this.onOpenChanged,
     this.includePipSettings = false,
     this.dockedInLandscape = false,
+    this.openInPlace,
   });
+
+  /// Shows the settings where the host already has them (a room's side panel
+  /// tab) instead of the dialog; returns false to open the dialog after all.
+  final bool Function()? openInPlace;
 
   final DanmakuSettingsSource controller;
   final Color iconColor;
@@ -95,6 +100,7 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
   final bool includePipSettings;
 
   Future<void> _open(BuildContext context) async {
+    if (openInPlace?.call() ?? false) return;
     onOpenChanged?.call(true);
     try {
       await showDialog<void>(

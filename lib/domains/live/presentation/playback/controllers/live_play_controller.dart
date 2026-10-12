@@ -183,6 +183,16 @@ class LivePlayController extends GetxController
 
   late final List<String> tabs = [for (final tab in panelTabs) i18n(tab.shortLabelKey)];
 
+  /// Brings [tab] of the side panel to the front. False when the room has no
+  /// side panel (IPTV) or no such section, so the caller can fall back.
+  bool showPanelTab(LivePanelTab tab) {
+    if (site == Sites.iptvSite) return false;
+    final index = panelTabs.indexOf(tab);
+    if (index < 0) return false;
+    tabController.animateTo(index);
+    return true;
+  }
+
   bool _floatingResourcesReleased = false;
   bool _ownerClosed = false;
   bool _externalOpenInFlight = false;

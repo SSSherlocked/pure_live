@@ -92,6 +92,10 @@ class PlayerControlPolicy {
 
   // --- Panels ------------------------------------------------------------
 
+  /// Outside fullscreen the room's side panel is on screen, so the danmaku
+  /// settings button brings its 设置 tab forward instead of a floating panel.
+  bool get danmakuSettingsInPanel => !fullscreen;
+
   /// Danmaku settings open as the docked side panel (the 关注 panel's shape)
   /// in the wide layout and in fullscreen; otherwise as a centred sheet.
   bool get dockedDanmakuPanel => layout.wide || fullscreen;

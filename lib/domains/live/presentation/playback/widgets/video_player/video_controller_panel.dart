@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
@@ -1207,6 +1208,9 @@ class BottomActionBar extends StatelessWidget {
           PlayerDanmakuSettingsButton(
             controller: controller,
             dockedInLandscape: policy.dockedDanmakuPanel,
+            openInPlace: policy.danmakuSettingsInPanel
+                ? () => controller.livePlayController.showPanelTab(LivePanelTab.danmakuSettings)
+                : null,
             // The room keeps its bar up while the panel is open, exactly as the
             // private button did; the pinning is the caller's policy, not the
             // shared button's.

@@ -45,6 +45,13 @@ void main() {
     expect(inline.compactControls, isFalse);
   });
 
+  test('outside fullscreen the danmaku settings open in the side panel tab', () {
+    for (final layout in [phone, tablet, desktop]) {
+      expect(_policy(layout: layout, fullscreen: false).danmakuSettingsInPanel, isTrue);
+      expect(_policy(layout: layout, fullscreen: true).danmakuSettingsInPanel, isFalse);
+    }
+  });
+
   test('casting is a menu entry on Android only, inline and fullscreen alike', () {
     expect(_policy(layout: phone, fullscreen: false, android: true).castInMoreMenu, isTrue);
     expect(_policy(layout: phone, fullscreen: true, android: true).castInMoreMenu, isTrue);

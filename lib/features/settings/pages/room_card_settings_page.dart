@@ -20,8 +20,9 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
     _viewport = SettingsService.to.roomCard.currentViewport;
   }
 
+  // A made-up room: the preview only draws it and never opens it.
   LiveRoom get _previewRoom => LiveRoom(
-    roomId: 'room-card-preview',
+    roomId: '',
     platform: 'bilibili',
     title: 'Pure Live · ${i18n('room_card_preview_title')}',
     nick: i18n('room_card_preview_anchor'),
@@ -91,11 +92,15 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             Center(
               child: SizedBox(
                 width: _previewCardWidth(context, controller),
-                child: RoomCard(
-                  key: ValueKey('room-card-preview-${_viewport.name}'),
-                  room: _previewRoom,
-                  dense: SettingsService.to.app.enableDenseFavorites.v,
-                  settingsViewport: _viewport,
+                // A picture of a card, not a card: nothing in it responds.
+                child: IgnorePointer(
+                  child: RoomCard(
+                    key: ValueKey('room-card-preview-${_viewport.name}'),
+                    room: _previewRoom,
+                    dense: SettingsService.to.app.enableDenseFavorites.v,
+                    settingsViewport: _viewport,
+                    interactive: false,
+                  ),
                 ),
               ),
             ),

@@ -23,6 +23,7 @@ class RoomCard extends StatelessWidget {
     this.onDelete,
     this.deleteTooltip,
     this.settingsViewport,
+    this.interactive = true,
   });
   final LiveRoom room;
   final bool dense;
@@ -32,6 +33,10 @@ class RoomCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final String? deleteTooltip;
   final RoomCardViewport? settingsViewport;
+
+  /// False for a picture of a card (the settings preview): no tap, long
+  /// press, hover or ink, and nothing that opens a room.
+  final bool interactive;
   Widget _buildCover(BuildContext context, bool isDark) {
     final coverUrl = normalizeNetworkImageUrl(room.cover);
 
@@ -495,9 +500,9 @@ class RoomCard extends StatelessWidget {
             color: compact ? colors.surfaceContainerLow : (isDark ? Colors.grey[900] : Colors.white),
             child: InkWell(
               borderRadius: BorderRadius.circular(radius),
-              onTap: () => onTap(context),
-              onLongPress: () => onLongPress(context),
-              onSecondaryTap: () => onLongPress(context),
+              onTap: interactive ? () => onTap(context) : null,
+              onLongPress: interactive ? () => onLongPress(context) : null,
+              onSecondaryTap: interactive ? () => onLongPress(context) : null,
               child: config.layout == RoomCardLayout.compact
                   ? _buildCompactLayout(
                       context: context,

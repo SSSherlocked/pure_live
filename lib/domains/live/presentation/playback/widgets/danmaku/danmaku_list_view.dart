@@ -453,6 +453,7 @@ class DanmakuItem extends StatelessWidget {
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final spacing = settings.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble();
+      final repeats = danmaku.type == LiveMessageType.chat ? controller.danmakuRepeatsOf(danmaku).value : 1;
       return _buildCard(
         context,
         vibrantColor,
@@ -466,6 +467,7 @@ class DanmakuItem extends StatelessWidget {
         colorName: settings.chatListColorName.v,
         showAvatar: settings.chatListShowAvatar.v,
         showFansBadge: settings.chatListShowFansBadge.v,
+        repeats: repeats,
       );
     });
   }
@@ -483,111 +485,165 @@ class DanmakuItem extends StatelessWidget {
     required bool colorName,
     required bool showAvatar,
     required bool showFansBadge,
+    required int repeats,
   }) {
     final base = AppTextStyles.t14.copyWith(fontSize: fontSize, fontWeight: fontWeight);
     final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
+    final repeated = repeats > 1;
+    final card = DecoratedBox(
+      decoration: bubble
+          ? BoxDecoration(
+              color: cardBgColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: vibrantColor.withValues(alpha: 0.08), width: 0.5),
+            )
+          : const BoxDecoration(),
+      child: Padding(
+        // A folded line keeps its last words clear of the ×N badge.
+        padding: EdgeInsets.fromLTRB(
+          bubble ? 12 : 4,
+          bubble ? 8 : 2,
+          (bubble ? 12 : 4) + (repeated ? fontSize * 2 + 6 : 0),
+          bubble ? 8 : 2,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (colorMode == ChatListColorMode.dot)
+              Container(
+                width: 8,
+                height: 8,
+                margin: EdgeInsets.only(top: fontSize * 0.45, right: 10),
+                decoration: BoxDecoration(color: vibrantColor, shape: BoxShape.circle),
+              ),
+
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onSecondaryTap: () => _showActions(context),
+                onLongPress: () => _showActions(context),
+                onDoubleTap: _copyMessage,
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      if (showAvatar && danmaku.avatar.isNotEmpty)
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: ClipOval(
+                              child: Image.network(
+                                danmaku.avatar,
+                                width: fontSize + 2,
+                                height: fontSize + 2,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (showFansBadge && danmaku.fansName.isNotEmpty)
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: textColor.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              danmaku.fansLevel.isEmpty
+                                  ? danmaku.fansName
+                                  : '${danmaku.fansName} ${danmaku.fansLevel}',
+                              style: AppTextStyles.t14.copyWith(
+                                fontSize: fontSize * 0.72,
+                                height: 1.2,
+                                fontWeight: FontWeight.w600,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      TextSpan(
+                        text: "${danmaku.userName}: ",
+                        style: base.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: colorName ? vibrantColor : textColor,
+                        ),
+                      ),
+                      TextSpan(
+                        children: parseEmojis(
+                          danmaku.message,
+                          fontSize,
+                          messageColor,
+                          emoteUrls: danmaku.emotes.isEmpty
+                              ? null
+                              : {for (final emote in danmaku.emotes) emote.code: emote.url},
+                        ),
+                        style: base.copyWith(
+                          height: 1.45,
+                          fontWeight: FontWeight.w500,
+                          color: messageColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
     return RepaintBoundary(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: spacing),
-        child: DecoratedBox(
-          decoration: bubble
-              ? BoxDecoration(
-                  color: cardBgColor,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: vibrantColor.withValues(alpha: 0.08), width: 0.5),
-                )
-              : const BoxDecoration(),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: bubble ? 12 : 4, vertical: bubble ? 8 : 2),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (colorMode == ChatListColorMode.dot)
-                  Container(
-                    width: 8,
-                    height: 8,
-                    margin: EdgeInsets.only(top: fontSize * 0.45, right: 10),
-                    decoration: BoxDecoration(color: vibrantColor, shape: BoxShape.circle),
+        child: repeated
+            ? Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  card,
+                  Positioned(
+                    right: bubble ? -2 : 0,
+                    bottom: bubble ? -2 : 0,
+                    child: _RepeatBadge(count: repeats, fontSize: fontSize),
                   ),
+                ],
+              )
+            : card,
+      ),
+    );
+  }
+}
 
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onSecondaryTap: () => _showActions(context),
-                    onLongPress: () => _showActions(context),
-                    onDoubleTap: _copyMessage,
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          if (showAvatar && danmaku.avatar.isNotEmpty)
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: ClipOval(
-                                  child: Image.network(
-                                    danmaku.avatar,
-                                    width: fontSize + 2,
-                                    height: fontSize + 2,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (showFansBadge && danmaku.fansName.isNotEmpty)
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Container(
-                                margin: const EdgeInsets.only(right: 4),
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: textColor.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                                child: Text(
-                                  danmaku.fansLevel.isEmpty
-                                      ? danmaku.fansName
-                                      : '${danmaku.fansName} ${danmaku.fansLevel}',
-                                  style: AppTextStyles.t14.copyWith(
-                                    fontSize: fontSize * 0.72,
-                                    height: 1.2,
-                                    fontWeight: FontWeight.w600,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          TextSpan(
-                            text: "${danmaku.userName}: ",
-                            style: base.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorName ? vibrantColor : textColor,
-                            ),
-                          ),
-                          TextSpan(
-                            children: parseEmojis(
-                              danmaku.message,
-                              fontSize,
-                              messageColor,
-                              emoteUrls: danmaku.emotes.isEmpty
-                                  ? null
-                                  : {for (final emote in danmaku.emotes) emote.code: emote.url},
-                            ),
-                            style: base.copyWith(
-                              height: 1.45,
-                              fontWeight: FontWeight.w500,
-                              color: messageColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+/// "×N" on a chat line that N identical messages were folded into.
+class _RepeatBadge extends StatelessWidget {
+  const _RepeatBadge({required this.count, required this.fontSize});
+
+  final int count;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      label: i18n('danmaku_repeat_count', args: {'count': '$count'}),
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          count > 999 ? '×999+' : '×$count',
+          style: AppTextStyles.t12.copyWith(
+            fontSize: (fontSize * 0.7).clamp(9.0, 16.0),
+            height: 1.2,
+            fontWeight: FontWeight.w700,
+            color: colors.onPrimary,
           ),
         ),
       ),

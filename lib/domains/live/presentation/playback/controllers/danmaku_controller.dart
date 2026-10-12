@@ -12,6 +12,7 @@ import 'package:pure_live/core/player/core/live_message_normalization.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_play_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_session_host.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_stall_watchdog.dart';
+import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_repeat_merger.dart';
 
 /// Owns exactly one room-bound danmaku session.
 ///
@@ -39,7 +40,7 @@ class DanmakuController extends GetxController {
   Timer? _stallTimer;
   LiveRoom? _sessionRoom;
   final DanmakuMessageGate _messageGate = DanmakuMessageGate();
-  final DanmakuRepeatedFilter _repeatedMessageFilter = DanmakuRepeatedFilter();
+  final DanmakuRepeatMerger _repeatMerger = DanmakuRepeatMerger();
   final DanmakuSimilarityFilter _similarityFilter = DanmakuSimilarityFilter();
 
   LiveDanmaku? _liveDanmaku;
@@ -104,7 +105,7 @@ class DanmakuController extends GetxController {
       if (request != _requestEpoch) return;
       _liveDanmaku = danmaku;
       _messageGate.clear();
-      _repeatedMessageFilter.clear();
+      _repeatMerger.clear();
       _similarityFilter.clear();
       _gateRoomKey = null;
     });
@@ -150,7 +151,7 @@ class DanmakuController extends GetxController {
 
       if (_gateRoomKey != key) {
         _messageGate.clear();
-        _repeatedMessageFilter.clear();
+        _repeatMerger.clear();
         _similarityFilter.clear();
         _gateRoomKey = key;
       }
@@ -211,12 +212,19 @@ class DanmakuController extends GetxController {
       if (msg.type == LiveMessageType.chat) {
         if (!_messageGate.accepts(normalizeLiveMessage(msg)) || _isBlocked(msg)) return;
         final danmakuSettings = SettingsService.to.danmaku;
-        if (!_repeatedMessageFilter.accepts(
-          normalizeLiveMessage(msg),
-          enabled: danmakuSettings.collapseRepeatedDanmaku.v,
-          window: Duration(seconds: danmakuSettings.repeatedDanmakuWindowSeconds.v.clamp(1, 30)),
-        )) {
-          return;
+        if (danmakuSettings.collapseRepeatedDanmaku.v) {
+          // A repeat is counted on the line already shown (×N in the chat
+          // list) and neither flies nor takes a line of its own.
+          final shown = _repeatMerger.repeatOf(
+            msg,
+            window: Duration(seconds: danmakuSettings.repeatedDanmakuWindowSeconds.v.clamp(1, 30)),
+          );
+          if (shown != null) {
+            _main.countDanmakuRepeat(shown);
+            return;
+          }
+        } else {
+          _repeatMerger.clear();
         }
         if (!msg.isLocal &&
             danmakuSettings.enableDanmakuSimilarityFilter.v &&
@@ -436,7 +444,7 @@ class DanmakuController extends GetxController {
     _filterWorker?.dispose();
     _similarityFilterWorker?.dispose();
     _messageGate.clear();
-    _repeatedMessageFilter.clear();
+    _repeatMerger.clear();
     _similarityFilter.clear();
     // The small window keeps the video running after the room's route is gone,
     // and GetX deletes this route-bound controller on that pop. Tearing the

@@ -441,6 +441,20 @@ class LivePlayController extends GetxController
     }
   }
 
+  /// How many copies each chat line stands for (see [countDanmakuRepeat]).
+  /// Held beside the message rather than on it, and weakly, so a line that
+  /// leaves the history takes its count with it.
+  final Expando<RxInt> _danmakuRepeats = Expando<RxInt>('danmakuRepeats');
+
+  /// Observable copy count of a chat line: 1 until repeats are folded into it.
+  RxInt danmakuRepeatsOf(LiveMessage message) => _danmakuRepeats[message] ??= RxInt(1);
+
+  @override
+  void countDanmakuRepeat(LiveMessage shown) {
+    if (isClosed) return;
+    danmakuRepeatsOf(shown).value++;
+  }
+
   @override
   void addAddSuperChat(LiveMessage msg) {
     addSingleSuperChat(msg.data as LiveSuperChatMessage);

@@ -23,6 +23,10 @@ abstract interface class DanmakuSessionHost {
 
   void removeRetractedMessages(LiveRetraction target) {}
 
+  /// Another copy of [shown], a chat line already in the list, arrived and was
+  /// folded into it.
+  void countDanmakuRepeat(LiveMessage shown);
+
   /// Whether this room's danmaku session has to outlive its route because the
   /// in-app small window is taking the video over.
   ///

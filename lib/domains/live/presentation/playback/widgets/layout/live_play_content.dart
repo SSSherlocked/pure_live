@@ -47,6 +47,8 @@ class LivePlayNormalLayout extends StatelessWidget {
     this.portraitLayoutMode = PortraitLayoutMode.balanced,
     this.onEnterLandscapeFullscreen,
     this.onEnterPortraitFullscreen,
+    this.panelWidth,
+    this.onPanelResized,
   });
 
   final Widget video;
@@ -62,6 +64,11 @@ class LivePlayNormalLayout extends StatelessWidget {
   final PortraitLayoutMode portraitLayoutMode;
   final VoidCallback? onEnterLandscapeFullscreen;
   final VoidCallback? onEnterPortraitFullscreen;
+
+  /// The side panel's width and where a drag of its edge reports a new one.
+  /// Left null, both are the 侧栏宽度 setting.
+  final double? panelWidth;
+  final ValueChanged<double>? onPanelResized;
 
   @override
   Widget build(BuildContext context) {
@@ -101,33 +108,123 @@ class LivePlayNormalLayout extends StatelessWidget {
           );
         }
 
-        Widget split(double preferredWidth) {
-          final panelWidth = LivePanelWidth.resolve(preferredWidth, constraints.maxWidth);
-          return Row(
-            key: const ValueKey('live-play-desktop-split'),
-            children: [
-              // The player fills its area - title and controls follow the
-              // window on both axes - while the picture inside keeps its ratio,
-              // centred and as large as fits, letterboxed in black or page colour.
-              Expanded(key: const ValueKey('live-play-desktop-video'), child: desktopVideo ?? video),
-              SizedBox(
-                key: const ValueKey('live-play-desktop-panel'),
-                width: panelWidth,
-                child: Column(
-                  children: [
-                    resolution,
-                    const Divider(height: 1),
-                    Expanded(child: danmaku),
-                  ],
-                ),
-              ),
-            ],
+        Widget split(double preferredWidth, {ValueChanged<double>? onResized}) {
+          return _LivePlayDesktopSplit(
+            preferredWidth: preferredWidth,
+            availableWidth: constraints.maxWidth,
+            onResized: onResized,
+            video: desktopVideo ?? video,
+            panel: Column(
+              children: [
+                resolution,
+                const Divider(height: 1),
+                Expanded(child: danmaku),
+              ],
+            ),
           );
         }
 
+        if (panelWidth case final width?) return split(width, onResized: onPanelResized);
         if (!Get.isRegistered<ThemeSettingsController>()) return split(LivePanelWidth.defaultValue);
-        return Obx(() => split(SettingsService.to.theme.livePanelWidth.v));
+        // Dragging the panel's edge writes the same setting as 主题 › 侧栏宽度.
+        return Obx(
+          () => split(
+            SettingsService.to.theme.livePanelWidth.v,
+            onResized: (width) => SettingsService.to.theme.livePanelWidth.v = width,
+          ),
+        );
       },
+    );
+  }
+}
+
+/// The wide layout: the video beside the side panel, whose inner edge can be
+/// dragged to resize it (double-click or double-tap restores the default).
+///
+/// The width follows the pointer locally while dragging and is written back
+/// through [onResized] once, when the drag ends, so a drag is one settings
+/// write rather than one per frame.
+class _LivePlayDesktopSplit extends StatefulWidget {
+  const _LivePlayDesktopSplit({
+    required this.preferredWidth,
+    required this.availableWidth,
+    required this.video,
+    required this.panel,
+    this.onResized,
+  });
+
+  final double preferredWidth;
+  final double availableWidth;
+  final Widget video;
+  final Widget panel;
+  final ValueChanged<double>? onResized;
+
+  @override
+  State<_LivePlayDesktopSplit> createState() => _LivePlayDesktopSplitState();
+}
+
+class _LivePlayDesktopSplitState extends State<_LivePlayDesktopSplit> {
+  double? _dragWidth;
+  bool _hovered = false;
+
+  double get _width => LivePanelWidth.resolve(_dragWidth ?? widget.preferredWidth, widget.availableWidth);
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    // The handle is on the panel's left edge: moving left widens it.
+    setState(() => _dragWidth = _width - details.delta.dx);
+  }
+
+  void _onDragEnd([DragEndDetails? _]) {
+    final dragged = _dragWidth;
+    if (dragged == null) return;
+    final width = _width.roundToDouble();
+    setState(() => _dragWidth = null);
+    if (dragged != widget.preferredWidth) widget.onResized?.call(LivePanelWidth.normalize(width));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final resizable = widget.onResized != null;
+    final colors = Theme.of(context).colorScheme;
+    final active = _hovered || _dragWidth != null;
+    return Row(
+      key: const ValueKey('live-play-desktop-split'),
+      children: [
+        // The player fills its area - title and controls follow the window on
+        // both axes - while the picture inside keeps its ratio, centred and as
+        // large as fits, letterboxed in black or page colour.
+        Expanded(key: const ValueKey('live-play-desktop-video'), child: widget.video),
+        if (resizable)
+          MouseRegion(
+            key: const ValueKey('live-play-panel-resize-handle'),
+            cursor: SystemMouseCursors.resizeLeftRight,
+            onEnter: (_) => setState(() => _hovered = true),
+            onExit: (_) => setState(() => _hovered = false),
+            child: Semantics(
+              label: i18n('live_panel_width'),
+              value: '${_width.round()}',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragUpdate: _onDragUpdate,
+                onHorizontalDragEnd: _onDragEnd,
+                onHorizontalDragCancel: _onDragEnd,
+                onDoubleTap: () => widget.onResized?.call(LivePanelWidth.defaultValue),
+                child: SizedBox(
+                  // Wider for a finger than for a mouse.
+                  width: AppLayout.of(context).touch ? 14 : 6,
+                  child: Center(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 120),
+                      width: active ? 3 : 1,
+                      color: active ? colors.primary : colors.outlineVariant,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        SizedBox(key: const ValueKey('live-play-desktop-panel'), width: _width, child: widget.panel),
+      ],
     );
   }
 }

@@ -44,14 +44,16 @@ enum LivePanelTab {
   }
 }
 
-/// Width of the live room side panel in the desktop/landscape split.
+/// Width of the live room side panel in the desktop/landscape split. Set in
+/// 主题 settings or by dragging the panel's edge in the room.
 abstract final class LivePanelWidth {
-  static const double min = 240;
-  static const double max = 420;
+  static const double min = 220;
+  static const double max = 720;
   static const double defaultValue = 300;
 
-  /// Never let the panel take more than this share of the window.
-  static const double maxShare = 0.45;
+  /// Never let the panel take more than this share of the window, so the video
+  /// keeps most of it.
+  static const double maxShare = 0.6;
 
   static double normalize(double value) => value.isFinite ? value.clamp(min, max).toDouble() : defaultValue;
 

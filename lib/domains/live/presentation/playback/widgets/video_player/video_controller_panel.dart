@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:async';
 
-import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/utils/live_quality_label.dart';
@@ -30,7 +29,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 enum TopActionLeadingSlot { back, datetime, battery }
 
 @visibleForTesting
-enum TopActionTrailingSlot { roomHistory, datetime, battery, audioOnly, cast, pip }
+enum TopActionTrailingSlot { roomHistory, datetime, battery, pip }
 
 /// Resolves the fixed order of the fullscreen leading actions. On Android the
 /// clock and battery sit beside Back; PiP moves to the opposite corner so the
@@ -45,8 +44,8 @@ List<TopActionLeadingSlot> resolveTopActionLeadingSlots({required bool fullscree
   ];
 }
 
-/// The Android playback actions: casting, then picture-in-picture. In
-/// fullscreen 投屏 moves into the ⋯ menu (纯音频 is always there).
+/// The playback actions beside the ⋯ menu: picture-in-picture. 投屏 and 纯音频
+/// are entries of the ⋯ menu, inline and fullscreen alike.
 @visibleForTesting
 List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
   required bool fullscreen,
@@ -57,8 +56,7 @@ List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
     if (fullscreen) TopActionTrailingSlot.roomHistory,
     if (fullscreen && !android) TopActionTrailingSlot.datetime,
     if (fullscreen && !android) TopActionTrailingSlot.battery,
-    // 纯音频 lives in the ⋯ menu, and so does 投屏 in fullscreen.
-    if (android && !fullscreen) TopActionTrailingSlot.cast,
+    // 纯音频 and 投屏 live in the ⋯ menu.
     if (android || windows) TopActionTrailingSlot.pip,
   ];
 }
@@ -376,25 +374,20 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       return Positioned(
                         top: insets.top,
                         right: (compactControls ? 4 : 8) + insets.right,
-                        child: Obx(() {
-                          // Read first: Obx must observe the fullscreen flags on
-                          // every platform, not only where 投屏 exists.
-                          final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
-                          return PlayerMoreMenuAnchor(
-                            menu: _moreMenu,
-                            size: Size(
-                              compactControls ? compactPlayerActionExtent : kMinInteractiveDimension,
-                              barHeight,
-                            ),
-                            isAudioOnly: () => controller.isAudioOnly,
-                            onToggleAudioOnly: () {
-                              controller.enableController();
-                              controller.toggleAudioOnly();
-                            },
-                            // Fullscreen keeps 投屏 here instead of on the bar.
-                            onCast: PlatformUtils.isAndroid && fullscreen ? () => _castCurrentRoom(context) : null,
-                          );
-                        }),
+                        child: PlayerMoreMenuAnchor(
+                          menu: _moreMenu,
+                          size: Size(
+                            compactControls ? compactPlayerActionExtent : kMinInteractiveDimension,
+                            barHeight,
+                          ),
+                          isAudioOnly: () => controller.isAudioOnly,
+                          onToggleAudioOnly: () {
+                            controller.enableController();
+                            controller.toggleAudioOnly();
+                          },
+                          // 投屏 is a menu entry on Android, inline and fullscreen alike.
+                          onCast: PlatformUtils.isAndroid ? () => _castCurrentRoom(context) : null,
+                        ),
                       );
                     },
                   ),
@@ -570,14 +563,6 @@ class TopActionBar extends StatelessWidget {
                         ),
                         TopActionTrailingSlot.datetime => const DatetimeInfo(),
                         TopActionTrailingSlot.battery => BatteryInfo(controller: controller),
-                        TopActionTrailingSlot.audioOnly => AudioOnlyButton(
-                          key: const ValueKey('playback-action-audio-only'),
-                          controller: controller,
-                        ),
-                        TopActionTrailingSlot.cast => CastButton(
-                          key: const ValueKey('playback-action-cast'),
-                          controller: controller,
-                        ),
                         TopActionTrailingSlot.pip => PIPButton(
                           key: GlobalPlayerService.instance.player.fullscreenUI
                               ? const ValueKey('fullscreen-pip-shortcut')
@@ -1157,7 +1142,7 @@ class BottomActionBar extends StatelessWidget {
                     return _buildPortraitFullscreenLayout();
                   }
                   final compact = constraints.maxWidth < 760;
-                  final left = _buildLeftActions(compact: fullscreen && compact);
+                  final left = _buildLeftActions();
                   final right = _buildRightActions(compact: compact);
 
                   if (fullscreen) {
@@ -1238,7 +1223,7 @@ class BottomActionBar extends StatelessWidget {
             height: 48,
             child: Row(
               children: [
-                _buildLeftActions(compact: true),
+                _buildLeftActions(),
                 const Spacer(),
                 if (PlatformUtils.isMobile) PortraitFullscreenDisplayModeButton(controller: controller),
                 if (PlatformUtils.isMobile) PortraitOrientationButton(controller: controller),
@@ -1251,12 +1236,14 @@ class BottomActionBar extends StatelessWidget {
     );
   }
 
-  Widget _buildLeftActions({required bool compact}) {
+  /// The same group in every mode — inline, fullscreen and portrait
+  /// fullscreen — so a control never appears in one and not another.
+  Widget _buildLeftActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         PlayPauseButton(controller: controller),
-        if (!compact) RefreshButton(controller: controller),
+        RefreshButton(controller: controller),
         if (!SettingsService.to.danmaku.hideDanmaku.value) ...[
           PlayerDanmakuButton(controller: controller),
           PlayerDanmakuSettingsButton(
@@ -1435,64 +1422,6 @@ class MuteToggleButton extends StatelessWidget {
         icon: Icon(muted ? Icons.volume_off_rounded : Icons.volume_up_rounded),
       );
     });
-  }
-}
-
-class AudioOnlyButton extends StatelessWidget {
-  const AudioOnlyButton({super.key, required this.controller});
-
-  final VideoController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    // Child builds run outside the parent's Obx dependency collector. Keep
-    // mode and in-flight state subscribed here, including failure completion.
-    return Obx(() {
-      final switching = controller.audioModeSwitching.value;
-      final audioOnly = controller.isAudioOnly;
-      return IconButton(
-        tooltip: i18n(audioOnly ? 'restore_video_mode' : 'switch_audio_only_mode'),
-        visualDensity: VisualDensity.standard,
-        constraints: PlayerControlDensity.actionConstraints(context),
-        iconSize: 21,
-        color: audioOnly ? const Color(0xFFFFD166) : Colors.white,
-        onPressed: switching
-            ? null
-            : () {
-                controller.enableController();
-                controller.toggleAudioOnly();
-              },
-        // The headphone always means room-scoped audio-only. A television icon
-        // is reserved exclusively for casting so the two actions stay distinct.
-        icon: Icon(audioOnly ? Remix.headphone_fill : Remix.headphone_line),
-      );
-    });
-  }
-}
-
-class CastButton extends StatelessWidget {
-  const CastButton({super.key, required this.controller});
-
-  final VideoController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: i18n('cast_screen'),
-      visualDensity: VisualDensity.standard,
-      constraints: PlayerControlDensity.actionConstraints(context),
-      iconSize: 21,
-      color: Colors.white,
-      onPressed: () {
-        controller.enableController();
-        KnownRoomLinkDialog.castPlayUrlByRoomId(
-          context: context,
-          liveroom: controller.room,
-          isCurrentRoom: () => controller.status != PlayerStatus.disposed,
-        );
-      },
-      icon: const Icon(Remix.tv_2_line),
-    );
   }
 }
 

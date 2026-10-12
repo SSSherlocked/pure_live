@@ -389,27 +389,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 onChanged: (v) => controller.enableDanmakuStroke.value = v,
                 labelColor: labelColor,
               ),
-              _switch(
-                theme,
-                title: i18n("pip_danmaku_scale_auto"),
-                subtitle: i18n("pip_danmaku_scale_auto_subtitle"),
-                value: controller.pipDanmakuScaleAuto.value,
-                onChanged: (v) => controller.pipDanmakuScaleAuto.value = v,
-                labelColor: labelColor,
-              ),
-              if (!controller.pipDanmakuScaleAuto.value)
-                _slider(
-                  theme,
-                  title: i18n("pip_danmaku_scale"),
-                  value: controller.pipDanmakuScaleValue.value,
-                  min: DanmakuSettingsController.pipDanmakuScaleMin,
-                  max: DanmakuSettingsController.pipDanmakuScaleMax,
-                  display: 'x${controller.pipDanmakuScaleValue.value.toStringAsFixed(2)}',
-                  semanticValueBuilder: (value) => 'x${value.toStringAsFixed(2)}',
-                  onChanged: (v) => controller.pipDanmakuScaleValue.value = v,
-                  labelColor: labelColor,
-                  digitColor: digitColor,
-                ),
               _slider(
                 theme,
                 title: i18n("stroke"),
@@ -452,36 +431,63 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                     style: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.w600),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: _sectionGap),
-          context.buildGroupTitle(i18n('danmaku_repeat_filter')),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
               _switch(
                 theme,
-                title: i18n('collapse_repeated_danmaku'),
-                subtitle: i18n('collapse_repeated_danmaku_desc'),
-                value: SettingsService.to.danmaku.collapseRepeatedDanmaku.v,
-                onChanged: (v) => SettingsService.to.danmaku.collapseRepeatedDanmaku.v = v,
+                title: i18n("pip_danmaku_scale_auto"),
+                subtitle: i18n("pip_danmaku_scale_auto_subtitle"),
+                value: controller.pipDanmakuScaleAuto.value,
+                onChanged: (v) => controller.pipDanmakuScaleAuto.value = v,
                 labelColor: labelColor,
-                subtitleColor: labelColor,
               ),
-              if (SettingsService.to.danmaku.collapseRepeatedDanmaku.v)
-                _counter(
+              if (!controller.pipDanmakuScaleAuto.value)
+                _slider(
                   theme,
-                  title: i18n('repeated_danmaku_window'),
-                  value: SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v,
-                  min: 1,
-                  max: 30,
-                  onChanged: (v) => SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v = v,
+                  title: i18n("pip_danmaku_scale"),
+                  value: controller.pipDanmakuScaleValue.value,
+                  min: DanmakuSettingsController.pipDanmakuScaleMin,
+                  max: DanmakuSettingsController.pipDanmakuScaleMax,
+                  display: 'x${controller.pipDanmakuScaleValue.value.toStringAsFixed(2)}',
+                  semanticValueBuilder: (value) => 'x${value.toStringAsFixed(2)}',
+                  onChanged: (v) => controller.pipDanmakuScaleValue.value = v,
                   labelColor: labelColor,
                   digitColor: digitColor,
                 ),
             ],
           ),
           const SizedBox(height: _sectionGap),
+          // The side panel's footer brings the full 弹幕过滤 group (repeated,
+          // similar and keyword filtering); elsewhere only the repeat filter.
+          if (widget.footer != null)
+            widget.footer!
+          else ...[
+            context.buildGroupTitle(i18n('danmaku_filter_group')),
+            const SizedBox(height: _titleGap),
+            reactiveCard(
+              () => [
+                _switch(
+                  theme,
+                  title: i18n('collapse_repeated_danmaku'),
+                  subtitle: i18n('collapse_repeated_danmaku_desc'),
+                  value: SettingsService.to.danmaku.collapseRepeatedDanmaku.v,
+                  onChanged: (v) => SettingsService.to.danmaku.collapseRepeatedDanmaku.v = v,
+                  labelColor: labelColor,
+                  subtitleColor: labelColor,
+                ),
+                if (SettingsService.to.danmaku.collapseRepeatedDanmaku.v)
+                  _counter(
+                    theme,
+                    title: i18n('repeated_danmaku_window'),
+                    value: SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v,
+                    min: 1,
+                    max: 30,
+                    onChanged: (v) => SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v = v,
+                    labelColor: labelColor,
+                    digitColor: digitColor,
+                  ),
+              ],
+            ),
+            const SizedBox(height: _sectionGap),
+          ],
           context.buildGroupTitle(i18n('danmaku_screen_interaction')),
           const SizedBox(height: _titleGap),
           reactiveCard(
@@ -502,8 +508,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
             ],
           ),
-          const SizedBox(height: _sectionGap),
-          if (widget.footer != null) widget.footer!,
           const SizedBox(height: 12),
         ],
       ),

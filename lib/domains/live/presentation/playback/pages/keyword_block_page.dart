@@ -66,23 +66,36 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
     final dm = settingsService.danmaku;
 
     final sections = <Widget>[
-      context.buildGroupTitle(i18n('platform_danmaku_filter')),
+      // Repeated, similar and keyword filtering share one group and card.
+      context.buildGroupTitle(i18n('danmaku_filter_group')),
       Obx(
         () => context.buildModernCard([
           _switch(
             theme,
-            title: i18n('douyu_suspected_automated_filter'),
-            subtitle: i18n('douyu_suspected_automated_filter_desc'),
-            value: dm.filterDouyuSuspectedAutomatedMessages.v,
-            onChanged: (value) => dm.filterDouyuSuspectedAutomatedMessages.v = value,
+            title: i18n('collapse_repeated_danmaku'),
+            subtitle: i18n('collapse_repeated_danmaku_desc'),
+            value: dm.collapseRepeatedDanmaku.v,
+            onChanged: (value) => dm.collapseRepeatedDanmaku.v = value,
             labelColor: labelColor,
           ),
-        ]),
-      ),
-      const SizedBox(height: 20),
-      context.buildGroupTitle(i18n('danmaku_similarity_filter')),
-      Obx(
-        () => context.buildModernCard([
+          if (dm.collapseRepeatedDanmaku.v)
+            _slider(
+              theme,
+              title: i18n('repeated_danmaku_window'),
+              value: dm.repeatedDanmakuWindowSeconds.v.toDouble(),
+              min: 1,
+              max: 30,
+              stepSize: 1,
+              display: i18n(
+                'danmaku_similarity_cache_seconds',
+                args: {'seconds': '${dm.repeatedDanmakuWindowSeconds.v}'},
+              ),
+              semanticValueBuilder: (value) =>
+                  i18n('danmaku_similarity_cache_seconds', args: {'seconds': '${value.round()}'}),
+              onChanged: (value) => dm.repeatedDanmakuWindowSeconds.v = value.round(),
+              labelColor: labelColor,
+              digitColor: digitColor,
+            ),
           _switch(
             theme,
             title: i18n('danmaku_similarity_filter_enable'),
@@ -135,11 +148,26 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               digitColor: digitColor,
             ),
           ],
+          _buildInput(theme, labelColor),
         ]),
       ),
       const SizedBox(height: 20),
-      context.buildGroupTitle(i18n('danmaku_keyword_block')),
-      Obx(() => context.buildModernCard([_buildInput(theme, labelColor)])),
+    ];
+    // After the blocked keyword and user lists.
+    final platformSection = <Widget>[
+      context.buildGroupTitle(i18n('platform_danmaku_filter')),
+      Obx(
+        () => context.buildModernCard([
+          _switch(
+            theme,
+            title: i18n('douyu_suspected_automated_filter'),
+            subtitle: i18n('douyu_suspected_automated_filter_desc'),
+            value: dm.filterDouyuSuspectedAutomatedMessages.v,
+            onChanged: (value) => dm.filterDouyuSuspectedAutomatedMessages.v = value,
+            labelColor: labelColor,
+          ),
+        ]),
+      ),
       const SizedBox(height: 20),
     ];
 
@@ -150,6 +178,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
           ...sections,
           Obx(() => _buildBlockedColumn(theme, users: false)),
           Obx(() => _buildBlockedColumn(theme, users: true)),
+          ...platformSection,
         ],
       );
     }
@@ -165,6 +194,10 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
           ),
           Obx(() => _buildBlockedSliver(theme, users: false)),
           Obx(() => _buildBlockedSliver(theme, users: true)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList.list(children: platformSection),
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),

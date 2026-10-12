@@ -113,7 +113,6 @@
   "platform_danmaku_filter": "Platform Danmaku Filters",
   "douyu_suspected_automated_filter": "Filter Suspected Automated Douyu Chat",
   "douyu_suspected_automated_filter_desc": "Turn on to hide suspected automated or event chat heuristically; ordinary chat may also be hidden",
-  "danmaku_similarity_filter": "Similar Danmaku Filter",
   "danmaku_similarity_filter_enable": "Enable Similar Danmaku Filter",
   "danmaku_similarity_threshold": "Similarity Threshold",
   "danmaku_similarity_cache_duration": "Cache Duration",
@@ -1265,7 +1264,6 @@
   "open_new_window_subtitle": "Adds a menu item that opens another app window",
   "open_room_in_new_window": "Play this room in a new window",
   "open_new_window_failed": "The new window did not start. Try again.",
-  "danmaku_repeat_filter": "Repeated danmaku filter",
   "collapse_repeated_danmaku": "Merge identical danmaku bursts",
   "collapse_repeated_danmaku_desc": "Show the first copy only and count later copies on it (×N) instead of scrolling them across the video. Local and system messages are unaffected.",
   "repeated_danmaku_window": "Identical-text window (seconds)",
@@ -1899,5 +1897,6 @@
   "letterbox_page_color_subtitle": "In the wide room layout, fill the space around the picture with the page colour instead of black",
   "pure_black_dark": "Pure black in dark mode",
   "pure_black_dark_subtitle": "Dark mode only: page backgrounds turn pure black",
-  "danmaku_display_area": "Danmaku area"
+  "danmaku_display_area": "Danmaku area",
+  "danmaku_filter_group": "Danmaku filters"
 }

@@ -115,7 +115,6 @@
   "platform_danmaku_filter": "平台弹幕过滤",
   "douyu_suspected_automated_filter": "过滤斗鱼疑似自动弹幕",
   "douyu_suspected_automated_filter_desc": "开启后按启发式标记隐藏疑似自动或活动弹幕，也可能隐藏普通聊天",
-  "danmaku_similarity_filter": "相似弹幕过滤",
   "danmaku_similarity_filter_enable": "启用相似弹幕过滤",
   "danmaku_similarity_threshold": "相似度阈值",
   "danmaku_similarity_cache_duration": "缓存时间",
@@ -1265,7 +1264,6 @@
   "open_new_window_subtitle": "在菜单中加入此项，用于再打开一个应用窗口",
   "open_room_in_new_window": "在新窗口播放此直播间",
   "open_new_window_failed": "新窗口启动失败，请重试",
-  "danmaku_repeat_filter": "重复弹幕过滤",
   "collapse_repeated_danmaku": "合并短时间内的相同弹幕",
   "collapse_repeated_danmaku_desc": "相同内容只显示第一条，后续重复在该条右下角计数（×N），也不再飘过屏幕；本地弹幕和系统消息不受影响。",
   "repeated_danmaku_window": "相同内容合并时间（秒）",
@@ -1899,5 +1897,6 @@
   "letterbox_page_color_subtitle": "宽屏直播间中，画面以外的区域使用界面底色而非黑色",
   "pure_black_dark": "深色模式纯黑背景",
   "pure_black_dark_subtitle": "仅在深色模式下生效，页面背景改为纯黑",
-  "danmaku_display_area": "弹幕显示区域"
+  "danmaku_display_area": "弹幕显示区域",
+  "danmaku_filter_group": "弹幕过滤"
 }

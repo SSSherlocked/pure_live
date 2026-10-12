@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/widgets/pull_arcs_indicator.dart';
 
 typedef _RefreshLayout = ({double height, double? width, TextStyle? textStyle, TextStyle? messageStyle});
 
@@ -31,10 +32,8 @@ ClassicHeader _buildHeader(_RefreshLayout layout) => ClassicHeader(
     if (state.mode == IndicatorMode.processing || state.mode == IndicatorMode.ready) {
       return const AppStatusView(type: AppStatusType.loading, isMini: true);
     }
-    return RotationTransition(
-      turns: AlwaysStoppedAnimation(animation / 2),
-      child: Icon(Icons.arrow_downward_rounded, color: Theme.of(context).colorScheme.outline, size: 24),
-    );
+    // The spinner's arcs, turned by the pull (no arrow).
+    return PullArcsIndicator(progress: _pullProgress(state));
   },
 );
 
@@ -55,10 +54,8 @@ ClassicFooter _buildFooter(_RefreshLayout layout) => ClassicFooter(
     if (state.mode == IndicatorMode.processing || state.mode == IndicatorMode.ready) {
       return const AppStatusView(type: AppStatusType.loading, isMini: true);
     }
-    return RotationTransition(
-      turns: AlwaysStoppedAnimation(animation / 2),
-      child: Icon(Icons.arrow_upward_rounded, color: Theme.of(context).colorScheme.outline, size: 24),
-    );
+    // The spinner's arcs, turned by the pull (no arrow).
+    return PullArcsIndicator(progress: _pullProgress(state));
   },
 );
 
@@ -110,3 +107,8 @@ _RefreshLayout _refreshLayout(BuildContext? context, {double? maxWidth}) {
   final height = (textHeight + 4 + measure(message, messageStyle, width).height + 16).ceilToDouble();
   return (height: height < 70 ? 70 : height, width: width, textStyle: textStyle, messageStyle: messageStyle);
 }
+
+/// How far the list has been pulled, as a share of the distance that triggers
+/// the refresh (1 at the trigger point).
+double _pullProgress(IndicatorState state) =>
+    state.triggerOffset <= 0 ? 0 : state.offset / state.triggerOffset;

@@ -22,12 +22,12 @@ class PlayOther extends StatelessWidget {
       textScaler: MediaQuery.textScalerOf(context),
       headerFontSize: theme.textTheme.titleSmall?.fontSize ?? 14,
       headerLineHeight: theme.textTheme.titleSmall?.height ?? 1.25,
-      tabFontSize: theme.textTheme.labelMedium?.fontSize ?? 12,
-      tabLineHeight: theme.textTheme.labelMedium?.height ?? 1.33,
-      titleFontSize: theme.textTheme.labelMedium?.fontSize ?? 12,
-      titleLineHeight: theme.textTheme.labelMedium?.height ?? 1.33,
-      detailFontSize: theme.textTheme.labelSmall?.fontSize ?? 11,
-      detailLineHeight: theme.textTheme.labelSmall?.height ?? 1.45,
+      tabFontSize: theme.textTheme.labelLarge?.fontSize ?? 14,
+      tabLineHeight: theme.textTheme.labelLarge?.height ?? 1.43,
+      titleFontSize: theme.textTheme.labelLarge?.fontSize ?? 14,
+      titleLineHeight: theme.textTheme.labelLarge?.height ?? 1.43,
+      detailFontSize: theme.textTheme.labelMedium?.fontSize ?? 12,
+      detailLineHeight: theme.textTheme.labelMedium?.height ?? 1.33,
     ).headerHeight;
 
     return PlayerSidePanel(
@@ -123,12 +123,12 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       textScaler: MediaQuery.textScalerOf(context),
       headerFontSize: textTheme.titleSmall?.fontSize ?? 14,
       headerLineHeight: textTheme.titleSmall?.height ?? 1.25,
-      tabFontSize: textTheme.labelMedium?.fontSize ?? 12,
-      tabLineHeight: textTheme.labelMedium?.height ?? 1.33,
-      titleFontSize: textTheme.labelMedium?.fontSize ?? 12,
-      titleLineHeight: textTheme.labelMedium?.height ?? 1.33,
-      detailFontSize: textTheme.labelSmall?.fontSize ?? 11,
-      detailLineHeight: textTheme.labelSmall?.height ?? 1.45,
+      tabFontSize: textTheme.labelLarge?.fontSize ?? 14,
+      tabLineHeight: textTheme.labelLarge?.height ?? 1.43,
+      titleFontSize: textTheme.labelLarge?.fontSize ?? 14,
+      titleLineHeight: textTheme.labelLarge?.height ?? 1.43,
+      detailFontSize: textTheme.labelMedium?.fontSize ?? 12,
+      detailLineHeight: textTheme.labelMedium?.height ?? 1.33,
     );
 
     return Column(
@@ -281,7 +281,7 @@ class _CompactTab extends StatelessWidget {
         Icon(icon, size: 14),
         const SizedBox(width: 3),
         // Flexible causes a layout error here because TabBar may provide unbounded width constraints.
-        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium),
+        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge),
       ],
     );
     return Tab(
@@ -383,14 +383,14 @@ class _RoomSwitchCard extends StatelessWidget {
                   displayNick,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
+                  style: theme.textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -405,7 +405,7 @@ class _RoomSwitchCard extends StatelessWidget {
                 meta,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: playing
                       ? colors.primary
                       : history

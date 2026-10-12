@@ -139,7 +139,7 @@ class LivePlayNormalLayout extends StatelessWidget {
 }
 
 /// The wide layout: the video beside the side panel, whose inner edge can be
-/// dragged to resize it (double-click or double-tap restores the default).
+/// dragged to resize it.
 ///
 /// The width follows the pointer locally while dragging and is written back
 /// through [onResized] once, when the drag ends, so a drag is one settings
@@ -208,7 +208,6 @@ class _LivePlayDesktopSplitState extends State<_LivePlayDesktopSplit> {
                 onHorizontalDragUpdate: _onDragUpdate,
                 onHorizontalDragEnd: _onDragEnd,
                 onHorizontalDragCancel: _onDragEnd,
-                onDoubleTap: () => widget.onResized?.call(LivePanelWidth.defaultValue),
                 child: SizedBox(
                   // Wider for a finger than for a mouse.
                   width: AppLayout.of(context).touch ? 14 : 6,

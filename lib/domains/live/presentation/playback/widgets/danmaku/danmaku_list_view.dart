@@ -569,7 +569,8 @@ class DanmakuItem extends StatelessWidget {
                       TextSpan(
                         text: "${danmaku.userName}: ",
                         style: base.copyWith(
-                          fontWeight: FontWeight.w700,
+                          // The name stays two steps bolder than the message.
+                          fontWeight: FontWeight((fontWeight.value + 200).clamp(100, 900).toInt()),
                           color: colorName ? vibrantColor : textColor,
                         ),
                       ),
@@ -584,7 +585,6 @@ class DanmakuItem extends StatelessWidget {
                         ),
                         style: base.copyWith(
                           height: 1.45,
-                          fontWeight: FontWeight.w500,
                           color: messageColor,
                         ),
                       ),

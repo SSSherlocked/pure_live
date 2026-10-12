@@ -2309,7 +2309,7 @@
   "live_panel_tab_order": "Panel tab order",
   "live_panel_tab_order_subtitle": "Drag to reorder the side panel tabs on the player page",
   "live_panel_width": "Panel width",
-  "live_panel_width_subtitle": "Width of the side panel next to the video in wide layouts. You can also drag the panel's left edge in a room; double-click to reset",
+  "live_panel_width_subtitle": "Width of the side panel next to the video in wide layouts. You can also drag the panel's left edge in a room",
   "search_all_platforms": "Search all platforms",
   "chat_list_display": "Chat list display",
   "chat_list_font_size": "List text size",

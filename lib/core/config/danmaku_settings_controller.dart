@@ -29,7 +29,7 @@ class DanmakuSettingsController extends GetxController {
   static const bool defaultNoEmojiMode = false;
   static const bool defaultPipDanmakuNoEmojiMode = false;
   static const double defaultChatListFontSize = 14.0;
-  static const int defaultChatListFontWeight = 400;
+  static const int defaultChatListFontWeight = 500;
   static const double defaultChatListItemSpacing = 4.0;
   static const int defaultDanmakuMaxVisibleCount = 48;
 

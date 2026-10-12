@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/utils/live_quality_label.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
@@ -9,6 +8,7 @@ import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/player_control_policy.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
+import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_actions.dart';
@@ -925,12 +925,12 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
     return Obx(() {
       final live = controller.livePlayController;
       final state = live.state.value.player;
-      if (!live.state.value.room.success || state.qualites.isEmpty || !state.hasPlaybackSource) {
+      final status = LiveRoomStatus.of(live);
+      if (!live.state.value.room.success || !status.hasStream) {
         return const SizedBox.shrink();
       }
       final switching = live.playerController.isStreamSwitching.value;
-      final label =
-          '${state.qualitySafe.playbackLabel} · ${i18n('toolbox_line', args: {'index': '${state.currentLineIndex + 1}'})}';
+      final label = status.qualityAndLine;
       Widget chip(VoidCallback? onTap) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Material(

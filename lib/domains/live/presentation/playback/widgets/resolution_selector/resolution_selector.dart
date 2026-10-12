@@ -1,7 +1,7 @@
-import 'package:pure_live/core/utils/live_quality_label.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
+import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
 
 class ResolutionSelector extends StatelessWidget {
   const ResolutionSelector({super.key, required this.controller});
@@ -18,7 +18,7 @@ class ResolutionSelector extends StatelessWidget {
       }
 
       final currentIndex = state.player.currentQuality.clamp(0, state.player.qualites.length - 1);
-      final currentQualityName = state.player.qualitySafe.playbackLabel;
+      final currentQualityName = LiveRoomStatus.of(controller).qualityLabel;
       final switching = controller.playerController.isStreamSwitching.value;
 
       return PopupMenuButton<int>(

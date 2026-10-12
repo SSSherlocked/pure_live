@@ -5,6 +5,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
+import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
 
 /// One row of the 视频详情 window.
 typedef VideoDetail = ({String labelKey, String value});
@@ -45,6 +46,7 @@ List<VideoDetail> buildVideoDetails({
   required String line,
   required String engine,
   required String host,
+  bool? danmakuConnected,
   required int? width,
   required int? height,
   required Map<String, String>? mpv,
@@ -65,6 +67,11 @@ List<VideoDetail> buildVideoDetails({
     (labelKey: 'video_details_line', value: line),
     (labelKey: 'video_details_engine', value: engine),
     if (host.isNotEmpty) (labelKey: 'video_details_host', value: host),
+    if (danmakuConnected != null)
+      (
+        labelKey: 'video_details_danmaku',
+        value: i18n(danmakuConnected ? 'video_details_danmaku_connected' : 'video_details_danmaku_disconnected'),
+      ),
     if (width != null && height != null && width > 0 && height > 0)
       (labelKey: 'video_details_resolution', value: '$width × $height'),
   ];
@@ -148,11 +155,9 @@ class _VideoDetailsDialogState extends State<VideoDetailsDialog> {
     if (_reading) return;
     _reading = true;
     try {
-      final player = GlobalPlayerService.instance.player;
-      final handle = player.handle;
-      final snapshot = handle?.combinedSnapshot;
-      final size = snapshot?.geometry.videoSize;
-      final state = widget.controller.state.value.player;
+      final handle = GlobalPlayerService.instance.player.handle;
+      final size = handle?.combinedSnapshot.geometry.videoSize;
+      final status = LiveRoomStatus.of(widget.controller);
 
       Map<String, String>? mpv;
       final adapter = handle?.adapter;
@@ -173,11 +178,11 @@ class _VideoDetailsDialogState extends State<VideoDetailsDialog> {
       }
 
       final rows = buildVideoDetails(
-        quality: state.qualites.isEmpty ? '—' : state.qualitySafe.playbackLabel,
-        line: i18n('toolbox_line', args: {'index': '${state.currentLineIndex + 1}'}),
-        engine: snapshot?.backendId ?? '—',
-        // The host only: the full address carries access tokens.
-        host: snapshot?.source?.uri.host ?? '',
+        quality: status.qualityLabel,
+        line: status.lineLabel,
+        engine: status.engine,
+        host: status.streamHost,
+        danmakuConnected: status.danmakuConnected,
         width: size?.width.round(),
         height: size?.height.round(),
         mpv: mpv,

@@ -63,6 +63,9 @@ class DanmakuController extends GetxController {
   bool get _initialized => _liveDanmaku != null;
   LiveDanmaku get liveDanmaku => _liveDanmaku!;
 
+  /// Whether the room's danmaku session is connected right now.
+  bool get isSessionConnected => _initialized && _sessionKey != null && liveDanmaku.isConnected;
+
   @override
   void onInit() {
     super.onInit();

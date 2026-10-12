@@ -22,6 +22,7 @@ class CountButton extends StatefulWidget {
     required this.onChanged,
     this.valueBuilder,
     this.textStyle,
+    this.valueMinWidth = 0,
   }) : assert(maxValue > minValue),
        assert(selectedValue >= minValue && selectedValue <= maxValue),
        assert(step > 0);
@@ -48,6 +49,9 @@ class CountButton extends StatefulWidget {
   final Widget Function(int value)? valueBuilder;
 
   final TextStyle? textStyle;
+
+  /// Least width of the value box between the buttons.
+  final double valueMinWidth;
 
   @override
   State<CountButton> createState() => _CountButtonState();
@@ -89,6 +93,9 @@ class _CountButtonState extends State<CountButton> {
                   backgroundColor: backgroundColor,
                   foregroundColor: foregroundColor,
                   padding: EdgeInsets.zero,
+                  // Exactly buttonSize: no 48 px tap padding or minimum size.
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(widget.borderRadius),
@@ -110,6 +117,7 @@ class _CountButtonState extends State<CountButton> {
             excludeSemantics: widget.semanticLabel != null,
             child: Container(
               height: widget.buttonSize.height,
+              constraints: BoxConstraints(minWidth: widget.valueMinWidth),
               padding: const EdgeInsets.symmetric(horizontal: 8),
               alignment: Alignment.center,
               decoration: BoxDecoration(
@@ -135,6 +143,9 @@ class _CountButtonState extends State<CountButton> {
                   backgroundColor: backgroundColor,
                   foregroundColor: foregroundColor,
                   padding: EdgeInsets.zero,
+                  // Exactly buttonSize: no 48 px tap padding or minimum size.
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
                       topRight: Radius.circular(widget.borderRadius),

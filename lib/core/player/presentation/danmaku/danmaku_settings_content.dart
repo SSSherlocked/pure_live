@@ -12,7 +12,8 @@ class DanmakuSettingsPage extends StatelessWidget {
   const DanmakuSettingsPage({super.key, required this.controller, this.scale = 1, this.footer});
   final DanmakuSettingsSource controller;
 
-  /// Uniform size of the whole page; the room side panel uses 0.8.
+  /// Uniform size of the whole page; the room side panel uses 0.8 (0.86 on
+  /// touch).
   final double scale;
 
   /// Extra section appended after the settings (the room panel's 屏蔽管理).
@@ -665,6 +666,13 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             decrementSemanticLabel: i18n('decrease_value', args: {'label': title}),
             incrementSemanticLabel: i18n('increase_value', args: {'label': title}),
             onChanged: onChanged,
+            // A compact stepper: small −/+ buttons around a value box wide
+            // enough for three digits.
+            buttonSize: const Size(30, 28),
+            borderRadius: 8,
+            valueMinWidth: 48,
+            decrementIcon: const Icon(Icons.remove, size: 16, color: Colors.white),
+            incrementIcon: const Icon(Icons.add, size: 16, color: Colors.white),
             textStyle: TextStyle(color: digitColor, fontSize: 14, fontWeight: FontWeight.bold),
           ),
         ],

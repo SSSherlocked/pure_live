@@ -58,7 +58,9 @@ class DanmakuTabView extends GetView<LivePlayController> {
                             ? loading()
                             : DanmakuSettingsPage(
                                 controller: videoController,
-                                scale: AppLayout.of(context).touch ? 1 : 0.8,
+                                // Brought down to the 关注 panel's text size; a little less
+                                // on touch to keep its controls easy to hit.
+                                scale: AppLayout.of(context).touch ? 0.86 : 0.8,
                                 footer: const KeywordBlockPage(asSection: true),
                               ),
                       LivePanelTab.follow => FollowRoomsPage(

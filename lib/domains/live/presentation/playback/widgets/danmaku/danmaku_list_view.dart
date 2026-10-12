@@ -458,6 +458,7 @@ class DanmakuItem extends StatelessWidget {
         bubble: settings.chatListBubble.v,
         colorMode: settings.resolvedChatListColorMode,
         colorName: settings.chatListColorName.v,
+        showAvatar: settings.chatListShowAvatar.v,
       );
     });
   }
@@ -472,6 +473,7 @@ class DanmakuItem extends StatelessWidget {
     required bool bubble,
     required ChatListColorMode colorMode,
     required bool colorName,
+    required bool showAvatar,
   }) {
     final base = AppTextStyles.t14.copyWith(fontSize: fontSize);
     final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
@@ -509,7 +511,7 @@ class DanmakuItem extends StatelessWidget {
                     child: Text.rich(
                       TextSpan(
                         children: [
-                          if (danmaku.avatar.isNotEmpty)
+                          if (showAvatar && danmaku.avatar.isNotEmpty)
                             WidgetSpan(
                               alignment: PlaceholderAlignment.middle,
                               child: Padding(

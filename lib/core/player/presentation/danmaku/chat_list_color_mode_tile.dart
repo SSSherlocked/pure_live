@@ -3,7 +3,7 @@ import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 
 /// Picks how the chat list shows each message's danmaku colour: not at all,
 /// as a dot before the message, or as the colour of the message text; plus
-/// whether the sender's name takes that colour too.
+/// whether the sender's name takes that colour too, and whether avatars show.
 class ChatListColorModeTile extends StatelessWidget {
   const ChatListColorModeTile({super.key, this.horizontalPadding = 16, this.labelColor});
 
@@ -55,6 +55,22 @@ class ChatListColorModeTile extends StatelessWidget {
                 subtitle: Text(i18n('chat_list_color_name_subtitle'), style: Theme.of(context).textTheme.bodySmall),
                 value: settings.chatListColorName.v,
                 onChanged: (value) => settings.chatListColorName.v = value,
+              ),
+            ),
+          ),
+          Obx(
+            () => Material(
+              type: MaterialType.transparency,
+              child: SwitchListTile(
+                key: const ValueKey('chat-list-show-avatar'),
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  i18n('chat_list_show_avatar'),
+                  style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                ),
+                subtitle: Text(i18n('chat_list_show_avatar_subtitle'), style: Theme.of(context).textTheme.bodySmall),
+                value: settings.chatListShowAvatar.v,
+                onChanged: (value) => settings.chatListShowAvatar.v = value,
               ),
             ),
           ),

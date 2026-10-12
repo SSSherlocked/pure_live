@@ -79,6 +79,9 @@ class DanmakuSettingsController extends GetxController {
   /// Whether the sender's name also takes the danmaku colour; independent of the mode.
   final RxBool chatListColorName = hiveBool('chatListColorName', false);
 
+  /// Whether chat list messages show the sender's avatar (only Bilibili sends one).
+  final RxBool chatListShowAvatar = hiveBool('chatListShowAvatar', true);
+
   ChatListColorMode get resolvedChatListColorMode => ChatListColorMode.fromName(chatListColorMode.v);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
   final RxDouble danmakuTopArea = hiveDouble('danmakuTopArea', defaultDanmakuTopArea);
@@ -197,6 +200,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListBubble': chatListBubble.v,
       'chatListColorMode': chatListColorMode.v,
       'chatListColorName': chatListColorName.v,
+      'chatListShowAvatar': chatListShowAvatar.v,
       'noEmojiMode': noEmojiMode.v,
       'danmakuTopArea': danmakuTopArea.v,
       'danmakuArea': danmakuArea.v,
@@ -245,6 +249,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListBubble': typed<bool>(json['chatListBubble'] ?? true),
       'chatListColorMode': ChatListColorMode.fromName(json['chatListColorMode']).name,
       'chatListColorName': typed<bool>(json['chatListColorName'] ?? false),
+      'chatListShowAvatar': typed<bool>(json['chatListShowAvatar'] ?? true),
       'noEmojiMode': typed<bool>(json['noEmojiMode'] ?? defaultNoEmojiMode),
       'danmakuTopArea': typed<double>(
         _boundedDouble(json['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
@@ -314,6 +319,7 @@ class DanmakuSettingsController extends GetxController {
     chatListBubble.v = parsed['chatListBubble'];
     chatListColorMode.v = parsed['chatListColorMode'];
     chatListColorName.v = parsed['chatListColorName'];
+    chatListShowAvatar.v = parsed['chatListShowAvatar'];
     danmakuMaxVisibleCount.v = parsed['danmakuMaxVisibleCount'];
     noEmojiMode.v = parsed['noEmojiMode'];
     danmakuTopArea.v = parsed['danmakuTopArea'];
@@ -363,6 +369,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListBubble': danmaku['chatListBubble'] ?? true,
       'chatListColorMode': ChatListColorMode.fromName(danmaku['chatListColorMode']).name,
       'chatListColorName': danmaku['chatListColorName'] ?? false,
+      'chatListShowAvatar': danmaku['chatListShowAvatar'] ?? true,
       'danmakuMaxVisibleCount': _boundedInt(
         danmaku['danmakuMaxVisibleCount'],
         fallback: defaultDanmakuMaxVisibleCount,

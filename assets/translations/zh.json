@@ -2552,5 +2552,7 @@
   "multiview_entry_subtitle": "在更多菜单中显示多画面入口",
   "player_preset_entry_subtitle": "套用解码与输出组合，按内核和平台分别保存",
   "chat_list_color_name": "用户名着色",
-  "chat_list_color_name_subtitle": "发送者名称也使用弹幕颜色"
+  "chat_list_color_name_subtitle": "发送者名称也使用弹幕颜色",
+  "chat_list_show_avatar": "显示用户头像",
+  "chat_list_show_avatar_subtitle": "在消息前显示发送者头像（目前仅哔哩哔哩提供）"
 }

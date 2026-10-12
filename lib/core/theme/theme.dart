@@ -102,7 +102,7 @@ class MyTheme {
     final baseTextTheme = isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme;
     final textTheme = _buildTextTheme(base: baseTextTheme, fontFamily: fontFamily);
 
-    final baseTheme = ThemeData(
+    var baseTheme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
       fontFamily: fontFamily,
@@ -111,6 +111,15 @@ class MyTheme {
       textTheme: textTheme,
       primaryTextTheme: textTheme,
     );
+    // 深色模式纯黑背景: pages and the base surface go pure black; raised
+    // containers (cards, sheets) keep their tonal greys so they stay distinct.
+    if (isDark && SettingsService.to.theme.pureBlackDark.v) {
+      baseTheme = baseTheme.copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        canvasColor: Colors.black,
+        colorScheme: baseTheme.colorScheme.copyWith(surface: Colors.black),
+      );
+    }
 
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,

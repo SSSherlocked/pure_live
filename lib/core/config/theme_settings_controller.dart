@@ -17,6 +17,10 @@ class ThemeSettingsController extends GetxController {
   final List<Worker> _workers = [];
   final RxString themeModeName = hiveString('themeMode', defaultThemeModeName);
   final RxBool enableDynamicTheme = hiveBool('enableDynamicTheme', false);
+
+  /// Dark mode paints page and surface backgrounds pure black (OLED); the
+  /// light theme ignores it.
+  final RxBool pureBlackDark = hiveBool('pureBlackDark', false);
   final RxString themeColorSwitch = hiveString('themeColorSwitch', defaultThemeColorHex);
   final RxString languageName = hiveString('language', defaultLanguageName);
   final RxDouble crossAxisSpacing = hiveDouble('crossAxisSpacing', defaultSpacing);
@@ -185,6 +189,7 @@ class ThemeSettingsController extends GetxController {
     return {
       'themeMode': resolvedThemeModeName,
       'enableDynamicTheme': enableDynamicTheme.v,
+      'pureBlackDark': pureBlackDark.v,
       'themeColorSwitch': resolvedThemeColorHex,
       'language': resolvedLanguageName,
       'crossAxisSpacing': resolvedCrossAxisSpacing,
@@ -201,6 +206,7 @@ class ThemeSettingsController extends GetxController {
     return {
       'themeModeName': normalizeThemeMode((json['themeMode'] ?? defaultThemeModeName) as String),
       'enableDynamicTheme': (json['enableDynamicTheme'] ?? false) as bool,
+      'pureBlackDark': (json['pureBlackDark'] ?? false) as bool,
       'themeColorSwitch': normalizeThemeColor((json['themeColorSwitch'] ?? defaultThemeColorHex) as String),
       'languageName': normalizeLanguage((json['language'] ?? json['languageName'] ?? defaultLanguageName) as String),
       'crossAxisSpacing': _parseSpacing(json['crossAxisSpacing']),
@@ -218,6 +224,7 @@ class ThemeSettingsController extends GetxController {
     final parsed = parseConfig(json);
     themeModeName.v = parsed['themeModeName'];
     enableDynamicTheme.v = parsed['enableDynamicTheme'];
+    pureBlackDark.v = parsed['pureBlackDark'];
     themeColorSwitch.v = parsed['themeColorSwitch'];
     languageName.v = parsed['languageName'];
     crossAxisSpacing.v = parsed['crossAxisSpacing'];
@@ -234,6 +241,7 @@ class ThemeSettingsController extends GetxController {
     return {
       'themeMode': parsed['themeModeName'],
       'enableDynamicTheme': parsed['enableDynamicTheme'],
+      'pureBlackDark': parsed['pureBlackDark'],
       'themeColorSwitch': parsed['themeColorSwitch'],
       'language': parsed['languageName'],
       'crossAxisSpacing': parsed['crossAxisSpacing'],

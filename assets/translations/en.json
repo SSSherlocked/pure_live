@@ -2558,5 +2558,7 @@
   "chat_list_show_fans_badge": "Show fan badges",
   "chat_list_show_fans_badge_subtitle": "Show the fan badge and level before the name (Bilibili, Missevan, LOOK, KuGou)",
   "letterbox_page_color": "Page colour around the picture",
-  "letterbox_page_color_subtitle": "In the wide room layout, fill the space around the picture with the page colour instead of black"
+  "letterbox_page_color_subtitle": "In the wide room layout, fill the space around the picture with the page colour instead of black",
+  "pure_black_dark": "Pure black in dark mode",
+  "pure_black_dark_subtitle": "Dark mode only: page backgrounds turn pure black"
 }

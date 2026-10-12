@@ -55,6 +55,16 @@ class ThemeSettingsPage extends GetView<SettingsService> {
               value: SettingsService.to.theme.enableDynamicTheme,
               icon: Remix.magic_line,
             ),
+            // Greyed out while the app is forced to the light theme.
+            Obx(
+              () => context.buildSwitchTile(
+                title: i18n("pure_black_dark"),
+                subtitle: i18n("pure_black_dark_subtitle"),
+                value: SettingsService.to.theme.pureBlackDark,
+                icon: Remix.contrast_drop_2_line,
+                enabled: SettingsService.to.theme.themeMode != ThemeMode.light,
+              ),
+            ),
             Obx(
               () => context.buildTile(
                 iconWidget: SizedBox(

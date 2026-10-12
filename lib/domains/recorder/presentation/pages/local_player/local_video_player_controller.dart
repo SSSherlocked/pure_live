@@ -236,7 +236,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   /// 面上的一条常驻栏只会挡住画面。
   final controlsVisible = true.obs;
 
-  static const Duration controlsHideDelay = Duration(seconds: 5);
+  static const Duration controlsHideDelay = Duration(seconds: 3);
 
   Timer? _controlsHideTimer;
   bool _controlsHovering = false;

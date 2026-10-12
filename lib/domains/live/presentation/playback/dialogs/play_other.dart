@@ -24,10 +24,10 @@ class PlayOther extends StatelessWidget {
       headerLineHeight: theme.textTheme.titleSmall?.height ?? 1.25,
       tabFontSize: theme.textTheme.labelLarge?.fontSize ?? 14,
       tabLineHeight: theme.textTheme.labelLarge?.height ?? 1.43,
-      titleFontSize: theme.textTheme.labelLarge?.fontSize ?? 14,
-      titleLineHeight: theme.textTheme.labelLarge?.height ?? 1.43,
-      detailFontSize: theme.textTheme.labelMedium?.fontSize ?? 12,
-      detailLineHeight: theme.textTheme.labelMedium?.height ?? 1.33,
+      titleFontSize: theme.textTheme.titleMedium?.fontSize ?? 15,
+      titleLineHeight: theme.textTheme.titleMedium?.height ?? 1.5,
+      detailFontSize: theme.textTheme.bodySmall?.fontSize ?? 12,
+      detailLineHeight: theme.textTheme.bodySmall?.height ?? 1.33,
     ).headerHeight;
 
     return PlayerSidePanel(
@@ -125,10 +125,10 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       headerLineHeight: textTheme.titleSmall?.height ?? 1.25,
       tabFontSize: textTheme.labelLarge?.fontSize ?? 14,
       tabLineHeight: textTheme.labelLarge?.height ?? 1.43,
-      titleFontSize: textTheme.labelLarge?.fontSize ?? 14,
-      titleLineHeight: textTheme.labelLarge?.height ?? 1.43,
-      detailFontSize: textTheme.labelMedium?.fontSize ?? 12,
-      detailLineHeight: textTheme.labelMedium?.height ?? 1.33,
+      titleFontSize: textTheme.titleMedium?.fontSize ?? 15,
+      titleLineHeight: textTheme.titleMedium?.height ?? 1.5,
+      detailFontSize: textTheme.bodySmall?.fontSize ?? 12,
+      detailLineHeight: textTheme.bodySmall?.height ?? 1.33,
     );
 
     return Column(
@@ -383,14 +383,15 @@ class _RoomSwitchCard extends StatelessWidget {
                   displayNick,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+                  // The same title/subtitle pair as the danmaku settings panel's rows.
+                  style: AppText.from(theme).sectionTitle,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
+                  style: AppText.from(theme).secondary.copyWith(color: colors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -405,7 +406,7 @@ class _RoomSwitchCard extends StatelessWidget {
                 meta,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelMedium?.copyWith(
+                style: AppText.from(theme).secondary.copyWith(
                   color: playing
                       ? colors.primary
                       : history

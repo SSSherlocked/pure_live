@@ -1045,7 +1045,6 @@
   "window_size_out_of_range": "Enter a window size within the supported range",
   "window_close_action_failed": "The window action failed. Try again.",
   "window_size_apply_failed": "The window size was not applied. Try again",
-  "spacing_value_invalid": "Enter a spacing from 0 to 64",
   "font_not_downloaded_or_corrupted": "Font not downloaded or corrupted, please re-download and apply the font",
   "font_reset_default": "Font reset to default",
   "load_failed": "Load failed",
@@ -1900,5 +1899,12 @@
   "danmaku_filter_group": "Danmaku filters",
   "danmaku_settings_entry_subtitle": "Display, font, filters and chat list style",
   "font_group_settings_subtitle": "Interface font, text sizes and overall scale",
-  "live_panel_settings_subtitle": "Side panel tab order and width"
+  "live_panel_settings_subtitle": "Side panel tab order and width",
+  "favorite_page_group": "Following page",
+  "favorite_show_platform_tabs": "Show platform tabs",
+  "favorite_show_platform_tabs_subtitle": "Off: no platform tab bar (including All); every platform's rooms are listed",
+  "favorite_sort": "Sort",
+  "favorite_sort_name": "Streamer name",
+  "favorite_sort_platform": "Platform",
+  "favorite_sort_audience": "Popularity"
 }

@@ -3,6 +3,8 @@ import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:pinyindart/pinyindart.dart';
+import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/shared/platforms/live_site.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_startup_policy.dart';
@@ -101,6 +103,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
       }),
     );
     _workers.add(ever(SettingsService.to.app.preferRealOnlineCounts, (_) => applyLocalFilter()));
+    _workers.add(ever(SettingsService.to.roomCard.favoriteSortModeName, (_) => applyLocalFilter()));
     _workers.add(ever(SettingsService.to.app.realOnlinePlatforms, (_) => applyLocalFilter()));
 
     // Begin verification during controller startup instead of waiting for the
@@ -371,8 +374,9 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         ? List<LiveRoom>.from(preview.replayRooms)
         : roomsBase.where((r) => r.effectiveLiveStatus == LiveStatus.replay).toList();
 
-    nextOnline.sort(_compareAudience);
-    nextReplay.sort(_compareAudience);
+    _sortRooms(nextOnline);
+    _sortRooms(nextReplay);
+    _sortRooms(nextOffline);
 
     // Build and sort plain lists first, then publish each result once. The old
     // clear/addAll/sort sequence notified every Obx grid several times for one
@@ -421,6 +425,36 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
       if (identicalSnapshot) return;
     }
     target.assignAll(next);
+  }
+
+  /// Orders [rooms] by the 排序 setting; ties fall back to the streamer name.
+  void _sortRooms(List<LiveRoom> rooms) {
+    if (rooms.length < 2) return;
+    // Pinyin keys once per room, not once per comparison.
+    final names = Map<LiveRoom, String>.identity();
+    for (final room in rooms) {
+      names[room] = getPinyin((room.nick ?? '').trim(), withTone: false, separator: '').toLowerCase();
+    }
+    int byName(LiveRoom left, LiveRoom right) => names[left]!.compareTo(names[right]!);
+    switch (SettingsService.to.roomCard.favoriteSortMode) {
+      case FavoriteSortMode.name:
+        rooms.sort(byName);
+      case FavoriteSortMode.platform:
+        final order = [for (final site in availableFavoriteSites) site.id];
+        int rank(LiveRoom room) {
+          final index = order.indexOf(room.normalizedPlatformId);
+          return index < 0 ? order.length : index;
+        }
+        rooms.sort((left, right) {
+          final platform = rank(left).compareTo(rank(right));
+          return platform != 0 ? platform : byName(left, right);
+        });
+      case FavoriteSortMode.audience:
+        rooms.sort((left, right) {
+          final audience = _compareAudience(left, right);
+          return audience != 0 ? audience : byName(left, right);
+        });
+    }
   }
 
   int _compareAudience(LiveRoom left, LiveRoom right) {

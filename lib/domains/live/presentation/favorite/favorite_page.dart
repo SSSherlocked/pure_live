@@ -1,5 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/room_grid_view.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
@@ -19,16 +20,23 @@ class FavoritePage extends GetView<FavoriteController> {
 
           return Scaffold(
             appBar: HomeAppBar(
-              title: ScrollableTabBar(
-                key: const ValueKey('favorite-status-tabs'),
-                controller: controller.tabController,
-                isScrollable: false,
-                tabAlignment: TabAlignment.center,
-                physics: const PureLiveBoundedScrollPhysics(),
-                tabs: [
-                  Tab(text: i18n("online_room_title")),
-                  Tab(text: i18n("recording_room_title")),
-                  Tab(text: i18n("offline_room_title")),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: ScrollableTabBar(
+                      key: const ValueKey('favorite-status-tabs'),
+                      controller: controller.tabController,
+                      isScrollable: false,
+                      tabAlignment: TabAlignment.center,
+                      physics: const PureLiveBoundedScrollPhysics(),
+                      tabs: [
+                        Tab(text: i18n("online_room_title")),
+                        Tab(text: i18n("recording_room_title")),
+                        Tab(text: i18n("offline_room_title")),
+                      ],
+                    ),
+                  ),
+                  const _FavoriteSortButton(),
                 ],
               ),
             ),
@@ -118,30 +126,45 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
     final availableSitesList = widget.availableSitesList;
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: ScrollableTabBar(
-                key: const ValueKey('favorite-platform-tabs'),
-                controller: _tabController,
-                isScrollable: true,
-                physics: const PureLiveBoundedScrollPhysics(),
-                tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
-              ),
-            ),
-            // Desktop has no pull-to-refresh; the refresh that lived in the
-            // page bar sits at the end of the tab bar.
-            if (AppLayout.of(context).pagedLists)
-              Obx(
-                () => IconButton(
-                  key: const ValueKey('favorite-refresh'),
-                  tooltip: i18n('refresh'),
-                  onPressed: controller.loadding.value ? null : () => controller.refreshData(),
-                  icon: const Icon(Icons.refresh_rounded),
+        Obx(() {
+          final showTabs = SettingsService.to.roomCard.showFavoritePlatformTabs.v;
+          final allIndex = availableSitesList.indexWhere((site) => site.id == Sites.allSite);
+          // Without the tab bar the page lists every platform: move to 全部.
+          if (!showTabs && allIndex >= 0 && _tabController.index != allIndex) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _tabController.index != allIndex) _tabController.index = allIndex;
+            });
+          }
+          final refresh = AppLayout.of(context).pagedLists;
+          if (!showTabs && !refresh) return const SizedBox.shrink();
+          return Row(
+            children: [
+              if (showTabs)
+                Expanded(
+                  child: ScrollableTabBar(
+                    key: const ValueKey('favorite-platform-tabs'),
+                    controller: _tabController,
+                    isScrollable: true,
+                    physics: const PureLiveBoundedScrollPhysics(),
+                    tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
+                  ),
+                )
+              else
+                const Spacer(),
+              // Desktop has no pull-to-refresh; the refresh that lived in the
+              // page bar sits at the end of the tab bar.
+              if (AppLayout.of(context).pagedLists)
+                Obx(
+                  () => IconButton(
+                    key: const ValueKey('favorite-refresh'),
+                    tooltip: i18n('refresh'),
+                    onPressed: controller.loadding.value ? null : () => controller.refreshData(),
+                    icon: const Icon(Icons.refresh_rounded),
+                  ),
                 ),
-              ),
-          ],
-        ),
+            ],
+          );
+        }),
         Expanded(
           child: BasePageView<FavoriteController, LiveRoom>(
             controller: controller,
@@ -153,7 +176,10 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
               final activeSiteIndex = controller.tabSiteIndex.value;
               return TabBarView(
                 controller: _tabController,
-                physics: const PureLiveBoundedScrollPhysics(),
+                // No swiping to another platform while the tab bar is hidden.
+                physics: SettingsService.to.roomCard.showFavoritePlatformTabs.v
+                    ? const PureLiveBoundedScrollPhysics()
+                    : const NeverScrollableScrollPhysics(),
                 children: availableSitesList.asMap().entries.map((entry) {
                   final site = entry.value;
                   return Builder(
@@ -224,6 +250,46 @@ class _FavoriteEmptyState extends StatelessWidget {
         subtitle: subtitle,
         buttonText: canShowOffline ? i18n('favorite_show_offline') : i18n('retry'),
         onButtonPressed: canShowOffline ? () => controller.animateToStatusIndex(2) : controller.refreshData,
+      );
+    });
+  }
+}
+
+/// The 排序 button at the end of the status tabs: a small, quiet icon that
+/// opens the three orders, the current one bold in the primary colour.
+class _FavoriteSortButton extends StatelessWidget {
+  const _FavoriteSortButton();
+
+  static String labelOf(FavoriteSortMode mode) => switch (mode) {
+    FavoriteSortMode.name => i18n('favorite_sort_name'),
+    FavoriteSortMode.platform => i18n('favorite_sort_platform'),
+    FavoriteSortMode.audience => i18n('favorite_sort_audience'),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final settings = SettingsService.to.roomCard;
+    return Obx(() {
+      final current = settings.favoriteSortMode;
+      return PopupMenuButton<FavoriteSortMode>(
+        key: const ValueKey('favorite-sort'),
+        tooltip: i18n('favorite_sort'),
+        icon: Icon(Icons.filter_list_rounded, size: 20, color: colors.onSurfaceVariant),
+        onSelected: (mode) => settings.favoriteSortModeName.v = mode.name,
+        itemBuilder: (context) => [
+          for (final mode in FavoriteSortMode.values)
+            PopupMenuItem<FavoriteSortMode>(
+              value: mode,
+              child: Text(
+                labelOf(mode),
+                style: AppText.of(context).body.copyWith(
+                  color: mode == current ? colors.primary : null,
+                  fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+        ],
       );
     });
   }

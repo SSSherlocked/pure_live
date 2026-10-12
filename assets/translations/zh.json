@@ -1045,7 +1045,6 @@
   "window_size_out_of_range": "请输入支持范围内的窗口尺寸",
   "window_close_action_failed": "窗口操作失败，请重试",
   "window_size_apply_failed": "窗口尺寸应用失败，请重试",
-  "spacing_value_invalid": "请输入 0 到 64 之间的间距",
   "font_not_downloaded_or_corrupted": "所选字体未下载或已损坏，请重新选择或下载",
   "font_reset_default": "字体已成功重置为默认值",
   "load_failed": "数据加载失败",
@@ -1900,5 +1899,12 @@
   "danmaku_filter_group": "弹幕过滤",
   "danmaku_settings_entry_subtitle": "显示、字体、过滤与弹幕列表样式",
   "font_group_settings_subtitle": "界面字体、各级字号与全局缩放",
-  "live_panel_settings_subtitle": "侧栏标签顺序与宽度"
+  "live_panel_settings_subtitle": "侧栏标签顺序与宽度",
+  "favorite_page_group": "关注页",
+  "favorite_show_platform_tabs": "显示平台栏",
+  "favorite_show_platform_tabs_subtitle": "关闭后不显示顶部平台栏（包括“全部”），列出所有平台的关注",
+  "favorite_sort": "排序",
+  "favorite_sort_name": "主播名称",
+  "favorite_sort_platform": "平台",
+  "favorite_sort_audience": "人气"
 }

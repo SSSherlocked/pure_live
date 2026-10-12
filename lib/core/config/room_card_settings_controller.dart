@@ -317,6 +317,15 @@ class RoomCardSettingsController extends GetxController {
 
   /// The chosen column count for this device, or 0 for automatic.
   int get currentColumns => columnsFor(currentViewport);
+
+  /// Whether the home 关注 page shows its platform tab bar; without it the
+  /// page lists every platform's rooms.
+  final RxBool showFavoritePlatformTabs = hiveBool('favorite_show_platform_tabs', true);
+
+  /// How the home 关注 page orders its rooms; a [FavoriteSortMode] name.
+  final RxString favoriteSortModeName = hiveString('favorite_sort_mode', FavoriteSortMode.name.name);
+
+  FavoriteSortMode get favoriteSortMode => FavoriteSortMode.fromName(favoriteSortModeName.v);
   final List<Worker> _workers = [];
 
   static RoomCardPreset normalizePreset(String? value) {
@@ -427,6 +436,8 @@ class RoomCardSettingsController extends GetxController {
       'desktopCardWidth': cardWidthFor(RoomCardViewport.desktop),
       'mobileColumns': columnsFor(RoomCardViewport.mobile),
       'desktopColumns': columnsFor(RoomCardViewport.desktop),
+      'showFavoritePlatformTabs': showFavoritePlatformTabs.v,
+      'favoriteSortMode': favoriteSortMode.name,
     };
   }
 
@@ -455,6 +466,10 @@ class RoomCardSettingsController extends GetxController {
       'desktopCardWidth': _readCardWidth(source, 'desktopCardWidth'),
       'mobileColumns': _readColumns(source, 'mobileColumns'),
       'desktopColumns': _readColumns(source, 'desktopColumns'),
+      'showFavoritePlatformTabs': source['showFavoritePlatformTabs'] is bool
+          ? source['showFavoritePlatformTabs'] as bool
+          : true,
+      'favoriteSortMode': FavoriteSortMode.fromName(source['favoriteSortMode']).name,
     };
   }
 
@@ -501,6 +516,8 @@ class RoomCardSettingsController extends GetxController {
     desktopCardWidth.v = parsed['desktopCardWidth'] as double;
     mobileColumns.v = parsed['mobileColumns'] as int;
     desktopColumns.v = parsed['desktopColumns'] as int;
+    showFavoritePlatformTabs.v = parsed['showFavoritePlatformTabs'] as bool;
+    favoriteSortModeName.v = parsed['favoriteSortMode'] as String;
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
@@ -512,6 +529,25 @@ class RoomCardSettingsController extends GetxController {
       'desktopConfig': (parsed['desktopConfig'] as RoomCardAppearance).toJson(),
       'mobileCardWidth': parsed['mobileCardWidth'],
       'desktopCardWidth': parsed['desktopCardWidth'],
+      'mobileColumns': parsed['mobileColumns'],
+      'desktopColumns': parsed['desktopColumns'],
+      'showFavoritePlatformTabs': parsed['showFavoritePlatformTabs'],
+      'favoriteSortMode': parsed['favoriteSortMode'],
     };
   }
+}
+
+/// How the home 关注 page orders its rooms.
+enum FavoriteSortMode {
+  /// By streamer name.
+  name,
+
+  /// By platform (in the configured platform order), then streamer name.
+  platform,
+
+  /// By audience, largest first.
+  audience;
+
+  static FavoriteSortMode fromName(Object? value) =>
+      values.firstWhere((mode) => mode.name == value, orElse: () => FavoriteSortMode.name);
 }

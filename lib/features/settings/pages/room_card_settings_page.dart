@@ -3,7 +3,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
-import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
 
 class RoomCardSettingsPage extends StatefulWidget {
   const RoomCardSettingsPage({super.key});
@@ -162,18 +162,68 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 displayValue: config.cornerRadius.toStringAsFixed(0),
                 onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(cornerRadius: value)),
               ),
-              // Gaps between cards in the grids, from the former 主题定制 group.
-              context.buildTile(
+              // Gaps between cards in the grids.
+              context.buildSliderTile(
+                context,
                 icon: Remix.arrow_left_right_line,
                 title: i18n("cross_axis_spacing"),
                 subtitle: i18n("cross_axis_spacing_subtitle"),
-                onTap: () => const ThemeSettingsPage().showCrossAxisSpacingDialog(context),
+                value: SettingsService.to.theme.resolvedCrossAxisSpacing,
+                min: ThemeSettingsController.minSpacing,
+                max: ThemeSettingsController.maxSpacing,
+                displayValue: SettingsService.to.theme.resolvedCrossAxisSpacing.round().toString(),
+                onChanged: (value) => SettingsService.to.theme.crossAxisSpacing.v = value.roundToDouble(),
               ),
-              context.buildTile(
+              context.buildSliderTile(
+                context,
                 icon: Remix.arrow_up_down_line,
                 title: i18n("main_axis_spacing"),
                 subtitle: i18n("main_axis_spacing_subtitle"),
-                onTap: () => const ThemeSettingsPage().showMainAxisSpacingDialog(context),
+                value: SettingsService.to.theme.resolvedMainAxisSpacing,
+                min: ThemeSettingsController.minSpacing,
+                max: ThemeSettingsController.maxSpacing,
+                displayValue: SettingsService.to.theme.resolvedMainAxisSpacing.round().toString(),
+                onChanged: (value) => SettingsService.to.theme.mainAxisSpacing.v = value.roundToDouble(),
+              ),
+            ]),
+            const SizedBox(height: 20),
+            // The home 关注 page: its platform tab bar and room order (the
+            // order is also the 排序 button on that page).
+            context.buildGroupTitle(i18n('favorite_page_group')),
+            context.buildModernCard([
+              _toggle(
+                icon: Remix.apps_2_line,
+                title: i18n('favorite_show_platform_tabs'),
+                subtitle: i18n('favorite_show_platform_tabs_subtitle'),
+                value: controller.showFavoritePlatformTabs.v,
+                onChanged: (value) => controller.showFavoritePlatformTabs.v = value,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(i18n('favorite_sort'), style: AppText.of(context).sectionTitle),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      key: const ValueKey('room-card-favorite-sort'),
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final mode in FavoriteSortMode.values)
+                          ChoiceChip(
+                            label: Text(switch (mode) {
+                              FavoriteSortMode.name => i18n('favorite_sort_name'),
+                              FavoriteSortMode.platform => i18n('favorite_sort_platform'),
+                              FavoriteSortMode.audience => i18n('favorite_sort_audience'),
+                            }),
+                            selected: controller.favoriteSortMode == mode,
+                            onSelected: (_) => controller.favoriteSortModeName.v = mode.name,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ]),
             const SizedBox(height: 20),

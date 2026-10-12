@@ -266,6 +266,10 @@ dependencies:
 
 # 依赖覆盖（强制指定版本）
 dependency_overrides:
+  # Vendored snapshot with top-first lane allocation (see plugins/flame_barrage/README.md);
+  # media_core_danmaku depends on it too.
+  flame_barrage:
+    path: plugins/flame_barrage
   # media_kit 链与 better_player_plus 对 wakelock_plus 的约束无交集,
   # 与 media_core 工作区同样以 override 对齐
   wakelock_plus: ^1.7.0

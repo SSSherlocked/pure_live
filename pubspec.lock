@@ -730,12 +730,11 @@ packages:
     source: hosted
     version: "1.38.2"
   flame_barrage:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
-      name: flame_barrage
-      sha256: "15541ff9c2b9afc003b3a607754a8dbcce8679b6868e9c1da83927f6389b9bc5"
-      url: "https://pub.dev"
-    source: hosted
+      path: "plugins/flame_barrage"
+      relative: true
+    source: path
     version: "0.0.9"
   flex_color_picker:
     dependency: "direct main"

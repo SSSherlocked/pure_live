@@ -262,13 +262,14 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               _slider(
                 theme,
-                title: i18n("danmaku_area"),
-                value: controller.danmakuArea.value,
-                min: 0,
+                title: i18n("danmaku_display_area"),
+                value: DanmakuSettingsController.normalizeDanmakuArea(controller.danmakuArea.value),
+                min: DanmakuSettingsController.minDanmakuArea,
                 max: 1,
-                display: "${(controller.danmakuArea.value * 100).toInt()}%",
-                semanticValueBuilder: (value) => '${(value * 100).toInt()}%',
-                onChanged: (v) => controller.danmakuArea.value = v,
+                stepSize: DanmakuSettingsController.danmakuAreaStep,
+                display: "${(controller.danmakuArea.value * 100).round()}%",
+                semanticValueBuilder: (value) => '${(value * 100).round()}%',
+                onChanged: (v) => controller.danmakuArea.value = DanmakuSettingsController.normalizeDanmakuArea(v),
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),
@@ -557,7 +558,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       return;
     }
     controller.noEmojiMode.v = template.noEmojiMode;
-    controller.danmakuArea.v = template.area;
+    controller.danmakuArea.v = DanmakuSettingsController.normalizeDanmakuArea(template.area);
     controller.danmakuTopArea.v = template.top;
     controller.danmakuBottomArea.v = template.bottom;
     controller.danmakuSpeed.v = template.speed;

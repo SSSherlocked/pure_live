@@ -97,7 +97,20 @@ class DanmakuSettingsController extends GetxController {
   ChatListColorMode get resolvedChatListColorMode => ChatListColorMode.fromName(chatListColorMode.v);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
   final RxDouble danmakuTopArea = hiveDouble('danmakuTopArea', defaultDanmakuTopArea);
+  /// Share of the picture's height the scrolling danmaku may use: 10% to 100%
+  /// in 5% steps.
   final RxDouble danmakuArea = hiveDouble('danmakuArea', defaultDanmakuArea);
+
+  static const double minDanmakuArea = 0.1;
+  static const double danmakuAreaStep = 0.05;
+
+  /// Clamps [raw] to 10%-100% and snaps it to the 5% grid; anything that is not
+  /// a finite number falls back to the full area.
+  static double normalizeDanmakuArea(Object? raw) {
+    final value = _boundedDouble(raw, fallback: defaultDanmakuArea, min: minDanmakuArea, max: 1);
+    final snapped = (value / danmakuAreaStep).round() * danmakuAreaStep;
+    return double.parse(snapped.clamp(minDanmakuArea, 1.0).toStringAsFixed(2));
+  }
   final RxDouble danmakuBottomArea = hiveDouble('danmakuBottomArea', defaultDanmakuBottomArea);
   final RxDouble danmakuSpeed = hiveDouble('danmakuSpeed', defaultDanmakuSpeed);
   final RxDouble danmakuFontSize = hiveDouble('danmakuFontSize', defaultDanmakuFontSize);
@@ -155,7 +168,7 @@ class DanmakuSettingsController extends GetxController {
   void onInit() {
     super.onInit();
     danmakuTopArea.v = _boundedDouble(danmakuTopArea.v, fallback: defaultDanmakuTopArea, min: 0, max: 300);
-    danmakuArea.v = _boundedDouble(danmakuArea.v, fallback: defaultDanmakuArea, min: 0, max: 1);
+    danmakuArea.v = normalizeDanmakuArea(danmakuArea.v);
     danmakuBottomArea.v = _boundedDouble(danmakuBottomArea.v, fallback: defaultDanmakuBottomArea, min: 0, max: 300);
     danmakuSpeed.v = _boundedDouble(danmakuSpeed.v, fallback: defaultDanmakuSpeed, min: 20, max: 400);
     danmakuFontSize.v = _boundedDouble(danmakuFontSize.v, fallback: defaultDanmakuFontSize, min: 10, max: 30);
@@ -281,7 +294,7 @@ class DanmakuSettingsController extends GetxController {
       'danmakuTopArea': typed<double>(
         _boundedDouble(json['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
       ),
-      'danmakuArea': typed<double>(_boundedDouble(json['danmakuArea'], fallback: defaultDanmakuArea, min: 0, max: 1)),
+      'danmakuArea': typed<double>(normalizeDanmakuArea(json['danmakuArea'])),
       'danmakuBottomArea': typed<double>(
         _boundedDouble(json['danmakuBottomArea'], fallback: defaultDanmakuBottomArea, min: 0, max: 300),
       ),
@@ -414,7 +427,7 @@ class DanmakuSettingsController extends GetxController {
       ),
       'noEmojiMode': danmaku['noEmojiMode'] ?? defaultNoEmojiMode,
       'danmakuTopArea': _boundedDouble(danmaku['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
-      'danmakuArea': _boundedDouble(danmaku['danmakuArea'], fallback: defaultDanmakuArea, min: 0, max: 1),
+      'danmakuArea': normalizeDanmakuArea(danmaku['danmakuArea']),
       'danmakuBottomArea': _boundedDouble(
         danmaku['danmakuBottomArea'],
         fallback: defaultDanmakuBottomArea,

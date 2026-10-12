@@ -1920,5 +1920,6 @@
   "letterbox_page_color": "画面外使用界面底色",
   "letterbox_page_color_subtitle": "宽屏直播间中，画面以外的区域使用界面底色而非黑色",
   "pure_black_dark": "深色模式纯黑背景",
-  "pure_black_dark_subtitle": "仅在深色模式下生效，页面背景改为纯黑"
+  "pure_black_dark_subtitle": "仅在深色模式下生效，页面背景改为纯黑",
+  "danmaku_display_area": "弹幕显示区域"
 }

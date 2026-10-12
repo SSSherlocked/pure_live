@@ -86,6 +86,24 @@ class AppNavigator {
     await Get.toNamed(RoutePath.kMultiview);
   }
 
+  /// Douyu sign-in: web login (takes the cookie and LTP0 by itself) or the
+  /// manual cookie page. Linux has no WebView, so it goes straight to the
+  /// manual page; everywhere else the manual page stays one choice away.
+  static Future<void> toDouyuLogin() async {
+    if (Platform.isLinux) {
+      await Get.toNamed(RoutePath.kDouyuAccountCookie);
+      return;
+    }
+    final web = i18n('douyu_web_login_option');
+    final manual = i18n('douyu_manual_cookie_option');
+    final result = await AppPromptDialogs.showOptionDialog([web, manual], '', title: i18n('select_login_method'));
+    if (result == web) {
+      await Get.toNamed(RoutePath.kDouyuWebLogin);
+    } else if (result == manual) {
+      await Get.toNamed(RoutePath.kDouyuAccountCookie);
+    }
+  }
+
   static Future toBiliBiliLogin() async {
     var contents = [i18n("sms_login"), i18n("qrcode_login")];
     if (Platform.isAndroid || Platform.isIOS) {

@@ -5,6 +5,43 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:remixicon/remixicon.dart';
 
+/// Replaces every credential in an exported configuration before it is shown.
+///
+/// The preview is the full export, so it carries each platform's cookie, the
+/// Douyu renewal key and the WebDAV password. None of that belongs on screen
+/// (or in a screenshot): the whole `cookie` section is masked, and so is any
+/// field elsewhere whose name says it is a credential. Only the length is kept,
+/// so the viewer can still see that a value is set.
+@visibleForTesting
+Map<String, dynamic> maskConfigSecrets(Map<String, dynamic> config) {
+  return {for (final entry in config.entries) entry.key: _maskValue(entry.key, entry.value, inSecretSection: false)};
+}
+
+const Set<String> _secretSections = <String>{'cookie'};
+const List<String> _secretKeyParts = <String>['cookie', 'password', 'passwd', 'token', 'secret', 'ltp0'];
+
+bool _isSecretKey(String key) {
+  final lower = key.toLowerCase();
+  return _secretKeyParts.any(lower.contains);
+}
+
+Object? _maskValue(String key, Object? value, {required bool inSecretSection}) {
+  final secretSection = inSecretSection || _secretSections.contains(key);
+  if (value is Map) {
+    return {
+      for (final entry in value.entries)
+        '${entry.key}': _maskValue('${entry.key}', entry.value, inSecretSection: secretSection),
+    };
+  }
+  if (value is List) {
+    return [for (final item in value) _maskValue(key, item, inSecretSection: secretSection)];
+  }
+  if (value is String && value.isNotEmpty && (secretSection || _isSecretKey(key))) {
+    return i18n('local_config_secret_masked', args: {'count': '${value.length}'});
+  }
+  return value;
+}
+
 class LocalConfigPreviewPage extends StatefulWidget {
   const LocalConfigPreviewPage({super.key});
 
@@ -36,7 +73,8 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
 
       _favoriteCount = favoriteRooms.length;
       _historyCount = historyList is List ? historyList.length : 0;
-      _configData = json.decode(json.encode(data)) as Map<String, dynamic>;
+      // Credentials never reach the screen; see [maskConfigSecrets].
+      _configData = maskConfigSecrets(json.decode(json.encode(data)) as Map<String, dynamic>);
     } catch (error) {
       _errorMsg = error.toString();
     } finally {

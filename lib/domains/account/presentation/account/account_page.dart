@@ -191,8 +191,8 @@ class AccountPage extends GetView<AccountController> {
                         onConfirm: cookie.clearDouyuSession,
                       )
                     // A cookie that no longer holds a session is replaced, not
-                    // signed out of: the editor is where the viewer fixes it.
-                    : Get.toNamed(RoutePath.kDouyuAccountCookie),
+                    // signed out of: web login, or the manual cookie page.
+                    : AppNavigator.toDouyuLogin(),
               );
             }),
           ]),

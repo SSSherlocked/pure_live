@@ -7,6 +7,7 @@ import 'package:pure_live/shared/platforms/live_directory.dart';
 import 'package:pure_live/domains/account/presentation/account/account_controller.dart';
 import 'package:pure_live/domains/account/presentation/account/douyin/douyin_cookie_controller.dart';
 import 'package:pure_live/domains/account/presentation/account/douyu/douyu_cookie_controller.dart';
+import 'package:pure_live/domains/account/presentation/account/douyu/douyu_web_login_controller.dart';
 import 'package:pure_live/domains/account/presentation/account/huya/huya_cookie_controller.dart';
 import 'package:pure_live/domains/account/presentation/account/kuaishou/kuaishou_cookie_controller.dart';
 import 'package:pure_live/domains/account/presentation/account/soop/soop_cookie_controller.dart';
@@ -47,6 +48,11 @@ class DouyinCookieBinding extends Binding {
 class DouyuCookieBinding extends Binding {
   @override
   List<Bind> dependencies() => [Bind.lazyPut(() => DouyuCookieController())];
+}
+
+class DouyuWebLoginBinding extends Binding {
+  @override
+  List<Bind> dependencies() => [Bind.lazyPut(() => DouyuWebLoginController())];
 }
 
 class HuyaCookieBinding extends Binding {

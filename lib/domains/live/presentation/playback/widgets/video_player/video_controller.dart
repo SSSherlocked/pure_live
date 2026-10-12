@@ -24,6 +24,7 @@ import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_surface.dart';
+import 'package:pure_live/core/player/presentation/danmaku/danmaku_speed_scale.dart';
 import 'package:screen_brightness_platform_interface/screen_brightness_platform_interface.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_message_actions.dart';
@@ -224,9 +225,9 @@ class DanmakuManager {
           shadowBlur: localStyle?.shadowBlur,
           shadowOffset: localStyle == null ? null : Offset(localStyle.shadowOffset, localStyle.shadowOffset),
           fixedDuration: localStyle == null ? null : Duration(milliseconds: localStyle.fixedDurationMs),
-          // A single px/s value keeps portrait, landscape and desktop motion
-          // consistent. Lane collision avoidance is handled by the engine.
-          baseSpeed: localStyle?.baseSpeed ?? videoController.danmakuSpeed.value,
+          // Ordinary messages take the surface's width-scaled config speed
+          // (see DanmakuSpeedScale); a local style's own px/s is scaled alike.
+          baseSpeed: localStyle == null ? null : localStyle.baseSpeed * DanmakuSpeedScale.of(controller),
           onTapUp: settings.enableDanmakuTapInteraction.v ? () => _openMessageActions(msg, fromLongPress: false) : null,
           onLongTapDown: settings.enableDanmakuLongPressInteraction.v
               ? () => _openMessageActions(msg, fromLongPress: true)
@@ -1045,7 +1046,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         area: danmakuArea.value,
         topAreaDistance: danmakuTopArea.value,
         bottomAreaDistance: danmakuBottomArea.value,
-        baseSpeed: danmakuSpeed.value,
+        baseSpeed: danmakuSpeed.value * DanmakuSpeedScale.of(danmakuController),
         opacity: danmakuOpacity.value,
         fontWeight: FontWeight(danmakuFontWeight.value),
         strokeWidth: danmakuFontBorder.value,

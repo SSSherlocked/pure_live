@@ -20,10 +20,11 @@ function Fake-Document {
     $body=switch($script:fake.Page){
         'home' {Node '菜单' 100}
         'drawer' {Node '设置' 200}
-        'settings' {Node '自定义网络代理' 300}
+        'settings' {Node '通用' 300}
         'proxy' {
+            # The 通用 page: its first entry, and the flat proxy group below.
             $playerY=if($script:fake.App){440}else{240}
-            $parts=@((Node '启用应用层代理' 100 $script:fake.App -Switch),(Node '启用播放代理' $playerY $script:fake.Player -Switch))
+            $parts=@((Node '主题定制' 1400),(Node '启用应用层代理' 100 $script:fake.App -Switch),(Node '启用播放代理' $playerY $script:fake.Player -Switch))
             foreach($pair in @(@($script:fake.App,200),@($script:fake.Player,($playerY+100)))){
                 if($pair[0]){
                     $hostValue=if($script:fake.BadEndpoint){''}else{'127.0.0.1'}

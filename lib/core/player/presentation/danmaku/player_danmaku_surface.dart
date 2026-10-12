@@ -1,5 +1,7 @@
 import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
+import 'package:pure_live/core/player/presentation/danmaku/danmaku_speed_scale.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 
 /// The shared on-picture danmaku renderer.
@@ -40,6 +42,19 @@ class PlayerDanmakuSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) => _build(context, constraints.maxWidth));
+  }
+
+  Widget _build(BuildContext context, double surfaceWidth) {
+    // Same crossing time inline as in fullscreen on phones; see
+    // [DanmakuSpeedScale]. Recorded so the controller's own config pushes and
+    // per-message speeds use the same factor.
+    final speedScale = DanmakuSpeedScale.resolve(
+      surfaceWidth: surfaceWidth,
+      screen: MediaQuery.sizeOf(context),
+      mobile: PlatformUtils.isMobile,
+    );
+    DanmakuSpeedScale.record(controller, speedScale);
     return Obx(() {
       final danmaku = SettingsService.to.danmaku;
       final player = SettingsService.to.player;
@@ -64,7 +79,7 @@ class PlayerDanmakuSurface extends StatelessWidget {
           topAreaDistance: settings.danmakuTopArea.value,
           area: area,
           bottomAreaDistance: settings.danmakuBottomArea.value,
-          baseSpeed: settings.danmakuSpeed.value,
+          baseSpeed: settings.danmakuSpeed.value * speedScale,
           opacity: settings.danmakuOpacity.value,
           fontWeight: FontWeight(settings.danmakuFontWeight.value),
           letterSpacing: settings.danmakuLetterSpacing.value,

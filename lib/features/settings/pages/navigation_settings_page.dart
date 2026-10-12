@@ -176,6 +176,15 @@ class NavigationSettingsPage extends StatelessWidget {
               ),
             );
           }),
+          if (PlatformUtils.isMobile)
+            Padding(
+              key: const ValueKey('navigation-single-tab-hint'),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                i18n('bottom_bar_single_tab_hint'),
+                style: AppTextStyles.t12.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75)),
+              ),
+            ),
           const SizedBox(height: 32),
         ],
       )),

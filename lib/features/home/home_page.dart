@@ -117,11 +117,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
       if (!mounted) {
         return;
       }
-      List<String> value = List<String>.from(v as List);
-      final bool isTablet = Get.width > 680;
-      if (isTablet) {
-        value = value.where((id) => id != HomeMenu.record.id).toList();
-      }
+      // 录制中心 is a menu entry on every layout, never a home tab.
+      final value = List<String>.from(v as List).where((id) => id != HomeMenu.record.id).toList();
       if (value.isEmpty) {
         setState(() {
           _selectedIndex = -1;
@@ -176,11 +173,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
   }
 
   void _syncInitialIndex() {
-    List<String> activeIds = SettingsService.to.app.savedMenuIds.v;
-    final bool isTablet = Get.width > 680;
-    if (isTablet) {
-      activeIds = activeIds.where((id) => id != HomeMenu.record.id).toList();
-    }
+    final activeIds = SettingsService.to.app.savedMenuIds.v.where((id) => id != HomeMenu.record.id).toList();
     if (activeIds.isNotEmpty) {
       final firstMenu = HomeMenu.fromId(activeIds.first);
       if (firstMenu != null) {
@@ -244,10 +237,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
 
           return Obx(() {
             final activeMenuIds = List<String>.from(SettingsService.to.app.savedMenuIds.v);
-            List<String> tabletActiveMenuIds = List.from(activeMenuIds);
-            if (isTablet) {
-              tabletActiveMenuIds.remove(HomeMenu.record.id);
-            }
+            // 录制中心 is reached from the menu on every layout.
+            final tabletActiveMenuIds = List<String>.from(activeMenuIds)..remove(HomeMenu.record.id);
 
             int adjustedIndex = _selectedIndex;
             Widget currentWidget = const SizedBox.shrink();
@@ -255,7 +246,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
             if (tabletActiveMenuIds.isNotEmpty) {
               if (adjustedIndex < 0 ||
                   adjustedIndex >= HomeMenu.values.length ||
-                  (isTablet && HomeMenu.values[adjustedIndex] == HomeMenu.record)) {
+                  HomeMenu.values[adjustedIndex] == HomeMenu.record) {
                 final fallbackMenu = HomeMenu.fromId(tabletActiveMenuIds.first);
                 if (fallbackMenu != null) {
                   adjustedIndex = fallbackMenu.index;

@@ -1,5 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/consts/app_consts.dart';
 
 class CommonAppBarActions extends StatelessWidget {
   const CommonAppBarActions({super.key});
@@ -24,6 +25,9 @@ class CommonAppBarActions extends StatelessWidget {
                 break;
               case 2:
                 AppNavigator.toMultiview();
+                break;
+              case 3:
+                Get.toNamed(RoutePath.kRecordPage);
                 break;
             }
           },
@@ -61,6 +65,20 @@ class CommonAppBarActions extends StatelessWidget {
                     Icon(Remix.layout_grid_line, size: 20, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 12),
                     Text(i18n("multiview_title"), style: AppTextStyles.t14),
+                  ],
+                ),
+              ),
+            // 录制中心 is never a bottom tab; while the navigation settings show
+            // it, it is the last entry here (the desktop rail menu does the same).
+            if (SettingsService.to.app.savedMenuIds.v.contains(HomeMenu.record.id))
+              PopupMenuItem(
+                value: 3,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  children: [
+                    Icon(Remix.download_2_line, size: 20, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 12),
+                    Text(i18n("record_center"), style: AppTextStyles.t14),
                   ],
                 ),
               ),

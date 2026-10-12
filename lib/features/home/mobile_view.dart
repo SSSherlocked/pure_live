@@ -20,7 +20,8 @@ class HomeMobileView extends StatelessWidget {
       bottomNavigationBar: Obx(() {
         final List<NavigationDestination> destinations = [];
         final List<int> virtualToRealMap = [];
-        final activeMenuIds = SettingsService.to.app.savedMenuIds.v;
+        // 录制中心 lives in the top-right menu, not in this bar.
+        final activeMenuIds = SettingsService.to.app.savedMenuIds.v.where((id) => id != HomeMenu.record.id);
         for (String id in activeMenuIds) {
           final menu = HomeMenu.fromId(id);
           if (menu != null) {

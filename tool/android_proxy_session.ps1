@@ -223,16 +223,21 @@ function Open-ProxySettings {
         $settings=Find-ProxyVisibleNode '设置' -Attempts 1
         Invoke-ProxyTap $settings
     }
-    $network=Find-ProxyVisibleNode '自定义网络代理'
-    Invoke-ProxyTap $network
+    # The proxy switches are a group inside 设置 → 通用 (no page of their own).
+    $general=Find-ProxyVisibleNode '通用'
+    Invoke-ProxyTap $general
     # A successful input command is not proof that the intended route opened.
     # Observe a bounded transition, without replaying the tap or scrolling the
-    # previous settings page while looking for proxy-page switches.
+    # previous settings page: 主题定制 is the first entry of the 通用 page.
+    $opened=$false
     for($i=0;$i -lt 3;$i++){
         $document=Get-ProxyUiDocument
-        if($null -ne (Find-ProxyNode $document '启用应用层代理' -Switch)){return}
+        if($null -ne (Find-ProxyNode $document '启用应用层代理' -Switch) -or
+           $null -ne (Find-ProxyNode $document '主题定制')){$opened=$true;break}
     }
-    throw 'Proxy page did not open after its single navigation tap.'
+    if(-not $opened){throw 'Proxy page did not open after its single navigation tap.'}
+    # Only now, on the 通用 page, scroll down to the proxy group.
+    Find-ProxyVisibleNode '启用应用层代理' -Switch | Out-Null
 }
 
 function Set-ProxySwitch {

@@ -334,18 +334,6 @@
             3168
           ]
         },
-        "settings.network_proxy_after_scroll1": {
-          "x": 720,
-          "y": 835,
-          "label": "设置向下滚动一次后：自定义网络代理",
-          "semantic": "自定义网络代理",
-          "bounds": [
-            64,
-            659,
-            1376,
-            1011
-          ]
-        },
         "settings.local_interaction_after_scroll2": {
           "x": 720,
           "y": 542,
@@ -2999,30 +2987,6 @@
             2465,
             1147,
             2608
-          ]
-        },
-        "settings.network_proxy_after_scroll1": {
-          "x": 600,
-          "y": 687,
-          "label": "设置向下滚动一次后：自定义网络代理",
-          "semantic": "自定义网络代理",
-          "bounds": [
-            53,
-            543,
-            1147,
-            832
-          ]
-        },
-        "settings.network_proxy_after_short_scroll": {
-          "x": 600,
-          "y": 1615,
-          "label": "设置短距离下滑后：自定义网络代理（3.1.8 当前布局）",
-          "semantic": "自定义网络代理",
-          "bounds": [
-            48,
-            1483,
-            1152,
-            1747
           ]
         },
         "settings.local_interaction_after_scroll2": {

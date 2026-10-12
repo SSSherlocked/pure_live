@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:ffi' show Abi;
 
 import 'package:pure_live/core/index.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pure_live/core/release/release_asset_urls.dart';
 
 typedef VersionUpdateChecker = Future<bool> Function();
 typedef VersionPackageInfoLoader = Future<PackageInfo> Function();
@@ -73,7 +75,9 @@ class VersionController extends GetxController {
       windowsSetupUrl.value = assetUrls['windows-x64-setup.exe'] ?? '';
       windowsPortableUrl.value = assetUrls['windows-x64-portable.zip'] ?? '';
 
-      macosUrl.value = assetUrls['macos-universal.dmg'] ?? assetUrls['macos-universal.zip'] ?? '';
+      // Apple Silicon and Intel are separate packages; a running app is
+      // native to its Mac (an Intel copy under Rosetta asks for Intel again).
+      macosUrl.value = macosPackageFor(assetUrls, arm64: Abi.current() == Abi.macosArm64) ?? '';
 
       linuxDebUrl.value = assetUrls['linux-x64.deb'] ?? '';
       linuxZipUrl.value = assetUrls['linux-x64.zip'] ?? '';

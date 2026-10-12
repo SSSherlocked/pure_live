@@ -124,22 +124,35 @@ class ReleaseAssetUrls {
     extensions: const <String>['.zip'],
   );
 
-  /// macOS universal ZIP.
+  /// macOS Apple Silicon ZIP.
+  String? get macosArm64Zip => _find(
+    requiredKeywords: const <String>['macos', 'arm64'],
+    preferredKeywords: const <String>[],
+    extensions: const <String>['.zip'],
+  );
+
+  /// macOS Intel ZIP.
+  String? get macosX64Zip => _find(
+    requiredKeywords: const <String>['macos', 'x64'],
+    preferredKeywords: const <String>[],
+    extensions: const <String>['.zip'],
+  );
+
+  /// macOS universal ZIP (releases up to 3.2.1).
   String? get macosUniversalZip => _find(
     requiredKeywords: const <String>['macos', 'universal'],
     preferredKeywords: const <String>[],
     extensions: const <String>['.zip'],
   );
 
-  /// macOS universal DMG.
+  /// macOS universal DMG (releases up to 3.2.1).
   String? get macosUniversalDmg => _find(
     requiredKeywords: const <String>['macos', 'universal'],
     preferredKeywords: const <String>[],
     extensions: const <String>['.dmg'],
   );
 
-  /// Prefers DMG first, then ZIP.
-  /// Change the order if you want ZIP to be preferred.
+  /// The universal package, DMG before ZIP.
   String? get macosUrl => macosUniversalDmg ?? macosUniversalZip;
 
   /// Linux x64 tar.gz.
@@ -193,6 +206,8 @@ class ReleaseAssetUrls {
     add('android-x86_64', androidX8664);
     add('windows-x64-setup.exe', windowsSetup);
     add('windows-x64-portable.zip', windowsPortable);
+    add('macos-arm64.zip', macosArm64Zip);
+    add('macos-x64.zip', macosX64Zip);
     add('macos-universal.dmg', macosUniversalDmg);
     add('macos-universal.zip', macosUniversalZip);
     add('linux-x64.tar.gz', linuxX64);
@@ -204,6 +219,11 @@ class ReleaseAssetUrls {
     return result;
   }
 }
+
+/// The macOS package for this Mac from [ReleaseAssetUrls.all]: the build for
+/// its CPU, else a universal one from an older release.
+String? macosPackageFor(Map<String, String> urls, {required bool arm64}) =>
+    urls[arm64 ? 'macos-arm64.zip' : 'macos-x64.zip'] ?? urls['macos-universal.dmg'] ?? urls['macos-universal.zip'];
 
 class _AssetCandidate {
   const _AssetCandidate({required this.name, required this.url, required this.score});

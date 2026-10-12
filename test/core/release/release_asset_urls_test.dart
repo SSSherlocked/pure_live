@@ -65,4 +65,27 @@ void main() {
       expect(urls.linuxX64Deb, isNull);
     });
   });
+
+  group('ReleaseAssetUrls macOS packages', () {
+    final split = ReleaseAssetUrls(
+      assets: [asset('PureLive-3.2.2-macos-arm64.zip'), asset('PureLive-3.2.2-macos-x64.zip')],
+    ).all;
+
+    test('each CPU gets its own build', () {
+      expect(macosPackageFor(split, arm64: true), endsWith('macos-arm64.zip'));
+      expect(macosPackageFor(split, arm64: false), endsWith('macos-x64.zip'));
+    });
+
+    test('an older release falls back to the universal build', () {
+      final universal = ReleaseAssetUrls(assets: fullReleaseAssets()).all;
+      expect(macosPackageFor(universal, arm64: true), endsWith('macos-universal.zip'));
+      expect(macosPackageFor(universal, arm64: false), endsWith('macos-universal.zip'));
+    });
+
+    test('Linux and Windows x64 packages are not taken for the Intel Mac', () {
+      final urls = ReleaseAssetUrls(assets: fullReleaseAssets());
+      expect(urls.macosX64Zip, isNull);
+      expect(urls.macosArm64Zip, isNull);
+    });
+  });
 }

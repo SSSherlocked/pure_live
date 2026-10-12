@@ -216,6 +216,6 @@ The probe covers categories, recommendations, searches, room metadata, danmaku d
 - Android：默认仅构建 `arm64-v8a`，适用于主流 64 位手机。
 - Windows：仅构建 `windows-x64`。
 - Linux：构建 `linux-x64` 便携归档。
-- macOS：构建包含 x86_64 与 arm64 的 universal 应用归档。
+- macOS：先构建 universal 应用，再拆分为 Apple Silicon（arm64）与 Intel（x64）两个单架构应用归档分别发布。
 - iOS：执行 `--no-codesign` 设备编译并归档 `.app`，随后在证书环境签名封装。
 - GitHub Actions：保留五平台手动构建入口；Android/Windows 日常验证优先使用 `tool/build_local_release.ps1`，减少远程构建用量。

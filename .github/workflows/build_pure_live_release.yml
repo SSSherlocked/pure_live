@@ -486,26 +486,57 @@ jobs:
             exit 1
           fi
           lipo -info "$executable"
-      - name: Archive macOS application
+      # Flutter builds one universal app; Apple Silicon and Intel ship as
+      # separate, smaller packages thinned from it. ditto --arch drops the
+      # other slice from every Mach-O in the bundle, which breaks the bundle
+      # seal, so each copy is re-signed ad hoc with its existing entitlements.
+      - name: Split macOS application by architecture
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.artifact_version }}"
           APP="${{ steps.macos_app.outputs.app_path }}"
-          ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-macos-universal.zip"
+          NAME=$(basename "$APP")
+          for pair in "arm64:arm64" "x86_64:x64"; do
+            arch="${pair%%:*}"
+            label="${pair##*:}"
+            out="thin-$label"
+            rm -rf "$out"
+            mkdir -p "$out"
+            ditto --arch "$arch" "$APP" "$out/$NAME"
+            # Every Mach-O must keep the target slice and nothing else.
+            while IFS= read -r -d '' file; do
+              if file -b "$file" | grep -q 'Mach-O'; then
+                archs=$(lipo -archs "$file")
+                if [[ "$archs" != "$arch" ]]; then
+                  echo "::error::$file has '$archs', expected '$arch'"
+                  exit 1
+                fi
+              fi
+            done < <(find "$out/$NAME" -type f -print0)
+            codesign --force --deep --sign - \
+              --preserve-metadata=entitlements,requirements,flags,runtime \
+              "$out/$NAME"
+            codesign --verify --deep --strict "$out/$NAME"
+            lipo -info "$out/$NAME/Contents/MacOS/$(basename "$NAME" .app)"
+            ditto -c -k --sequesterRsrc --keepParent "$out/$NAME" "PureLive-${VERSION}-macos-$label.zip"
+          done
       - name: Verify macOS packages
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.artifact_version }}"
-          test -f "PureLive-${VERSION}-macos-universal.zip"
-          ls -lh "PureLive-${VERSION}-macos-universal.zip"
+          for label in arm64 x64; do
+            test -f "PureLive-${VERSION}-macos-$label.zip"
+            ls -lh "PureLive-${VERSION}-macos-$label.zip"
+          done
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-macos
           path: |
-            PureLive-*-macos-universal.zip
+            PureLive-*-macos-arm64.zip
+            PureLive-*-macos-x64.zip
           if-no-files-found: error
           retention-days: 3
   ios:
@@ -709,7 +740,7 @@ jobs:
           - 适配：Windows 10/11 x64
           ### 🍎 macOS 版
           - macOS 桌面版
-          - Universal：Apple Silicon + Intel
+          - Apple Silicon（arm64）与 Intel（x64）分开打包，按电脑芯片下载
           - ZIP
           ### 📱 Android 版
           - Android 8.0+（API 26，FFmpegKit 录制依赖要求）

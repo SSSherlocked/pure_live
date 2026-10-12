@@ -55,7 +55,8 @@ class ResolutionSelector extends StatelessWidget {
                     currentQualityName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Get.theme.textTheme.labelSmall?.copyWith(color: Get.theme.colorScheme.primary),
+                    // Quality and line share one role, the secondary text.
+                    style: AppText.of(context).secondary.copyWith(color: Get.theme.colorScheme.primary),
                   ),
                 ),
               ],
@@ -76,8 +77,7 @@ class ResolutionSelector extends StatelessWidget {
               value: index,
               child: Text(
                 qualityRate.quality,
-                style: Theme.of(context).textTheme.labelSmall
-                    ?.copyWith(color: isSelected ? Get.theme.colorScheme.primary : null),
+                style: AppText.of(context).secondary.copyWith(color: isSelected ? Get.theme.colorScheme.primary : null),
               ),
             );
           });

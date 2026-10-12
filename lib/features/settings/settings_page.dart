@@ -72,6 +72,12 @@ class SettingsPage extends GetView<SettingsService> {
               subtitle: i18n("data_and_backup_desc"),
               onTap: () => Get.to(() => const CacheDataSettingsPage()),
             ),
+            context.buildTile(
+              icon: Remix.information_line,
+              title: i18n("about"),
+              subtitle: i18n("about_desc"),
+              onTap: () => Get.toNamed(RoutePath.kAbout),
+            ),
           ]),
           const SizedBox(height: 32),
         ],

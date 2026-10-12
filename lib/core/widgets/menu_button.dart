@@ -4,6 +4,14 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 
+/// The top-left entry of the home pages.
+///
+/// Narrow (phone) layouts: a gear that opens 设置 directly. 关于 is the last
+/// entry of 设置, 数据与备份 is inside it, and 历史记录 / 新建独立播放窗口 are in
+/// the top-right menu ([CommonAppBarActions]), so nothing else is left here.
+///
+/// Wide layouts ([railActions]): the navigation rail's menu, with 设置 at the
+/// rail's bottom edge instead.
 class MenuButton extends StatelessWidget {
   const MenuButton({super.key, this.railActions = false, this.showRecord = true});
 
@@ -17,6 +25,14 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!railActions) {
+      return IconButton(
+        key: const ValueKey('home-settings-action'),
+        tooltip: i18n('settings_title'),
+        icon: const Icon(Remix.settings_5_line),
+        onPressed: () => Get.toNamed(RoutePath.kSettings),
+      );
+    }
     return PopupMenuButton<String>(
       tooltip: i18n('menu'),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -33,8 +49,6 @@ class MenuButton extends StatelessWidget {
             Get.toNamed(RoutePath.kSearch);
           case 'record':
             Get.toNamed(RoutePath.kRecordPage);
-          case 'settings':
-            Get.toNamed(RoutePath.kSettings);
           case 'about':
             Get.toNamed(RoutePath.kAbout);
           case 'history':
@@ -56,15 +70,12 @@ class MenuButton extends StatelessWidget {
           child: MenuListTile(leading: Icon(icon), text: text),
         );
         return [
-          if (railActions) ...[
-            if (SettingsService.to.app.enableMultiView.v)
-              item('multiview', Remix.layout_grid_line, i18n('multiview_title')),
-            item('toolbox', Remix.link, i18n('toolbox_title')),
-            item('search', CustomIcons.search, i18n('search_all_platforms')),
-            if (showRecord) item('record', Remix.download_2_line, i18n('record_center')),
-            const PopupMenuDivider(),
-          ] else
-            item('settings', Remix.settings_5_line, i18n('settings_title')),
+          if (SettingsService.to.app.enableMultiView.v)
+            item('multiview', Remix.layout_grid_line, i18n('multiview_title')),
+          item('toolbox', Remix.link, i18n('toolbox_title')),
+          item('search', CustomIcons.search, i18n('search_all_platforms')),
+          if (showRecord) item('record', Remix.download_2_line, i18n('record_center')),
+          const PopupMenuDivider(),
           item('about', Remix.information_line, i18n('about')),
           item('history', Remix.history_line, i18n('history')),
           item('backup', Remix.database_2_line, i18n('data_and_backup')),

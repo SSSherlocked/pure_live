@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
+import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 
 class CommonAppBarActions extends StatelessWidget {
   const CommonAppBarActions({super.key});
@@ -28,6 +32,12 @@ class CommonAppBarActions extends StatelessWidget {
                 break;
               case 3:
                 Get.toNamed(RoutePath.kRecordPage);
+                break;
+              case 4:
+                unawaited(_openNewWindow());
+                break;
+              case 5:
+                Get.toNamed(RoutePath.kHistory);
                 break;
             }
           },
@@ -82,6 +92,30 @@ class CommonAppBarActions extends StatelessWidget {
                   ],
                 ),
               ),
+            if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
+              PopupMenuItem(
+                value: 4,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  children: [
+                    Icon(Icons.add_to_photos_outlined, size: 20, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 12),
+                    Text(i18n("open_new_window"), style: AppTextStyles.t14),
+                  ],
+                ),
+              ),
+            // Always last; the top-left gear no longer has a menu for it.
+            PopupMenuItem(
+              value: 5,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  Icon(Remix.history_line, size: 20, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text(i18n("history"), style: AppTextStyles.t14),
+                ],
+              ),
+            ),
           ],
           child: const SizedBox.square(
             dimension: kMinInteractiveDimension,
@@ -92,5 +126,13 @@ class CommonAppBarActions extends StatelessWidget {
         const SizedBox(width: 4),
       ],
     );
+  }
+
+  Future<void> _openNewWindow() async {
+    try {
+      await WindowsMultiInstanceLauncher.launch();
+    } catch (_) {
+      ToastUtil.show(i18n('open_new_window_failed'));
+    }
   }
 }

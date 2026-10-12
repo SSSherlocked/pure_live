@@ -1,102 +1,32 @@
-import 'dart:async';
-
-import 'record_action_content.dart';
-
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/recorder/domain/models/record_status.dart';
 import 'package:pure_live/domains/recorder/domain/models/live_record_task.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_controller.dart';
 
-class RecordActionButton extends StatefulWidget {
-  const RecordActionButton({
-    super.key,
-    required this.room,
-    required this.recorderController,
-    required this.onOpenRecordCenter,
-    this.compactHeader = false,
-  });
+/// The room's 录制 actions: the action dialog (start now, record center, add or
+/// remove the monitor, stop) and what each choice does. Opened from the room
+/// header's menu.
+class RecordRoomActions {
+  RecordRoomActions({required this.recorderController, required this.onOpenRecordCenter});
 
-  final LiveRoom? room;
   final RecorderController recorderController;
   final Future<void> Function() onOpenRecordCenter;
-  final bool compactHeader;
 
-  @override
-  State<RecordActionButton> createState() => _RecordActionButtonState();
-}
-
-class _RecordActionButtonState extends State<RecordActionButton> {
   bool _busy = false;
 
-  @override
-  Widget build(BuildContext context) {
-    final room = widget.room;
-    if (room == null) {
-      return const SizedBox.shrink();
-    }
+  /// The task recording or monitoring [room], if any.
+  LiveRecordTask? taskFor(LiveRoom room) => _findTask(room);
 
-    return Obx(() {
-      final task = widget.recorderController.tasks.firstWhereOrNull(
-        (t) => t.platform == room.platform && t.roomId == room.roomId,
-      );
+  /// Whether [task] is recording right now (including preparing/reconnecting).
+  static bool isRunning(LiveRecordTask? task) => _isTaskRunningStatic(task);
 
-      final exists = task != null;
-      final isRunning = _isTaskRunning(task);
-      final theme = Theme.of(context);
+  /// Shows the action dialog for [liveroom] and carries out the choice.
+  Future<void> open(BuildContext context, LiveRoom liveroom) => _handlePressed(context, liveroom);
 
-      final label = isRunning
-          ? i18n("recording")
-          : exists
-          ? i18n("monitored")
-          : i18n("record");
+  bool _isTaskRunning(LiveRecordTask? task) => _isTaskRunningStatic(task);
 
-      final icon = isRunning
-          ? Remix.record_circle_fill
-          : exists
-          ? Remix.checkbox_circle_fill
-          : Remix.record_circle_line;
-
-      final foregroundColor = isRunning
-          ? Colors.redAccent
-          : exists
-          ? theme.colorScheme.primary
-          : theme.colorScheme.onSurfaceVariant;
-
-      final backgroundColor = isRunning
-          ? Colors.redAccent.withValues(alpha: 0.12)
-          : exists
-          ? theme.colorScheme.primary.withValues(alpha: 0.10)
-          : theme.colorScheme.surfaceContainerHighest;
-
-      return Tooltip(
-        message: label,
-        child: SizedBox(
-          width: widget.compactHeader ? kMinInteractiveDimension : null,
-          // The expanded header button matches the 32 px 关注 button.
-          height: widget.compactHeader ? kMinInteractiveDimension : 32,
-          child: FilledButton(
-            key: const ValueKey('record-action-button'),
-            style: FilledButton.styleFrom(
-              backgroundColor: backgroundColor,
-              foregroundColor: foregroundColor,
-              padding: widget.compactHeader ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 10),
-              minimumSize: widget.compactHeader
-                  ? const Size(kMinInteractiveDimension, kMinInteractiveDimension)
-                  : const Size(kMinInteractiveDimension, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(widget.compactHeader ? 12 : 6)),
-              elevation: 0,
-            ),
-            onPressed: _busy ? null : () => unawaited(_handlePressed(context, room)),
-            child: RecordActionContent(compactHeader: widget.compactHeader, label: label, icon: icon),
-          ),
-        ),
-      );
-    });
-  }
-
-  bool _isTaskRunning(LiveRecordTask? task) {
+  static bool _isTaskRunningStatic(LiveRecordTask? task) {
     if (task == null) {
       return false;
     }
@@ -108,7 +38,7 @@ class _RecordActionButtonState extends State<RecordActionButton> {
 
   Future<void> _handlePressed(BuildContext context, LiveRoom liveroom) async {
     if (_busy) return;
-    setState(() => _busy = true);
+    _busy = true;
     try {
       final initialTask = _findTask(liveroom);
       final action = await _showActionDialog(
@@ -117,7 +47,7 @@ class _RecordActionButtonState extends State<RecordActionButton> {
         isRunning: _isTaskRunning(initialTask),
       );
 
-      if (!mounted || action == null) return;
+      if (!context.mounted || action == null) return;
       final task = _findTask(liveroom);
       final exists = task != null;
       final isRunning = _isTaskRunning(task);
@@ -140,15 +70,15 @@ class _RecordActionButtonState extends State<RecordActionButton> {
           break;
 
         case "page":
-          await widget.onOpenRecordCenter();
+          await onOpenRecordCenter();
           break;
       }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      _busy = false;
     }
   }
 
-  LiveRecordTask? _findTask(LiveRoom liveroom) => widget.recorderController.tasks.firstWhereOrNull(
+  LiveRecordTask? _findTask(LiveRoom liveroom) => recorderController.tasks.firstWhereOrNull(
     (task) => task.platform == liveroom.platform && task.roomId == liveroom.roomId,
   );
 
@@ -163,19 +93,19 @@ class _RecordActionButtonState extends State<RecordActionButton> {
     }
 
     // 私有目录就绪检查在录制意图上触发，不在进直播间时自动弹。
-    if (!await widget.recorderController.ensureRecordDirUsable()) {
+    if (!await recorderController.ensureRecordDirUsable()) {
       return;
     }
 
     if (exists && task != null) {
-      await widget.recorderController.forceStartTask(task);
+      await recorderController.forceStartTask(task);
       return;
     }
 
     // addTask owns the first transition into the scheduler. Starting it again
     // from the button created two competing intents and made first-attempt
     // failures difficult to classify.
-    await widget.recorderController.addTask(liveroom: liveroom, startImmediately: true);
+    await recorderController.addTask(liveroom: liveroom, startImmediately: true);
   }
 
   Future<void> _addMonitor({required LiveRoom liveroom, required bool exists}) async {
@@ -183,11 +113,11 @@ class _RecordActionButtonState extends State<RecordActionButton> {
       return;
     }
 
-    if (!await widget.recorderController.ensureRecordDirUsable()) {
+    if (!await recorderController.ensureRecordDirUsable()) {
       return;
     }
 
-    final task = await widget.recorderController.addTask(liveroom: liveroom, startImmediately: false);
+    final task = await recorderController.addTask(liveroom: liveroom, startImmediately: false);
     if (task != null) ToastUtil.show(i18n("record_task_added"));
   }
 
@@ -196,7 +126,7 @@ class _RecordActionButtonState extends State<RecordActionButton> {
       return;
     }
 
-    await widget.recorderController.stopTask(task);
+    await recorderController.stopTask(task);
   }
 
   Future<void> _removeMonitor({required LiveRecordTask? task, required bool exists, required bool isRunning}) async {
@@ -204,7 +134,7 @@ class _RecordActionButtonState extends State<RecordActionButton> {
       return;
     }
 
-    await widget.recorderController.unRecorder(task);
+    await recorderController.unRecorder(task);
   }
 
   Future<String?> _showActionDialog(BuildContext context, {required bool exists, required bool isRunning}) {

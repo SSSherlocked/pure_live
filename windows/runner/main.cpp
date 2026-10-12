@@ -13,9 +13,9 @@ namespace {
 constexpr wchar_t kPrimaryInstanceMutex[] =
     L"Local\\PureLive_Primary_Instance_v1";
 
-// Native title shown by the taskbar, Alt+Tab and Task Manager (the Chinese app name);
-// the in-app title bar is drawn by Flutter. Escaped to keep the source ASCII.
-constexpr wchar_t kWindowTitle[] = L"\u7EAF\u7CB9\u76F4\u64AD";
+// Native title shown by the taskbar, Alt+Tab and Task Manager (the app name);
+// the in-app title bar is drawn by Flutter.
+constexpr wchar_t kWindowTitle[] = L"Pure Live";
 
 void BringPrimaryWindowToFront() {
   const HWND window =

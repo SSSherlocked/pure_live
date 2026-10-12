@@ -1,17 +1,15 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/config/live_panel_layout.dart';
-import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
+import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
 
 /// Fullscreen "关注" panel: the same followed-room switcher as the room
-/// panel's 关注 tab, shown as a dialog docked to the right edge.
+/// panel's 关注 tab, in the fullscreen [PlayerSidePanel].
 class PlayOther extends StatelessWidget {
   const PlayOther({required this.controller, super.key});
 
@@ -20,12 +18,6 @@ class PlayOther extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final screen = MediaQuery.sizeOf(context);
-    // A full-height column on the right edge, as wide as the room side panel.
-    final preferredWidth = Get.isRegistered<ThemeSettingsController>()
-        ? SettingsService.to.theme.livePanelWidth.v
-        : LivePanelWidth.defaultValue;
-    final panelWidth = math.min(math.max(LivePanelWidth.normalize(preferredWidth), 320.0), screen.width * 0.9);
     final headerHeight = resolveRoomHistoryTextMetrics(
       textScaler: MediaQuery.textScalerOf(context),
       headerFontSize: theme.textTheme.titleSmall?.fontSize ?? 14,
@@ -38,58 +30,13 @@ class PlayOther extends StatelessWidget {
       detailLineHeight: theme.textTheme.labelSmall?.height ?? 1.45,
     ).headerHeight;
 
-    return Dialog(
+    return PlayerSidePanel(
       key: const ValueKey('fullscreen-room-history-dialog'),
-      alignment: Alignment.centerRight,
-      insetPadding: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.horizontal(left: Radius.circular(16))),
-      child: SizedBox(
-        width: panelWidth,
-        height: screen.height,
-        child: SafeArea(
-          left: false,
-          child: Column(
-            children: [
-              SizedBox(
-                height: headerHeight,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10, right: 2),
-                  child: Row(
-                    children: [
-                      Icon(Icons.favorite_rounded, size: 17, color: theme.colorScheme.primary),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          i18n('follow'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                      IconButton(
-                        key: const ValueKey('room-history-close'),
-                        tooltip: i18n('close'),
-                        visualDensity: VisualDensity.standard,
-                        constraints: const BoxConstraints.tightFor(
-                          width: contentFirstPanelHeaderActionExtent,
-                          height: contentFirstPanelHeaderActionExtent,
-                        ),
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.close_rounded, size: 18),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: FollowRoomSwitcher(controller: controller, onSwitch: () => Navigator.of(context).pop()),
-              ),
-            ],
-          ),
-        ),
-      ),
+      icon: Icons.favorite_rounded,
+      title: i18n('follow'),
+      headerHeight: headerHeight,
+      closeKey: const ValueKey('room-history-close'),
+      child: FollowRoomSwitcher(controller: controller, onSwitch: () => Navigator.of(context).pop()),
     );
   }
 }

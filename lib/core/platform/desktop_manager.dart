@@ -179,7 +179,7 @@ class DesktopManager {
       final useChineseFallback = PlatformDispatcher.instance.locale.languageCode == 'zh';
       final isVisible = await windowManager.isVisible();
       DesktopTrayService.update(
-        tooltip: i18nOr('app_name', useChineseFallback ? '纯粹直播' : 'PureLive'),
+        tooltip: i18nOr('app_name', 'Pure Live'),
         windowLabel: isVisible
             ? i18nOr('hide_window', useChineseFallback ? '隐藏窗口' : 'Hide Window')
             : i18nOr('show_window', useChineseFallback ? '显示窗口' : 'Show Window'),
@@ -325,7 +325,7 @@ class CustomTitleBar extends StatelessWidget {
                             'external_browser_not_opened',
                             'The system browser did not open. Check the default browser settings.',
                           ),
-                          appName: i18nOr('app_name', 'PureLive'),
+                          appName: i18nOr('app_name', 'Pure Live'),
                           appNameStyle: appNameStyle,
                           sizeTextStyle: sizeTextStyle,
                           projectUri: Uri.parse(VersionUtil.projectUrl),

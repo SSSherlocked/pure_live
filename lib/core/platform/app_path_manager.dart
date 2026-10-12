@@ -192,6 +192,7 @@ class AppPathManager {
             try {
               child = uninstallKey.open(childName);
               final displayName = child.getString('DisplayName') ?? '';
+              // 纯粹直播 is the display name earlier versions installed under.
               if (!RegExp(r'纯粹直播|pure[ _-]?live', caseSensitive: false).hasMatch(displayName)) {
                 continue;
               }

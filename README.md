@@ -4,7 +4,7 @@
 
 <img src="assets/icons/icon.png" width="150" alt="Pure Live 图标"/>
 
-# 纯粹直播（Pure Live）
+# Pure Live
 
 **基于 Flutter 的开源多平台直播聚合播放器**
 
@@ -17,7 +17,7 @@ A third-party live stream aggregator built with Flutter.
 
 </div>
 
-> **纯粹直播** 是一款开源的第三方多平台直播聚合播放器，使用 Flutter 构建，支持 Android、Windows、Linux、macOS 和 iOS。
+> **Pure Live** 是一款开源的第三方多平台直播聚合播放器，使用 Flutter 构建，支持 Android、Windows、Linux、macOS 和 iOS。
 
 **致谢**
 

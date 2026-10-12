@@ -240,7 +240,7 @@ class Log {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PureLive Console Terminal</title>
+  <title>Pure Live Console Terminal</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -405,7 +405,7 @@ class Log {
   <div class="panel">
     <div class="top-bar">
       <div class="title-area">
-        <span class="title">PureLive Console Terminal</span>
+        <span class="title">Pure Live Console Terminal</span>
         <span class="badge">Total: ${_allLogs.length}</span>
       </div>
       <div class="btn-group">

@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_svg/svg.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
+import 'package:pure_live/core/player/presentation/player_side_panel.dart';
+import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_settings_content.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 
@@ -45,7 +48,7 @@ class PlayerDanmakuButton extends StatelessWidget {
         key: const ValueKey('player-danmaku-action'),
         tooltip: i18n('danmaku'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         onPressed: () => controller.danmakuHidden.toggle(),
         icon: SizedBox.square(
           dimension: 24,
@@ -69,10 +72,15 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
     this.iconColor = Colors.white,
     this.onOpenChanged,
     this.includePipSettings = false,
+    this.dockedInLandscape = false,
   });
 
   final DanmakuSettingsSource controller;
   final Color iconColor;
+
+  /// Opens the panel as the fullscreen [PlayerSidePanel] when the screen is
+  /// in landscape; the host sets it for its fullscreen player.
+  final bool dockedInLandscape;
 
   /// Called with true while the panel is up and false once it closes.
   ///
@@ -92,7 +100,11 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
         context: context,
         barrierColor: Colors.black.withValues(alpha: 0.58),
         useSafeArea: true,
-        builder: (_) => DanmakuSettingsDialog(controller: controller, includePipSettings: includePipSettings),
+        builder: (_) => DanmakuSettingsDialog(
+          controller: controller,
+          includePipSettings: includePipSettings,
+          dockedInLandscape: dockedInLandscape,
+        ),
       );
     } finally {
       onOpenChanged?.call(false);
@@ -105,7 +117,7 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
       key: const ValueKey('player-danmaku-settings-action'),
       tooltip: i18n('settings_danmaku_title'),
       visualDensity: VisualDensity.standard,
-      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+      constraints: PlayerControlDensity.actionConstraints(context),
       onPressed: () => unawaited(_open(context)),
       icon: SizedBox.square(
         dimension: 24,
@@ -121,9 +133,17 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
 
 /// The danmaku panel as a dialog, sized for both orientations.
 class DanmakuSettingsDialog extends StatelessWidget {
-  const DanmakuSettingsDialog({super.key, required this.controller, this.includePipSettings = false});
+  const DanmakuSettingsDialog({
+    super.key,
+    required this.controller,
+    this.includePipSettings = false,
+    this.dockedInLandscape = false,
+  });
 
   final DanmakuSettingsSource controller;
+
+  /// See [PlayerDanmakuSettingsButton.dockedInLandscape].
+  final bool dockedInLandscape;
 
   /// Picture-in-picture has its own settings page; keeping it out of the short
   /// landscape sheet leaves the picture visible.
@@ -135,6 +155,15 @@ class DanmakuSettingsDialog extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final size = MediaQuery.sizeOf(context);
     final isLandscape = size.width > size.height;
+    if (dockedInLandscape && isLandscape) {
+      return PlayerSidePanel(
+        key: const ValueKey('fullscreen-danmaku-settings-panel'),
+        icon: Icons.subtitles_outlined,
+        title: i18n('settings_danmaku_title'),
+        closeKey: const ValueKey('fullscreen-danmaku-settings-close'),
+        child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: includePipSettings),
+      );
+    }
     final compactLandscape = isLandscape && size.height < 620;
     final targetWidth = isLandscape
         ? (size.width * (compactLandscape ? 0.44 : 0.38)).clamp(340.0, compactLandscape ? 460.0 : 540.0).toDouble()
@@ -220,7 +249,7 @@ class DanmakuSettingsDialog extends StatelessWidget {
 }
 
 /// The player's ⋯ menu: 画面比例 (a submenu of every video-fit mode, the
-/// current one checked) and, when the host supplies it, 纯音频.
+/// current one checked) and, when the host supplies them, 纯音频 and 投屏.
 ///
 /// The menu is attached to this invisible anchor, which the host places at a
 /// fixed spot on the player rather than inside the auto-hiding top bar: the
@@ -233,6 +262,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
     required this.size,
     this.isAudioOnly,
     this.onToggleAudioOnly,
+    this.onCast,
   });
 
   final MenuController menu;
@@ -242,6 +272,9 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
   /// [onToggleAudioOnly] it adds the 纯音频 entry.
   final ValueGetter<bool>? isAudioOnly;
   final VoidCallback? onToggleAudioOnly;
+
+  /// Adds the 投屏 entry.
+  final VoidCallback? onCast;
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +316,13 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
               child: Text(i18n('audio_only_mode')),
             ),
           ),
+        if (onCast != null)
+          MenuItemButton(
+            key: const ValueKey('player-more-cast'),
+            leadingIcon: const Icon(Remix.tv_2_line, size: 18),
+            onPressed: onCast,
+            child: Text(i18n('cast_screen')),
+          ),
       ],
       child: SizedBox.fromSize(size: size),
     );
@@ -301,7 +341,7 @@ class PlayerMoreMenuButton extends StatelessWidget {
     return IconButton(
       key: const ValueKey('player-more-menu'),
       visualDensity: VisualDensity.standard,
-      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+      constraints: PlayerControlDensity.actionConstraints(context),
       color: iconColor,
       icon: const Icon(Icons.more_horiz_rounded),
       onPressed: () {

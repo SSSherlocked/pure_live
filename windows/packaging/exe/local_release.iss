@@ -11,7 +11,7 @@
   #define ArtifactVersion AppVersion
 #endif
 
-#define AppName "纯粹直播"
+#define AppName "Pure Live"
 #define AppExeName "pure_live.exe"
 
 [Setup]

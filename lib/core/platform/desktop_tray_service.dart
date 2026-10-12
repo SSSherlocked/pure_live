@@ -52,7 +52,7 @@ class DesktopTrayService {
       _windowItem = windowItem;
       _exitItem = exitItem;
       icon.icon = image;
-      icon.setTooltip('PureLive');
+      icon.setTooltip('Pure Live');
       // Refresh the localized menu before showing it, rather than letting
       // nativeapi open the previous menu on button release as well.
       icon.setContextMenuTrigger(ContextMenuTrigger.none);

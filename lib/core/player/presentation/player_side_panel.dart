@@ -1,0 +1,95 @@
+import 'dart:math' as math;
+
+import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
+
+/// The fullscreen player's menu panel: a full-height column docked to the right
+/// edge, top and bottom flush with the screen, as wide as the room side panel.
+///
+/// Every fullscreen menu (关注, 画质与线路, 弹幕设置) uses this one shape, so
+/// they open in the same place and leave the same part of the picture visible.
+class PlayerSidePanel extends StatelessWidget {
+  const PlayerSidePanel({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.child,
+    this.headerHeight,
+    this.closeKey,
+  });
+
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  /// Overrides the header height a caller has already measured.
+  final double? headerHeight;
+  final Key? closeKey;
+
+  /// The panel width for [screen]: the room side panel width, at least 320 and
+  /// never more than 90% of the screen.
+  static double widthFor(Size screen) {
+    final preferredWidth = Get.isRegistered<ThemeSettingsController>()
+        ? SettingsService.to.theme.livePanelWidth.v
+        : LivePanelWidth.defaultValue;
+    return math.min(math.max(LivePanelWidth.normalize(preferredWidth), 320.0), screen.width * 0.9);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final screen = MediaQuery.sizeOf(context);
+    final titleStyle = theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600);
+    final titleLine = MediaQuery.textScalerOf(context).scale(
+      (titleStyle?.fontSize ?? 14) * (titleStyle?.height ?? 1.25),
+    );
+    final resolvedHeaderHeight = headerHeight ?? math.max(kMinInteractiveDimension, titleLine + 16);
+
+    return Dialog(
+      alignment: Alignment.centerRight,
+      insetPadding: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.horizontal(left: Radius.circular(16))),
+      child: SizedBox(
+        width: widthFor(screen),
+        height: screen.height,
+        child: SafeArea(
+          left: false,
+          child: Column(
+            children: [
+              SizedBox(
+                height: resolvedHeaderHeight,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 2),
+                  child: Row(
+                    children: [
+                      Icon(icon, size: 17, color: theme.colorScheme.primary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle),
+                      ),
+                      IconButton(
+                        key: closeKey,
+                        tooltip: i18n('close'),
+                        visualDensity: VisualDensity.standard,
+                        constraints: const BoxConstraints.tightFor(
+                          width: kMinInteractiveDimension,
+                          height: kMinInteractiveDimension,
+                        ),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

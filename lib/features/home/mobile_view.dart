@@ -70,7 +70,14 @@ class HomeMobileView extends StatelessWidget {
         if (activeSelectedIndex == -1) {
           activeSelectedIndex = 0;
         }
+        // 显示底部文字 covers this bar as well as the tablet rail.
+        final showLabels = SettingsService.to.app.showRailLabels.v;
         return NavigationBar(
+          labelBehavior: showLabels
+              ? NavigationDestinationLabelBehavior.alwaysShow
+              : NavigationDestinationLabelBehavior.alwaysHide,
+          // Without labels the default 80 dp leaves an empty band under the icons.
+          height: showLabels ? null : 64,
           destinations: destinations,
           selectedIndex: activeSelectedIndex,
           onDestinationSelected: (int virtualIndex) {

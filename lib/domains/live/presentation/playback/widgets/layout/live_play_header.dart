@@ -1,7 +1,6 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
-import 'package:pure_live/domains/recorder/presentation/widgets/record_action_button.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/button/live_play_menu_button.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/button/favorite_floating_button.dart';
 
@@ -18,7 +17,7 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
       title: _buildTitle(context),
       actions: [
         _buildFavoriteButton(),
-        _buildRecordButton(),
+        // 录制 lives in this menu, second entry.
         LivePlayMenuButton(controller: controller),
         const SizedBox(width: 4),
       ],
@@ -87,18 +86,6 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
           room: detail,
           compact: compactHeader,
         ),
-      );
-    });
-  }
-
-  Widget _buildRecordButton() {
-    return Obx(() {
-      final room = controller.state.value.room.detail;
-      return RecordActionButton(
-        room: room,
-        recorderController: controller.recorderController,
-        onOpenRecordCenter: controller.openRecordCenter,
-        compactHeader: compactHeader,
       );
     });
   }

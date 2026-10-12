@@ -75,7 +75,7 @@ class ReleaseWorkflowDataTest(unittest.TestCase):
                     )
                     self.assertEqual(result.returncode, 0, result.stderr)
                     body = (Path(directory) / 'release_body.txt').read_text(encoding='utf-8')
-                    self.assertIn('# 纯粹直播 v3.2.0', body)
+                    self.assertIn('# Pure Live v3.2.0', body)
                     self.assertIn(description, body)
                     self.assertNotIn('${{', body)
                     self.assertFalse((Path(directory) / 'INJECTION_MARKER').exists())

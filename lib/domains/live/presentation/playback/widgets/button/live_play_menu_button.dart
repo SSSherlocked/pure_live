@@ -10,11 +10,24 @@ import 'package:pure_live/domains/live/presentation/playback/dialogs/room_timer_
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_volume_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_link_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
+import 'package:pure_live/domains/recorder/presentation/widgets/record_room_actions.dart';
 
-class LivePlayMenuButton extends StatelessWidget {
+class LivePlayMenuButton extends StatefulWidget {
   const LivePlayMenuButton({super.key, required this.controller});
 
   final LivePlayController controller;
+
+  @override
+  State<LivePlayMenuButton> createState() => _LivePlayMenuButtonState();
+}
+
+class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
+  LivePlayController get controller => widget.controller;
+
+  late final RecordRoomActions _recordActions = RecordRoomActions(
+    recorderController: controller.recorderController,
+    onOpenRecordCenter: controller.openRecordCenter,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +46,7 @@ class LivePlayMenuButton extends StatelessWidget {
         _handleSelected(context, index);
       },
       itemBuilder: _buildItems,
-      child: const SizedBox.square(dimension: kMinInteractiveDimension, child: Icon(Remix.apps_2_line)),
+      child: const SizedBox.square(dimension: kMinInteractiveDimension, child: Icon(Icons.menu_rounded)),
     );
   }
 
@@ -41,6 +54,10 @@ class LivePlayMenuButton extends StatelessWidget {
     switch (index) {
       case 0:
         _openLiveRoom();
+        break;
+
+      case 1:
+        _openRecordActions(context);
         break;
 
       case 2:
@@ -73,6 +90,12 @@ class LivePlayMenuButton extends StatelessWidget {
 
   void _openLiveRoom() {
     controller.openNaviteAPP();
+  }
+
+  void _openRecordActions(BuildContext context) {
+    final detail = controller.state.value.room.detail;
+    if (detail == null) return;
+    unawaited(_recordActions.open(context, detail));
   }
 
   void _castScreen(BuildContext context) {
@@ -144,6 +167,8 @@ class LivePlayMenuButton extends StatelessWidget {
     return [
       _item(value: 0, icon: Icons.open_in_new_rounded, text: i18n('open_live_room')),
 
+      ?_recordItem(),
+
       _item(value: 2, icon: Remix.tv_2_line, text: i18n('cast_screen')),
 
       _item(value: 3, icon: Remix.time_line, text: i18n('sleep_timer')),
@@ -158,11 +183,35 @@ class LivePlayMenuButton extends StatelessWidget {
     ];
   }
 
-  PopupMenuItem<int> _item({required int value, required IconData icon, required String text}) {
+  /// 录制, labelled with the room's current recording state.
+  PopupMenuItem<int>? _recordItem() {
+    final detail = controller.state.value.room.detail;
+    if (detail == null) return null;
+    final task = _recordActions.taskFor(detail);
+    final running = RecordRoomActions.isRunning(task);
+    return _item(
+      value: 1,
+      icon: running
+          ? Remix.record_circle_fill
+          : task != null
+          ? Remix.checkbox_circle_fill
+          : Remix.record_circle_line,
+      iconColor: running ? Colors.redAccent : null,
+      text: i18n(
+        running
+            ? 'recording'
+            : task != null
+            ? 'monitored'
+            : 'record',
+      ),
+    );
+  }
+
+  PopupMenuItem<int> _item({required int value, required IconData icon, required String text, Color? iconColor}) {
     return PopupMenuItem<int>(
       value: value,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: MenuListTile(leading: Icon(icon, size: 20), text: text),
+      child: MenuListTile(leading: Icon(icon, size: 20, color: iconColor), text: text),
     );
   }
 }

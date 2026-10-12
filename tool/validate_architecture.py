@@ -56,7 +56,7 @@ BASELINE: frozenset[str] = frozenset({
     'domains/live -> domains/iptv/data/platforms/iptv_site.dart   [domains/live/data/platforms/sites.dart]',
     'domains/live -> domains/recorder/data/services/ffmpeg_hls_input_relay.dart   [domains/live/data/stream/playback_source_transport.dart]',
     'domains/live -> domains/recorder/presentation/pages/recorder/recorder_controller.dart   [domains/live/presentation/playback/controllers/live_play_controller.dart]',
-    'domains/live -> domains/recorder/presentation/widgets/record_action_button.dart   [domains/live/presentation/playback/widgets/layout/live_play_header.dart]',
+    'domains/live -> domains/recorder/presentation/widgets/record_room_actions.dart   [domains/live/presentation/playback/widgets/button/live_play_menu_button.dart]',
     'domains/recorder -> domains/live/data/platforms/sites.dart   [domains/recorder/data/services/stream_resolver_service.dart]',
     'domains/recorder -> domains/live/data/platforms/sites.dart   [domains/recorder/presentation/pages/recorder/recorder_controller.dart]',
     'domains/recorder -> domains/live/data/playback_header_resolver.dart   [domains/recorder/data/services/ffmpeg_header_factory.dart]',

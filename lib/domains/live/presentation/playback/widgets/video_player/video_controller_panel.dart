@@ -11,7 +11,10 @@ import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
+import 'package:pure_live/core/player/presentation/player_side_panel.dart';
+import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
+import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_actions.dart';
@@ -47,8 +50,8 @@ List<TopActionLeadingSlot> resolveTopActionLeadingSlots({required bool fullscree
   ];
 }
 
-/// Keeps the Android playback actions identical in portrait and fullscreen:
-/// casting, then picture-in-picture (纯音频 is in the ⋯ menu).
+/// The Android playback actions: casting, then picture-in-picture. In
+/// fullscreen 投屏 moves into the ⋯ menu (纯音频 is always there).
 @visibleForTesting
 List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
   required bool fullscreen,
@@ -59,8 +62,8 @@ List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
     if (fullscreen) TopActionTrailingSlot.roomHistory,
     if (fullscreen && !android) TopActionTrailingSlot.datetime,
     if (fullscreen && !android) TopActionTrailingSlot.battery,
-    // 纯音频 lives in the ⋯ menu at the top-left.
-    if (android) TopActionTrailingSlot.cast,
+    // 纯音频 lives in the ⋯ menu, and so does 投屏 in fullscreen.
+    if (android && !fullscreen) TopActionTrailingSlot.cast,
     if (android || windows) TopActionTrailingSlot.pip,
   ];
 }
@@ -169,6 +172,15 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
     });
   }
 
+  void _castCurrentRoom(BuildContext context) {
+    controller.enableController();
+    KnownRoomLinkDialog.castPlayUrlByRoomId(
+      context: context,
+      liveroom: controller.room,
+      isCurrentRoom: () => controller.status != PlayerStatus.disposed,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -180,6 +192,12 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final int percentage = (currentVolume * 100).round();
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
           final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: barHeight);
+          // Small phones tighten the inline player's floating controls.
+          final compactControls = useCompactInlinePlayerControls(
+            screenWidth: MediaQuery.sizeOf(context).width,
+            fullscreen: GlobalPlayerService.instance.player.fullscreenUI,
+            mobile: PlatformUtils.isMobile,
+          );
 
           final IconData iconData = currentVolume <= 0
               ? Icons.volume_mute
@@ -187,198 +205,211 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
               ? Icons.volume_down
               : Icons.volume_up;
 
-          return MouseRegion(
-            onHover: (_) => controller.onMouseHoverPlayer(),
-            onExit: (_) => controller.onMouseExitPlayer(),
-            cursor: !controller.showController.value ? SystemMouseCursors.none : SystemMouseCursors.basic,
-            child: Stack(
-              children: [
-                Container(
-                  color: Colors.transparent,
-                  alignment: Alignment.center,
-                  child: AnimatedOpacity(
-                    opacity: controller.showVolume.value ? 0.8 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Card(
-                      color: Colors.black,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Icon(iconData, color: Colors.white),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8, right: 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SizedBox(
-                                  width: 100,
-                                  height: 20,
-                                  child: LinearProgressIndicator(
-                                    value: currentVolume,
-                                    backgroundColor: Colors.white38,
-                                    valueColor: const AlwaysStoppedAnimation(Colors.white),
+          return PlayerControlDensity(
+            compact: compactControls,
+            child: MouseRegion(
+              onHover: (_) => controller.onMouseHoverPlayer(),
+              onExit: (_) => controller.onMouseExitPlayer(),
+              cursor: !controller.showController.value ? SystemMouseCursors.none : SystemMouseCursors.basic,
+              child: Stack(
+                children: [
+                  Container(
+                    color: Colors.transparent,
+                    alignment: Alignment.center,
+                    child: AnimatedOpacity(
+                      opacity: controller.showVolume.value ? 0.8 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Card(
+                        color: Colors.black,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Icon(iconData, color: Colors.white),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8, right: 8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SizedBox(
+                                    width: 100,
+                                    height: 20,
+                                    child: LinearProgressIndicator(
+                                      value: currentVolume,
+                                      backgroundColor: Colors.white38,
+                                      valueColor: const AlwaysStoppedAnimation(Colors.white),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Text(
-                              "$percentage%",
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                              Text(
+                                "$percentage%",
+                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Obx(() {
-                  final manager = GlobalPlayerService.instance.player;
-                  final hideForPortrait = PortraitDanmakuPolicy.hidesDanmaku(
-                    isVerticalVideo: manager.isVerticalVideo.value,
-                    mode: SettingsService.to.player.portraitDanmakuMode,
-                  );
-                  return Offstage(
-                    offstage: controller.hideDanmaku.value || hideForPortrait,
-                    child: PlayerDanmakuSurface(
-                      key: controller.danmuKey,
-                      controller: controller.danmakuController,
-                      settings: controller,
+                  Obx(() {
+                    final manager = GlobalPlayerService.instance.player;
+                    final hideForPortrait = PortraitDanmakuPolicy.hidesDanmaku(
                       isVerticalVideo: manager.isVerticalVideo.value,
-                    ),
-                  );
-                }),
-                GestureDetector(
-                  // Opaque on purpose: this detector is what reveals and hides
-                  // the bars, and its only child is the shared gesture layer,
-                  // which paints nothing and declares itself translucent. With
-                  // the default `deferToChild` the whole tap surface stopped
-                  // hit-testing and tapping the video no longer showed the
-                  // controls at all.
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: (details) {
-                    _lastTapGlobalPosition = details.globalPosition;
-                    _lastTapLocalPosition = details.localPosition;
-                  },
-                  onTap: () {
-                    final globalPosition = _lastTapGlobalPosition;
-                    final localPosition = _lastTapLocalPosition;
-                    if (localPosition != null &&
-                        !shouldHandleVideoSurfaceTap(
-                          localPosition: localPosition,
-                          surfaceSize: context.size ?? Size.zero,
-                          controlsVisible: controller.showController.value,
-                          controlBarHeight: bottomBarHeight,
-                        )) {
-                      controller.enableController();
-                      return;
-                    }
-                    if (globalPosition != null && controller.handleDanmakuPointer(globalPosition, longPress: false)) {
-                      return;
-                    }
-                    // Touch: a second tap hides visible controls (upstream #886),
-                    // as in other video apps. Desktop clicks keep revealing them.
-                    if (PlatformUtils.isMobile &&
-                        controller.showController.value &&
-                        GlobalPlayerService.instance.player.isPlayingNow) {
-                      controller.toggleController();
-                      return;
-                    }
-                    // A buffering/paused player must not swallow the only way
-                    // to reveal its controls. Always expose the action bar; a
-                    // tap on a paused surface keeps the historical resume
-                    // behavior as well.
-                    controller.enableController();
-                    if (!GlobalPlayerService.instance.player.isPlayingNow) {
-                      GlobalPlayerService.instance.player.togglePlayPause();
-                    }
-                  },
-                  onLongPressStart: (details) {
-                    if (!shouldHandleVideoSurfaceTap(
-                      localPosition: details.localPosition,
-                      surfaceSize: context.size ?? Size.zero,
-                      controlsVisible: controller.showController.value,
-                      controlBarHeight: bottomBarHeight,
-                    )) {
-                      controller.enableController();
-                      return;
-                    }
-                    // Tap-and-hold pins the barrage under the finger; the
-                    // message-actions menu opens as before, and releasing
-                    // (with the menu closed) resumes the held message.
-                    controller.pauseDanmakuAt(details.globalPosition);
-                    final onDanmaku = controller.handleDanmakuPointer(details.globalPosition, longPress: true);
-                    // Fullscreen: a long press anywhere that is not on a
-                    // barrage opens the 关注 panel, like Simple Live.
-                    if (!onDanmaku &&
-                        !controller.danmakuHeld &&
-                        !controller.showLocked.value &&
-                        GlobalPlayerService.instance.player.fullscreenUI) {
-                      unawaited(
-                        showDialog<void>(
-                          context: context,
-                          builder: (_) => PlayOther(controller: controller.livePlayController),
-                        ),
-                      );
-                    }
-                  },
-                  onLongPressEnd: (_) => controller.resumeHeldDanmaku(),
-                  onLongPressCancel: () => controller.resumeHeldDanmaku(),
-                  onDoubleTap: () {
-                    if (!controller.showLocked.value) {
-                      GlobalPlayerService.instance.player.isWindowFullscreen.value
-                          ? controller.toggleWindowFullScreen()
-                          : controller.toggleFullScreenFromGesture();
-                    }
-                  },
-                  child: PlayerGestureLayer(
-                    controller: controller,
-                    // The portrait-panel restore swipe owns the vertical drag
-                    // while that transition is available; one drag must not
-                    // mean both "restore the panel" and "change brightness".
-                    enabled: screenMode != VideoMode.portraitFullscreen,
-                  ),
-                ),
-                LockButton(controller: controller),
-                const PortraitStreamDiagnosticsBadge(),
-                TopActionBar(
-                  controller: controller,
-                  barHeight: barHeight,
-                  moreMenu: _moreMenu,
-                  // A portrait fullscreen owns the whole screen, so its top bar is
-                  // the one that has to clear the notch on its own.
-                  portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
-                ),
-                // Fixed anchor for the ⋯ menu at the top-right of the player.
-                // It does not move with the auto-hiding top bar, so an open
-                // menu stays put when the bar slides away.
-                Builder(
-                  builder: (context) {
-                    final insets = playerBarInsets(
-                      context,
-                      portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                      mode: SettingsService.to.player.portraitDanmakuMode,
                     );
-                    return Positioned(
-                      top: insets.top,
-                      right: 8 + insets.right,
-                      child: PlayerMoreMenuAnchor(
-                        menu: _moreMenu,
-                        size: const Size(kMinInteractiveDimension, barHeight),
-                        isAudioOnly: () => controller.isAudioOnly,
-                        onToggleAudioOnly: () {
-                          controller.enableController();
-                          controller.toggleAudioOnly();
-                        },
+                    return Offstage(
+                      offstage: controller.hideDanmaku.value || hideForPortrait,
+                      child: PlayerDanmakuSurface(
+                        key: controller.danmuKey,
+                        controller: controller.danmakuController,
+                        settings: controller,
+                        isVerticalVideo: manager.isVerticalVideo.value,
                       ),
                     );
-                  },
-                ),
-                BottomActionBar(
-                  controller: controller,
-                  barHeight: bottomBarHeight,
-                  portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
-                ),
-              ],
+                  }),
+                  GestureDetector(
+                    // Opaque on purpose: this detector is what reveals and hides
+                    // the bars, and its only child is the shared gesture layer,
+                    // which paints nothing and declares itself translucent. With
+                    // the default `deferToChild` the whole tap surface stopped
+                    // hit-testing and tapping the video no longer showed the
+                    // controls at all.
+                    behavior: HitTestBehavior.opaque,
+                    onTapDown: (details) {
+                      _lastTapGlobalPosition = details.globalPosition;
+                      _lastTapLocalPosition = details.localPosition;
+                    },
+                    onTap: () {
+                      final globalPosition = _lastTapGlobalPosition;
+                      final localPosition = _lastTapLocalPosition;
+                      if (localPosition != null &&
+                          !shouldHandleVideoSurfaceTap(
+                            localPosition: localPosition,
+                            surfaceSize: context.size ?? Size.zero,
+                            controlsVisible: controller.showController.value,
+                            controlBarHeight: bottomBarHeight,
+                          )) {
+                        controller.enableController();
+                        return;
+                      }
+                      if (globalPosition != null && controller.handleDanmakuPointer(globalPosition, longPress: false)) {
+                        return;
+                      }
+                      // Touch: a second tap hides visible controls (upstream #886),
+                      // as in other video apps. Desktop clicks keep revealing them.
+                      if (PlatformUtils.isMobile &&
+                          controller.showController.value &&
+                          GlobalPlayerService.instance.player.isPlayingNow) {
+                        controller.toggleController();
+                        return;
+                      }
+                      // A buffering/paused player must not swallow the only way
+                      // to reveal its controls. Always expose the action bar; a
+                      // tap on a paused surface keeps the historical resume
+                      // behavior as well.
+                      controller.enableController();
+                      if (!GlobalPlayerService.instance.player.isPlayingNow) {
+                        GlobalPlayerService.instance.player.togglePlayPause();
+                      }
+                    },
+                    onLongPressStart: (details) {
+                      if (!shouldHandleVideoSurfaceTap(
+                        localPosition: details.localPosition,
+                        surfaceSize: context.size ?? Size.zero,
+                        controlsVisible: controller.showController.value,
+                        controlBarHeight: bottomBarHeight,
+                      )) {
+                        controller.enableController();
+                        return;
+                      }
+                      // Tap-and-hold pins the barrage under the finger; the
+                      // message-actions menu opens as before, and releasing
+                      // (with the menu closed) resumes the held message.
+                      controller.pauseDanmakuAt(details.globalPosition);
+                      final onDanmaku = controller.handleDanmakuPointer(details.globalPosition, longPress: true);
+                      // Fullscreen: a long press anywhere that is not on a
+                      // barrage opens the 关注 panel, like Simple Live.
+                      if (!onDanmaku &&
+                          !controller.danmakuHeld &&
+                          !controller.showLocked.value &&
+                          GlobalPlayerService.instance.player.fullscreenUI) {
+                        unawaited(
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => PlayOther(controller: controller.livePlayController),
+                          ),
+                        );
+                      }
+                    },
+                    onLongPressEnd: (_) => controller.resumeHeldDanmaku(),
+                    onLongPressCancel: () => controller.resumeHeldDanmaku(),
+                    onDoubleTap: () {
+                      if (!controller.showLocked.value) {
+                        GlobalPlayerService.instance.player.isWindowFullscreen.value
+                            ? controller.toggleWindowFullScreen()
+                            : controller.toggleFullScreenFromGesture();
+                      }
+                    },
+                    child: PlayerGestureLayer(
+                      controller: controller,
+                      // The portrait-panel restore swipe owns the vertical drag
+                      // while that transition is available; one drag must not
+                      // mean both "restore the panel" and "change brightness".
+                      enabled: screenMode != VideoMode.portraitFullscreen,
+                    ),
+                  ),
+                  LockButton(controller: controller),
+                  const PortraitStreamDiagnosticsBadge(),
+                  TopActionBar(
+                    controller: controller,
+                    barHeight: barHeight,
+                    moreMenu: _moreMenu,
+                    // A portrait fullscreen owns the whole screen, so its top bar is
+                    // the one that has to clear the notch on its own.
+                    portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                  ),
+                  // Fixed anchor for the ⋯ menu at the top-right of the player.
+                  // It does not move with the auto-hiding top bar, so an open
+                  // menu stays put when the bar slides away.
+                  Builder(
+                    builder: (context) {
+                      final insets = playerBarInsets(
+                        context,
+                        portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                      );
+                      return Positioned(
+                        top: insets.top,
+                        right: (compactControls ? 4 : 8) + insets.right,
+                        child: Obx(() {
+                          // Read first: Obx must observe the fullscreen flags on
+                          // every platform, not only where 投屏 exists.
+                          final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
+                          return PlayerMoreMenuAnchor(
+                            menu: _moreMenu,
+                            size: Size(
+                              compactControls ? compactPlayerActionExtent : kMinInteractiveDimension,
+                              barHeight,
+                            ),
+                            isAudioOnly: () => controller.isAudioOnly,
+                            onToggleAudioOnly: () {
+                              controller.enableController();
+                              controller.toggleAudioOnly();
+                            },
+                            // Fullscreen keeps 投屏 here instead of on the bar.
+                            onCast: PlatformUtils.isAndroid && fullscreen ? () => _castCurrentRoom(context) : null,
+                          );
+                        }),
+                      );
+                    },
+                  ),
+                  BottomActionBar(
+                    controller: controller,
+                    barHeight: bottomBarHeight,
+                    portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                  ),
+                ],
+              ),
             ),
           );
         }),
@@ -439,6 +470,7 @@ class TopActionBar extends StatelessWidget {
     // The inset is the raw system one, so this works whether the bar is over a
     // windowed video or a portrait fullscreen that owns the whole screen.
     final padding = playerBarInsets(context, portraitFullscreen: portraitFullscreen);
+    final edge = PlayerControlDensity.compactOf(context) ? 4.0 : 8.0;
     return Obx(
       () => AnimatedPositioned(
         top: controller.showController.value && !controller.showLocked.value ? 0 : -(barHeight + padding.top),
@@ -460,7 +492,7 @@ class TopActionBar extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.only(top: padding.top, left: 8 + padding.left, right: 8 + padding.right),
+              padding: EdgeInsets.only(top: padding.top, left: edge + padding.left, right: edge + padding.right),
               child: SizedBox(
                 height: barHeight,
                 child: Row(
@@ -515,10 +547,7 @@ class TopActionBar extends StatelessWidget {
                         icon: const Icon(Icons.assignment_outlined),
                         tooltip: i18n('view_schedule'),
                         visualDensity: VisualDensity.standard,
-                        constraints: const BoxConstraints(
-                          minWidth: kMinInteractiveDimension,
-                          minHeight: kMinInteractiveDimension,
-                        ),
+                        constraints: PlayerControlDensity.actionConstraints(context),
                         color: Colors.white,
                         onPressed: () => _showSchedule(context),
                       ),
@@ -533,10 +562,7 @@ class TopActionBar extends StatelessWidget {
                           key: const ValueKey('fullscreen-room-history'),
                           icon: const Icon(Icons.swap_horiz_outlined),
                           visualDensity: VisualDensity.standard,
-                          constraints: const BoxConstraints(
-                            minWidth: kMinInteractiveDimension,
-                            minHeight: kMinInteractiveDimension,
-                          ),
+                          constraints: PlayerControlDensity.actionConstraints(context),
                           color: Colors.white,
                           onPressed: () {
                             unawaited(
@@ -709,7 +735,7 @@ class BackButton extends StatelessWidget {
         }
         if (navigator.mounted) await navigator.maybePop();
       },
-      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+      constraints: PlayerControlDensity.actionConstraints(context),
       icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
     );
   }
@@ -727,7 +753,7 @@ class PIPButton extends StatelessWidget {
       return IconButton(
         tooltip: i18n('float_window_play'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         color: Colors.white,
         onPressed: null,
         icon: const Icon(CustomIcons.float_window),
@@ -738,7 +764,7 @@ class PIPButton extends StatelessWidget {
       return IconButton(
         tooltip: i18n('float_window_play'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         color: Colors.white,
         onPressed: manager.isPipPreparing.value
             ? null
@@ -774,7 +800,7 @@ class PortraitOrientationButton extends StatelessWidget {
         key: const ValueKey('portrait-orientation-override'),
         tooltip: i18n('portrait_room_override'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         color: selected == PortraitOrientationOverride.automatic ? Colors.white : const Color(0xFFFFD166),
         onPressed: () => _showPicker(context, selected),
         icon: Icon(icon, size: 21),
@@ -828,7 +854,7 @@ class PortraitFullscreenDisplayModeButton extends StatelessWidget {
         key: const ValueKey('portrait-fullscreen-display-mode'),
         tooltip: i18n('portrait_fullscreen_display_mode'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         color: selected == PortraitFullscreenDisplayMode.ambient ? Colors.white : const Color(0xFFFFD166),
         onPressed: () => _showPicker(context, selected),
         icon: Icon(portraitFullscreenDisplayModeIcon(selected), size: 21),
@@ -961,10 +987,27 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
   final bool compact;
 
   Future<void> _showSelector(BuildContext context) async {
-    final layout = resolveContentFirstPanelLayout(MediaQuery.sizeOf(context), ContentFirstPanelKind.streamSelector);
+    final screen = MediaQuery.sizeOf(context);
+    final layout = resolveContentFirstPanelLayout(screen, ContentFirstPanelKind.streamSelector);
+    // Fullscreen phones use the docked panel of 关注 with plain lists.
+    final docked =
+        PlatformUtils.isMobile && GlobalPlayerService.instance.player.fullscreenUI && screen.width > screen.height;
     controller.isMenuOpen.value = true;
     controller.stopHideController();
     try {
+      if (docked) {
+        await showDialog<void>(
+          context: context,
+          builder: (dialogContext) => PlayerSidePanel(
+            key: const ValueKey('fullscreen-stream-selector-panel'),
+            icon: Icons.tune_rounded,
+            title: i18n('fullscreen_stream_settings'),
+            closeKey: const ValueKey('fullscreen-stream-selector-close'),
+            child: StreamChoiceList(controller: controller.livePlayController),
+          ),
+        );
+        return;
+      }
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => Obx(() {
@@ -1175,6 +1218,102 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
   }
 }
 
+/// 画质 and 线路 as two plain lists, for the docked fullscreen panel.
+class StreamChoiceList extends StatelessWidget {
+  const StreamChoiceList({super.key, required this.controller});
+
+  final LivePlayController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final state = controller.state.value.player;
+      final switching = controller.playerController.isStreamSwitching.value;
+      return Stack(
+        children: [
+          ListView(
+            physics: const PureLiveScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 8),
+            children: [
+              _header(context, Icons.high_quality_rounded, i18n('select_quality')),
+              for (var index = 0; index < state.qualites.length; index++)
+                _choice(
+                  context,
+                  key: ValueKey('stream-choice-quality-$index'),
+                  label: state.qualites[index].quality,
+                  selected: state.currentQuality == index,
+                  onTap: switching
+                      ? null
+                      : () => controller.setResolution(ReloadDataType.changeQuality, index, state.currentLineIndex),
+                ),
+              _header(context, Icons.alt_route_rounded, i18n('select_line')),
+              for (var index = 0; index < state.lineCount; index++)
+                _choice(
+                  context,
+                  key: ValueKey('stream-choice-line-$index'),
+                  label: i18n('toolbox_line', args: {'index': (index + 1).toString()}),
+                  selected: state.currentLineIndex == index,
+                  onTap: switching
+                      ? null
+                      : () => controller.setResolution(ReloadDataType.changeLine, state.currentQuality, index),
+                ),
+            ],
+          ),
+          if (switching)
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: LinearProgressIndicator(
+                key: ValueKey('fullscreen-stream-switch-progress'),
+                minHeight: 3,
+                backgroundColor: Colors.transparent,
+              ),
+            ),
+        ],
+      );
+    });
+  }
+
+  Widget _header(BuildContext context, IconData icon, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(title, style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _choice(
+    BuildContext context, {
+    required Key key,
+    required String label,
+    required bool selected,
+    required VoidCallback? onTap,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return ListTile(
+      key: key,
+      dense: true,
+      selected: selected,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+      title: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
+      ),
+      trailing: selected ? Icon(Icons.check_rounded, size: 18, color: colors.primary) : null,
+      onTap: selected ? null : onTap,
+    );
+  }
+}
+
 class StreamChoicePane extends StatelessWidget {
   const StreamChoicePane({
     super.key,
@@ -1319,6 +1458,8 @@ class BottomActionBar extends StatelessWidget {
     // and this bar adds the raw system inset itself so it clears the gesture bar
     // (and a sideways cutout) instead of sitting under them.
     final padding = playerBarInsets(context);
+    final compactControls = PlayerControlDensity.compactOf(context);
+    final edge = compactControls ? 4.0 : 8.0;
     return Obx(() {
       bool shouldShow =
           (controller.showController.value || controller.isMenuOpen.value) && !controller.showLocked.value;
@@ -1335,7 +1476,7 @@ class BottomActionBar extends StatelessWidget {
             child: Container(
               height: barHeight,
               alignment: Alignment.bottomLeft,
-              padding: EdgeInsets.fromLTRB(8 + padding.left, 0, 8 + padding.right, padding.bottom),
+              padding: EdgeInsets.fromLTRB(edge + padding.left, 0, edge + padding.right, padding.bottom),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -1364,7 +1505,13 @@ class BottomActionBar extends StatelessWidget {
                   // every action. Fullscreen stays pinned outside the scroll
                   // view: as the last item it used to be clipped off-screen.
                   final pinExpand = !GlobalPlayerService.instance.player.isWindowFullscreen.value;
-                  final inlineRight = _buildRightActions(compact: false, includeExpand: !pinExpand);
+                  // A small phone drops the quality/line chip from the inline
+                  // bar; fullscreen keeps it.
+                  final inlineRight = _buildRightActions(
+                    compact: false,
+                    includeExpand: !pinExpand,
+                    includeStreamSelector: !compactControls,
+                  );
                   return Row(
                     children: [
                       Expanded(
@@ -1376,7 +1523,7 @@ class BottomActionBar extends StatelessWidget {
                             child: ConstrainedBox(
                               constraints: BoxConstraints(minWidth: scrollConstraints.maxWidth),
                               child: Padding(
-                                padding: const EdgeInsets.only(left: 8),
+                                padding: EdgeInsets.only(left: compactControls ? 0 : 8),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [left, inlineRight],
@@ -1388,7 +1535,7 @@ class BottomActionBar extends StatelessWidget {
                       ),
                       if (pinExpand)
                         Padding(
-                          padding: const EdgeInsets.only(right: 8),
+                          padding: EdgeInsets.only(right: compactControls ? 0 : 8),
                           child: ExpandButton(controller: controller),
                         ),
                     ],
@@ -1449,6 +1596,8 @@ class BottomActionBar extends StatelessWidget {
           PlayerDanmakuButton(controller: controller),
           PlayerDanmakuSettingsButton(
             controller: controller,
+            // Fullscreen phones open it as the docked side panel, like 关注.
+            dockedInLandscape: PlatformUtils.isMobile && GlobalPlayerService.instance.player.fullscreenUI,
             // The room keeps its bar up while the panel is open, exactly as the
             // private button did; the pinning is the caller's policy, not the
             // shared button's.
@@ -1462,7 +1611,7 @@ class BottomActionBar extends StatelessWidget {
     );
   }
 
-  Widget _buildRightActions({required bool compact, bool includeExpand = true}) {
+  Widget _buildRightActions({required bool compact, bool includeExpand = true, bool includeStreamSelector = true}) {
     final portraitPinned =
         GlobalPlayerService.instance.player.isSystemFullscreen.value &&
         GlobalPlayerService.instance.player.isVerticalVideo.value;
@@ -1473,7 +1622,7 @@ class BottomActionBar extends StatelessWidget {
         // One-tap mute, then quality and line: both stay on the bar in every
         // mode, so entering or leaving fullscreen never shifts the controls.
         MuteToggleButton(controller: controller),
-        FullscreenStreamSelectorButton(controller: controller, compact: compact),
+        if (includeStreamSelector) FullscreenStreamSelectorButton(controller: controller, compact: compact),
         // These two belong to the PORTRAIT fullscreen bar. Rendering them in
         // a landscape room's inline bar is what pushed the fullscreen button
         // off-screen after the video-fit option landed (v3.15 report).
@@ -1509,7 +1658,7 @@ class PlayPauseButton extends StatelessWidget {
           key: const ValueKey('player-play-pause-action'),
           tooltip: i18n(isPlaying ? 'multiview_pause' : 'multiview_play'),
           visualDensity: VisualDensity.standard,
-          constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+          constraints: PlayerControlDensity.actionConstraints(context),
           onPressed: () => playerManager.togglePlayPause(),
           icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 28),
         );
@@ -1529,7 +1678,7 @@ class RefreshButton extends StatelessWidget {
       key: const ValueKey('player-refresh-action'),
       tooltip: i18n('refresh'),
       visualDensity: VisualDensity.standard,
-      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+      constraints: PlayerControlDensity.actionConstraints(context),
       onPressed: () => controller.refresh(),
       icon: const Icon(Icons.refresh_rounded, color: Colors.white),
     );
@@ -1562,7 +1711,7 @@ class ExpandWindowButton extends StatelessWidget {
         key: const ValueKey('player-window-expand-action'),
         tooltip: i18n(playerWindowActionLabelKey(expanded)),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         onPressed: () => controller.toggleWindowFullScreen(),
         icon: RotatedBox(
           quarterTurns: 1,
@@ -1586,7 +1735,7 @@ class ExpandButton extends StatelessWidget {
         key: const ValueKey('player-fullscreen-action'),
         tooltip: i18n(fullscreenActionLabelKey(expanded)),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         onPressed: () => controller.toggleFullScreen(),
         icon: Icon(expanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded, color: Colors.white, size: 26),
       );
@@ -1608,7 +1757,7 @@ class MuteToggleButton extends StatelessWidget {
       return IconButton(
         key: const ValueKey('player-mute-toggle'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         iconSize: 21,
         color: Colors.white,
         onPressed: () {
@@ -1636,7 +1785,7 @@ class AudioOnlyButton extends StatelessWidget {
       return IconButton(
         tooltip: i18n(audioOnly ? 'restore_video_mode' : 'switch_audio_only_mode'),
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        constraints: PlayerControlDensity.actionConstraints(context),
         iconSize: 21,
         color: audioOnly ? const Color(0xFFFFD166) : Colors.white,
         onPressed: switching
@@ -1663,7 +1812,7 @@ class CastButton extends StatelessWidget {
     return IconButton(
       tooltip: i18n('cast_screen'),
       visualDensity: VisualDensity.standard,
-      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+      constraints: PlayerControlDensity.actionConstraints(context),
       iconSize: 21,
       color: Colors.white,
       onPressed: () {
@@ -1728,10 +1877,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
               borderRadius: BorderRadius.circular(8),
               onTap: _pending ? null : () => _toggleFavorite(isFavorite),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: kMinInteractiveDimension,
-                  minHeight: kMinInteractiveDimension,
-                ),
+                constraints: PlayerControlDensity.actionConstraints(context),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Row(

@@ -1,5 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 
@@ -59,6 +60,26 @@ class _FavoriteFloatingButtonState extends State<FavoriteFloatingButton> {
       final label = i18n(isFavorite ? 'followed' : 'follow');
 
       if (widget.compact) {
+        final icon = Icon(isFavorite ? Remix.heart_3_fill : Remix.heart_3_line, size: 19);
+        void onPressed() => _toggleFavorite(context, isFavorite);
+        // Phones show the bare icon, like the other header actions.
+        if (PlatformUtils.isMobile) {
+          return Tooltip(
+            message: label,
+            child: IconButton(
+              key: const ValueKey('favorite-action-button-compact'),
+              visualDensity: VisualDensity.standard,
+              constraints: const BoxConstraints.tightFor(
+                width: kMinInteractiveDimension,
+                height: kMinInteractiveDimension,
+              ),
+              padding: EdgeInsets.zero,
+              color: isFavorite ? Theme.of(context).colorScheme.primary : null,
+              onPressed: _pending ? null : onPressed,
+              icon: icon,
+            ),
+          );
+        }
         return Tooltip(
           message: label,
           child: IconButton.filledTonal(
@@ -71,8 +92,8 @@ class _FavoriteFloatingButtonState extends State<FavoriteFloatingButton> {
               height: kMinInteractiveDimension,
             ),
             padding: EdgeInsets.zero,
-            onPressed: _pending ? null : () => _toggleFavorite(context, isFavorite),
-            icon: Icon(isFavorite ? Remix.heart_3_fill : Remix.heart_3_line, size: 19),
+            onPressed: _pending ? null : onPressed,
+            icon: icon,
           ),
         );
       }

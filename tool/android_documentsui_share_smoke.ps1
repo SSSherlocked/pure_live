@@ -11,7 +11,7 @@ param(
     [string] $BuildMode,
     [string] $EvidenceDirectory,
     [string] $Package = 'com.mystyle.purelive',
-    [string] $AppLabel = '纯粹直播',
+    [string] $AppLabel = 'Pure Live',
     [string] $ExpectedModel = '25102RKBEC',
     [string] $ExpectedDevice = 'myron',
     [string] $DocumentsUiPackage = 'com.google.android.documentsui',

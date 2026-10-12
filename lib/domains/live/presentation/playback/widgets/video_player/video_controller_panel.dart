@@ -1573,12 +1573,12 @@ class BottomActionBar extends StatelessWidget {
                   // every action. Fullscreen stays pinned outside the scroll
                   // view: as the last item it used to be clipped off-screen.
                   final pinExpand = !GlobalPlayerService.instance.player.isWindowFullscreen.value;
-                  // A small phone drops the quality/line chip from the inline
-                  // bar; fullscreen keeps it.
+                  // Phones leave the quality/line chip out of the inline bar
+                  // (the room panel has quality and line); fullscreen keeps it.
                   final inlineRight = _buildRightActions(
                     compact: false,
                     includeExpand: !pinExpand,
-                    includeStreamSelector: !compactControls,
+                    includeStreamSelector: !PlatformUtils.isMobile,
                   );
                   return Row(
                     children: [

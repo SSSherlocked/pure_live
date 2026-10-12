@@ -149,7 +149,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Obx(
+      body: SettingsContentWidth(child: Obx(
         () => ListView(
           physics: const PureLiveScrollPhysics(),
           padding: const EdgeInsets.all(16),
@@ -161,7 +161,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
             _buildManualAddress(),
           ],
         ),
-      ),
+      )),
     );
   }
 

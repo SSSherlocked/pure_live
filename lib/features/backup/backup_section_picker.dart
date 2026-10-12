@@ -96,14 +96,20 @@ class _BackupSectionPickerPageState extends State<BackupSectionPickerPage> {
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              key: const ValueKey('backup-section-confirm'),
-              onPressed: _selected.isEmpty
-                  ? null
-                  : () => Navigator.of(Get.context!).pop(_selected.toList(growable: false)),
-              child: Text(i18n('confirm')),
+          // Same width as the list above it.
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: SettingsContentWidth.width - 32),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  key: const ValueKey('backup-section-confirm'),
+                  onPressed: _selected.isEmpty
+                      ? null
+                      : () => Navigator.of(Get.context!).pop(_selected.toList(growable: false)),
+                  child: Text(i18n('confirm')),
+                ),
+              ),
             ),
           ),
         ),

@@ -1,6 +1,5 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/domains/iptv/presentation/iptv_page.dart';
 import 'package:pure_live/features/settings/pages/video_settings_page.dart';
 import 'package:pure_live/features/settings/pages/local_config_preview_page.dart';
 import 'package:pure_live/features/settings/pages/general_settings_page.dart';
@@ -63,16 +62,10 @@ class SettingsPage extends GetView<SettingsService> {
               onTap: () => Get.to(() => const VideoSettingsPage()),
             ),
             context.buildTile(
-              icon: Remix.apps_2_line,
+              icon: Remix.tv_line,
               title: i18n("platform_settings"),
               subtitle: i18n("platform_settings_desc"),
               onTap: () => Get.to(() => const PlatformSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.tv_line,
-              title: i18n("iptv_settings"),
-              subtitle: i18n("manage_iptv_sources"),
-              onTap: () => Get.to(() => const IptvPage()),
             ),
             context.buildTile(
               icon: Remix.global_line,

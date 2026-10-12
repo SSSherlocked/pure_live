@@ -68,24 +68,32 @@ class _WebDavPageState extends State<WebDavPage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SettingsContentWidth(child: LayoutBuilder(
+      body: LayoutBuilder(
         builder: (context, constraints) {
           final breadcrumbExtent = _breadcrumbHeaderExtent(context);
           final minimumStateHeight = (constraints.maxHeight - kToolbarHeight - breadcrumbExtent)
               .clamp(0.0, double.infinity)
               .toDouble();
+          // The app bar spans the window; the content below keeps the settings
+          // width, padded inside the full-width scroll view so the margins
+          // scroll too.
+          final side = ((constraints.maxWidth - SettingsContentWidth.width) / 2)
+              .clamp(0.0, double.infinity)
+              .toDouble();
+          Widget content(Widget sliver) =>
+              SliverPadding(padding: EdgeInsets.symmetric(horizontal: side), sliver: sliver);
           return CustomScrollView(
             key: const ValueKey('webdav-page-scroll'),
             physics: const PureLiveScrollPhysics(),
             slivers: [
               _buildAppBar(),
-              _buildNavigationBar(breadcrumbExtent),
-              SliverToBoxAdapter(child: _buildFileActionStatus()),
-              _buildBodyContent(minimumStateHeight),
+              content(_buildNavigationBar(breadcrumbExtent)),
+              content(SliverToBoxAdapter(child: _buildFileActionStatus())),
+              content(_buildBodyContent(minimumStateHeight)),
             ],
           );
         },
-      )),
+      ),
       endDrawer: _buildDrawer(context),
       floatingActionButton: Obx(
         () => FloatingActionButton(

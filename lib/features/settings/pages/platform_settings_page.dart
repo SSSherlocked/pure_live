@@ -2,6 +2,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
+import 'package:pure_live/domains/iptv/presentation/iptv_page.dart';
 
 class PlatformSettingsPage extends GetView<SettingsService> {
   const PlatformSettingsPage({super.key});
@@ -57,6 +58,12 @@ class PlatformSettingsPage extends GetView<SettingsService> {
               onTap: () {
                 Get.toNamed(RoutePath.kSettingsAccount);
               },
+            ),
+            context.buildTile(
+              icon: Remix.tv_line,
+              title: i18n("iptv_settings"),
+              subtitle: i18n("manage_iptv_sources"),
+              onTap: () => Get.to(() => const IptvPage()),
             ),
           ]),
           const SizedBox(height: 32),

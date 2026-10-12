@@ -230,6 +230,21 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   bool get showInlineError => false;
   String? get pageNotice => null;
   Future<void> refreshData();
+
+  /// True while a pull-to-refresh runs: its header is the one spinner shown,
+  /// so the page's own reload spinner stays hidden (see BasePageView).
+  final pullRefreshing = false.obs;
+
+  /// The refresh behind every pull-to-refresh header.
+  Future<void> pullToRefresh() async {
+    pullRefreshing.value = true;
+    try {
+      await refreshData();
+    } finally {
+      if (!isClosed) pullRefreshing.value = false;
+    }
+  }
+
   Future<void> goToPage(int page);
   void setPageSize(int? newSize);
 }

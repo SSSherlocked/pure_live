@@ -1,5 +1,6 @@
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/widgets/refresh_indicators.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
@@ -114,7 +115,8 @@ class RoomGridView extends GetView<FavoriteController> {
           // pull animation never armed.
           return buildFavoritePullToRefresh(
             siteId: siteId,
-            onRefresh: controller.refreshData,
+            header: appRefreshIndicators(context).header,
+            onRefresh: controller.pullToRefresh,
             childBuilder: (_, physics) => buildScrollable(physics),
           );
         });
@@ -126,17 +128,14 @@ class RoomGridView extends GetView<FavoriteController> {
 @visibleForTesting
 Widget buildFavoritePullToRefresh({
   required String siteId,
+  required Header header,
   required Future<void> Function() onRefresh,
   required ERChildBuilder childBuilder,
 }) {
   return EasyRefresh.builder(
     key: ValueKey('favorite_pull_to_refresh_$siteId'),
-    header: MaterialHeader(
-      key: ValueKey('favorite_pull_to_refresh_indicator_$siteId'),
-      triggerOffset: 72,
-      triggerWhenRelease: true,
-      clamping: true,
-    ),
+    // The app's own pull header and spinner, as on every other list.
+    header: header,
     triggerAxis: Axis.vertical,
     onRefresh: onRefresh,
     childBuilder: childBuilder,

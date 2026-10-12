@@ -206,9 +206,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
               // header is already spinning, or the footer is loading the next
               // page, that indicator is the only one.
               final pagedByScroll = !isDesktop;
-              final headerMode = controller.easyRefreshController.headerState?.mode;
-              final headerSpinning = headerMode == IndicatorMode.processing || headerMode == IndicatorMode.ready;
-              if (pagedByScroll && (headerSpinning || controller.currentPage > 1)) {
+              if (controller.pullRefreshing.value || (pagedByScroll && controller.currentPage > 1)) {
                 return const SizedBox.shrink();
               }
               return const Align(alignment: Alignment.topCenter, child: _ReloadSpinner());
@@ -266,7 +264,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
       footer: indicators.footer,
       controller: controller.easyRefreshController,
       triggerAxis: Axis.vertical,
-      onRefresh: () => controller.refreshData(),
+      onRefresh: controller.pullToRefresh,
       // This scrollable must use the refresh owner's physics; otherwise its
       // explicit overscroll policy consumes the drag before refresh is armed.
       childBuilder: (context, physics) => buildScrollable(physics),

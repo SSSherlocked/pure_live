@@ -47,7 +47,7 @@ extension BasePageViewContentExtension<C extends BasePageScrollAndStateBone<T>, 
             header: indicators.header,
             footer: indicators.footer,
             controller: controller.easyRefreshController,
-            onRefresh: enableRefresh ? controller.refreshData : null,
+            onRefresh: enableRefresh ? controller.pullToRefresh : null,
             onLoad: (enableLoadMore && controller.canLoadMore.value)
                 ? () async {
                     await controller.loadMoreData();

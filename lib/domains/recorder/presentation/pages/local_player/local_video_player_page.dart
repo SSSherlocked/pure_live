@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:media_core_ui/media_core_ui.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:media_core/media_core.dart' show MediaPlayerView;
@@ -913,7 +914,12 @@ class _RecordingControlBar extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               PlayerDanmakuButton(controller: controller, iconColor: Colors.white),
-                              PlayerDanmakuSettingsButton(controller: controller, iconColor: Colors.white),
+                              PlayerDanmakuSettingsButton(
+                                controller: controller,
+                                iconColor: Colors.white,
+                                // Desktop opens the docked side panel, as in a room.
+                                dockedInLandscape: PlatformUtils.isDesktop,
+                              ),
                             ],
                           )
                         : const SizedBox.shrink(),

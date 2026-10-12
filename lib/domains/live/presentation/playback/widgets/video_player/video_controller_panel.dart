@@ -1172,7 +1172,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
       final switching = live.playerController.isStreamSwitching.value;
       final label =
           '${state.qualitySafe.playbackLabel} · ${i18n('toolbox_line', args: {'index': '${state.currentLineIndex + 1}'})}';
-      return Padding(
+      Widget chip(VoidCallback? onTap) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Material(
           key: const ValueKey('fullscreen-stream-selector'),
@@ -1180,7 +1180,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
-            onTap: switching ? null : () => unawaited(_showSelector(context)),
+            onTap: switching ? null : onTap,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
               child: Padding(
@@ -1212,7 +1212,77 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
           ),
         ),
       );
+
+      if (!PlatformUtils.isDesktop) return chip(() => unawaited(_showSelector(context)));
+
+      // Desktop: a cascading menu like 画面比例, one submenu each for quality
+      // and line, the current choice ticked.
+      return MenuAnchor(
+        onOpen: () {
+          controller.isMenuOpen.value = true;
+          controller.stopHideController();
+        },
+        onClose: () {
+          if (controller.status == PlayerStatus.disposed) return;
+          controller.isMenuOpen.value = false;
+          controller.enableController();
+        },
+        menuChildren: [
+          SubmenuButton(
+            key: const ValueKey('stream-menu-quality'),
+            leadingIcon: const Icon(Icons.high_quality_rounded, size: 18),
+            menuChildren: [
+              for (var index = 0; index < state.qualites.length; index++)
+                _choice(
+                  key: ValueKey('stream-menu-quality-$index'),
+                  label: state.qualites[index].quality,
+                  selected: state.currentQuality == index,
+                  onPressed: switching
+                      ? null
+                      : () => unawaited(
+                          live.setResolution(ReloadDataType.changeQuality, index, state.currentLineIndex),
+                        ),
+                ),
+            ],
+            child: Text(i18n('select_quality')),
+          ),
+          SubmenuButton(
+            key: const ValueKey('stream-menu-line'),
+            leadingIcon: const Icon(Icons.alt_route_rounded, size: 18),
+            menuChildren: [
+              for (var index = 0; index < state.lineCount; index++)
+                _choice(
+                  key: ValueKey('stream-menu-line-$index'),
+                  label: i18n('toolbox_line', args: {'index': (index + 1).toString()}),
+                  selected: state.currentLineIndex == index,
+                  onPressed: switching
+                      ? null
+                      : () => unawaited(live.setResolution(ReloadDataType.changeLine, state.currentQuality, index)),
+                ),
+            ],
+            child: Text(i18n('select_line')),
+          ),
+        ],
+        builder: (context, menu, _) => chip(() => menu.isOpen ? menu.close() : menu.open()),
+      );
     });
+  }
+
+  /// One quality or line entry; the check mark sits where 画面比例 puts its own.
+  static Widget _choice({
+    required Key key,
+    required String label,
+    required bool selected,
+    required VoidCallback? onPressed,
+  }) {
+    return MenuItemButton(
+      key: key,
+      leadingIcon: SizedBox(width: 18, child: selected ? const Icon(Icons.check_rounded, size: 18) : null),
+      // The current choice stays enabled (it only closes the menu), the way
+      // 画面比例 shows its own; re-selecting it must not reload the stream.
+      onPressed: selected ? () {} : onPressed,
+      child: Padding(padding: const EdgeInsetsDirectional.only(end: 16), child: Text(label)),
+    );
   }
 }
 
@@ -1593,8 +1663,11 @@ class BottomActionBar extends StatelessWidget {
           PlayerDanmakuButton(controller: controller),
           PlayerDanmakuSettingsButton(
             controller: controller,
-            // Fullscreen phones open it as the docked side panel, like 关注.
-            dockedInLandscape: PlatformUtils.isMobile && GlobalPlayerService.instance.player.fullscreenUI,
+            // Desktop always, and fullscreen phones, open it as the docked side
+            // panel the 关注 panel uses.
+            dockedInLandscape:
+                PlatformUtils.isDesktop ||
+                (PlatformUtils.isMobile && GlobalPlayerService.instance.player.fullscreenUI),
             // The room keeps its bar up while the panel is open, exactly as the
             // private button did; the pinning is the caller's policy, not the
             // shared button's.

@@ -187,15 +187,30 @@ class _LivePlayDesktopSplitState extends State<_LivePlayDesktopSplit> {
     final resizable = widget.onResized != null;
     final colors = Theme.of(context).colorScheme;
     final active = _hovered || _dragWidth != null;
-    return Row(
-      key: const ValueKey('live-play-desktop-split'),
+    // Wider for a finger than for a mouse.
+    final handleWidth = AppLayout.of(context).touch ? 14.0 : 8.0;
+    final split = Row(
       children: [
         // The player fills its area - title and controls follow the window on
         // both axes - while the picture inside keeps its ratio, centred and as
         // large as fits, letterboxed in black or page colour.
         Expanded(key: const ValueKey('live-play-desktop-video'), child: widget.video),
-        if (resizable)
-          MouseRegion(
+        SizedBox(key: const ValueKey('live-play-desktop-panel'), width: _width, child: widget.panel),
+      ],
+    );
+    if (!resizable) return KeyedSubtree(key: const ValueKey('live-play-desktop-split'), child: split);
+    // The handle lies over the seam and takes no width: nothing is drawn
+    // there until the pointer is on it or it is being dragged.
+    return Stack(
+      key: const ValueKey('live-play-desktop-split'),
+      children: [
+        Positioned.fill(child: split),
+        Positioned(
+          top: 0,
+          bottom: 0,
+          right: _width - handleWidth / 2,
+          width: handleWidth,
+          child: MouseRegion(
             key: const ValueKey('live-play-panel-resize-handle'),
             cursor: SystemMouseCursors.resizeLeftRight,
             onEnter: (_) => setState(() => _hovered = true),
@@ -208,21 +223,17 @@ class _LivePlayDesktopSplitState extends State<_LivePlayDesktopSplit> {
                 onHorizontalDragUpdate: _onDragUpdate,
                 onHorizontalDragEnd: _onDragEnd,
                 onHorizontalDragCancel: _onDragEnd,
-                child: SizedBox(
-                  // Wider for a finger than for a mouse.
-                  width: AppLayout.of(context).touch ? 14 : 6,
-                  child: Center(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      width: active ? 3 : 1,
-                      color: active ? colors.primary : colors.outlineVariant,
-                    ),
+                child: Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    width: active ? 3 : 0,
+                    color: active ? colors.primary : Colors.transparent,
                   ),
                 ),
               ),
             ),
           ),
-        SizedBox(key: const ValueKey('live-play-desktop-panel'), width: _width, child: widget.panel),
+        ),
       ],
     );
   }

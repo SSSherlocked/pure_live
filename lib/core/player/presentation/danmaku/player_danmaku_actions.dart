@@ -51,7 +51,7 @@ class PlayerDanmakuButton extends StatelessWidget {
         constraints: PlayerControlDensity.actionConstraints(context),
         onPressed: () => controller.danmakuHidden.toggle(),
         icon: SizedBox.square(
-          dimension: 24,
+          dimension: PlayerControlDensity.iconSize(context, 24),
           child: SvgPicture.asset(
             controller.danmakuHidden.value ? 'assets/images/video/danmu_close.svg' : 'assets/images/video/danmu_open.svg',
             // ignore: deprecated_member_use
@@ -120,7 +120,7 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
       constraints: PlayerControlDensity.actionConstraints(context),
       onPressed: () => unawaited(_open(context)),
       icon: SizedBox.square(
-        dimension: 24,
+        dimension: PlayerControlDensity.iconSize(context, 24),
         child: SvgPicture.asset(
           'assets/images/video/danmu_setting.svg',
           // ignore: deprecated_member_use

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-/// Inline (non-fullscreen) phone players on screens narrower than this tighten
-/// their floating controls and leave out the quality/line chip.
-const double compactInlinePlayerMaxScreenWidth = 400;
+/// Hit-target extent of a player action in the compact layout.
+const double compactPlayerActionExtent = 36;
 
-/// Hit-target extent of a player action in the compact layout: the bare
-/// 24 px icon plus its default 8 px IconButton padding on each side.
-const double compactPlayerActionExtent = 40;
+/// How much the compact layout shrinks icons (24 → 20, 28 → 23).
+const double compactPlayerIconScale = 0.82;
 
-/// Whether a player uses the compact control layout.
-bool useCompactInlinePlayerControls({required double screenWidth, required bool fullscreen, required bool mobile}) {
-  return mobile && !fullscreen && screenWidth < compactInlinePlayerMaxScreenWidth;
+/// Whether a player uses the compact control layout: every phone whose player
+/// is not fullscreen. The inline player is a strip of the page, so its
+/// floating controls are smaller and closer together; fullscreen keeps the
+/// full size.
+bool useCompactInlinePlayerControls({required bool fullscreen, required bool mobile}) {
+  return mobile && !fullscreen;
 }
 
 /// Tells the player's action buttons below it whether to use the compact
@@ -18,6 +19,22 @@ bool useCompactInlinePlayerControls({required double screenWidth, required bool 
 /// through each one.
 class PlayerControlDensity extends InheritedWidget {
   const PlayerControlDensity({super.key, required this.compact, required super.child});
+
+  /// The density scope plus, when [compact], a smaller default icon for every
+  /// [IconButton] below that does not set its own size.
+  static Widget scope({required bool compact, required Widget child}) {
+    return PlayerControlDensity(
+      compact: compact,
+      child: compact
+          ? IconButtonTheme(
+              data: IconButtonThemeData(
+                style: ButtonStyle(iconSize: WidgetStatePropertyAll<double>(24 * compactPlayerIconScale)),
+              ),
+              child: child,
+            )
+          : child,
+    );
+  }
 
   final bool compact;
 
@@ -28,6 +45,11 @@ class PlayerControlDensity extends InheritedWidget {
   static BoxConstraints actionConstraints(BuildContext context) {
     final extent = compactOf(context) ? compactPlayerActionExtent : kMinInteractiveDimension;
     return BoxConstraints(minWidth: extent, minHeight: extent);
+  }
+
+  /// An icon size a button sets explicitly, scaled for the compact layout.
+  static double iconSize(BuildContext context, double normal) {
+    return compactOf(context) ? (normal * compactPlayerIconScale).roundToDouble() : normal;
   }
 
   @override

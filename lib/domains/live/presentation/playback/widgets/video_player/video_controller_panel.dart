@@ -185,9 +185,8 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final int percentage = (currentVolume * 100).round();
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
           final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: barHeight);
-          // Small phones tighten the inline player's floating controls.
+          // Phones tighten the inline player's floating controls.
           final compactControls = useCompactInlinePlayerControls(
-            screenWidth: MediaQuery.sizeOf(context).width,
             fullscreen: GlobalPlayerService.instance.player.fullscreenUI,
             mobile: PlatformUtils.isMobile,
           );
@@ -198,7 +197,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
               ? Icons.volume_down
               : Icons.volume_up;
 
-          return PlayerControlDensity(
+          return PlayerControlDensity.scope(
             compact: compactControls,
             child: MouseRegion(
               onHover: (_) => controller.onMouseHoverPlayer(),
@@ -1315,7 +1314,11 @@ class PlayPauseButton extends StatelessWidget {
           visualDensity: VisualDensity.standard,
           constraints: PlayerControlDensity.actionConstraints(context),
           onPressed: () => playerManager.togglePlayPause(),
-          icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 28),
+          icon: Icon(
+            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: PlayerControlDensity.iconSize(context, 28),
+          ),
         );
       },
     );
@@ -1370,7 +1373,11 @@ class ExpandWindowButton extends StatelessWidget {
         onPressed: () => controller.toggleWindowFullScreen(),
         icon: RotatedBox(
           quarterTurns: 1,
-          child: Icon(expanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded, color: Colors.white, size: 26),
+          child: Icon(
+            expanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded,
+            color: Colors.white,
+            size: PlayerControlDensity.iconSize(context, 26),
+          ),
         ),
       );
     });
@@ -1392,7 +1399,11 @@ class ExpandButton extends StatelessWidget {
         visualDensity: VisualDensity.standard,
         constraints: PlayerControlDensity.actionConstraints(context),
         onPressed: () => controller.toggleFullScreen(),
-        icon: Icon(expanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded, color: Colors.white, size: 26),
+        icon: Icon(
+          expanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+          color: Colors.white,
+          size: PlayerControlDensity.iconSize(context, 26),
+        ),
       );
     });
   }
@@ -1413,7 +1424,7 @@ class MuteToggleButton extends StatelessWidget {
         key: const ValueKey('player-mute-toggle'),
         visualDensity: VisualDensity.standard,
         constraints: PlayerControlDensity.actionConstraints(context),
-        iconSize: 21,
+        iconSize: PlayerControlDensity.iconSize(context, 21),
         color: Colors.white,
         onPressed: () {
           controller.enableController();

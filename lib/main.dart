@@ -4,8 +4,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/logging/app_log.dart';
-import 'package:pure_live/core/platform/macos_window_button_inset.dart';
 import 'package:pure_live/app/router/app_pages.dart';
+import 'package:pure_live/app/shell/app_shell.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pure_live/app/bootstrap/initialized.dart';
@@ -20,7 +20,6 @@ import 'package:pure_live/core/platform/share_command_handler.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/player/presentation/popup_route_tracker.dart';
-import 'package:pure_live/domains/wallpaper/presentation/app_background.dart';
 import 'package:pure_live/domains/iptv/data/services/epg_import_manager.dart';
 import 'package:pure_live/domains/live/data/link/shared_live_link_opener.dart';
 import 'package:pure_live/domains/iptv/data/services/iptv_import_manager.dart';
@@ -207,7 +206,7 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
 
           // A wallpaper is painted behind the navigator by [AppBackgroundLayer].
           // The pages are made transparent by [WallpaperCanvasTransparency] in
-          // the builder below, not by the theme: GetX reads `theme:` only once,
+          // [AppShell], not by the theme: GetX reads `theme:` only once,
           // at startup, so a runtime change here never reaches a page.
           final wallpaperOwnsCanvas = BackgroundController.to.occupiesCanvas.value;
           if (wallpaperOwnsCanvas) {
@@ -235,36 +234,9 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
             locale: context.locale,
             navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver(), PopupRouteTracker.instance],
             builder: FlutterSmartDialog.init(
-              builder: (context, child) {
-                // `child` holds the app's Router. Every wrapper below must keep
-                // one widget shape in all states: a wrapper that appears or
-                // changes type remounts the Router, and a fresh Router
-                // re-navigates to the current location (a duplicate page).
-                Widget resultWidget = child ?? const SizedBox.shrink();
-                if (Platform.isAndroid) {
-                  resultWidget = AdaptiveRefreshRateScope(
-                    mode: SettingsService.to.app.refreshRateMode,
-                    child: resultWidget,
-                  );
-                }
-                // The wallpaper layer wraps the desktop title bar as well, so the
-                // picture reaches the top edge of the window; the chrome keeps a
-                // translucent wash of its own colour for readability. The canvas
-                // transparency stays inside the title bar: the chrome reads the
-                // real theme colours.
-                resultWidget = WallpaperCanvasTransparency(child: MaterialUiThemeBridge(child: resultWidget));
-                if (PlatformUtils.isDesktopNotMac) {
-                  resultWidget = DesktopManager.buildWithTitleBar(resultWidget);
-                }
-                if (PlatformUtils.isMacOS) {
-                  resultWidget = MacOSWindowButtonInset(child: resultWidget);
-                }
-                resultWidget = AppBackgroundLayer(child: resultWidget);
-                return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(currentFactor)),
-                  child: resultWidget,
-                );
-              },
+              // Everything painted around the pages lives in [AppShell], which
+              // keeps one widget shape so the Router is never remounted.
+              builder: (context, child) => AppShell(textScaleFactor: currentFactor, child: child),
             ),
             supportedLocales: context.supportedLocales,
             localizationsDelegates: [

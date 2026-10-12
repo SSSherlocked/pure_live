@@ -139,85 +139,79 @@ class _SuperChatCardState extends State<SuperChatCard> {
     );
   }
 
+  /// Avatar and name on the left with the countdown under the name; price and
+  /// the SC tag in the top-right corner. Only a large text scale stacks them.
   Widget _buildHeader({
     required LiveSuperChatMessage message,
     required Color backgroundColor,
     required Color primaryText,
     required Color secondaryText,
   }) {
+    final userName = Text(
+      message.userName,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(color: primaryText, fontSize: 14, height: 1.2, fontWeight: FontWeight.w600),
+    );
+    final identity = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _buildAvatar(message.face, primaryText),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [userName, const SizedBox(height: 4), _buildCountdown(primaryText, secondaryText)],
+          ),
+        ),
+      ],
+    );
+    final value = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _buildPrice(message, primaryText),
+        const SizedBox(height: 5),
+        _buildScTag(backgroundColor, secondaryText),
+      ],
+    );
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
       decoration: BoxDecoration(color: backgroundColor),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final stacked = constraints.maxWidth < 280 || MediaQuery.textScalerOf(context).scale(14) > 24;
-          final userName = Text(
-            message.userName,
-            maxLines: stacked ? 3 : 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: primaryText, fontSize: 14, height: 1.2, fontWeight: FontWeight.w600),
-          );
-          if (stacked) {
-            return Column(
+      child: MediaQuery.textScalerOf(context).scale(14) > 24
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _buildAvatar(message.face, primaryText),
-                    const SizedBox(width: 10),
-                    Expanded(child: userName),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _buildPrice(message, primaryText),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: _buildInfoArea(
-                    backgroundColor: backgroundColor,
-                    primaryText: primaryText,
-                    secondaryText: secondaryText,
-                  ),
-                ),
+                identity,
+                const SizedBox(height: 8),
+                Align(alignment: AlignmentDirectional.centerEnd, child: value),
               ],
-            );
-          }
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildAvatar(message.face, primaryText),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [userName, const SizedBox(height: 5), _buildPrice(message, primaryText)],
-                ),
-              ),
-              const SizedBox(width: 8),
-              _buildInfoArea(backgroundColor: backgroundColor, primaryText: primaryText, secondaryText: secondaryText),
-            ],
-          );
-        },
-      ),
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: identity),
+                const SizedBox(width: 8),
+                value,
+              ],
+            ),
     );
   }
 
   Widget _buildPrice(LiveSuperChatMessage message, Color textColor) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Icon(Remix.money_cny_circle_fill, size: 16, color: Color(0xFFFFC107)),
         const SizedBox(width: 3),
-        Flexible(
-          child: Text(
-            '￥${message.price}',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+        Text(
+          '￥${message.price}',
+          style: TextStyle(
+            color: textColor,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ],
@@ -252,49 +246,45 @@ class _SuperChatCardState extends State<SuperChatCard> {
     );
   }
 
-  Widget _buildInfoArea({required Color backgroundColor, required Color primaryText, required Color secondaryText}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-          decoration: BoxDecoration(color: _overlay(backgroundColor, 0.10), borderRadius: BorderRadius.circular(6)),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Remix.vip_diamond_fill, size: 11, color: const Color(0xFFFFC107)),
-              const SizedBox(width: 3),
-              Text(
-                'SC',
-                style: TextStyle(
-                  color: secondaryText,
-                  fontSize: 12,
-                  height: 1,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Remix.time_line, size: 13, color: secondaryText),
-            const SizedBox(width: 3),
-            Text(
-              _remainText,
-              style: TextStyle(
-                color: primaryText,
-                fontSize: 12,
-                height: 1,
-                fontWeight: FontWeight.w500,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+  Widget _buildScTag(Color backgroundColor, Color secondaryText) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(color: _overlay(backgroundColor, 0.10), borderRadius: BorderRadius.circular(6)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Remix.vip_diamond_fill, size: 11, color: Color(0xFFFFC107)),
+          const SizedBox(width: 3),
+          Text(
+            'SC',
+            style: TextStyle(
+              color: secondaryText,
+              fontSize: 12,
+              height: 1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCountdown(Color primaryText, Color secondaryText) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Remix.time_line, size: 13, color: secondaryText),
+        const SizedBox(width: 3),
+        Text(
+          _remainText,
+          style: TextStyle(
+            color: primaryText,
+            fontSize: 12,
+            height: 1,
+            fontWeight: FontWeight.w500,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
         ),
       ],
     );
@@ -312,12 +302,14 @@ class _SuperChatCardState extends State<SuperChatCard> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 13),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 9),
       decoration: BoxDecoration(color: backgroundColor),
       child: GestureDetector(
-        onDoubleTap: () => clipboard(message.message),
+        onDoubleTap: () => clipboard(message.message.trim()),
+        // Platforms often end the message with line breaks, which left a tall
+        // empty band under the text.
         child: SelectableText(
-          message.message,
+          message.message.trim(),
           style: TextStyle(color: textColor, fontSize: 14, height: 1.5, fontWeight: FontWeight.w400),
         ),
       ),

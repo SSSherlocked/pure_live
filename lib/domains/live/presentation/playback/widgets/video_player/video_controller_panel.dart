@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
-import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
@@ -936,20 +935,90 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
         return const SizedBox.shrink();
       }
       final switching = live.playerController.isStreamSwitching.value;
-      final label = status.qualityAndLine;
-      Widget chip(VoidCallback? onTap) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3),
+
+      // Quality and line are two chips, each opening its own list: one level,
+      // so a list cannot drift away from its entry the way a submenu pushed up
+      // from the bottom edge did. The line chip shows only with a second line.
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _menu(
+            context,
+            key: const ValueKey('fullscreen-stream-selector'),
+            icon: Icons.high_quality_rounded,
+            label: status.qualityLabel,
+            switching: switching,
+            entries: [
+              for (var index = 0; index < state.qualites.length; index++)
+                _choice(
+                  key: ValueKey('stream-menu-quality-$index'),
+                  label: state.qualites[index].quality,
+                  selected: state.currentQuality == index,
+                  onPressed: switching
+                      ? null
+                      : () => unawaited(
+                          live.setResolution(ReloadDataType.changeQuality, index, state.currentLineIndex),
+                        ),
+                ),
+            ],
+          ),
+          if (state.lineCount > 1)
+            _menu(
+              context,
+              key: const ValueKey('fullscreen-line-selector'),
+              icon: Icons.alt_route_rounded,
+              label: status.lineLabel,
+              switching: switching,
+              entries: [
+                for (var index = 0; index < state.lineCount; index++)
+                  _choice(
+                    key: ValueKey('stream-menu-line-$index'),
+                    label: i18n('toolbox_line', args: {'index': (index + 1).toString()}),
+                    selected: state.currentLineIndex == index,
+                    onPressed: switching
+                        ? null
+                        : () => unawaited(live.setResolution(ReloadDataType.changeLine, state.currentQuality, index)),
+                  ),
+              ],
+            ),
+        ],
+      );
+    });
+  }
+
+  /// A chip on the bar that opens one list; the list uses the compact roles.
+  Widget _menu(
+    BuildContext context, {
+    required Key key,
+    required IconData icon,
+    required String label,
+    required bool switching,
+    required List<Widget> entries,
+  }) {
+    return MenuAnchor(
+      onOpen: () {
+        controller.isMenuOpen.value = true;
+        controller.stopHideController();
+      },
+      onClose: () {
+        if (controller.status == PlayerStatus.disposed) return;
+        controller.isMenuOpen.value = false;
+        controller.enableController();
+      },
+      menuChildren: [for (final entry in entries) CompactText(child: entry)],
+      builder: (context, menu, _) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Material(
-          key: const ValueKey('fullscreen-stream-selector'),
+          key: key,
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(18),
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
-            onTap: switching ? null : onTap,
+            onTap: switching ? null : () => menu.isOpen ? menu.close() : menu.open(),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 11),
+                padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 9),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -959,10 +1028,10 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                             height: 15,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Icon(Icons.tune_rounded, size: 17, color: Colors.white),
-                    const SizedBox(width: 6),
+                        : Icon(icon, size: 17, color: Colors.white),
+                    const SizedBox(width: 5),
                     ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: compact ? 90 : 150),
+                      constraints: BoxConstraints(maxWidth: compact ? 72 : 120),
                       child: Text(
                         label,
                         maxLines: 1,
@@ -976,64 +1045,8 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
             ),
           ),
         ),
-      );
-
-      // A cascading menu like 画面比例, one submenu each for quality and line,
-      // the current choice ticked; the same on every platform.
-      return MenuAnchor(
-        onOpen: () {
-          controller.isMenuOpen.value = true;
-          controller.stopHideController();
-        },
-        onClose: () {
-          if (controller.status == PlayerStatus.disposed) return;
-          controller.isMenuOpen.value = false;
-          controller.enableController();
-        },
-        // The menu's entries use the compact text roles; the chip on the bar
-        // keeps its own size.
-        menuChildren: [
-          for (final entry in [
-          LeftSubmenuButton(
-            key: const ValueKey('stream-menu-quality'),
-            leadingIcon: const Icon(Icons.high_quality_rounded, size: 18),
-            menuChildren: [
-              for (var index = 0; index < state.qualites.length; index++)
-                _choice(
-                  key: ValueKey('stream-menu-quality-$index'),
-                  label: state.qualites[index].quality,
-                  selected: state.currentQuality == index,
-                  onPressed: switching
-                      ? null
-                      : () => unawaited(
-                          live.setResolution(ReloadDataType.changeQuality, index, state.currentLineIndex),
-                        ),
-                ),
-            ],
-            child: Text(i18n('select_quality')),
-          ),
-          LeftSubmenuButton(
-            key: const ValueKey('stream-menu-line'),
-            leadingIcon: const Icon(Icons.alt_route_rounded, size: 18),
-            menuChildren: [
-              for (var index = 0; index < state.lineCount; index++)
-                _choice(
-                  key: ValueKey('stream-menu-line-$index'),
-                  label: i18n('toolbox_line', args: {'index': (index + 1).toString()}),
-                  selected: state.currentLineIndex == index,
-                  onPressed: switching
-                      ? null
-                      : () => unawaited(live.setResolution(ReloadDataType.changeLine, state.currentQuality, index)),
-                ),
-            ],
-            child: Text(i18n('select_line')),
-          ),
-          ])
-            CompactText(child: entry),
-        ],
-        builder: (context, menu, _) => chip(() => menu.isOpen ? menu.close() : menu.open()),
-      );
-    });
+      ),
+    );
   }
 
   /// One quality or line entry; the check mark sits where 画面比例 puts its own.

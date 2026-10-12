@@ -47,6 +47,4 @@ class LiveRoomStatus {
 
   String get lineLabel => i18n('toolbox_line', args: {'index': '${lineIndex + 1}'});
 
-  /// "原画 · 线路1", the quality chip's label.
-  String get qualityAndLine => '$qualityLabel · $lineLabel';
 }

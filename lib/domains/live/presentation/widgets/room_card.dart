@@ -24,6 +24,10 @@ class RoomCard extends StatelessWidget {
     this.deleteTooltip,
     this.settingsViewport,
     this.interactive = true,
+    this.forceCompact = false,
+    this.onSelect,
+    this.highlighted = false,
+    this.status,
   });
   final LiveRoom room;
   final bool dense;
@@ -37,6 +41,19 @@ class RoomCard extends StatelessWidget {
   /// False for a picture of a card (the settings preview): no tap, long
   /// press, hover or ink, and nothing that opens a room.
   final bool interactive;
+
+  /// Always the compact row, whatever the layout setting: the 关注 panel's
+  /// list. Its other content switches still follow 房间卡片设置.
+  final bool forceCompact;
+
+  /// Replaces opening the room on tap (the 关注 panel switches rooms).
+  final VoidCallback? onSelect;
+
+  /// The room on screen: outlined in the primary colour and not tappable.
+  final bool highlighted;
+
+  /// Shown in place of the heat (正在观看, or when a 录播 room was watched).
+  final String? status;
   Widget _buildCover(BuildContext context, bool isDark) {
     final coverUrl = normalizeNetworkImageUrl(room.cover);
 
@@ -318,7 +335,21 @@ class RoomCard extends StatelessWidget {
       children.add(_buildCompactPlatformBadge(context, isDark));
     }
     if (canShowMetrics) {
-      if (statusPending) {
+      if (status case final text?) {
+        final colors = Theme.of(context).colorScheme;
+        children.add(
+          Text(
+            text,
+            key: const ValueKey('room-card-status'),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppText.of(context).secondary.copyWith(
+              fontWeight: FontWeight.w600,
+              color: highlighted ? colors.primary : colors.onSurfaceVariant,
+            ),
+          ),
+        );
+      } else if (statusPending) {
         children.add(
           CoverMetricBadge(
             icon: Icons.sync_rounded,
@@ -478,7 +509,8 @@ class RoomCard extends StatelessWidget {
     // GridView already inserts a RepaintBoundary around every child. Avoid a
     // second composited layer per card and keep the cover clip lightweight.
     return Obx(() {
-      final config = SettingsService.to.roomCard.resolve(viewport: settingsViewport);
+      final resolved = SettingsService.to.roomCard.resolve(viewport: settingsViewport);
+      final config = forceCompact ? resolved.copyWith(layout: RoomCardLayout.compact) : resolved;
       final radius = config.cornerRadius;
 
       return LayoutBuilder(
@@ -495,12 +527,20 @@ class RoomCard extends StatelessWidget {
             // The compact row matches the 关注 panel: a bordered rounded tile.
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radius),
-              side: compact ? BorderSide(color: colors.outlineVariant.withValues(alpha: .55)) : BorderSide.none,
+              side: highlighted
+                  ? BorderSide(color: colors.primary, width: 1.5)
+                  : compact
+                  ? BorderSide(color: colors.outlineVariant.withValues(alpha: .55))
+                  : BorderSide.none,
             ),
-            color: compact ? colors.surfaceContainerLow : (isDark ? Colors.grey[900] : Colors.white),
+            color: highlighted
+                ? colors.primaryContainer.withValues(alpha: .45)
+                : compact
+                ? colors.surfaceContainerLow
+                : (isDark ? Colors.grey[900] : Colors.white),
             child: InkWell(
               borderRadius: BorderRadius.circular(radius),
-              onTap: interactive ? () => onTap(context) : null,
+              onTap: !interactive || highlighted ? null : (onSelect ?? () => onTap(context)),
               onLongPress: interactive ? () => onLongPress(context) : null,
               onSecondaryTap: interactive ? () => onLongPress(context) : null,
               child: config.layout == RoomCardLayout.compact

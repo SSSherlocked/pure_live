@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
-import 'package:pure_live/core/widgets/common_avatar.dart';
+import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
 
 /// Fullscreen "关注" panel: the same followed-room switcher as the room
 /// panel's 关注 tab, in the fullscreen [PlayerSidePanel].
@@ -226,38 +228,56 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     // the side panel and in the fullscreen panel.
     const padding = 10.0;
     const spacing = 8.0;
-    final rowExtent = textMetrics.mobileRowHeight;
     return Builder(
       builder: (context) {
         return Obx(() {
           final current = widget.controller.state.value.room.detail;
-          return GridView.builder(
-            key: ValueKey(history ? 'watch-history-grid' : 'live-room-grid'),
-            padding: const EdgeInsets.fromLTRB(padding, 2, padding, padding),
-            physics: const PureLiveScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 1,
-              mainAxisExtent: rowExtent,
-              mainAxisSpacing: spacing,
-              crossAxisSpacing: spacing,
-            ),
-            itemCount: rooms.length,
-            itemBuilder: (context, index) {
-              final room = rooms[index];
-              final playing = current != null && room.hasSameIdentity(current);
+          // Rows are the compact room card's height, under the same settings.
+          final dense = SettingsService.to.app.enableDenseFavorites.v;
+          final rowExtent = RoomCardLayoutMetrics.compactHeight(
+            appearance: SettingsService.to.roomCard.resolve().copyWith(layout: RoomCardLayout.compact),
+            dense: dense,
+            textScaler: MediaQuery.textScalerOf(context),
+          );
+          // The panel's compact text would make these rows a step smaller
+          // than the same cards on the home page; give them the app's sizes.
+          return Theme(
+            data: Theme.of(context).copyWith(textTheme: Get.theme.textTheme),
+            child: GridView.builder(
+              key: ValueKey(history ? 'watch-history-grid' : 'live-room-grid'),
+              padding: const EdgeInsets.fromLTRB(padding, 2, padding, padding),
+              physics: const PureLiveScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                mainAxisExtent: rowExtent,
+                mainAxisSpacing: spacing,
+                crossAxisSpacing: spacing,
+              ),
+              itemCount: rooms.length,
+              itemBuilder: (context, index) {
+                final room = rooms[index];
+                final playing = current != null && room.hasSameIdentity(current);
 
-              return _RoomSwitchCard(
-                room: room,
-                history: history,
-                playing: playing,
-                onTap: playing
-                    ? null
-                    : () {
-                        widget.onSwitch?.call();
-                        widget.controller.switchRoom(room);
-                      },
-              );
-            },
+                // The home page's compact row, following 房间卡片设置; here a
+                // tap switches rooms and the room on screen is outlined.
+                return RoomCard(
+                  key: ValueKey('follow-room-${room.platform}:${room.roomId}'),
+                  room: room,
+                  dense: dense,
+                  forceCompact: true,
+                  highlighted: playing,
+                  status: playing
+                      ? i18n('now_watching')
+                      : history
+                      ? _historyLabel(room)
+                      : null,
+                  onSelect: () {
+                    widget.onSwitch?.call();
+                    widget.controller.switchRoom(room);
+                  },
+                );
+              },
+            ),
           );
         });
       },
@@ -291,162 +311,11 @@ class _CompactTab extends StatelessWidget {
   }
 }
 
-class _RoomSwitchCard extends StatelessWidget {
-  const _RoomSwitchCard({
-    required this.room,
-    required this.history,
-    required this.onTap,
-    this.playing = false,
-  });
-
-  final LiveRoom room;
-  final bool history;
-
-  /// The room currently on screen: highlighted and not tappable.
-  final bool playing;
-
-  final VoidCallback? onTap;
-
-  String _historyLabel() {
-    final value = room.lastWatchedAt;
-
-    if (value == null || value <= 0) {
-      return i18n('history_earlier');
-    }
-
-    return i18n('watched_at', args: {'time': formatHistoryWatchedAt(value)});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    final audience = room.audienceValue(
-      preferRealOnline: SettingsService.to.app.preferRealOnlineCounts.v,
-      platformEnabled: SettingsService.to.app.isRealOnlineEnabledFor(room.platform),
-    );
-
-    final title = room.title?.trim().isNotEmpty == true ? room.title! : i18n('untitled_room');
-
-    final nick = room.nick?.trim() ?? '';
-
-    final meta = playing
-        ? i18n('now_watching')
-        : history
-        ? _historyLabel()
-        : audience.isEmpty
-        ? i18n('audience_unknown')
-        : readableCount(audience);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: playing ? colors.primaryContainer.withValues(alpha: .45) : colors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: playing ? colors.primary : colors.outlineVariant.withValues(alpha: .55),
-              width: playing ? 1.5 : 1,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: _buildAvatarLayout(context, meta: meta, title: title, nick: nick),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAvatarLayout(BuildContext context, {required String meta, required String title, required String nick}) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final platform = room.platform?.trim().toLowerCase() ?? '';
-    final displayNick = nick.isEmpty ? i18n('unknown') : nick;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          CommonAvatar(avatarUrl: room.avatar, fallbackName: nick, dense: true),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  displayNick,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  // The same title/subtitle pair as the danmaku settings panel's rows.
-                  // Bold like the home page's 关注 rows.
-                  style: AppText.from(theme).sectionTitle.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppText.from(theme).secondary.copyWith(color: colors.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (platform.isNotEmpty) ...[_PlatformTag(platform: platform), const SizedBox(height: 3)],
-              Text(
-                meta,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppText.from(theme).secondary.copyWith(
-                  color: playing
-                      ? colors.primary
-                      : history
-                      ? colors.onSurfaceVariant
-                      : Colors.orange.shade700,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlatformTag extends StatelessWidget {
-  const _PlatformTag({required this.platform});
-
-  final String platform;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withValues(alpha: .75),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.outline.withValues(alpha: .2), width: .5),
-      ),
-      child: Text(
-        i18n('site_$platform'),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppText.of(context).tag.copyWith(color: colors.onSurfaceVariant, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
+/// When a 录播 room was last watched, for its row's status.
+String _historyLabel(LiveRoom room) {
+  final value = room.lastWatchedAt;
+  if (value == null || value <= 0) return i18n('history_earlier');
+  return i18n('watched_at', args: {'time': formatHistoryWatchedAt(value)});
 }
 
 String formatHistoryWatchedAt(int millisecondsSinceEpoch) {

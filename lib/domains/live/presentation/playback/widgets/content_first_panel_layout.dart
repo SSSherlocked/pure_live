@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
 
 const contentFirstPanelHeaderActionExtent = 48.0;
 
@@ -11,7 +10,6 @@ class RoomHistoryTextMetrics {
     required this.headerHeight,
     required this.tabBarHeight,
     required this.cardFooterHeight,
-    required this.mobileRowHeight,
     required this.scrollTabs,
   });
 
@@ -19,7 +17,6 @@ class RoomHistoryTextMetrics {
   final double tabBarHeight;
   final double cardFooterHeight;
 
-  final double mobileRowHeight;
   final bool scrollTabs;
 }
 
@@ -47,7 +44,6 @@ RoomHistoryTextMetrics resolveRoomHistoryTextMetrics({
     // Six pixels are consumed by the vertical padding; two more absorb text
     // metric rounding across fonts and device pixel ratios.
     cardFooterHeight: math.max(36, titleLineExtent + detailLineExtent + 8),
-    mobileRowHeight: math.max(RoomCardLayoutMetrics.listRowMinHeight, 16 + titleLineExtent + 2 + detailLineExtent),
     scrollTabs: textScaler.scale(tabFontSize) > tabFontSize * 1.01,
   );
 }

@@ -331,7 +331,7 @@
   "font_weight_extra_bold": "很粗",
   "font_weight_black": "特粗",
   "force_destroy_player": "播放器强制销毁",
-  "force_destroy_player_subtitle": "彻底关闭播放进程以节省资源",
+  "force_destroy_player_subtitle": "离开直播间立即释放播放器；关闭时暂停保留 45 秒，期间进入直播间起播更快",
   "general": "通用",
   "high_refresh_rate": "高刷新率显示",
   "high_refresh_rate_subtitle": "触摸、滑动和转场时自动使用当前分辨率支持的最高刷新率，空闲时交还系统动态调度以降低功耗",

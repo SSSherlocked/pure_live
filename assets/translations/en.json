@@ -329,7 +329,7 @@
   "font_weight_extra_bold": "Extra Bold",
   "font_weight_black": "Black",
   "force_destroy_player": "Force Stop Player",
-  "force_destroy_player_subtitle": "Completely stop playback process",
+  "force_destroy_player_subtitle": "Release the player as soon as you leave a room; when off it stays paused for 45 s so the next room starts faster",
   "general": "General",
   "high_refresh_rate": "High Refresh Rate",
   "high_refresh_rate_subtitle": "Use the highest compatible rate for touch, scrolling and transitions, then return idle frames to the system's dynamic policy",

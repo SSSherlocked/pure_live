@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
+import 'package:pure_live/core/config/settings_service.dart';
 import 'package:pure_live/domains/live/domain/playback_startup_timing.dart';
 import 'package:media_core/media_core.dart';
 import 'package:media_core_live/media_core_live.dart';
@@ -35,8 +36,12 @@ import 'package:media_core_better_player/media_core_better_player.dart' show kBe
 import 'package:media_core_ijk_player/media_core_ijk_player.dart' show kIjkPlayerBackendId;
 
 final class LivePlayerFacade {
-  LivePlayerFacade({PlayerEngine defaultEngine = PlayerEngine.mediaKit, PlaybackSourceInterceptor? sourceInterceptor})
-    : preferredEngine = defaultEngine {
+  LivePlayerFacade({
+    PlayerEngine defaultEngine = PlayerEngine.mediaKit,
+    PlaybackSourceInterceptor? sourceInterceptor,
+    bool Function()? useHardStopOnExit,
+  }) : preferredEngine = defaultEngine,
+       _useHardStopOnExit = useHardStopOnExit ?? (() => SettingsService.to.player.useHardStopOnExit.v) {
     _sourceInterceptor = sourceInterceptor;
     // Both refresh questions — "the lines died, give me new ones" and "the
     // engine is changing, give me lines it can use" — have one answer: ask the
@@ -59,6 +64,19 @@ final class LivePlayerFacade {
   }
 
   PlaybackSourceInterceptor? _sourceInterceptor;
+
+  /// 播放器强制销毁: when on, leaving a room releases the native player at
+  /// once; when off it is only paused and released after [idleReleaseDelay],
+  /// so a room opened meanwhile reuses the warm player instead of a cold start.
+  final bool Function() _useHardStopOnExit;
+  static const Duration idleReleaseDelay = Duration(seconds: 45);
+  Timer? _idleReleaseTimer;
+
+  /// Keeps a paused player for the next request instead of releasing it.
+  void _cancelIdleRelease() {
+    _idleReleaseTimer?.cancel();
+    _idleReleaseTimer = null;
+  }
 
   PlaybackSourceResolver? _sourceResolver;
 
@@ -169,6 +187,7 @@ final class LivePlayerFacade {
     // Declared before the open so libmpv starts at the room's level; a
     // post-open setVolume let one 100% frame of audio through first.
     OpenVolume.pending = _openVolumeFor(liveroom);
+    _cancelIdleRelease();
     await _controller.play(
       LiveSourceRequest(
         sources: await _intercept(
@@ -225,6 +244,7 @@ final class LivePlayerFacade {
     _lastHeaders = const {};
     _lastLines = const [];
     OpenVolume.pending = _openVolumeFor(liveroom);
+    _cancelIdleRelease();
     await _controller.play(
       LiveSourceRequest(sources: await _intercept([ownedPlanSource(source, liveroom)])),
       preferredBackend: backendIdOfEngine(preferredEngine),
@@ -282,11 +302,22 @@ final class LivePlayerFacade {
     sourceResolver: sourceResolver,
   );
 
-  Future<void> switchLine(int index) => _controller.switchLine(index);
-  Future<void> retry() => _controller.retry();
+  Future<void> switchLine(int index) {
+    _cancelIdleRelease();
+    return _controller.switchLine(index);
+  }
+
+  Future<void> retry() {
+    _cancelIdleRelease();
+    return _controller.retry();
+  }
+
   Future<void> togglePlayPause() => _controller.togglePlayPause();
   Future<void> pause() => _controller.pause();
-  Future<void> resume() => _controller.resume();
+  Future<void> resume() {
+    _cancelIdleRelease();
+    return _controller.resume();
+  }
   Future<void> setVolume(double volume) => _controller.setVolume(volume.clamp(0.0, 1.0));
 
   /// 系统音量滑杆平台(Android/iOS)上,房间内滑杆控制的是系统音量;
@@ -310,6 +341,7 @@ final class LivePlayerFacade {
       final lines = current.currentUrl.isEmpty
           ? current.urls
           : <String>[current.currentUrl, ...current.urls.where((url) => url != current.currentUrl)];
+      _cancelIdleRelease();
       await _controller.play(
         LiveSourceRequest(
           sources: await _intercept(
@@ -758,13 +790,23 @@ final class LivePlayerFacade {
   }
 
   Future<void> close() async {
+    _cancelIdleRelease();
     await _sourceInterceptor?.release();
-    await _controller.close();
+    if (_useHardStopOnExit()) {
+      await _controller.close();
+      return;
+    }
+    await _controller.pause();
+    _idleReleaseTimer = Timer(idleReleaseDelay, () {
+      _idleReleaseTimer = null;
+      if (!_disposed) unawaited(_controller.close());
+    });
   }
 
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    _cancelIdleRelease();
     await _sourceInterceptor?.close();
     await _stateSub?.cancel();
     await _playingSub?.cancel();

@@ -326,6 +326,12 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 value: SettingsService.to.app.enableScreenKeepOn,
                 icon: Remix.lightbulb_line,
               ),
+            context.buildSwitchTile(
+              title: i18n('letterbox_page_color'),
+              subtitle: i18n('letterbox_page_color_subtitle'),
+              value: SettingsService.to.player.letterboxPageColor,
+              icon: Remix.aspect_ratio_line,
+            ),
           ]),
 
           const SizedBox(height: 32),

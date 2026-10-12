@@ -241,6 +241,10 @@ class PlayerSettingsController extends GetxController {
   // Portrait-source presentation. These are deliberately separate from the
   // device orientation and from the global danmaku style.
   final RxBool enablePortraitStreamAdaptation = hiveBool('enablePortraitStreamAdaptation', true);
+
+  /// Wide room layout: the space around the picture takes the page colour
+  /// (or wallpaper) instead of black.
+  final RxBool letterboxPageColor = hiveBool('letterboxPageColor', false);
   final RxBool portraitAdaptiveHeight = hiveBool('portraitAdaptiveHeight', true);
   final RxString portraitLayoutModeName = hiveString('portraitLayoutMode', PortraitLayoutMode.balanced.name);
   final RxString portraitFullscreenPolicyName = hiveString(
@@ -498,6 +502,7 @@ class PlayerSettingsController extends GetxController {
       'useHardStopOnExit': useHardStopOnExit.v,
       'superResolutionMode': SuperResolutionMode.fromName(superResolutionMode.v).name,
       'enablePortraitStreamAdaptation': enablePortraitStreamAdaptation.v,
+      'letterboxPageColor': letterboxPageColor.v,
       'portraitAdaptiveHeight': portraitAdaptiveHeight.v,
       'portraitLayoutMode': portraitLayoutMode.name,
       'portraitFullscreenPolicy': portraitFullscreenPolicy.name,
@@ -553,6 +558,7 @@ class PlayerSettingsController extends GetxController {
         typed<String>(json['superResolutionMode'] ?? SuperResolutionMode.off.name),
       ).name,
       'enablePortraitStreamAdaptation': typed<bool>(json['enablePortraitStreamAdaptation'] ?? true),
+      'letterboxPageColor': typed<bool>(json['letterboxPageColor'] ?? false),
       'portraitAdaptiveHeight': typed<bool>(json['portraitAdaptiveHeight'] ?? true),
       'portraitLayoutModeName': typed<String>(
         _enumName(PortraitLayoutMode.values, json['portraitLayoutMode'], PortraitLayoutMode.balanced),
@@ -602,6 +608,7 @@ class PlayerSettingsController extends GetxController {
     useHardStopOnExit.v = parsed['useHardStopOnExit'];
     superResolutionMode.v = parsed['superResolutionMode'];
     enablePortraitStreamAdaptation.v = parsed['enablePortraitStreamAdaptation'];
+    letterboxPageColor.v = parsed['letterboxPageColor'];
     portraitAdaptiveHeight.v = parsed['portraitAdaptiveHeight'];
     portraitLayoutModeName.v = parsed['portraitLayoutModeName'];
     portraitFullscreenPolicyName.v = parsed['portraitFullscreenPolicyName'];
@@ -655,6 +662,7 @@ class PlayerSettingsController extends GetxController {
       'useHardStopOnExit': player['useHardStopOnExit'] ?? false,
       'superResolutionMode': SuperResolutionMode.fromName(player['superResolutionMode']?.toString()).name,
       'enablePortraitStreamAdaptation': player['enablePortraitStreamAdaptation'] ?? true,
+      'letterboxPageColor': player['letterboxPageColor'] ?? false,
       'portraitAdaptiveHeight': player['portraitAdaptiveHeight'] ?? true,
       'portraitLayoutMode': _enumName(
         PortraitLayoutMode.values,

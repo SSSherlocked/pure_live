@@ -2556,5 +2556,7 @@
   "chat_list_show_avatar": "Show avatars",
   "chat_list_show_avatar_subtitle": "Show the sender's avatar before each message (Bilibili only for now)",
   "chat_list_show_fans_badge": "Show fan badges",
-  "chat_list_show_fans_badge_subtitle": "Show the fan badge and level before the name (Bilibili, Missevan, LOOK, KuGou)"
+  "chat_list_show_fans_badge_subtitle": "Show the fan badge and level before the name (Bilibili, Missevan, LOOK, KuGou)",
+  "letterbox_page_color": "Page colour around the picture",
+  "letterbox_page_color_subtitle": "In the wide room layout, fill the space around the picture with the page colour instead of black"
 }

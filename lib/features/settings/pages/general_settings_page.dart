@@ -58,118 +58,21 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               onTap: () => Get.to(() => NavigationSettingsPage()),
             ),
             context.buildTile(
+              icon: Remix.chat_smile_2_line,
+              title: i18n("danmaku_settings"),
+              subtitle: i18n("danmaku_settings_entry_subtitle"),
+              onTap: () => Get.to(() => const _DanmakuSettingsSubpage()),
+            ),
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("refresh_settings")),
+          context.buildModernCard([
+            context.buildTile(
               icon: Remix.refresh_line,
               title: i18n("refresh_settings"),
               subtitle: i18n("refresh_settings_subtitle"),
               onTap: () => Get.to(() => const RefreshSettingsPage()),
             ),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("danmaku_settings")),
-          context.buildModernCard([
-            Obx(
-              () => context.buildSwitchTile(
-                title: i18n('show_danmaku'),
-                subtitle: i18n('show_danmaku_subtitle'),
-                // The stored flag is "hide"; the switch shows the opposite.
-                value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
-                autoCommit: false,
-                icon: Remix.chat_smile_2_line,
-                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
-              ),
-            ),
-            Obx(
-              () => context.buildTile(
-                icon: Remix.font_size,
-                title: i18n("change_danmaku_font_family"),
-                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
-                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
-              ),
-            ),
-
-            context.buildTile(
-              icon: Remix.filter_2_line,
-              title: i18n("danmaku_filter"),
-              subtitle: i18n("danmaku_filter_subtitle"),
-              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Remix.text,
-                title: i18n('chat_list_font_size'),
-                value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
-                min: 10,
-                max: 28,
-                displayValue: SettingsService.to.danmaku.chatListFontSize.v.round().toString(),
-                onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = v.roundToDouble(),
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Icons.format_bold_rounded,
-                title: i18n('chat_list_font_weight'),
-                value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                displayValue: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListFontWeight.v] ?? 'font_weight_normal',
-                ),
-                onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Icons.person_outline_rounded,
-                title: i18n('chat_list_name_font_weight'),
-                value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                displayValue: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
-                      'font_weight_normal',
-                ),
-                onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Remix.text_spacing,
-                title: i18n('chat_list_item_spacing'),
-                value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
-                min: 0,
-                max: 16,
-                displayValue: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
-                onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v.roundToDouble(),
-              ),
-            ),
-            // Caps the room and PiP danmaku frame rate (see
-            // DanmakuSettingsController.resolveAdaptiveDanmakuFps).
-            Obx(() {
-              final info = DisplayModeService.info.value;
-              final mode = SettingsService.to.app.refreshRateMode;
-              final suffix = info == null
-                  ? ''
-                  : ' · ${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
-              return context.buildTile(
-                title: i18n('danmaku_max_refresh_rate'),
-                subtitle: '${_refreshRateModeLabel(mode)} · ${_refreshRateModeDescription(mode)}$suffix',
-                icon: Remix.speed_up_line,
-                isLong: true,
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _showRefreshRateModeDialog(context),
-              );
-            }),
-            context.buildSwitchTile(
-              title: i18n('chat_list_bubble'),
-              subtitle: i18n('chat_list_bubble_subtitle'),
-              value: SettingsService.to.danmaku.chatListBubble,
-              icon: Remix.chat_3_line,
-            ),
-            const ChatListColorModeTile(),
           ]),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("language_group")),
@@ -746,6 +649,136 @@ class AnimatedTimerIcon extends StatelessWidget {
             decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 通用 › 主题设置 › 弹幕设置: what the 通用 page used to list inline.
+class _DanmakuSettingsSubpage extends StatelessWidget {
+  const _DanmakuSettingsSubpage();
+
+  // The danmaku frame-rate cap shares the refresh-rate labels and dialog.
+  static const _general = GeneralSettingsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(i18n("danmaku_settings"))),
+      body: SettingsContentWidth(
+        child: ListView(
+          physics: const PureLiveScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          children: [
+          context.buildModernCard([
+            Obx(
+              () => context.buildSwitchTile(
+                title: i18n('show_danmaku'),
+                subtitle: i18n('show_danmaku_subtitle'),
+                // The stored flag is "hide"; the switch shows the opposite.
+                value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
+                autoCommit: false,
+                icon: Remix.chat_smile_2_line,
+                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
+              ),
+            ),
+            Obx(
+              () => context.buildTile(
+                icon: Remix.font_size,
+                title: i18n("change_danmaku_font_family"),
+                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
+                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
+              ),
+            ),
+
+            context.buildTile(
+              icon: Remix.filter_2_line,
+              title: i18n("danmaku_filter"),
+              subtitle: i18n("danmaku_filter_subtitle"),
+              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Remix.text,
+                title: i18n('chat_list_font_size'),
+                value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
+                min: 10,
+                max: 28,
+                displayValue: SettingsService.to.danmaku.chatListFontSize.v.round().toString(),
+                onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = v.roundToDouble(),
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Icons.format_bold_rounded,
+                title: i18n('chat_list_font_weight'),
+                value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
+                min: 100,
+                max: 900,
+                displayValue: i18n(
+                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListFontWeight.v] ?? 'font_weight_normal',
+                ),
+                onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Icons.person_outline_rounded,
+                title: i18n('chat_list_name_font_weight'),
+                value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
+                min: 100,
+                max: 900,
+                displayValue: i18n(
+                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
+                      'font_weight_normal',
+                ),
+                onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Remix.text_spacing,
+                title: i18n('chat_list_item_spacing'),
+                value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
+                min: 0,
+                max: 16,
+                displayValue: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
+                onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v.roundToDouble(),
+              ),
+            ),
+            // Caps the room and PiP danmaku frame rate (see
+            // DanmakuSettingsController.resolveAdaptiveDanmakuFps).
+            Obx(() {
+              final info = DisplayModeService.info.value;
+              final mode = SettingsService.to.app.refreshRateMode;
+              final suffix = info == null
+                  ? ''
+                  : ' · ${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
+              return context.buildTile(
+                title: i18n('danmaku_max_refresh_rate'),
+                subtitle:
+                    '${_general._refreshRateModeLabel(mode)} · '
+                    '${_general._refreshRateModeDescription(mode)}$suffix',
+                icon: Remix.speed_up_line,
+                isLong: true,
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _general._showRefreshRateModeDialog(context),
+              );
+            }),
+            context.buildSwitchTile(
+              title: i18n('chat_list_bubble'),
+              subtitle: i18n('chat_list_bubble_subtitle'),
+              value: SettingsService.to.danmaku.chatListBubble,
+              icon: Remix.chat_3_line,
+            ),
+            const ChatListColorModeTile(),
+          ]),
+          ],
+        ),
       ),
     );
   }

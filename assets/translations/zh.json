@@ -1866,7 +1866,7 @@
   "data_and_backup_desc": "备份恢复、设备同步、日志、缓存与下载目录",
   "playback_auto_reconnect": "网络连接中断，恢复后会自动重连",
   "kernel_settings": "内核设置",
-  "theme_group": "主题",
+  "theme_group": "主题设置",
   "timer_settings": "定时设置",
   "software_update": "软件更新",
   "font_group_settings": "字体设置",
@@ -1897,5 +1897,6 @@
   "pure_black_dark": "深色模式纯黑背景",
   "pure_black_dark_subtitle": "仅在深色模式下生效，页面背景改为纯黑",
   "danmaku_display_area": "弹幕显示区域",
-  "danmaku_filter_group": "弹幕过滤"
+  "danmaku_filter_group": "弹幕过滤",
+  "danmaku_settings_entry_subtitle": "显示、字体、过滤与弹幕列表样式"
 }

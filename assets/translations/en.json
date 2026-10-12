@@ -1866,7 +1866,7 @@
   "data_and_backup_desc": "Backup, device sync, logs, cache and download folder",
   "playback_auto_reconnect": "Network lost. Playback will reconnect automatically",
   "kernel_settings": "Kernel",
-  "theme_group": "Theme",
+  "theme_group": "Theme settings",
   "timer_settings": "Timer",
   "software_update": "Software Update",
   "font_group_settings": "Fonts",
@@ -1897,5 +1897,6 @@
   "pure_black_dark": "Pure black in dark mode",
   "pure_black_dark_subtitle": "Dark mode only: page backgrounds turn pure black",
   "danmaku_display_area": "Danmaku area",
-  "danmaku_filter_group": "Danmaku filters"
+  "danmaku_filter_group": "Danmaku filters",
+  "danmaku_settings_entry_subtitle": "Display, font, filters and chat list style"
 }

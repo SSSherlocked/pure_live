@@ -105,7 +105,6 @@
   "current_cache_size": "当前缓存大小",
   "custom": "定制",
   "danmaku": "弹幕",
-  "danmaku_area": "画面顶部占用高度",
   "danmaku_connected": "弹幕服务器连接正常",
   "danmaku_stall_reconnecting": "弹幕长时间没有新消息，正在重新连接",
   "danmaku_connection_timeout": "弹幕服务器连接超时，已自动释放并可重新连接",

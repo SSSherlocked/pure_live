@@ -103,7 +103,6 @@
   "current_cache_size": "Current Cache Size",
   "custom": "Custom",
   "danmaku": "Danmaku",
-  "danmaku_area": "Top-screen height used",
   "danmaku_connected": "Danmaku server connected",
   "danmaku_stall_reconnecting": "No danmaku for a while; reconnecting",
   "danmaku_connection_timeout": "Danmaku connection timed out; the stalled session was released for reconnection",

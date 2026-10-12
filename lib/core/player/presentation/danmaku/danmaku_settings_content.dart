@@ -242,17 +242,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
               ),
               ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
-            ],
-          ),
-          const SizedBox(height: _sectionGap),
-          context.buildGroupTitle(i18n('danmaku_templates')),
-          const SizedBox(height: _titleGap),
-          _buildTemplateSection(theme),
-          const SizedBox(height: _sectionGap),
-          context.buildGroupTitle(i18n("danmaku_area")),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
               _switch(
                 theme,
                 title: i18n('danmaku_no_emoji'),
@@ -260,6 +249,17 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 onChanged: (value) => controller.noEmojiMode.value = value,
                 labelColor: labelColor,
               ),
+            ],
+          ),
+          const SizedBox(height: _sectionGap),
+          context.buildGroupTitle(i18n('danmaku_templates')),
+          const SizedBox(height: _titleGap),
+          _buildTemplateSection(theme),
+          const SizedBox(height: _sectionGap),
+          context.buildGroupTitle(i18n("position")),
+          const SizedBox(height: _titleGap),
+          reactiveCard(
+            () => [
               _slider(
                 theme,
                 title: i18n("danmaku_display_area"),
@@ -273,15 +273,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),
-            ],
-          ),
-
-          const SizedBox(height: _sectionGap),
-
-          context.buildGroupTitle(i18n("position")),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
               _counter(
                 theme,
                 title: i18n("margin_top"),

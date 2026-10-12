@@ -9,6 +9,7 @@ import 'package:pure_live/features/web_dav/web_dav_config.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:pure_live/features/web_dav/web_dav_controller.dart';
 import 'package:pure_live/features/backup/backup_section_picker.dart';
+import 'package:pure_live/features/backup/backup_password_dialog.dart';
 
 class WebDavPage extends StatefulWidget {
   const WebDavPage({super.key});
@@ -207,7 +208,16 @@ class _WebDavPageState extends State<WebDavPage> {
       available: BackupController.sectionNames,
     );
     if (sections == null) return;
-    await controller.uploadConfigSettings(sections: sections);
+    // Credentials only go to the share encrypted: ask for a password, or leave
+    // them out.
+    String? password;
+    if (backupIncludesSensitiveSections(sections)) {
+      if (!mounted) return;
+      final choice = await askBackupEncryptionPassword(context);
+      if (choice == null) return;
+      if (choice is EncryptBackup) password = choice.password;
+    }
+    await controller.uploadConfigSettings(sections: sections, password: password);
   }
 
   Future<bool> _showFileRestoreDialog(webdav.File file) {
@@ -537,6 +547,8 @@ class _WebDavPageState extends State<WebDavPage> {
                   confirmRestore: () => _showFileRestoreDialog(file),
                   selectSections: (available) =>
                       pickBackupSections(direction: BackupSectionDirection.import, available: available),
+                  askPassword: ({required bool retry}) async =>
+                      mounted ? askBackupDecryptionPassword(context, retry: retry) : null,
                 ),
               );
             } else if (value == 'Delete') {

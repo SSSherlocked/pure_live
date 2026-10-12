@@ -8,6 +8,8 @@ import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:pure_live/features/web_dav/web_dav_config.dart';
 import 'package:pure_live/features/web_dav/web_dav_service.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
+import 'package:pure_live/core/security/settings_crypto.dart';
+import 'package:pure_live/features/backup/backup_password_dialog.dart';
 import 'package:pure_live/features/web_dav/web_dav_settings_controller.dart';
 
 class WebDavPageController extends GetxController {
@@ -322,7 +324,10 @@ class WebDavPageController extends GetxController {
   }
 
   /// Upload the modules the viewer ticked on the module page.
-  Future<void> uploadConfigSettings({Iterable<String>? sections}) async {
+  ///
+  /// With a [password] the file is encrypted and keeps the credentials; without
+  /// one they stay on this device (see [exportForBackup]).
+  Future<void> uploadConfigSettings({Iterable<String>? sections, String? password}) async {
     final service = _webdavService;
     final epoch = _serviceEpoch;
     if (service == null || !_ownsService(service, epoch) || !canUpload) return;
@@ -333,8 +338,10 @@ class WebDavPageController extends GetxController {
       // Timestamp-only names overwrite earlier backups within the same second.
       final fileName = 'purelive_${dateStr}_${const Uuid().v4()}.txt';
 
-      final data = _backupController.exportAllSettings(sections: sections);
-      final content = jsonEncode(data);
+      final encrypt = password != null && password.isNotEmpty;
+      final data = _backupController.exportAllSettings(includeSensitiveData: encrypt, sections: sections);
+      final content = await sealBackupContent(data, password: password);
+      if (!_ownsService(service, epoch)) return;
       final bytes = utf8.encode(content);
 
       final remotePath = '${path.endsWith('/') ? path : '$path/'}$fileName';
@@ -377,6 +384,7 @@ class WebDavPageController extends GetxController {
     webdav.File file, {
     required Future<bool> Function() confirmRestore,
     required Future<List<String>?> Function(List<String> available) selectSections,
+    required Future<String?> Function({required bool retry}) askPassword,
   }) async {
     final service = _webdavService;
     final epoch = _serviceEpoch;
@@ -396,8 +404,16 @@ class WebDavPageController extends GetxController {
       final bytes = await service.readFile(remotePath);
       // Fence before local mutation, not only before its success notification.
       if (!_ownsService(service, epoch) || dirPath.value != path) return;
-      final data = jsonDecode(utf8.decode(bytes));
-      final backup = Map<String, dynamic>.from(data as Map);
+      final Map<String, dynamic> backup;
+      try {
+        backup = await openBackupContent(utf8.decode(bytes), askPassword: askPassword);
+      } on BackupDecryptionCancelled {
+        return;
+      } on BackupPasswordException {
+        if (_ownsService(service, epoch)) _feedback(i18n('backup_password_wrong'), isError: true);
+        return;
+      }
+      if (!_ownsService(service, epoch) || dirPath.value != path) return;
 
       final available = BackupController.presentSections(backup);
       List<String>? sections;

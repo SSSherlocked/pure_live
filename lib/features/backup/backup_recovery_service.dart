@@ -6,7 +6,9 @@ import 'package:pure_live/core/index.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:date_format/date_format.dart' hide S;
 import 'package:pure_live/features/backup/backup_controller.dart';
+import 'package:pure_live/core/security/settings_crypto.dart';
 import 'package:pure_live/features/backup/backup_section_picker.dart';
+import 'package:pure_live/features/backup/backup_password_dialog.dart';
 
 class BackupRecoveryService {
   Future<String?> createAppSettingsBackup(String backupDirectory) async {
@@ -16,6 +18,17 @@ class BackupRecoveryService {
       available: BackupController.sectionNames,
     );
     if (sections == null) return null;
+
+    // Credentials only leave the device encrypted: a backup that would carry
+    // them asks for a password, or leaves them out.
+    String? password;
+    if (backupIncludesSensitiveSections(sections)) {
+      final context = Get.context;
+      if (context == null) return null;
+      final choice = await askBackupEncryptionPassword(context);
+      if (choice == null) return null;
+      if (choice is EncryptBackup) password = choice.password;
+    }
 
     final granted = await FileUtils.requestStoragePermission();
     if (!granted) {
@@ -31,7 +44,7 @@ class BackupRecoveryService {
     final dateStr = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, 'T', HH, '_', nn, '_', ss]);
     final file = File('$selectedDirectory/purelive_$dateStr.txt');
 
-    if (await backup.backup(file, sections: sections)) {
+    if (await backup.backup(file, sections: sections, password: password)) {
       if (backup.backupDirectory.v.isEmpty) {
         try {
           await backup.setBackupDirectoryDurably(selectedDirectory);
@@ -58,21 +71,36 @@ class BackupRecoveryService {
     if (result?.path == null) return;
 
     final file = File(result!.path!);
-    final available = await BackupController.readBackupSections(file);
-    if (available == null) {
+    Map<String, dynamic> data;
+    try {
+      data = await openBackupContent(
+        await file.readAsString(),
+        askPassword: ({required bool retry}) async {
+          final context = Get.context;
+          return context == null ? null : askBackupDecryptionPassword(context, retry: retry);
+        },
+      );
+    } on BackupDecryptionCancelled {
+      return;
+    } on BackupPasswordException {
+      ToastUtil.show(i18n('backup_password_wrong'));
+      return;
+    } catch (_) {
       ToastUtil.show(i18n("recover_backup_failed"));
       return;
     }
 
+    final available = BackupController.presentSections(data);
     List<String>? sections;
     if (available.isNotEmpty) {
       sections = await pickBackupSections(direction: BackupSectionDirection.import, available: available);
       if (sections == null) return;
     }
 
-    if (await backup.recover(file, sections: sections)) {
+    try {
+      await backup.restoreAllSettings(data, sections: sections);
       ToastUtil.show(i18n("recover_backup_success"));
-    } else {
+    } catch (_) {
       ToastUtil.show(i18n("recover_backup_failed"));
     }
   }

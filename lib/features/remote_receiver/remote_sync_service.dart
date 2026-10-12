@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bonsoir/bonsoir.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
+import 'package:pure_live/core/security/settings_crypto.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:pure_live/features/remote_receiver/remote_sync_device.dart';
 import 'package:pure_live/features/remote_receiver/remote_sync_protocol.dart';
@@ -29,7 +31,13 @@ class RemoteSyncService extends GetxController {
 
   /// Asks the user whether [remoteAddress] may read ('export') or overwrite
   /// ('import') this device's settings. Requests are refused without it.
-  Future<bool> Function(String action, String remoteAddress)? confirmRequest;
+  ///
+  /// [pairingCode] is derived from the session key; the requesting device shows
+  /// the same six digits, and only equal digits mean nobody is in between.
+  Future<bool> Function(String action, String remoteAddress, String pairingCode)? confirmRequest;
+
+  /// Why the last outgoing sync failed, as a translation key, when known.
+  String? lastFailureKey;
 
   // ---------------------------------------------------------------------------
   // Internal
@@ -42,6 +50,10 @@ class RemoteSyncService extends GetxController {
   String _deviceId = '';
 
   HttpServer? _server;
+
+  /// This server's key pair; new for every server start, so a session key never
+  /// outlives the page that showed its QR code.
+  SyncKeyPair? _sessionKeys;
 
   BonsoirBroadcast? _broadcast;
   BonsoirDiscovery? _discovery;
@@ -96,7 +108,12 @@ class RemoteSyncService extends GetxController {
       return '';
     }
 
-    return RemoteSyncProtocol.createQrUri(ip: localIp.value, port: localPort.value).toString();
+    final keys = _sessionKeys;
+    return RemoteSyncProtocol.createQrUri(
+      ip: localIp.value,
+      port: localPort.value,
+      fingerprint: keys == null ? null : SyncCipher.fingerprint(keys.publicKey),
+    ).toString();
   }
 
   String get broadcastName {
@@ -375,6 +392,7 @@ class RemoteSyncService extends GetxController {
     }
 
     HttpServer? server;
+    _sessionKeys = SyncKeyPair.generate();
 
     var port = RemoteSyncProtocol.defaultHttpPort;
 
@@ -477,6 +495,11 @@ class RemoteSyncService extends GetxController {
         'version': version,
         'ip': localIp.value,
         'port': localPort.value,
+        'protocol': RemoteSyncProtocol.protocolVersion,
+        // The other half of the key agreement. Public on purpose: it only lets
+        // a client agree a key with this server, and the QR fingerprint and the
+        // pairing code tell a substituted one apart.
+        'publicKey': _sessionKeys?.publicKeyBase64,
       },
     });
   }
@@ -489,29 +512,54 @@ class RemoteSyncService extends GetxController {
   // ---------------------------------------------------------------------------
 
   Future<void> _handleSettings(HttpRequest request) async {
-    // No pairing code: whoever can reach this port still has to be approved on
-    // this device for the request to touch any settings.
     final action = switch (request.method) {
       'GET' => 'export',
       'POST' => 'import',
       _ => null,
     };
-    if (action != null && !await _confirm(action, request)) {
+    if (action == null) {
+      await _writeMethodNotAllowed(request.response);
+      return;
+    }
+
+    // Settings carry account cookies, so they only travel encrypted: a request
+    // without a session key is an older version, and gets nothing.
+    final key = _sessionKeyFor(request);
+    if (key == null) {
+      request.response.statusCode = HttpStatus.upgradeRequired;
+      await _writeResponse(request.response, {'code': 426, 'msg': 'Encrypted sync required', 'data': false});
+      return;
+    }
+
+    // Whoever can reach this port still has to be approved on this device, and
+    // the dialog shows the pairing code to compare with the other screen.
+    if (!await _confirm(action, request, SyncCipher.pairingCode(key))) {
       request.response.statusCode = HttpStatus.forbidden;
       await _writeResponse(request.response, {'code': 403, 'msg': 'Rejected on the device', 'data': false});
       return;
     }
-    switch (request.method) {
-      case 'GET':
-        await _handleGetSettings(request);
-        return;
+    if (action == 'export') {
+      await _handleGetSettings(request, key);
+    } else {
+      await _handlePostSettings(request, key);
+    }
+  }
 
-      case 'POST':
-        await _handlePostSettings(request);
-        return;
-
-      default:
-        await _writeMethodNotAllowed(request.response);
+  /// The session key agreed with the client's public key, or null.
+  Uint8List? _sessionKeyFor(HttpRequest request) {
+    final keys = _sessionKeys;
+    final header = request.headers.value(RemoteSyncProtocol.clientKeyHeader)?.trim();
+    if (keys == null || header == null || header.isEmpty) return null;
+    try {
+      final clientPublic = Uint8List.fromList(base64Url.decode(base64Url.normalize(header)));
+      return SyncCipher.sessionKey(
+        own: keys,
+        peerPublicKey: clientPublic,
+        serverPublicKey: keys.publicKey,
+        clientPublicKey: clientPublic,
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -521,13 +569,18 @@ class RemoteSyncService extends GetxController {
   // Used when this device receives settings from another device.
   // ---------------------------------------------------------------------------
 
-  Future<void> _handleGetSettings(HttpRequest request) async {
+  Future<void> _handleGetSettings(HttpRequest request, Uint8List key) async {
     try {
       final backup = Get.find<BackupController>();
 
       final settings = backup.exportAllSettings();
 
-      await _writeResponse(request.response, {'code': 200, 'msg': 'ok', 'data': settings});
+      await _writeResponse(request.response, {
+        'code': 200,
+        'msg': 'ok',
+        'protocol': RemoteSyncProtocol.protocolVersion,
+        'enc': SyncCipher.sealJson(key, settings),
+      });
     } catch (_) {
       request.response.statusCode = HttpStatus.internalServerError;
 
@@ -541,7 +594,7 @@ class RemoteSyncService extends GetxController {
   // Used when another device sends settings to this device.
   // ---------------------------------------------------------------------------
 
-  Future<void> _handlePostSettings(HttpRequest request) async {
+  Future<void> _handlePostSettings(HttpRequest request, Uint8List key) async {
     try {
       final content = await utf8.decoder.bind(request).join();
 
@@ -553,7 +606,14 @@ class RemoteSyncService extends GetxController {
         return;
       }
 
-      final body = jsonDecode(content);
+      final outer = jsonDecode(content);
+      // The packet itself travels sealed; a wrong key or a changed byte fails here.
+      Object? body;
+      try {
+        body = outer is Map ? SyncCipher.openJson(key, outer['enc']) : null;
+      } catch (_) {
+        body = null;
+      }
 
       if (body is! Map<String, dynamic>) {
         request.response.statusCode = HttpStatus.badRequest;
@@ -605,12 +665,12 @@ class RemoteSyncService extends GetxController {
     }
   }
 
-  Future<bool> _confirm(String action, HttpRequest request) async {
+  Future<bool> _confirm(String action, HttpRequest request, String pairingCode) async {
     final ask = confirmRequest;
     if (ask == null || _disposed) return false;
     final remote = request.connectionInfo?.remoteAddress.address ?? '';
     try {
-      return await ask(action, remote);
+      return await ask(action, remote, pairingCode);
     } catch (_) {
       return false;
     }
@@ -960,8 +1020,12 @@ class RemoteSyncService extends GetxController {
   // Send settings
   // ---------------------------------------------------------------------------
 
-  Future<bool> syncToDevice(RemoteSyncDevice device, {List<String>? sections}) {
-    return syncToAddress(device.ip, device.port, sections: sections);
+  Future<bool> syncToDevice(
+    RemoteSyncDevice device, {
+    List<String>? sections,
+    ValueChanged<String>? onPairingCode,
+  }) {
+    return syncToAddress(device.ip, device.port, sections: sections, onPairingCode: onPairingCode);
   }
 
   /// Top-level section names of a local backup, for the picker UI.
@@ -969,14 +1033,72 @@ class RemoteSyncService extends GetxController {
     return BackupController.sectionNames;
   }
 
-  Future<bool> syncToAddress(String ip, int port, {List<String>? sections}) async {
+  /// Agrees a session key with the device at [ip]:[port].
+  ///
+  /// Reads the server's public key from its status endpoint. When the address
+  /// came from a QR code, [fingerprint] is the key that QR promised, and any
+  /// other key is refused: it would be someone in between. Otherwise the
+  /// pairing code, shown here through [onPairingCode] and on the other device in
+  /// its confirmation dialog, is how the viewer checks the same thing.
+  Future<({Uint8List key, String clientPublicKey})?> _openSession(
+    String ip,
+    int port, {
+    String? fingerprint,
+    ValueChanged<String>? onPairingCode,
+  }) async {
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(Uri.parse('http://$ip:$port${RemoteSyncProtocol.apiStatus}'));
+      final response = await request.close();
+      final body = await utf8.decoder.bind(response).join();
+      if (response.statusCode != HttpStatus.ok) return null;
+      final status = jsonDecode(body);
+      final data = status is Map ? status['data'] : null;
+      final encoded = data is Map ? data['publicKey'] : null;
+      if (encoded is! String || encoded.isEmpty) {
+        lastFailureKey = 'remote_sync_peer_outdated';
+        return null;
+      }
+      final serverPublic = Uint8List.fromList(base64Url.decode(base64Url.normalize(encoded)));
+      if (fingerprint != null && SyncCipher.fingerprint(serverPublic) != fingerprint) {
+        lastFailureKey = 'remote_sync_key_mismatch';
+        return null;
+      }
+
+      final own = SyncKeyPair.generate();
+      final key = SyncCipher.sessionKey(
+        own: own,
+        peerPublicKey: serverPublic,
+        serverPublicKey: serverPublic,
+        clientPublicKey: own.publicKey,
+      );
+      onPairingCode?.call(SyncCipher.pairingCode(key));
+      return (key: key, clientPublicKey: own.publicKeyBase64);
+    } catch (_) {
+      return null;
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<bool> syncToAddress(
+    String ip,
+    int port, {
+    List<String>? sections,
+    String? fingerprint,
+    ValueChanged<String>? onPairingCode,
+  }) async {
     if (_disposed || isSyncing.value) {
       return false;
     }
 
     isSyncing.value = true;
+    lastFailureKey = null;
 
     try {
+      final session = await _openSession(ip, port, fingerprint: fingerprint, onPairingCode: onPairingCode);
+      if (session == null) return false;
+
       final backup = Get.find<BackupController>();
 
       final payload = backup.exportAllSettings(sections: sections);
@@ -992,13 +1114,16 @@ class RemoteSyncService extends GetxController {
         );
 
         request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+        request.headers.set(RemoteSyncProtocol.clientKeyHeader, session.clientPublicKey);
 
-        request.write(jsonEncode(RemoteSyncProtocol.settingsPacket(settings: payload, sections: sections)));
+        final packet = RemoteSyncProtocol.settingsPacket(settings: payload, sections: sections);
+        request.write(jsonEncode(RemoteSyncProtocol.encryptedPacket(SyncCipher.sealJson(session.key, packet))));
 
         final response = await request.close();
 
         final responseBody = await utf8.decoder.bind(response).join();
 
+        if (response.statusCode == HttpStatus.upgradeRequired) lastFailureKey = 'remote_sync_peer_outdated';
         if (response.statusCode != HttpStatus.ok) {
           return false;
         }
@@ -1062,12 +1187,21 @@ class RemoteSyncService extends GetxController {
   // This uses GET /settings, not GET /status.
   // ---------------------------------------------------------------------------
 
-  Future<Map<String, dynamic>?> getRemoteSettings(String ip, int port) async {
+  Future<Map<String, dynamic>?> getRemoteSettings(
+    String ip,
+    int port, {
+    String? fingerprint,
+    ValueChanged<String>? onPairingCode,
+  }) async {
     if (_disposed) {
       return null;
     }
+    lastFailureKey = null;
 
     try {
+      final session = await _openSession(ip, port, fingerprint: fingerprint, onPairingCode: onPairingCode);
+      if (session == null) return null;
+
       final client = HttpClient();
 
       try {
@@ -1077,11 +1211,13 @@ class RemoteSyncService extends GetxController {
             '${RemoteSyncProtocol.apiSettings}',
           ),
         );
+        request.headers.set(RemoteSyncProtocol.clientKeyHeader, session.clientPublicKey);
 
         final response = await request.close();
 
         final body = await utf8.decoder.bind(response).join();
 
+        if (response.statusCode == HttpStatus.upgradeRequired) lastFailureKey = 'remote_sync_peer_outdated';
         if (response.statusCode != HttpStatus.ok) {
           return null;
         }
@@ -1096,7 +1232,8 @@ class RemoteSyncService extends GetxController {
           return null;
         }
 
-        final data = result['data'];
+        // A wrong key or a changed byte throws here, and the sync fails.
+        final data = SyncCipher.openJson(session.key, result['enc']);
 
         if (data is! Map) {
           return null;

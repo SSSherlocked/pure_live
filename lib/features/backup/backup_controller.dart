@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:pure_live/get/get.dart';
+import 'package:pure_live/core/security/settings_crypto.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
@@ -368,11 +369,25 @@ class BackupController extends GetxController {
     Get.find<PageSettingsController>().fromJson(data);
   }
 
-  Future<bool> backup(File file, {Iterable<String>? sections}) async {
-    return _writeBackup(file, exportAllSettings(sections: sections));
+  /// Writes a backup of [sections] to [file].
+  ///
+  /// With a [password] the whole file is encrypted and keeps the credentials
+  /// (account cookies, WebDAV password); without one they are left out, so a
+  /// plain backup never carries a login.
+  Future<bool> backup(File file, {Iterable<String>? sections, String? password}) async {
+    final encrypt = password != null && password.isNotEmpty;
+    final data = exportAllSettings(includeSensitiveData: encrypt, sections: sections);
+    final json = const JsonEncoder.withIndent('  ').convert(data);
+    final String content;
+    try {
+      content = encrypt ? await BackupCipher.encrypt(json, password!) : json;
+    } catch (_) {
+      return false;
+    }
+    return _writeBackup(file, content);
   }
 
-  Future<bool> _writeBackup(File file, Map<String, dynamic> data) async {
+  Future<bool> _writeBackup(File file, String content) async {
     final staged = File('${file.path}.part');
     final previous = File('${file.path}.previous');
     try {
@@ -387,7 +402,7 @@ class BackupController extends GetxController {
         }
       }
       if (await staged.exists()) await staged.delete();
-      await staged.writeAsString(const JsonEncoder.withIndent('  ').convert(data), flush: true);
+      await staged.writeAsString(content, flush: true);
 
       final hadPrevious = await file.exists();
       if (hadPrevious) await file.rename(previous.path);

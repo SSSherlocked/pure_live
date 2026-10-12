@@ -8,14 +8,27 @@ class RemoteSyncProtocol {
   static const String apiStatus = '/api/remote-sync/status';
   static const String apiSettings = '/api/remote-sync/settings';
 
-  /// QR code for this device's sync endpoint: address and port only.
+  /// Settings travel encrypted from this version on; see [SyncCipher].
+  static const int protocolVersion = 2;
+
+  /// Request header carrying the client's public key for the session.
+  static const String clientKeyHeader = 'x-purelive-key';
+
+  /// QR code for this device's sync endpoint: address, port, and the
+  /// fingerprint of this session's public key.
   ///
-  /// A 6-digit pairing code used to travel here as well. It is gone on purpose:
-  /// the device that owns the settings authorizes each request with its own
-  /// on-screen confirmation (see `RemoteSyncService.confirmRequest`), which is
-  /// the same gate for a scanned QR and a typed address.
-  static Uri createQrUri({required String ip, required int port}) {
-    return Uri(scheme: 'purelive', host: ip, port: port, path: '/sync');
+  /// The device that owns the settings still authorizes each request on its own
+  /// screen (see `RemoteSyncService.confirmRequest`). The fingerprint lets the
+  /// scanning device check, by itself, that the key it is handed really is this
+  /// device's — scanning is face to face, the network is not.
+  static Uri createQrUri({required String ip, required int port, String? fingerprint}) {
+    return Uri(
+      scheme: 'purelive',
+      host: ip,
+      port: port,
+      path: '/sync',
+      queryParameters: fingerprint == null || fingerprint.isEmpty ? null : {'fp': fingerprint},
+    );
   }
 
   static Map<String, dynamic> discoveryPacket({
@@ -41,6 +54,11 @@ class RemoteSyncProtocol {
     return {'type': syncType, 'version': 1, 'settings': settings, 'sections': ?sections};
   }
 
+  /// The wire form of a settings packet: [settingsPacket], encrypted.
+  static Map<String, dynamic> encryptedPacket(Map<String, String> sealed) {
+    return {'type': syncType, 'version': protocolVersion, 'enc': sealed};
+  }
+
   static ({String ip, int port})? parseHttpAddress(String value) {
     var text = value.trim();
     if (text.isEmpty) return null;
@@ -61,17 +79,22 @@ class RemoteSyncProtocol {
   /// Parses a sync QR code, or a bare `host:port` as an address.
   ///
   /// A QR produced by an older version carries an extra `code` query parameter;
-  /// it is ignored, so both shapes of code scan into the same endpoint.
-  static ({String ip, int port})? parseQr(String value) {
+  /// it is ignored. A current one also carries the key fingerprint (`fp`).
+  static ({String ip, int port, String? fingerprint})? parseQr(String value) {
     final text = value.trim();
     if (text.isEmpty) return null;
     if (text.startsWith('purelive:')) {
       final uri = Uri.tryParse(text);
       if (uri == null || uri.host.isEmpty || !uri.hasPort) return null;
-      return (ip: uri.host, port: uri.port);
+      final fingerprint = uri.queryParameters['fp']?.trim();
+      return (
+        ip: uri.host,
+        port: uri.port,
+        fingerprint: fingerprint == null || fingerprint.isEmpty ? null : fingerprint,
+      );
     }
     // A bare "host:port" is not a valid URI on its own; read it as an address.
     final address = parseHttpAddress(text);
-    return address == null ? null : (ip: address.ip, port: address.port);
+    return address == null ? null : (ip: address.ip, port: address.port, fingerprint: null);
   }
 }

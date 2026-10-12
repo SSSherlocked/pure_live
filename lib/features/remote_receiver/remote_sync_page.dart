@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -35,17 +37,30 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
   }
 
   /// Another device asks to read or overwrite this device's settings.
-  Future<bool> _confirmIncoming(String action, String remoteAddress) async {
+  ///
+  /// The pairing code is the check against someone in between: the requesting
+  /// device shows the same six digits.
+  Future<bool> _confirmIncoming(String action, String remoteAddress, String pairingCode) async {
     if (!mounted) return false;
     final allowed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(i18n('remote_sync')),
-        content: Text(
-          i18n(
-            action == 'import' ? 'remote_sync_incoming_import' : 'remote_sync_incoming_export',
-            args: {'address': remoteAddress},
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              i18n(
+                action == 'import' ? 'remote_sync_incoming_import' : 'remote_sync_incoming_export',
+                args: {'address': remoteAddress},
+              ),
+            ),
+            const SizedBox(height: 16),
+            _PairingCode(code: pairingCode),
+            const SizedBox(height: 8),
+            Text(i18n('remote_sync_pairing_code_owner_hint'), style: Theme.of(dialogContext).textTheme.bodySmall),
+          ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(i18n('cancel'))),
@@ -57,22 +72,68 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
     return allowed == true;
   }
 
-  Future<void> _sendToDevice(String ip, int port) async {
+  bool _pairingDialogOpen = false;
+
+  /// Shows the session's pairing code while the other device decides.
+  void _showPairingCode(String code) {
+    if (!mounted) return;
+    _pairingDialogOpen = true;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(i18n('remote_sync_pairing_code')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _PairingCode(code: code),
+              const SizedBox(height: 12),
+              Text(i18n('remote_sync_pairing_code_waiting'), textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      ).whenComplete(() => _pairingDialogOpen = false),
+    );
+  }
+
+  void _closePairingCode() {
+    if (!_pairingDialogOpen || !mounted) return;
+    _pairingDialogOpen = false;
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  String _failureMessage(String fallbackKey) => i18n(service.lastFailureKey ?? fallbackKey);
+
+  Future<void> _sendToDevice(String ip, int port, {String? fingerprint}) async {
     final sections = await pickBackupSections(
       direction: BackupSectionDirection.export,
       available: service.exportSectionNames(),
     );
     if (sections == null) return;
 
-    final success = await service.syncToAddress(ip, port, sections: sections);
+    final success = await service.syncToAddress(
+      ip,
+      port,
+      sections: sections,
+      fingerprint: fingerprint,
+      onPairingCode: _showPairingCode,
+    );
+    _closePairingCode();
     if (!mounted) return;
-    ToastUtil.show(success ? i18n('remote_sync_send_success') : i18n('remote_sync_send_failed'));
+    ToastUtil.show(success ? i18n('remote_sync_send_success') : _failureMessage('remote_sync_send_failed'));
   }
 
-  Future<void> _receiveFromDevice(String ip, int port) async {
-    final settings = await service.getRemoteSettings(ip, port);
+  Future<void> _receiveFromDevice(String ip, int port, {String? fingerprint}) async {
+    final settings = await service.getRemoteSettings(
+      ip,
+      port,
+      fingerprint: fingerprint,
+      onPairingCode: _showPairingCode,
+    );
+    _closePairingCode();
     if (settings == null) {
-      ToastUtil.show(i18n('remote_sync_receive_failed'));
+      ToastUtil.show(_failureMessage('remote_sync_receive_failed'));
       return;
     }
 
@@ -125,10 +186,11 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
       ),
     );
 
+    // The QR's key fingerprint lets this device check the other one by itself.
     if (action == 'send') {
-      await _sendToDevice(parsed.ip, parsed.port);
+      await _sendToDevice(parsed.ip, parsed.port, fingerprint: parsed.fingerprint);
     } else if (action == 'receive') {
-      await _receiveFromDevice(parsed.ip, parsed.port);
+      await _receiveFromDevice(parsed.ip, parsed.port, fingerprint: parsed.fingerprint);
     }
   }
 
@@ -377,6 +439,31 @@ class _RemoteSyncScannerPageState extends State<_RemoteSyncScannerPage> {
             break;
           }
         },
+      ),
+    );
+  }
+}
+
+/// Six digits, spaced for reading aloud and comparing across two screens.
+class _PairingCode extends StatelessWidget {
+  const _PairingCode({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spaced = code.length == 6 ? '${code.substring(0, 3)} ${code.substring(3)}' : code;
+    return Center(
+      child: Text(
+        spaced,
+        key: const ValueKey('remote-sync-pairing-code'),
+        style: theme.textTheme.headlineMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          letterSpacing: 4,
+          color: theme.colorScheme.primary,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }

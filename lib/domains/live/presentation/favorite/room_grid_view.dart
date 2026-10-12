@@ -42,6 +42,7 @@ class RoomGridView extends GetView<FavoriteController> {
             spacing: spacing,
             basePadding: 12,
             fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+            columns: SettingsService.to.roomCard.currentColumns,
           );
 
           Widget buildScrollable(ScrollPhysics physics) {

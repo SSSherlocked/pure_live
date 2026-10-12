@@ -44,6 +44,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       spacing: SettingsService.to.theme.crossAxisSpacing.v,
       basePadding: 12,
       fixedCardWidth: controller.cardWidthFor(_viewport),
+      columns: controller.columnsFor(_viewport),
     );
     return sizing.itemWidth;
   }
@@ -126,6 +127,23 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                   max: RoomCardSettingsController.maxCardWidth,
                   displayValue: controller.cardWidthFor(_viewport).toStringAsFixed(0),
                   onChanged: (value) => controller.cardWidthRxFor(_viewport).v = value.roundToDouble(),
+                )
+              else
+                // Without a fixed width the cards stretch to fill each row;
+                // the row holds the chosen number of columns.
+                context.buildSliderTile(
+                  context,
+                  icon: Remix.layout_column_line,
+                  title: i18n('room_card_columns'),
+                  subtitle: i18n('room_card_columns_subtitle'),
+                  value: controller.columnsFor(_viewport).toDouble(),
+                  min: RoomCardSettingsController.autoColumns.toDouble(),
+                  max: RoomCardSettingsController.maxColumns.toDouble(),
+                  displayValue: controller.columnsFor(_viewport) == RoomCardSettingsController.autoColumns
+                      ? i18n('room_card_columns_auto')
+                      : '${controller.columnsFor(_viewport)}',
+                  onChanged: (value) =>
+                      controller.columnsRxFor(_viewport).v = RoomCardSettingsController.normalizeColumns(value),
                 ),
               context.buildSliderTile(
                 context,

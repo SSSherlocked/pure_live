@@ -35,6 +35,7 @@ class PopularGridView extends StatelessWidget {
               spacing: spacing,
               basePadding: 6,
               fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+              columns: SettingsService.to.roomCard.currentColumns,
             );
             final crossAxisCount = sizing.columns;
             final rows = (list.length + crossAxisCount - 1) ~/ crossAxisCount;

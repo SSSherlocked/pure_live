@@ -296,6 +296,27 @@ class RoomCardSettingsController extends GetxController {
 
   /// The fixed card width for this device, or 0 for automatic.
   double get currentCardWidth => cardWidthFor(currentViewport);
+
+  /// Columns per row when the card width is not fixed, per viewport. 0 keeps
+  /// the automatic count (by window width); a count keeps that many columns
+  /// and the cards stretch to fill the row.
+  final RxInt mobileColumns = hiveInt('room_card_mobile_columns', autoColumns);
+  final RxInt desktopColumns = hiveInt('room_card_desktop_columns', autoColumns);
+
+  static const int autoColumns = 0;
+  static const int maxColumns = 8;
+
+  static int normalizeColumns(num value) =>
+      value.isFinite ? value.round().clamp(autoColumns, maxColumns).toInt() : autoColumns;
+
+  RxInt columnsRxFor(RoomCardViewport viewport) {
+    return viewport == RoomCardViewport.mobile ? mobileColumns : desktopColumns;
+  }
+
+  int columnsFor(RoomCardViewport viewport) => normalizeColumns(columnsRxFor(viewport).v);
+
+  /// The chosen column count for this device, or 0 for automatic.
+  int get currentColumns => columnsFor(currentViewport);
   final List<Worker> _workers = [];
 
   static RoomCardPreset normalizePreset(String? value) {
@@ -404,6 +425,8 @@ class RoomCardSettingsController extends GetxController {
       'desktopConfig': configFor(RoomCardViewport.desktop).toJson(),
       'mobileCardWidth': cardWidthFor(RoomCardViewport.mobile),
       'desktopCardWidth': cardWidthFor(RoomCardViewport.desktop),
+      'mobileColumns': columnsFor(RoomCardViewport.mobile),
+      'desktopColumns': columnsFor(RoomCardViewport.desktop),
     };
   }
 
@@ -430,7 +453,16 @@ class RoomCardSettingsController extends GetxController {
       'desktopConfig': desktop,
       'mobileCardWidth': _readCardWidth(source, 'mobileCardWidth'),
       'desktopCardWidth': _readCardWidth(source, 'desktopCardWidth'),
+      'mobileColumns': _readColumns(source, 'mobileColumns'),
+      'desktopColumns': _readColumns(source, 'desktopColumns'),
     };
+  }
+
+  static int _readColumns(Map<String, dynamic> json, String key) {
+    final value = json[key];
+    if (value == null) return autoColumns;
+    if (value is! num) throw FormatException('$key must be a number');
+    return normalizeColumns(value);
   }
 
   static double _readCardWidth(Map<String, dynamic> json, String key) {
@@ -467,6 +499,8 @@ class RoomCardSettingsController extends GetxController {
     desktopPreset.v = parsed['desktopPreset'] as String;
     mobileCardWidth.v = parsed['mobileCardWidth'] as double;
     desktopCardWidth.v = parsed['desktopCardWidth'] as double;
+    mobileColumns.v = parsed['mobileColumns'] as int;
+    desktopColumns.v = parsed['desktopColumns'] as int;
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {

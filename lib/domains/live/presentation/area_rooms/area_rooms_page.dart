@@ -53,6 +53,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
               final spacing = SettingsService.to.theme.crossAxisSpacing.v;
               final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
               final fixedCardWidth = SettingsService.to.roomCard.currentCardWidth;
+              final columns = SettingsService.to.roomCard.currentColumns;
               return LayoutBuilder(
                 builder: (context, constraint) {
                   final width = constraint.maxWidth;
@@ -63,6 +64,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
                     spacing: spacing,
                     basePadding: 6,
                     fixedCardWidth: fixedCardWidth,
+                    columns: columns,
                   );
                   final itemWidth = sizing.itemWidth;
                   return GridView.builder(

@@ -201,6 +201,7 @@ class _HistoryPageState extends State<HistoryPage> {
         final spacing = SettingsService.to.theme.crossAxisSpacing.v;
         final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
         final fixedCardWidth = SettingsService.to.roomCard.currentCardWidth;
+        final columns = SettingsService.to.roomCard.currentColumns;
         return LayoutBuilder(
           builder: (context, constraint) {
             final width = constraint.maxWidth;
@@ -211,6 +212,7 @@ class _HistoryPageState extends State<HistoryPage> {
               spacing: spacing,
               basePadding: 6,
               fixedCardWidth: fixedCardWidth,
+              columns: columns,
             );
             final indicators = appRefreshIndicators(context, maxWidth: width);
             return EasyRefresh(

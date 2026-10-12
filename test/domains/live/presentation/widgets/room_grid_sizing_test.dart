@@ -64,4 +64,44 @@ void main() {
       expect(sizing.horizontalPadding, 12);
     });
   });
+
+  group('chosen column count', () {
+    test('holds that many columns and stretches the cards', () {
+      final sizing = resolveRoomGridSizing(
+        width: 1000,
+        autoColumns: 4,
+        spacing: 10,
+        basePadding: 0,
+        fixedCardWidth: 0,
+        columns: 2,
+      );
+      expect(sizing.columns, 2);
+      expect(sizing.itemWidth, 495);
+      expect(sizing.horizontalPadding, 0);
+    });
+
+    test('0 keeps the automatic count', () {
+      final sizing = resolveRoomGridSizing(
+        width: 1000,
+        autoColumns: 4,
+        spacing: 10,
+        basePadding: 0,
+        fixedCardWidth: 0,
+      );
+      expect(sizing.columns, 4);
+    });
+
+    test('a fixed card width takes precedence', () {
+      final sizing = resolveRoomGridSizing(
+        width: 1000,
+        autoColumns: 4,
+        spacing: 10,
+        basePadding: 0,
+        fixedCardWidth: 300,
+        columns: 2,
+      );
+      expect(sizing.itemWidth, 300);
+      expect(sizing.columns, 3);
+    });
+  });
 }

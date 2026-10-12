@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
@@ -287,7 +288,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
       child: MenuAnchor(
       controller: menu,
       menuChildren: [
-        SubmenuButton(
+        LeftSubmenuButton(
           key: const ValueKey('player-more-video-fit'),
           leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
           menuChildren: [

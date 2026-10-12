@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
@@ -988,7 +989,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
         // keeps its own size.
         menuChildren: [
           for (final entry in [
-          SubmenuButton(
+          LeftSubmenuButton(
             key: const ValueKey('stream-menu-quality'),
             leadingIcon: const Icon(Icons.high_quality_rounded, size: 18),
             menuChildren: [
@@ -1006,7 +1007,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
             ],
             child: Text(i18n('select_quality')),
           ),
-          SubmenuButton(
+          LeftSubmenuButton(
             key: const ValueKey('stream-menu-line'),
             leadingIcon: const Icon(Icons.alt_route_rounded, size: 18),
             menuChildren: [

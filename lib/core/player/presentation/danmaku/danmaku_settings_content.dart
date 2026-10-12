@@ -242,13 +242,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
               ),
               ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
-              _switch(
-                theme,
-                title: i18n('danmaku_no_emoji'),
-                value: controller.noEmojiMode.value,
-                onChanged: (value) => controller.noEmojiMode.value = value,
-                labelColor: labelColor,
-              ),
             ],
           ),
           const SizedBox(height: _sectionGap),
@@ -380,6 +373,13 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 subtitle: i18n("danmaku_mass_mode_subtitle"),
                 value: controller.danmakuMassMode.value,
                 onChanged: (v) => controller.danmakuMassMode.value = v,
+                labelColor: labelColor,
+              ),
+              _switch(
+                theme,
+                title: i18n('danmaku_no_emoji'),
+                value: controller.noEmojiMode.value,
+                onChanged: (value) => controller.noEmojiMode.value = value,
                 labelColor: labelColor,
               ),
               _switch(

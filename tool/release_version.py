@@ -94,7 +94,8 @@ def release_notes(root: Path, name: str) -> str:
     body = (rest[: end.start()] if end else rest).strip()
     if not body:
         raise ValueError(f'the v{name} section of {NOTES} is empty')
-    # The release body puts these under its own "### 📝 本次更新".
+    # Section headings drop two levels so they read as sub-headings in the
+    # release body and the in-app update dialog.
     return re.sub(r'(?m)^## ', '#### ', body)
 
 

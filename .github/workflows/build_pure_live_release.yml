@@ -742,38 +742,12 @@ jobs:
         id: release_body
         shell: bash
         env:
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          REPOSITORY: ${{ github.repository }}
           RELEASE_DESCRIPTION: ${{ steps.notes.outputs.text }}
         run: |
           set -euo pipefail
-          cat << EOF > release_body.txt
-          # Pure Live $RELEASE_TAG
-          |版本|下载地址|
-          |---|---|
-          |Windows/macOS/Android/iOS版|[pure_live](https://github.com/$REPOSITORY/releases/latest)|
-          ### 🖥️ Windows 版
-          - **Portable ZIP**：解压即用，无需安装
-          - **EXE 安装包**：适合所有用户
-          - 适配：Windows 10/11 x64
-          ### 🍎 macOS 版
-          - macOS 桌面版
-          - Apple Silicon（arm64）与 Intel（x64）分开打包，按电脑芯片下载
-          - ZIP
-          ### 📱 Android 版
-          - Android 8.0+（API 26，FFmpegKit 录制依赖要求）
-          - ARM64-v8a
-          ### 🐧 Linux 版
-          - Linux x64
-          - **DEB 安装包**：适合 Debian/Ubuntu 及其衍生发行版
-          - **Portable ZIP / tar.gz**：解压即用，无需安装
-          ### 🍎 iOS 版
-          - unsigned iOS device application
-          - TrollStore / ad-hoc IPA
-          - ARM64
-          ### 📝 本次更新
-          $RELEASE_DESCRIPTION
-          EOF
+          # The body is the version's notes alone: no platform list or
+          # download table in front of them.
+          printf '%s\n' "$RELEASE_DESCRIPTION" > release_body.txt
           echo "body_path=$(pwd)/release_body.txt" >> "$GITHUB_OUTPUT"
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2

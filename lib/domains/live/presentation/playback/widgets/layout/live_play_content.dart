@@ -35,6 +35,7 @@ class LivePlayNormalLayout extends StatelessWidget {
   const LivePlayNormalLayout({
     super.key,
     required this.video,
+    this.desktopVideo,
     required this.resolution,
     required this.danmaku,
     this.showPanel = true,
@@ -47,6 +48,9 @@ class LivePlayNormalLayout extends StatelessWidget {
   });
 
   final Widget video;
+
+  /// The video for the desktop split, which fills its area; falls back to [video].
+  final Widget? desktopVideo;
   final Widget resolution;
   final Widget danmaku;
   final bool showPanel;
@@ -56,9 +60,6 @@ class LivePlayNormalLayout extends StatelessWidget {
   final PortraitLayoutMode portraitLayoutMode;
   final VoidCallback? onEnterLandscapeFullscreen;
   final VoidCallback? onEnterPortraitFullscreen;
-
-  double get _frameAspectRatio =>
-      sourceAspectRatio.isFinite && sourceAspectRatio > 0 ? sourceAspectRatio : 16 / 9;
 
   @override
   Widget build(BuildContext context) {
@@ -103,16 +104,10 @@ class LivePlayNormalLayout extends StatelessWidget {
           return Row(
             key: const ValueKey('live-play-desktop-split'),
             children: [
-              // The frame follows the stream's own ratio and sits centred, as
-              // large as fits: spare room on either axis is page background.
-              // A fixed 16:9 frame forced to the full width used to fill the
-              // sides with black once the window was wider than the picture.
-              Expanded(
-                child: Center(
-                  key: const ValueKey('live-play-desktop-video'),
-                  child: AspectRatio(aspectRatio: _frameAspectRatio, child: video),
-                ),
-              ),
+              // The player fills its area - title and controls follow the
+              // window on both axes - while the picture inside keeps its ratio,
+              // centred and as large as fits, on the page background.
+              Expanded(key: const ValueKey('live-play-desktop-video'), child: desktopVideo ?? video),
               SizedBox(
                 key: const ValueKey('live-play-desktop-panel'),
                 width: panelWidth,
@@ -589,8 +584,8 @@ class LivePlayContent extends StatelessWidget {
       body: SafeArea(
         child: Obx(() {
           final manager = GlobalPlayerService.instance.player;
-          // Rebuild when the stream's picture size is known or changes: the
-          // desktop frame follows its aspect ratio.
+          // Rebuild when the stream's picture size is known or changes, so
+          // sourceAspectRatio below stays current.
           manager.videoPresentationRevision.value;
           final settings = SettingsService.to.player;
           final isPortrait = manager.isVerticalVideo.value;
@@ -602,6 +597,7 @@ class LivePlayContent extends StatelessWidget {
               settings.portraitLayoutMode != PortraitLayoutMode.compatibility;
           return LivePlayNormalLayout(
             video: LivePlayVideo(controller: controller, expandToParent: useAdaptivePortraitFrame),
+            desktopVideo: LivePlayVideo(controller: controller, expandToParent: true, pageSurface: true),
             resolution: ResolutionsRow(controller: controller),
             danmaku: _buildDanmaku(),
             showPanel: controller.site != Sites.iptvSite,

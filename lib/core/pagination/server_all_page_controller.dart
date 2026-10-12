@@ -11,14 +11,7 @@ abstract class ServerAllPageController<T> extends BasePageScrollAndStateBone<T> 
   /// set. Local projections must not complete this operation's indicator.
   bool get hasActiveLoad => _activeLoad != null;
 
-  @override
-  Future<void>? get activePageOperation => _activeLoad;
-
   Future<List<T>> fetchAllServerData();
-
-  /// Size of the active local catalogue. Tabbed controllers can project a
-  /// different catalogue without fetching again or replacing the load cache.
-  int get localItemCount => _rawAllData?.length ?? 0;
 
   @override
   Future<void> refreshData() async {
@@ -31,30 +24,6 @@ abstract class ServerAllPageController<T> extends BasePageScrollAndStateBone<T> 
     _rawAllData = null;
     currentPage = 1;
     await _startLoad();
-  }
-
-  @override
-  Future<void> goToPage(int page) async {
-    if (isClosed || _activeLoad != null || page < 1 || _rawAllData == null) return;
-    if (!usesDesktopPagination) return;
-    final maxPage = (localItemCount / pageSize.value).ceil();
-    if (page > maxPage) return;
-    currentPage = page;
-    processLocalPaging();
-  }
-
-  @override
-  void setPageSize(int? newSize) {
-    if (isClosed || newSize == null || pageSize.value == newSize || _rawAllData == null) return;
-    persistUserPageSize(newSize);
-    if (!usesDesktopPagination) {
-      pageSize.value = newSize;
-      return;
-    }
-    final int currentFirstItemIndex = (currentPage - 1) * pageSize.value;
-    pageSize.value = newSize;
-    currentPage = (currentFirstItemIndex ~/ newSize) + 1;
-    processLocalPaging();
   }
 
   @override
@@ -133,27 +102,9 @@ abstract class ServerAllPageController<T> extends BasePageScrollAndStateBone<T> 
       return;
     }
 
-    if (usesDesktopPagination) {
-      int startIndex = (currentPage - 1) * pageSize.value;
-      if (startIndex >= allItems.length) {
-        currentPage = 1;
-        startIndex = 0;
-      }
-
-      int endIndex = startIndex + pageSize.value;
-      if (endIndex > allItems.length) endIndex = allItems.length;
-
-      final newData = allItems.sublist(startIndex, endIndex);
-      list.assignAll(newData);
-      canLoadMore.value = endIndex < allItems.length;
-      pageEmpty.value = list.isEmpty;
-      finishRefreshControllers(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
-      scrollToTopImmediate();
-    } else {
-      list.assignAll(allItems);
-      canLoadMore.value = false;
-      pageEmpty.value = list.isEmpty;
-      finishRefreshControllers(IndicatorResult.noMore);
-    }
+    list.assignAll(allItems);
+    canLoadMore.value = false;
+    pageEmpty.value = list.isEmpty;
+    finishRefreshControllers(IndicatorResult.noMore);
   }
 }

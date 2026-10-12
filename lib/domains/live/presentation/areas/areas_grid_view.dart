@@ -155,7 +155,7 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
         enableRefresh: true,
         enableLoadMore: true,
         customMobileBottomPadding: 85,
-        customDesktopBottomPadding: 135,
+        customDesktopBottomPadding: 110,
         emptyBuilder: (context) => EmptyView(
           icon: Remix.apps_2_line,
           title: i18n("empty_areas_title"),
@@ -175,7 +175,6 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
           controller: widget.controller,
           enableRefresh: true,
           enableLoadMore: false,
-          showPageSizeSelector: false,
           emptyBuilder: (context) => EmptyView(
             icon: Remix.apps_2_line,
             title: i18n("empty_areas_title"),
@@ -209,14 +208,13 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
               enableRefresh: true,
               enableLoadMore: true,
               customMobileBottomPadding: 85,
-              customDesktopBottomPadding: 135,
+              customDesktopBottomPadding: 110,
               emptyBuilder: (context) => EmptyView(
                 icon: Remix.apps_2_line,
                 title: i18n("empty_areas_title"),
                 subtitle: i18n("empty_areas_subtitle"),
               ),
-              contentBuilder: (context, displayList, _) {
-                final activeIndex = widget.controller.tabIndex.value;
+              contentBuilder: (context, _, _) {
                 return TabBarView(
                   controller: _tabController,
                   physics: const PureLiveBoundedScrollPhysics(),
@@ -225,10 +223,7 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
                     return Builder(
                       key: ValueKey('area_page_${category.id}'),
                       builder: (context) {
-                        final isCurrentTab = activeIndex == entry.key;
-                        final finalData = widget.controller.usesDesktopPagination && isCurrentTab
-                            ? displayList
-                            : category.children;
+                        final finalData = category.children;
                         if (finalData.isEmpty) {
                           return LayoutBuilder(
                             builder: (context, constraints) => SingleChildScrollView(

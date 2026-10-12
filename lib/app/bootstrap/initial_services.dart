@@ -19,7 +19,6 @@ import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/log_controller.dart';
-import 'package:pure_live/core/config/page_settings_controller.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/core/config/proxy_settings_controller.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
@@ -79,7 +78,6 @@ class InitialServices {
     Get.lazyPut(() => VolumeSettingsController(), fenix: true);
     Get.lazyPut(() => RefreshConfigController(), fenix: true);
     Get.lazyPut(() => CacheController(), fenix: true);
-    Get.lazyPut(() => PageSettingsController(), fenix: true);
     Get.lazyPut(() => FontSettingsController(), fenix: true);
     Get.lazyPut(() => LogController(), fenix: true);
     Get.lazyPut(() => CookieSettingsController(), fenix: true);

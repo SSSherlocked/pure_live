@@ -19,12 +19,27 @@ class AreasPage extends GetView<AreasController> {
 
           return Scaffold(
             appBar: HomeAppBar(
-              title: ScrollableTabBar(
-                key: const ValueKey('areas-platform-tabs'),
-                controller: controller.tabController,
-                isScrollable: true,
-                physics: const PureLiveBoundedScrollPhysics(),
-                tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: ScrollableTabBar(
+                      key: const ValueKey('areas-platform-tabs'),
+                      controller: controller.tabController,
+                      isScrollable: true,
+                      physics: const PureLiveBoundedScrollPhysics(),
+                      tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
+                    ),
+                  ),
+                  // The desktop layout is not refreshed by pulling the list
+                  // down; this reloads the platform's categories on screen.
+                  if (AppLayout.of(context).pagedLists)
+                    IconButton(
+                      key: const ValueKey('areas-refresh'),
+                      tooltip: i18n('refresh'),
+                      onPressed: controller.refreshCurrentData,
+                      icon: const Icon(Icons.refresh_rounded),
+                    ),
+                ],
               ),
             ),
             body: TabBarView(

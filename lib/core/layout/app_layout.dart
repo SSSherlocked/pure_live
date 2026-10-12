@@ -40,14 +40,14 @@ class AppLayout {
   final bool wide;
 
   /// Pointer (mouse) interaction: hover reveals controls, wheel scrolling,
-  /// paged lists. False is touch interaction.
+  /// refresh buttons on lists. False is touch interaction.
   final bool pointer;
 
   bool get phone => !wide;
   bool get touch => !pointer;
 
-  /// Lists page with a page bar instead of scrolling endlessly and refreshing
-  /// by pulling down.
+  /// The wide pointer (desktop) layout, where pulling a list down is not the
+  /// natural way to refresh it: list pages carry a refresh button instead.
   bool get pagedLists => wide && pointer;
 
   /// The layout [mode] gives a screen [width] wide on a [mobilePlatform].

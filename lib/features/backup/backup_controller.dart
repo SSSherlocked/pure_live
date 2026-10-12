@@ -15,7 +15,6 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/domains/iptv/data/iptv_settings_controller.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
-import 'package:pure_live/core/config/page_settings_controller.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/domains/recorder/data/consts/recorder_config.dart';
@@ -72,7 +71,6 @@ class BackupController extends GetxController {
       'exit': Get.find<ExitSettingsController>().toJson(),
       'startup': Get.find<StartupController>().toJson(),
       'refresh': Get.find<RefreshConfigController>().toJson(),
-      'page': Get.find<PageSettingsController>().toJson(),
       'recorder': RecorderConfig.toJson(),
     };
 
@@ -154,7 +152,6 @@ class BackupController extends GetxController {
     'exit': ExitSettingsController.extractConfig(null).keys.toSet(),
     'startup': StartupController.extractConfig(null).keys.toSet(),
     'refresh': RefreshConfigController.extractConfig(null).keys.toSet(),
-    'page': PageSettingsController.extractConfig(null).keys.toSet(),
     'recorder': RecorderConfig.extractConfig(null).keys.toSet(),
   };
 
@@ -217,7 +214,6 @@ class BackupController extends GetxController {
       'favorite': FavoriteRoomController.parseConfig,
       'history': HistoryController.parseConfig,
       'webdav': WebDavController.parseConfig,
-      'page': PageSettingsController.parseConfig,
     };
     for (final entry in parsers.entries) {
       if (version == null) {
@@ -301,8 +297,6 @@ class BackupController extends GetxController {
 
     Get.find<RefreshConfigController>().fromJson(Map<String, dynamic>.from(data['refresh'] ?? {}));
 
-    Get.find<PageSettingsController>().fromJson(Map<String, dynamic>.from(data['page'] ?? {}));
-
     // Only when present, for the same reason: older backups predate the
     // recorder section and must keep this device's recording preferences.
     if (data.containsKey('recorder')) {
@@ -336,7 +330,6 @@ class BackupController extends GetxController {
       'exit',
       'startup',
       'refresh',
-      'page',
       'recorder',
     ];
     for (final name in sections) {
@@ -366,7 +359,6 @@ class BackupController extends GetxController {
     Get.find<ExitSettingsController>().fromJson(data);
     Get.find<StartupController>().fromJson(data);
     Get.find<RefreshConfigController>().fromJson(data);
-    Get.find<PageSettingsController>().fromJson(data);
   }
 
   /// Writes a backup of [sections] to [file].

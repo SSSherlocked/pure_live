@@ -7,7 +7,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   final ScrollController _ownedScrollController = createPureLiveScrollController();
   ScrollController? _boundScrollController;
 
-  /// Scroll position used by paging buttons and visibility flags.
+  /// Scroll position used by the jump buttons and their visibility flags.
   ///
   /// A tabbed view can bind one dedicated controller for its active tab. This
   /// keeps every PageView child on a unique ScrollController while preserving
@@ -27,29 +27,16 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   final showBackToTop = false.obs;
   final showBackToBottom = false.obs;
 
-  bool? _lastIsDesktop;
-  bool? _pendingIsDesktop;
-  int _layoutVersion = 0;
-  Timer? _layoutRefreshTimer;
-
   BasePageScrollAndStateBone() {
-    // Controllers are created from an already mounted route, so the app layout
-    // has been published (AppLayout.current). Establishing the initial paging
-    // mode before the first frame prevents BasePageView from starting a second
-    // network refresh from inside build while the controller's initial request
-    // is still running.
-    final initialIsDesktop = AppLayout.current.pagedLists && pagesOnDesktop;
-    _lastIsDesktop = initialIsDesktop;
-    pageSize.value = initialIsDesktop && Get.isRegistered<SettingsService>()
-        ? SettingsService.to.page.defaultPageSize.v
-        : 20;
     _ownedScrollController.addListener(_scrollListener);
     // Content changes the scroll extent without a scroll event; re-evaluate
     // the jump buttons once the new list has been laid out.
     ever<List<T>>(
       list,
       (_) => WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!isClosed) _syncScrollFlags();
+        if (isClosed) return;
+        _syncScrollFlags();
+        _loadMoreIfViewportNotFilled();
       }),
     );
   }
@@ -67,56 +54,22 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
     _syncScrollFlags();
   }
 
-  /// Async pagers expose their current operation, including connectivity and
-  /// re-paging, so layout commits cannot change its dimensions mid-response.
-  /// Synchronous local projections have no operation to await.
-  Future<void>? get activePageOperation => null;
-
-  void checkAndNotifyLayoutChange(bool isDesktop) {
-    if (isClosed || (_pendingIsDesktop ?? _lastIsDesktop) == isDesktop) return;
-    final version = ++_layoutVersion;
-    _layoutRefreshTimer?.cancel();
-    _pendingIsDesktop = isDesktop == _lastIsDesktop ? null : isDesktop;
-    if (_pendingIsDesktop == null) return;
-
-    // Keep the existing breakpoint debounce, but defer the state transition
-    // itself as well as the refresh. Crossing back cancels the whole intent.
-    _layoutRefreshTimer = Timer(const Duration(milliseconds: 120), () => unawaited(_commitLayout(version)));
-  }
-
-  Future<void> _commitLayout(int version) async {
-    while (!isClosed && version == _layoutVersion) {
-      final active = activePageOperation;
-      if (active == null) break;
-      await active;
-    }
-    if (isClosed || version != _layoutVersion) return;
-    final isDesktop = _pendingIsDesktop;
-    if (isDesktop == null) return;
-    _pendingIsDesktop = null;
-    final previousSize = pageSize.value;
-    _lastIsDesktop = isDesktop;
-
-    if (isDesktop) {
-      pageSize.value = SettingsService.to.page.defaultPageSize.v;
-      final int currentFirstItemIndex = (currentPage - 1) * previousSize;
-      currentPage = (currentFirstItemIndex ~/ pageSize.value) + 1;
-    } else {
-      pageSize.value = 20;
-      currentPage = 1;
-    }
-
-    await refreshData();
-  }
-
-  /// Whether the wide pointer layout pages this list with a page bar. A list
-  /// that returns false shows everything at once there too.
-  bool get pagesOnDesktop => true;
-
-  bool get usesDesktopPagination => _lastIsDesktop ?? (AppLayout.current.pagedLists && pagesOnDesktop);
-
   void _scrollListener() {
     _syncScrollFlags();
+  }
+
+  /// Every list scrolls on and loads its next page when the end comes into
+  /// view (the refresh footer's infinite offset). A page that does not fill
+  /// a tall window has nothing to scroll, so the end could never be reached:
+  /// keep loading until the list overflows the viewport, the source runs out,
+  /// or a request fails (a failure leaves its retry to the user).
+  void _loadMoreIfViewportNotFilled() {
+    if (!canLoadMore.value || loadding.value || pageError.value || notLogin.value) return;
+    final controller = scrollController;
+    if (!controller.hasClients || controller.positions.length != 1) return;
+    final position = controller.position;
+    if (!position.hasContentDimensions || position.maxScrollExtent > 0) return;
+    unawaited(loadMoreData());
   }
 
   void _syncScrollFlags() {
@@ -149,9 +102,6 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
 
   @override
   void onClose() {
-    _layoutVersion++;
-    _pendingIsDesktop = null;
-    _layoutRefreshTimer?.cancel();
     scrollController.removeListener(_scrollListener);
     _boundScrollController = null;
     _ownedScrollController.dispose();
@@ -166,7 +116,6 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   }
 
   void finishRefreshControllers(IndicatorResult result) {
-    if (usesDesktopPagination) return;
     easyRefreshController.finishRefresh(
       result == IndicatorResult.fail ? IndicatorResult.fail : IndicatorResult.success,
     );
@@ -192,11 +141,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
         curve: Curves.easeOutCubic,
       );
     } else {
-      if (_lastIsDesktop ?? (AppLayout.current.pagedLists && pagesOnDesktop)) {
-        refreshData();
-      } else {
-        easyRefreshController.callRefresh();
-      }
+      easyRefreshController.callRefresh();
     }
   }
 
@@ -206,23 +151,8 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
 
   Future<void> loadMoreData() async {
     if (loadding.value) return;
-    if (usesDesktopPagination) {
-      await goToPage(currentPage + 1);
-    } else {
-      currentPage++;
-      await loadData();
-    }
-  }
-
-  /// 用户手动改每页数量后写回全局默认(hive 持久化)。
-  ///
-  /// 不写回的话,下次进入页面时构造函数读取的仍是旧默认值(20),
-  /// 用户选择的 80 就丢了。
-  void persistUserPageSize(int? size) {
-    if (size == null || size < 1) return;
-    if (Get.isRegistered<SettingsService>()) {
-      SettingsService.to.page.defaultPageSize.v = size;
-    }
+    currentPage++;
+    await loadData();
   }
 
   Future<void> loadData();
@@ -248,7 +178,4 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
       if (!isClosed) pullRefreshing.value = false;
     }
   }
-
-  Future<void> goToPage(int page);
-  void setPageSize(int? newSize);
 }

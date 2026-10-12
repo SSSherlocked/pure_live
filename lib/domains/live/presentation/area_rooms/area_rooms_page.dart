@@ -37,13 +37,27 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
     final areaName = rawAreaName.isEmpty ? i18n('unnamed_area') : rawAreaName;
     return KeepAliveWrapper(
       child: Scaffold(
-        appBar: AppBar(title: Text(areaName)),
+        appBar: AppBar(
+          title: Text(areaName),
+          actions: [
+            // The desktop layout is not refreshed by pulling the list down.
+            if (AppLayout.of(context).pagedLists)
+              Obx(
+                () => IconButton(
+                  key: const ValueKey('area-rooms-refresh'),
+                  tooltip: i18n('refresh'),
+                  onPressed: controller.loadding.value ? null : () => controller.refreshData(),
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ),
+          ],
+        ),
         body: BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
           enableRefresh: true,
           enableLoadMore: true,
           customMobileBottomPadding: 85,
-          customDesktopBottomPadding: 135,
+          customDesktopBottomPadding: 110,
           emptyBuilder: (context) => EmptyView(icon: Icons.live_tv_rounded, title: i18n('no_data'), subtitle: ''),
           contentBuilder: (context, list, scrollController) {
             return Obx(() {

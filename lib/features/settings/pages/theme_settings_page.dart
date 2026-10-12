@@ -6,7 +6,6 @@ import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/features/settings/pages/live_panel_tab_order_page.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:pure_live/features/settings/pages/page_settings_page.dart';
 import 'package:pure_live/features/settings/pages/font_settings_page.dart';
 import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
 import 'package:pure_live/features/settings/pages/room_card_settings_page.dart';
@@ -90,14 +89,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
               subtitle: i18n("main_axis_spacing_subtitle"),
               onTap: () => showMainAxisSpacingDialog(context),
             ),
-            if (AppLayout.of(context).pagedLists)
-              context.buildTile(
-                icon: Remix.pages_line,
-                title: i18n('page_settings'),
-                subtitle: i18n('page_settings_subtitle'),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => Get.to(() => const PageSettingsPage()),
-              ),
           ]),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("font_group_settings")),

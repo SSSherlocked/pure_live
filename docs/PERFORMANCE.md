@@ -103,7 +103,7 @@ Windows release 构建后从干净的 `build\windows\x64\runner\Release` 启动�
 1. 关注、热门、分区三个主页导航；
 2. 平台 Tab 点击与横向手势；
 3. 12 张直播卡片的纵向鼠标滚轮；
-4. 封面网络回填、热度标签与翻页栏重建；
+4. 封面网络回填、热度标签与滚动到底部时加载下一页；
 5. Alt+F4 正常退出与 Hive 落盘。
 
 2026-08-20 的 v2.3.0 Windows x64 release 从干净便携目录启动，完成 Bilibili/Douyu 平台切换、20 张封面回填、滚轮、Douyu 2K60 播放和实时弹幕接收，窗口持续 `Responding=true`。第二轮本地构建又完成虎牙直播、画面弹幕和列表弹幕的约 4.5 分钟连续采样：工作集 382.9→484.7 MiB，private bytes 662.7→758.9 MiB，handles 1776→1765、threads 251→246；预热后的最后 90 秒 private bytes 750.5→758.9 MiB，中间回落到 751.5 MiB。合入上游虎牙 HTTPS/令牌修复并重建后，再完成约 2 分钟虎牙蓝光 30M 播放：工作集 414.6→479.2 MiB，private bytes 715.2→801.5 MiB（期间曾升至 944.8 MiB 后回落到 738.6 MiB），handles 1764→1755、threads 249→245，画面与列表弹幕持续更新。现有样本没有出现句柄或线程随消息单调增长；private bytes 存在播放器/解码器高水位波动，是否长期稳定仍以更长的 DevTools Memory 与 Windows Performance Recorder 采样为准，具体 UI/Raster 帧时使用 Flutter DevTools Performance 复测。

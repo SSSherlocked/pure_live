@@ -27,9 +27,6 @@ class AreasListController extends ServerAllPageController<LiveArea> {
   @override
   bool get showInlineError => site.id == Sites.ccSite;
 
-  @override
-  int get localItemCount => _getCurrentTabAllChildren().length;
-
   AreasListController(this.site);
 
   @override
@@ -110,30 +107,10 @@ class AreasListController extends ServerAllPageController<LiveArea> {
         return;
       }
 
-      if (usesDesktopPagination) {
-        int startIndex = (currentPage - 1) * pageSize.value;
-        if (startIndex >= allItems.length) {
-          currentPage = 1;
-          startIndex = 0;
-        }
-
-        int endIndex = startIndex + pageSize.value;
-        if (endIndex > allItems.length) endIndex = allItems.length;
-
-        final newData = allItems.sublist(startIndex, endIndex);
-        list.assignAll(newData);
-        canLoadMore.value = endIndex < allItems.length;
-        pageEmpty.value = list.isEmpty;
-        finish(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
-        if (currentPage == 1) {
-          scrollToTopImmediate();
-        }
-      } else {
-        list.assignAll(allItems);
-        canLoadMore.value = false;
-        pageEmpty.value = list.isEmpty;
-        finish(IndicatorResult.noMore);
-      }
+      list.assignAll(allItems);
+      canLoadMore.value = false;
+      pageEmpty.value = list.isEmpty;
+      finish(IndicatorResult.noMore);
       return;
     }
 
@@ -146,7 +123,6 @@ class AreasListController extends ServerAllPageController<LiveArea> {
       return;
     }
 
-    final currentCategory = categories[activeIndex];
     final allItems = _getCurrentTabAllChildren();
     totalCount.value = allItems.length;
 
@@ -154,50 +130,20 @@ class AreasListController extends ServerAllPageController<LiveArea> {
       list.clear();
       canLoadMore.value = false;
       pageEmpty.value = true;
-      if (usesDesktopPagination && currentCategory.children.isNotEmpty) {
-        currentCategory.children.clear();
-        categories.refresh();
-      }
       finish(IndicatorResult.noMore);
       return;
     }
 
-    if (usesDesktopPagination) {
-      int startIndex = (currentPage - 1) * pageSize.value;
-      if (startIndex >= allItems.length) {
-        currentPage = 1;
-        startIndex = 0;
-      }
-
-      int endIndex = startIndex + pageSize.value;
-      if (endIndex > allItems.length) endIndex = allItems.length;
-
-      final newData = allItems.sublist(startIndex, endIndex);
-      list.assignAll(newData);
-      // This is an owned plain List, not RxList: the vendored assignAll
-      // extension appends to plain lists instead of replacing their contents.
-      currentCategory.children
-        ..clear()
-        ..addAll(newData);
-      canLoadMore.value = endIndex < allItems.length;
-      pageEmpty.value = list.isEmpty;
-      if (currentPage == 1) {
-        scrollToTopImmediate();
-      }
-      finish(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
-      categories.refresh();
-    } else {
-      list.assignAll(allItems);
-      canLoadMore.value = false;
-      pageEmpty.value = list.isEmpty;
-      finish(IndicatorResult.noMore);
-    }
+    list.assignAll(allItems);
+    canLoadMore.value = false;
+    pageEmpty.value = list.isEmpty;
+    finish(IndicatorResult.noMore);
   }
 }
 
 class AppLiveCategory extends LiveCategory {
-  // UI pagination mutates this list. Never alias an adapter's cached,
-  // fixed-size or unmodifiable catalogue.
+  // An owned copy: never alias an adapter's cached, fixed-size or
+  // unmodifiable catalogue.
   AppLiveCategory({required super.id, required super.name, required List<LiveArea> children})
     : super(children: List<LiveArea>.of(children));
 

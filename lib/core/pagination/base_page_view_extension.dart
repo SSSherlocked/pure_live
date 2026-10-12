@@ -1,45 +1,12 @@
 import 'package:pure_live/core/widgets/refresh_indicators.dart';
-import 'package:flutter/services.dart';
 import 'package:pure_live/core/index.dart';
 
 extension BasePageViewContentExtension<C extends BasePageScrollAndStateBone<T>, T> on BasePageView<C, T> {
-  Widget buildActualContent(BuildContext context, bool isDesktop) {
-    if (isDesktop) {
-      return CallbackShortcuts(
-        bindings: <ShortcutActivator, VoidCallback>{
-          const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
-            if (controller.currentPage > 1 && !controller.loadding.value) {
-              controller.goToPage(controller.currentPage - 1);
-            }
-          },
-          const SingleActivator(LogicalKeyboardKey.arrowRight): () {
-            if (controller.canLoadMore.value && !controller.loadding.value && enableLoadMore) {
-              controller.goToPage(controller.currentPage + 1);
-            }
-          },
-        },
-        child: Focus(
-          autofocus: true,
-          child: Column(
-            children: [
-              Expanded(child: contentBuilder(context, controller.list, controller.scrollController)),
-              if (enableLoadMore)
-                // An empty first page shows its own empty state and retry
-                // action; paging controls there have nothing to page through.
-                Obx(
-                  () => controller.list.isEmpty && controller.currentPage <= 1
-                      ? const SizedBox.shrink()
-                      : DesktopPaginationBar(
-                          controller: controller,
-                          showSelector: pageSizeSelectorVisible,
-                          options: pageSizes,
-                        ),
-                ),
-            ],
-          ),
-        ),
-      );
-    } else if (wrapMobileRefresh) {
+  Widget buildActualContent(BuildContext context) {
+    // The pull header and the load-more footer serve every layout: the footer
+    // loads the next page as the end of the list scrolls into view, wheel
+    // scrolling included, and a mouse can drag the pull header.
+    if (wrapMobileRefresh) {
       return LayoutBuilder(
         builder: (context, constraints) {
           final indicators = appRefreshIndicators(context, maxWidth: constraints.maxWidth);

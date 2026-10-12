@@ -13,11 +13,6 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 
 class FavoriteController extends LocalReactivePageController<LiveRoom>
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
-  /// Every followed room on one page, desktop included; the platform tab bar
-  /// carries the refresh button instead of a page bar.
-  @override
-  bool get pagesOnDesktop => false;
-
   final RefreshConfigController refreshConfigController = Get.find<RefreshConfigController>();
 
   late TabController tabController;
@@ -42,7 +37,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   DateTime? _lastFullRefreshAt;
   final isVerifyingFavorites = false.obs;
   Future<void>? _startupRefresh;
-  Future<void>? _activeRoomRefresh;
   FavoriteVerificationPreview? _verificationPreview;
   final Map<String, DateTime> _refreshFailureCooldown = {};
   static const Duration _refreshFailureRetryAfter = Duration(minutes: 5);
@@ -75,9 +69,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         .where((site) => site.id == Sites.allSite || favoriteSiteIds.contains(site.id.trim().toLowerCase()))
         .toList(growable: false);
   }
-
-  @override
-  Future<void>? get activePageOperation => _startupRefresh ?? _activeRoomRefresh ?? super.activePageOperation;
 
   @override
   void onInit() {
@@ -561,9 +552,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     if (isClosed) return Future<void>.value();
     final completion = Completer<void>();
     final operation = completion.future;
-    // The latest queued pass includes the lock wait as well as its own work.
-    // An older completion must not clear ownership of a newer queued pass.
-    _activeRoomRefresh = operation;
     // One refresh owns the snapshot transaction at a time. The former epoch
     // scheme cancelled whichever pass happened to finish second; a lifecycle
     // resume 450 ms after launch could therefore discard startup verification
@@ -613,11 +601,9 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     unawaited(
       pending.then(
         (_) {
-          if (identical(_activeRoomRefresh, operation)) _activeRoomRefresh = null;
           completion.complete();
         },
         onError: (Object error, StackTrace stack) {
-          if (identical(_activeRoomRefresh, operation)) _activeRoomRefresh = null;
           completion.completeError(error, stack);
         },
       ),

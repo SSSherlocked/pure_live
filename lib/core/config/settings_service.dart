@@ -5,7 +5,6 @@ import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/log_controller.dart';
-import 'package:pure_live/core/config/page_settings_controller.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/core/config/proxy_settings_controller.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
@@ -31,6 +30,5 @@ class SettingsService extends GetxService {
   RoomCardSettingsController get roomCard => Get.find<RoomCardSettingsController>();
   ProxySettingsController get proxy => Get.find<ProxySettingsController>();
   RefreshConfigController get refreshConfig => Get.find<RefreshConfigController>();
-  PageSettingsController get page => Get.find<PageSettingsController>();
   LogController get log => Get.find<LogController>();
 }

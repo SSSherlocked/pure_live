@@ -4,7 +4,6 @@ export 'package:pure_live/core/pagination/base_page_scroll_bone.dart';
 // views
 export 'package:pure_live/core/pagination/base_page_view.dart';
 export 'package:pure_live/core/pagination/base_page_view_extension.dart';
-export 'package:pure_live/core/pagination/desktop_components.dart';
 // controllers
 export 'package:pure_live/core/pagination/server_fixed_page_controller.dart';
 export 'package:pure_live/core/pagination/server_remote_page_controller.dart';

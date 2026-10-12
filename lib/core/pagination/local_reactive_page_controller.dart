@@ -9,12 +9,8 @@ abstract class LocalReactivePageController<T> extends BasePageScrollAndStateBone
   bool _externalRefreshRunning = false;
   bool _publishedDuringRefresh = false;
   bool _refreshPending = false;
-  int? _pendingPageSize;
 
   Future<void> Function()? onExternalRefresh;
-
-  @override
-  Future<void>? get activePageOperation => _activeExternalRefresh;
 
   void updateLocalReactivePool(List<T> freshData) {
     if (isClosed) return;
@@ -112,46 +108,6 @@ abstract class LocalReactivePageController<T> extends BasePageScrollAndStateBone
   }
 
   @override
-  Future<void> goToPage(int page) async {
-    if (isClosed || _activeExternalRefresh != null || loadding.value || page < 1) return;
-    if (!usesDesktopPagination) return;
-
-    final maxPage = (_localRawPool.length / pageSize.value).ceil();
-    if (page > maxPage) return;
-    currentPage = page;
-    _processDataDistribution();
-  }
-
-  @override
-  void setPageSize(int? newSize) {
-    if (isClosed || newSize == null || newSize < 1) return;
-    persistUserPageSize(newSize);
-    _pendingPageSize = newSize;
-    unawaited(_applyPendingPageSize());
-  }
-
-  Future<void> _applyPendingPageSize() async {
-    // Derived local pages may own a separate transaction (favourite room
-    // verification, for example), not the base external-snapshot callback.
-    while (activePageOperation != null && !isClosed) {
-      await activePageOperation;
-    }
-    if (isClosed) return;
-    final newSize = _pendingPageSize;
-    _pendingPageSize = null;
-    if (newSize == null || pageSize.value == newSize) return;
-    if (!usesDesktopPagination) {
-      pageSize.value = newSize;
-      return;
-    }
-
-    final int currentFirstItemIndex = (currentPage - 1) * pageSize.value;
-    pageSize.value = newSize;
-    currentPage = (currentFirstItemIndex ~/ newSize) + 1;
-    _processDataDistribution();
-  }
-
-  @override
   Future<void> loadData() async {
     if (isClosed) return;
     _processDataDistribution();
@@ -168,39 +124,6 @@ abstract class LocalReactivePageController<T> extends BasePageScrollAndStateBone
   void _processDataDistribution() {
     if (isClosed) return;
     totalCount.value = _localRawPool.length;
-
-    if (usesDesktopPagination) {
-      _processDesktopSlicing();
-    } else {
-      _processMobileDisplayAll();
-    }
-  }
-
-  void _processDesktopSlicing() {
-    int startIndex = (currentPage - 1) * pageSize.value;
-    if (startIndex >= _localRawPool.length) {
-      if (_localRawPool.isEmpty) {
-        list.clear();
-        canLoadMore.value = false;
-        pageEmpty.value = true;
-        _finishLocalProjection(IndicatorResult.noMore);
-        return;
-      }
-      currentPage = (_localRawPool.length / pageSize.value).ceil();
-      startIndex = (currentPage - 1) * pageSize.value;
-    }
-
-    int endIndex = startIndex + pageSize.value;
-    if (endIndex > _localRawPool.length) endIndex = _localRawPool.length;
-
-    list.assignAll(_localRawPool.sublist(startIndex, endIndex));
-    canLoadMore.value = endIndex < _localRawPool.length;
-    pageEmpty.value = list.isEmpty;
-    _finishLocalProjection(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
-    scrollToTopImmediate();
-  }
-
-  void _processMobileDisplayAll() {
     if (_localRawPool.isEmpty) {
       list.clear();
       canLoadMore.value = false;

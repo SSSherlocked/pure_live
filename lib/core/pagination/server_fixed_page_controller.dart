@@ -5,17 +5,12 @@ import 'package:pure_live/core/index.dart';
 abstract class ServerFixedPageController<T> extends BasePageScrollAndStateBone<T> {
   final int fixedServerPageSize;
   final Map<int, List<T>> _bigPageCache = {};
-  final Map<int, List<T>> _slicedSmallCache = {};
   Future<void>? _activeLoad;
   bool _refreshPending = false;
-  int? _pendingPageSize;
 
   ServerFixedPageController({required this.fixedServerPageSize}) : super();
 
   Future<List<T>> fetchFixedNetworkData(int bigPage, int fixedSize);
-
-  @override
-  Future<void>? get activePageOperation => _activeLoad;
 
   @override
   Future<void> refreshData() async {
@@ -27,46 +22,8 @@ abstract class ServerFixedPageController<T> extends BasePageScrollAndStateBone<T
     if (!_refreshPending || isClosed) return;
     _refreshPending = false;
     _bigPageCache.clear();
-    _slicedSmallCache.clear();
     currentPage = 1;
-    await _startLoad(replaceMobileSnapshot: true);
-  }
-
-  @override
-  Future<void> goToPage(int page) async {
-    if (isClosed || _activeLoad != null || page < 1) return;
-    if (!usesDesktopPagination) return;
-    currentPage = page;
-    await loadData();
-  }
-
-  @override
-  void setPageSize(int? newSize) {
-    if (isClosed || newSize == null || newSize < 1) return;
-    persistUserPageSize(newSize);
-    // Keep request dimensions stable until its snapshot is committed. A later
-    // selection replaces the pending intent, including selecting the old size.
-    _pendingPageSize = newSize;
-    unawaited(_applyPendingPageSize());
-  }
-
-  Future<void> _applyPendingPageSize() async {
-    while (_activeLoad != null && !isClosed) {
-      await _activeLoad;
-    }
-    if (isClosed) return;
-    final newSize = _pendingPageSize;
-    _pendingPageSize = null;
-    if (newSize == null || pageSize.value == newSize) return;
-    if (!usesDesktopPagination) {
-      pageSize.value = newSize;
-      return;
-    }
-    final int currentFirstItemIndex = (currentPage - 1) * pageSize.value;
-    pageSize.value = newSize;
-    currentPage = (currentFirstItemIndex ~/ newSize) + 1;
-    _slicedSmallCache.clear();
-    await _startLoad();
+    await _startLoad(replaceSnapshot: true);
   }
 
   @override
@@ -85,29 +42,19 @@ abstract class ServerFixedPageController<T> extends BasePageScrollAndStateBone<T
     await super.loadMoreData();
   }
 
-  Future<void> _startLoad({bool replaceMobileSnapshot = false}) {
+  Future<void> _startLoad({bool replaceSnapshot = false}) {
     final active = _activeLoad;
     if (active != null) return active;
     late final Future<void> operation;
-    operation = _performLoad(replaceMobileSnapshot: replaceMobileSnapshot).whenComplete(() {
+    operation = _performLoad(replaceSnapshot: replaceSnapshot).whenComplete(() {
       if (identical(_activeLoad, operation)) _activeLoad = null;
     });
     _activeLoad = operation;
     return operation;
   }
 
-  Future<void> _performLoad({required bool replaceMobileSnapshot}) async {
+  Future<void> _performLoad({required bool replaceSnapshot}) async {
     totalCount.value = null;
-
-    if (usesDesktopPagination && _slicedSmallCache.containsKey(currentPage)) {
-      final cachedData = _slicedSmallCache[currentPage]!;
-      list.assignAll(cachedData);
-      canLoadMore.value = cachedData.length >= pageSize.value;
-      pageEmpty.value = list.isEmpty;
-      finishRefreshControllers(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
-      scrollToTopImmediate();
-      return;
-    }
 
     final bool isNetworkSafe = await checkNetworkBeforeRequest();
     if (isClosed) return;
@@ -173,23 +120,14 @@ abstract class ServerFixedPageController<T> extends BasePageScrollAndStateBone<T
         return;
       }
 
-      if (usesDesktopPagination) {
-        canLoadMore.value = combinedData.length >= pageSize.value;
-        _slicedSmallCache[currentPage] = combinedData;
+      canLoadMore.value = combinedData.length >= pageSize.value;
+      if (replaceSnapshot) {
         list.assignAll(combinedData);
-        pageEmpty.value = list.isEmpty;
-        finishRefreshControllers(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
-        scrollToTopImmediate();
       } else {
-        canLoadMore.value = combinedData.length >= pageSize.value;
-        if (replaceMobileSnapshot) {
-          list.assignAll(combinedData);
-        } else {
-          list.addAll(combinedData);
-        }
-        pageEmpty.value = list.isEmpty;
-        finishRefreshControllers(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
+        list.addAll(combinedData);
       }
+      pageEmpty.value = list.isEmpty;
+      finishRefreshControllers(canLoadMore.value ? IndicatorResult.success : IndicatorResult.noMore);
     } catch (e) {
       if (isClosed) return;
       currentPage = previousPageSnapshot;

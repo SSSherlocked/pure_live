@@ -16,8 +16,8 @@ class _DirectoryBuffer {
 }
 
 /// A bounded, per-tab native-page pool. Keeps complete responses (including
-/// overflow) and presents independent mobile/desktop page sizes. No other
-/// paging implementation changes for platforms without the optional contract.
+/// overflow) and presents them as one growing list. No other paging
+/// implementation changes for platforms without the optional contract.
 class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
   LiveDirectoryController({
     required this.directory,
@@ -38,14 +38,10 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
   int _lastRequestedPage = 1;
   bool _disposed = false;
   Future<void>? _activeLoad;
-  Future<void>? _pendingRepage;
   CancelToken? _cancel;
 
   bool _owns(int epoch) => !_disposed && !isClosed && epoch == _epoch;
   bool get _capacityReached => (_refreshBuffer ?? _buffer).capacityReached;
-
-  @override
-  Future<void>? get activePageOperation => _pendingRepage ?? _activeLoad;
 
   @override
   bool Function() captureNetworkRequestOwnership() {
@@ -66,7 +62,7 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
   @override
   Future<void> retryData() {
     if (_disposed || isClosed) return Future.value();
-    return _pendingRepage ?? _activeLoad ?? (_capacityReached ? refreshData() : _startLoad(_lastRequestedPage));
+    return _activeLoad ?? (_capacityReached ? refreshData() : _startLoad(_lastRequestedPage));
   }
 
   @override
@@ -83,11 +79,11 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
   }
 
   @override
-  Future<void> loadData() => _pendingRepage ?? _activeLoad ?? _startLoad(_refreshBuffer != null ? 1 : currentPage);
+  Future<void> loadData() => _activeLoad ?? _startLoad(_refreshBuffer != null ? 1 : currentPage);
 
   @override
   Future<void> loadMoreData() async {
-    if (_activeLoad != null || _pendingRepage != null) return;
+    if (_activeLoad != null) return;
     if (_refreshBuffer != null) {
       await retryData();
       return;
@@ -95,40 +91,6 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
     if (!canLoadMore.value) return;
     final partialPage = _buffer.rooms.length < _visiblePage * pageSize.value && _buffer.hasMore;
     await _startLoad(partialPage ? _visiblePage : _visiblePage + 1);
-  }
-
-  @override
-  Future<void> goToPage(int page) async {
-    if (!usesDesktopPagination || _activeLoad != null || _pendingRepage != null || page < 1) return;
-    if (page > _visiblePage && !canLoadMore.value && (page - 1) * pageSize.value >= _buffer.rooms.length) return;
-    // Explicit navigation chooses the still-visible catalogue rather than
-    // applying its page number to a failed refresh's unrelated cursor.
-    _refreshBuffer = null;
-    await _startLoad(page);
-  }
-
-  @override
-  void setPageSize(int? newSize) {
-    if (newSize == null || newSize < 1 || newSize == pageSize.value || _disposed) return;
-    persistUserPageSize(newSize);
-    _refreshBuffer = null;
-    final firstIndex = usesDesktopPagination ? (_visiblePage - 1) * pageSize.value : 0;
-    pageSize.value = newSize;
-    currentPage = firstIndex ~/ newSize + 1;
-    // Coalesce size changes while an old request is in flight; preserve the
-    // completed native page pool rather than restarting its network cursor.
-    final epoch = ++_epoch;
-    _cancel?.cancel();
-    late final Future<void> repage;
-    repage =
-        (() async {
-          await _activeLoad;
-          if (_owns(epoch)) await _startLoad(currentPage);
-        }()).whenComplete(() {
-          if (identical(_pendingRepage, repage)) _pendingRepage = null;
-        });
-    _pendingRepage = repage;
-    unawaited(repage);
   }
 
   Future<void> _startLoad(int targetPage) {
@@ -150,7 +112,6 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
     }
     final targetSize = pageSize.value;
     final targetEnd = targetPage * targetSize;
-    final targetStart = usesDesktopPagination ? (targetPage - 1) * targetSize : 0;
     final token = CancelToken();
     _cancel = token;
     Object? failure;
@@ -233,14 +194,13 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
       }
       // Errors and request budgets are retryable, not a fabricated end of the
       // list. Already committed cards remain available, including overflow.
-      if (targetStart < buffer.rooms.length || (buffer.rooms.isEmpty && targetPage == 1 && !buffer.hasMore)) {
+      if (buffer.rooms.isNotEmpty || (targetPage == 1 && !buffer.hasMore)) {
         final end = targetEnd.clamp(0, buffer.rooms.length);
         _buffer = buffer;
         if (identical(_refreshBuffer, buffer)) _refreshBuffer = null;
         _visiblePage = targetPage;
         currentPage = targetPage;
-        list.assignAll(buffer.rooms.sublist(targetStart, end));
-        if (usesDesktopPagination) scrollToTopImmediate();
+        list.assignAll(buffer.rooms.sublist(0, end));
       } else {
         currentPage = _visiblePage;
       }

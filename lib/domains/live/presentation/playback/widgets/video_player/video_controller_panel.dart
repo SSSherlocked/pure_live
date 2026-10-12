@@ -1,14 +1,13 @@
-import 'dart:io';
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/utils/live_quality_label.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
+import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/player_control_policy.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
@@ -24,42 +23,6 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/layout/bott
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/iptv_schedule_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/portrait_playback_picker_dialog.dart';
-
-@visibleForTesting
-enum TopActionLeadingSlot { back, datetime, battery }
-
-@visibleForTesting
-enum TopActionTrailingSlot { roomHistory, datetime, battery, pip }
-
-/// Resolves the fixed order of the fullscreen leading actions. On Android the
-/// clock and battery sit beside Back; PiP moves to the opposite corner so the
-/// two groups match the user's visual scanning order.
-@visibleForTesting
-List<TopActionLeadingSlot> resolveTopActionLeadingSlots({required bool fullscreen, required bool android}) {
-  if (!fullscreen) return const <TopActionLeadingSlot>[];
-  return <TopActionLeadingSlot>[
-    TopActionLeadingSlot.back,
-    if (android) TopActionLeadingSlot.datetime,
-    if (android) TopActionLeadingSlot.battery,
-  ];
-}
-
-/// The playback actions beside the ⋯ menu: picture-in-picture. 投屏 and 纯音频
-/// are entries of the ⋯ menu, inline and fullscreen alike.
-@visibleForTesting
-List<TopActionTrailingSlot> resolveTopActionTrailingSlots({
-  required bool fullscreen,
-  required bool android,
-  required bool windows,
-}) {
-  return <TopActionTrailingSlot>[
-    if (fullscreen) TopActionTrailingSlot.roomHistory,
-    if (fullscreen && !android) TopActionTrailingSlot.datetime,
-    if (fullscreen && !android) TopActionTrailingSlot.battery,
-    // 纯音频 and 投屏 live in the ⋯ menu.
-    if (android || windows) TopActionTrailingSlot.pip,
-  ];
-}
 
 /// The full-surface gesture layer sits below the visible controller bars, but
 /// platform accessibility/input bridges can still deliver a tap to that layer
@@ -186,11 +149,9 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
           final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: barHeight);
           // Phones tighten the inline player's floating controls.
-          final layout = AppLayout.of(context);
-          final compactControls = useCompactInlinePlayerControls(
-            fullscreen: GlobalPlayerService.instance.player.fullscreenUI,
-            phoneLayout: layout.phone,
-          );
+          // Which controls show where: one table (PlayerControlPolicy).
+          final policy = PlayerControlPolicy.of(context);
+          final compactControls = policy.compactControls;
 
           final IconData iconData = currentVolume <= 0
               ? Icons.volume_mute
@@ -291,7 +252,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       }
                       // Touch: a second tap hides visible controls (upstream #886),
                       // as in other video apps. Desktop clicks keep revealing them.
-                      if (layout.touch &&
+                      if (policy.tapTogglesControls &&
                           controller.showController.value &&
                           GlobalPlayerService.instance.player.isPlayingNow) {
                         controller.toggleController();
@@ -386,7 +347,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                             controller.toggleAudioOnly();
                           },
                           // 投屏 is a menu entry on Android, inline and fullscreen alike.
-                          onCast: PlatformUtils.isAndroid ? () => _castCurrentRoom(context) : null,
+                          onCast: policy.castInMoreMenu ? () => _castCurrentRoom(context) : null,
                         ),
                       );
                     },
@@ -485,10 +446,7 @@ class TopActionBar extends StatelessWidget {
                 height: barHeight,
                 child: Row(
                   children: [
-                    for (final slot in resolveTopActionLeadingSlots(
-                      fullscreen: GlobalPlayerService.instance.player.fullscreenUI,
-                      android: PlatformUtils.isAndroid,
-                    ))
+                    for (final slot in PlayerControlPolicy.of(context).leadingSlots)
                       switch (slot) {
                         TopActionLeadingSlot.back => BackButton(controller: controller),
                         TopActionLeadingSlot.datetime => const DatetimeInfo(key: ValueKey('fullscreen-leading-time')),
@@ -540,11 +498,7 @@ class TopActionBar extends StatelessWidget {
                         onPressed: () => _showSchedule(context),
                       ),
 
-                    for (final slot in resolveTopActionTrailingSlots(
-                      fullscreen: GlobalPlayerService.instance.player.fullscreenUI,
-                      android: PlatformUtils.isAndroid,
-                      windows: PlatformUtils.isWindows,
-                    ))
+                    for (final slot in PlayerControlPolicy.of(context).trailingSlots)
                       switch (slot) {
                         TopActionTrailingSlot.roomHistory => IconButton(
                           key: const ValueKey('fullscreen-room-history'),
@@ -1137,13 +1091,14 @@ class BottomActionBar extends StatelessWidget {
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
+                  final policy = PlayerControlPolicy.of(context);
+                  final fullscreen = policy.fullscreen;
                   if (portraitFullscreen) {
-                    return _buildPortraitFullscreenLayout();
+                    return _buildPortraitFullscreenLayout(policy);
                   }
                   final compact = constraints.maxWidth < 760;
-                  final left = _buildLeftActions(wideLayout: AppLayout.of(context).wide);
-                  final right = _buildRightActions(compact: compact);
+                  final left = _buildLeftActions(policy);
+                  final right = _buildRightActions(policy, compact: compact);
 
                   if (fullscreen) {
                     return Padding(
@@ -1156,13 +1111,7 @@ class BottomActionBar extends StatelessWidget {
                   // every action. Fullscreen stays pinned outside the scroll
                   // view: as the last item it used to be clipped off-screen.
                   final pinExpand = !GlobalPlayerService.instance.player.isWindowFullscreen.value;
-                  // Phones leave the quality/line chip out of the inline bar
-                  // (the room panel has quality and line); fullscreen keeps it.
-                  final inlineRight = _buildRightActions(
-                    compact: false,
-                    includeExpand: !pinExpand,
-                    includeStreamSelector: !AppLayout.of(context).phone,
-                  );
+                  final inlineRight = _buildRightActions(policy, compact: false, includeExpand: !pinExpand);
                   return Row(
                     children: [
                       Expanded(
@@ -1200,7 +1149,7 @@ class BottomActionBar extends StatelessWidget {
     });
   }
 
-  Widget _buildPortraitFullscreenLayout() {
+  Widget _buildPortraitFullscreenLayout(PlayerControlPolicy policy) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Column(
@@ -1223,10 +1172,10 @@ class BottomActionBar extends StatelessWidget {
             height: 48,
             child: Row(
               children: [
-                _buildLeftActions(),
+                _buildLeftActions(policy),
                 const Spacer(),
-                if (PlatformUtils.isMobile) PortraitFullscreenDisplayModeButton(controller: controller),
-                if (PlatformUtils.isMobile) PortraitOrientationButton(controller: controller),
+                if (policy.orientationControls) PortraitFullscreenDisplayModeButton(controller: controller),
+                if (policy.orientationControls) PortraitOrientationButton(controller: controller),
                 if (!GlobalPlayerService.instance.player.isWindowFullscreen.value) ExpandButton(controller: controller),
               ],
             ),
@@ -1238,7 +1187,7 @@ class BottomActionBar extends StatelessWidget {
 
   /// The same group in every mode — inline, fullscreen and portrait
   /// fullscreen — so a control never appears in one and not another.
-  Widget _buildLeftActions({bool wideLayout = false}) {
+  Widget _buildLeftActions(PlayerControlPolicy policy) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1248,11 +1197,7 @@ class BottomActionBar extends StatelessWidget {
           PlayerDanmakuButton(controller: controller),
           PlayerDanmakuSettingsButton(
             controller: controller,
-            // Desktop always, and fullscreen phones, open it as the docked side
-            // panel the 关注 panel uses.
-            // The wide layout and fullscreen open it as the docked side panel
-            // the 关注 panel uses.
-            dockedInLandscape: wideLayout || GlobalPlayerService.instance.player.fullscreenUI,
+            dockedInLandscape: policy.dockedDanmakuPanel,
             // The room keeps its bar up while the panel is open, exactly as the
             // private button did; the pinning is the caller's policy, not the
             // shared button's.
@@ -1266,7 +1211,7 @@ class BottomActionBar extends StatelessWidget {
     );
   }
 
-  Widget _buildRightActions({required bool compact, bool includeExpand = true, bool includeStreamSelector = true}) {
+  Widget _buildRightActions(PlayerControlPolicy policy, {required bool compact, bool includeExpand = true}) {
     final portraitPinned =
         GlobalPlayerService.instance.player.isSystemFullscreen.value &&
         GlobalPlayerService.instance.player.isVerticalVideo.value;
@@ -1277,14 +1222,14 @@ class BottomActionBar extends StatelessWidget {
         // One-tap mute, then quality and line: both stay on the bar in every
         // mode, so entering or leaving fullscreen never shifts the controls.
         MuteToggleButton(controller: controller),
-        if (includeStreamSelector) FullscreenStreamSelectorButton(controller: controller, compact: compact),
+        if (policy.streamSelector) FullscreenStreamSelectorButton(controller: controller, compact: compact),
         // These two belong to the PORTRAIT fullscreen bar. Rendering them in
         // a landscape room's inline bar is what pushed the fullscreen button
         // off-screen after the video-fit option landed (v3.15 report).
-        if (PlatformUtils.isMobile && portraitPinned) PortraitFullscreenDisplayModeButton(controller: controller),
-        if (PlatformUtils.isMobile && portraitPinned) PortraitOrientationButton(controller: controller),
-        if (Platform.isWindows) OverlayVolumeControl(controller: controller),
-        if (Platform.isWindows &&
+        if (policy.orientationControls && portraitPinned) PortraitFullscreenDisplayModeButton(controller: controller),
+        if (policy.orientationControls && portraitPinned) PortraitOrientationButton(controller: controller),
+        if (policy.volumeSlider) OverlayVolumeControl(controller: controller),
+        if (policy.windowFullscreenButton &&
             controller.supportWindowFull &&
             !GlobalPlayerService.instance.player.isSystemFullscreen.value)
           ExpandWindowButton(controller: controller),

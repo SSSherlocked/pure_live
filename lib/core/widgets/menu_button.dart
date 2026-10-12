@@ -11,7 +11,7 @@ import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 /// the top-right menu ([CommonAppBarActions]), so nothing else is left here.
 ///
 /// Wide layouts ([railActions]): the navigation rail's menu, with 设置 at the
-/// rail's bottom edge instead.
+/// rail's bottom edge instead. 数据与备份 is reached through 设置 there too.
 class MenuButton extends StatelessWidget {
   const MenuButton({super.key, this.railActions = false, this.showRecord = true});
 
@@ -53,8 +53,6 @@ class MenuButton extends StatelessWidget {
             Get.toNamed(RoutePath.kAbout);
           case 'history':
             Get.toNamed(RoutePath.kHistory);
-          case 'backup':
-            Get.toNamed(RoutePath.kBackup);
           case 'new_window':
             try {
               await WindowsMultiInstanceLauncher.launch();
@@ -78,7 +76,6 @@ class MenuButton extends StatelessWidget {
           const PopupMenuDivider(),
           item('about', Remix.information_line, i18n('about')),
           item('history', Remix.history_line, i18n('history')),
-          item('backup', Remix.database_2_line, i18n('data_and_backup')),
           if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
             item('new_window', Icons.add_to_photos_outlined, i18n('open_new_window')),
         ];

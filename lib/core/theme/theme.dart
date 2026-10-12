@@ -134,6 +134,12 @@ class MyTheme {
       tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.label,
+        // The Material 3 default rounds only the top corners of its 3 px
+        // line, which reads as a trapezoid; same weight, both ends rounded.
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(width: 3, color: baseTheme.colorScheme.primary),
+          borderRadius: const BorderRadius.all(Radius.circular(1.5)),
+        ),
         tabAlignment: TabAlignment.center,
         labelStyle: textTheme.titleMedium?.copyWith(fontWeight: semiBold),
         unselectedLabelStyle: textTheme.titleMedium?.copyWith(fontWeight: regular),

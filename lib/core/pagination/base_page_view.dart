@@ -184,16 +184,18 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
             child: Obx(() {
               final hasVisibleContent =
                   controller.list.isNotEmpty || (preserveContentWhenEmpty && controller.totalCount.value != null);
-              if (hasVisibleContent && controller.loadding.value) {
-                return SizedBox(
-                  height: 2.5,
-                  child: LinearProgressIndicator(
-                    backgroundColor: Colors.transparent,
-                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
-                  ),
-                );
+              if (!hasVisibleContent || !controller.loadding.value) return const SizedBox.shrink();
+              // A reload over visible content shows the same round spinner as
+              // pull-to-refresh, never a bar across the page. When the pull
+              // header is already spinning, or the footer is loading the next
+              // page, that indicator is the only one.
+              final pagedByScroll = !isDesktop;
+              final headerMode = controller.easyRefreshController.headerState?.mode;
+              final headerSpinning = headerMode == IndicatorMode.processing || headerMode == IndicatorMode.ready;
+              if (pagedByScroll && (headerSpinning || controller.currentPage > 1)) {
+                return const SizedBox.shrink();
               }
-              return const SizedBox.shrink();
+              return const Align(alignment: Alignment.topCenter, child: _ReloadSpinner());
             }),
           ),
         ],
@@ -312,4 +314,30 @@ enum PagingMode {
   serverFixedSize,
   serverAll,
   localReactive,
+}
+
+/// The pull-to-refresh spinner on a small raised disc, so it stays visible over
+/// the cards of the page being reloaded.
+class _ReloadSpinner extends StatelessWidget {
+  const _ReloadSpinner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: const ValueKey('base-page-reload-spinner'),
+      padding: const EdgeInsets.only(top: 12),
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        shape: const CircleBorder(),
+        elevation: 2,
+        child: const Padding(
+          padding: EdgeInsets.all(8),
+          child: SizedBox.square(
+            dimension: 24,
+            child: AppStatusView(type: AppStatusType.loading, isMini: true),
+          ),
+        ),
+      ),
+    );
+  }
 }

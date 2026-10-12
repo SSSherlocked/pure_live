@@ -444,8 +444,6 @@ class DanmakuItem extends StatelessWidget {
         ? (isDark ? Colors.white : Colors.black)
         : HSLColor.fromColor(baseColor).withLightness(isDark ? 0.75 : 0.52).withSaturation(1).toColor();
 
-    final cardBgColor = isDark ? theme.cardColor.withValues(alpha: 0.65) : Colors.white.withValues(alpha: 0.72);
-
     final textColor = isDark ? Colors.white70 : Colors.black87;
 
     return Obx(() {
@@ -458,7 +456,6 @@ class DanmakuItem extends StatelessWidget {
       return _buildCard(
         context,
         vibrantColor,
-        cardBgColor,
         textColor,
         fontSize,
         spacing,
@@ -477,7 +474,6 @@ class DanmakuItem extends StatelessWidget {
   Widget _buildCard(
     BuildContext context,
     Color vibrantColor,
-    Color cardBgColor,
     Color textColor,
     double fontSize,
     double spacing, {
@@ -495,10 +491,10 @@ class DanmakuItem extends StatelessWidget {
     final repeated = repeats > 1;
     final card = DecoratedBox(
       decoration: bubble
+          // An outline only: the list's own background shows through.
           ? BoxDecoration(
-              color: cardBgColor,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: vibrantColor.withValues(alpha: 0.08), width: 0.5),
+              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
             )
           : const BoxDecoration(),
       child: Padding(

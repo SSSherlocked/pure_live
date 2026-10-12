@@ -1879,7 +1879,7 @@
   "rail_show_labels_subtitle": "在导航栏和侧边栏图标下方显示页面名称",
   "language_group": "语言",
   "chat_list_bubble": "气泡样式",
-  "chat_list_bubble_subtitle": "聊天列表的消息显示在圆角气泡中",
+  "chat_list_bubble_subtitle": "聊天列表的每条消息加上圆角边框",
   "chat_list_color_mode": "弹幕颜色",
   "chat_list_color_mode_subtitle": "聊天列表中弹幕颜色的显示方式",
   "chat_list_color_none": "不显示",

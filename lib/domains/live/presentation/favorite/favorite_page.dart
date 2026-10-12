@@ -1,7 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/favorite/room_grid_view.dart';
-import 'package:pure_live/core/widgets/common_appbar_actions.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
@@ -15,15 +14,11 @@ class FavoritePage extends GetView<FavoriteController> {
     return LayoutBuilder(
       builder: (context, constraint) {
         return Obx(() {
-          bool showAction = Get.width <= 680;
           final availableSitesList = controller.availableFavoriteSites;
           final siteKey = ValueKey(availableSitesList.map((e) => e.id).join('|'));
 
           return Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              leading: showAction ? const MenuButton() : null,
-              actions: showAction ? [CommonAppBarActions()] : null,
+            appBar: HomeAppBar(
               title: ScrollableTabBar(
                 key: const ValueKey('favorite-status-tabs'),
                 controller: controller.tabController,

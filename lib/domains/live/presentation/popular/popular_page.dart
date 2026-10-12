@@ -1,7 +1,6 @@
 import 'popular_grid_view.dart';
 
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/widgets/common_appbar_actions.dart';
 import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/platform_tab.dart';
 
@@ -13,8 +12,6 @@ class PopularPage extends GetView<PopularController> {
     return LayoutBuilder(
       builder: (context, constraint) {
         return Obx(() {
-          bool showAction = Get.width <= 680;
-
           final sites = controller.sites;
 
           if (sites.isEmpty) {
@@ -22,10 +19,7 @@ class PopularPage extends GetView<PopularController> {
           }
 
           return Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              leading: showAction ? const MenuButton() : null,
-              actions: showAction ? [CommonAppBarActions()] : null,
+            appBar: HomeAppBar(
               title: ScrollableTabBar(
                 key: const ValueKey('popular-platform-tabs'),
                 controller: controller.tabController,

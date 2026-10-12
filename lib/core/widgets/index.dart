@@ -3,6 +3,7 @@ library;
 export './empty_view.dart';
 export './custom_icons.dart';
 export './menu_button.dart';
+export './home_app_bar.dart';
 export './search_button.dart';
 export 'section_list_tile.dart';
 export './pure_live_scroll_physics.dart';

@@ -260,19 +260,24 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
               adjustedIndex = -1;
             }
 
-            return !isTablet
-                ? HomeMobileView(
-                    body: currentWidget,
-                    index: adjustedIndex,
-                    onDestinationSelected: onDestinationSelected,
-                  )
-                : HomeTabletView(
-                    body: currentWidget,
-                    index: adjustedIndex,
-                    activeMenuIds: tabletActiveMenuIds,
-                    showRecord: activeMenuIds.contains(HomeMenu.record.id),
-                    onDestinationSelected: onDestinationSelected,
-                  );
+            // Pages read the layout from here (see HomeShellScope) rather than
+            // measuring the screen themselves.
+            return HomeShellScope(
+              wide: isTablet,
+              child: !isTablet
+                  ? HomeMobileView(
+                      body: currentWidget,
+                      index: adjustedIndex,
+                      onDestinationSelected: onDestinationSelected,
+                    )
+                  : HomeTabletView(
+                      body: currentWidget,
+                      index: adjustedIndex,
+                      activeMenuIds: tabletActiveMenuIds,
+                      showRecord: activeMenuIds.contains(HomeMenu.record.id),
+                      onDestinationSelected: onDestinationSelected,
+                    ),
+            );
           });
         },
       ),

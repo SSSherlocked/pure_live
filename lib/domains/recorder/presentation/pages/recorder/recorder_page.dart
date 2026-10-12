@@ -27,8 +27,6 @@ class RecorderPage extends GetView<RecorderController> {
 
   @override
   Widget build(BuildContext context) {
-    bool showAction = Get.width <= 680;
-
     final bool canGoBack = Navigator.of(context).canPop();
     return DefaultTabController(
       length: tabs.length,
@@ -36,7 +34,9 @@ class RecorderPage extends GetView<RecorderController> {
         appBar: AppBar(
           title: Text(i18n("recorder_title")),
           centerTitle: true,
-          leading: canGoBack ? const BackButton() : (showAction ? const MenuButton() : null),
+          leading: canGoBack
+              ? const BackButton()
+              : (HomeShellScope.showsPageActionsOf(context) ? const MenuButton() : null),
 
           actions: [
             IconButton(

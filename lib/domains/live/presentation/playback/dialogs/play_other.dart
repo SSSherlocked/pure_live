@@ -6,7 +6,6 @@ import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
-import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
@@ -84,7 +83,10 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     // The 关注 tab stays mounted for the whole room session, so follow list
     // edits must show up without reopening it.
     _favoritesWorker = ever(FavoriteRoomController.to.favoriteRooms, (_) => _updateRooms());
-    _sortWorker = ever(SettingsService.to.roomCard.favoriteSortModeName, (_) => _updateRooms());
+    _sortWorker = everAll([
+      SettingsService.to.roomCard.favoriteSortModeName,
+      FavoriteRoomController.to.hotAreasList,
+    ], (_) => _updateRooms());
   }
 
   void _updateRooms() {
@@ -92,13 +94,10 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     final allRooms = FavoriteRoomController.to.favoriteRooms.v;
 
     // The same order as the home 关注 page (its 排序 setting).
-    final platformOrder = Get.isRegistered<FavoriteController>()
-        ? [for (final site in Get.find<FavoriteController>().availableFavoriteSites) site.id]
-        : const <String>[];
     final liveList = allRooms.where((room) => room.isLiveNow && room.isRecord == false).toList();
     final recordList = allRooms.where((room) => room.effectiveLiveStatus == LiveStatus.replay).toList();
-    sortFavoriteRooms(liveList, platformOrder: platformOrder);
-    sortFavoriteRooms(recordList, platformOrder: platformOrder);
+    sortFavoriteRooms(liveList);
+    sortFavoriteRooms(recordList);
     onlineRooms.assignAll(liveList);
     recordingRooms.assignAll(recordList);
 

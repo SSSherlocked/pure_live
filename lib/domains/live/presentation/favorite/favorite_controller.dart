@@ -103,6 +103,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     );
     _workers.add(ever(SettingsService.to.app.preferRealOnlineCounts, (_) => applyLocalFilter()));
     _workers.add(ever(SettingsService.to.roomCard.favoriteSortModeName, (_) => applyLocalFilter()));
+    _workers.add(ever(FavoriteRoomController.to.hotAreasList, (_) => applyLocalFilter()));
     _workers.add(ever(SettingsService.to.app.realOnlinePlatforms, (_) => applyLocalFilter()));
 
     // Begin verification during controller startup instead of waiting for the
@@ -426,8 +427,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     target.assignAll(next);
   }
 
-  void _sortRooms(List<LiveRoom> rooms) =>
-      sortFavoriteRooms(rooms, platformOrder: [for (final site in availableFavoriteSites) site.id]);
+  void _sortRooms(List<LiveRoom> rooms) => sortFavoriteRooms(rooms);
 
   void applyLocalFilter({bool resyncSource = true}) {
     if (isClosed) return;

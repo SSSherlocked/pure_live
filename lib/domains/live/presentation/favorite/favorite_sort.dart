@@ -1,12 +1,14 @@
 import 'package:pinyindart/pinyindart.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
+import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 
 /// Orders followed [rooms] by the 排序 setting; ties fall back to the
-/// streamer name (by pinyin). [platformOrder] ranks platforms for
-/// [FavoriteSortMode.platform]; unknown platforms go last. Shared by the home
-/// 关注 page and the room's 关注 panel.
-void sortFavoriteRooms(List<LiveRoom> rooms, {required List<String> platformOrder}) {
+/// streamer name (by pinyin). By platform, the order is 平台设置 › 平台显示
+/// (its visible platforms, as arranged there); any other source, such as an
+/// imported IPTV list, follows in alphabetical order. Shared by the home 关注
+/// page and the room's 关注 panel.
+void sortFavoriteRooms(List<LiveRoom> rooms) {
   if (rooms.length < 2) return;
   // Pinyin keys once per room, not once per comparison.
   final names = Map<LiveRoom, String>.identity();
@@ -18,13 +20,17 @@ void sortFavoriteRooms(List<LiveRoom> rooms, {required List<String> platformOrde
     case FavoriteSortMode.name:
       rooms.sort(byName);
     case FavoriteSortMode.platform:
+      final platformOrder = [for (final id in FavoriteRoomController.to.hotAreasList) id.trim().toLowerCase()];
       int rank(LiveRoom room) {
         final index = platformOrder.indexOf(room.normalizedPlatformId);
         return index < 0 ? platformOrder.length : index;
       }
       rooms.sort((left, right) {
         final platform = rank(left).compareTo(rank(right));
-        return platform != 0 ? platform : byName(left, right);
+        if (platform != 0) return platform;
+        // Sources outside the configured order: alphabetical.
+        final source = left.normalizedPlatformId.compareTo(right.normalizedPlatformId);
+        return source != 0 ? source : byName(left, right);
       });
     case FavoriteSortMode.audience:
       final app = SettingsService.to.app;

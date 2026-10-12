@@ -39,28 +39,41 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
               return const SizedBox.shrink();
             }
             final platform = detail.platform ?? '';
-            final textTheme = Theme.of(context).textTheme;
-            // The streamer's name leads; the platform is a small, muted second
-            // line; the category is left out.
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            final theme = Theme.of(context);
+            final colors = theme.colorScheme;
+            // One line beside the avatar: the streamer's name, then the
+            // platform as a small filled tag. The name gives way first when
+            // space runs out; the category is left out.
+            return Row(
               children: [
-                Text(
-                  detail.nick ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  i18n('site_$platform'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.labelSmall?.copyWith(
-                    fontSize: (textTheme.labelSmall?.fontSize ?? 11) - 1,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    detail.nick ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
+                if (platform.isNotEmpty) ...[
+                  const SizedBox(width: 6),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: colors.secondaryContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      child: Text(
+                        i18n('site_$platform'),
+                        maxLines: 1,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colors.onSecondaryContainer,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           }),

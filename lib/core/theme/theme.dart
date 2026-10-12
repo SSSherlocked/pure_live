@@ -169,8 +169,10 @@ class MyTheme {
       ),
       listTileTheme: ListTileThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        titleTextStyle: textTheme.bodyLarge?.copyWith(fontWeight: medium),
-        subtitleTextStyle: textTheme.bodyMedium?.copyWith(color: baseTheme.colorScheme.onSurfaceVariant),
+        // A list row reads like a settings row: the section title role over
+        // the secondary role (see AppText), whatever builds it.
+        titleTextStyle: textTheme.titleMedium,
+        subtitleTextStyle: textTheme.bodySmall?.copyWith(color: baseTheme.colorScheme.onSurfaceVariant),
         leadingAndTrailingTextStyle: textTheme.labelMedium,
         selectedColor: baseTheme.colorScheme.primary,
         selectedTileColor: baseTheme.colorScheme.primary.withValues(alpha: 0.06),

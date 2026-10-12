@@ -337,7 +337,7 @@ class _IptvManagePageState extends State<IptvManagePage> {
           children: [
             Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(height: 12),
-            Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
+            Text(title, style: AppText.of(context).sectionTitle),
             const SizedBox(height: 8),
             Text(subtitle, style: AppText.of(context).body.copyWith(color: theme.hintColor)),
             if (actionLabel != null) ...[
@@ -626,7 +626,7 @@ class _IptvManagePageState extends State<IptvManagePage> {
           item.name,
           maxLines: stacked ? 3 : 1,
           overflow: TextOverflow.ellipsis,
-          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700),
+          style: AppText.of(context).sectionTitle,
         ),
         const SizedBox(height: 6),
         Text(

@@ -136,7 +136,7 @@ class _FontSettingsPageState extends State<FontSettingsPage> {
           key: const ValueKey('font-settings-reset-dialog'),
           scrollable: true,
           insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          title: Text(i18n('reset'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
+          title: Text(i18n('reset'), style: AppText.of(context).sectionTitle),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Text(i18n('font_settings_reset_confirm'), style: AppText.of(context).listPrimary),

@@ -216,7 +216,7 @@ class DanmakuSettingsDialog extends StatelessWidget {
                       children: [
                         Text(
                           i18n('settings_danmaku_title'),
-                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700).copyWith(color: colorScheme.onSurface),
+                          style: AppText.of(context).sectionTitle.copyWith(color: colorScheme.onSurface),
                         ),
                         Text(
                           i18n('danmaku_realtime_hint'),

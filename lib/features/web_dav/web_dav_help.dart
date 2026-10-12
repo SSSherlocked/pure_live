@@ -98,7 +98,7 @@ class WebDavHelpPage extends StatelessWidget {
   Widget _buildSectionTitle(BuildContext context, String key) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(context.tr(key), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, height: 1.2)),
+      child: Text(context.tr(key), style: AppText.of(context).sectionTitle.copyWith(height: 1.2)),
     );
   }
 
@@ -162,7 +162,7 @@ class WebDavHelpPage extends StatelessWidget {
         if (!stacked) {
           return ListTile(
             leading: Icon(icon, color: theme.colorScheme.primary, size: 22),
-            title: Text(context.tr(titleKey), style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600)),
+            title: Text(context.tr(titleKey), style: AppText.of(context).sectionTitle),
             subtitle: subtitle,
             trailing: action,
           );
@@ -183,7 +183,7 @@ class WebDavHelpPage extends StatelessWidget {
                   Expanded(
                     child: Text(
                       context.tr(titleKey),
-                      style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600),
+                      style: AppText.of(context).sectionTitle,
                     ),
                   ),
                   ?action,

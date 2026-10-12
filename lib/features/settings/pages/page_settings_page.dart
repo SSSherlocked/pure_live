@@ -60,7 +60,7 @@ class PageSettingsPage extends GetView<SettingsService> {
         builder: (context, customController) {
           final theme = Theme.of(context);
           return AlertDialog(
-            title: Text(i18n("page_size_options_manage"), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
+            title: Text(i18n("page_size_options_manage"), style: AppText.of(context).sectionTitle),
             content: SizedBox(
               width: 320,
               child: StatefulBuilder(

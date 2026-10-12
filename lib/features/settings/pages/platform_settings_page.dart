@@ -158,7 +158,7 @@ class _PreferPlatformSelectorDialogState extends State<_PreferPlatformSelectorDi
                         (site) => RadioListTile<String>(
                           value: site.id,
                           activeColor: theme.colorScheme.primary,
-                          title: Text(site.name, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w500)),
+                          title: Text(site.name, style: AppText.of(context).sectionTitle),
                         ),
                       )
                       .toList(growable: false),

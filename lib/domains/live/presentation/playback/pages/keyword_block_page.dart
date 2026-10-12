@@ -290,7 +290,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
       child: Text(
         title,
-        style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurfaceVariant),
+        style: AppText.of(context).sectionTitle.copyWith(color: theme.colorScheme.onSurfaceVariant),
       ),
     );
   }
@@ -361,7 +361,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               children: [
                 Text(
                   title,
-                  style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -414,7 +414,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       title: Text(
         title,
-        style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+        style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
       ),
       subtitle: subtitle == null
           ? null

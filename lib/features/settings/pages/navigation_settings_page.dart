@@ -152,7 +152,7 @@ class NavigationSettingsPage extends StatelessWidget {
                         final title = Text(
                           titleText,
                           key: ValueKey('navigation-menu-title-${menu.id}'),
-                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
+                          style: AppText.of(context).sectionTitle,
                         );
                         final controls = buildControls();
                         final stackControls =

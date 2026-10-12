@@ -240,7 +240,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
             const SizedBox(height: 12),
             SelectableText(
               service.address.isEmpty ? i18n('remote_sync_no_address') : service.address,
-              style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
+              style: AppText.of(context).sectionTitle,
             ),
             const SizedBox(height: 8),
             Text(i18n('remote_sync_scan_hint'), textAlign: TextAlign.center),
@@ -271,7 +271,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
                 Expanded(
                   child: Text(
                     i18n('remote_sync_devices'),
-                    style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold),
+                    style: AppText.of(context).sectionTitle,
                   ),
                 ),
                 if (service.isDiscovering.value)
@@ -348,7 +348,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(i18n('remote_sync_manual'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold)),
+            Text(i18n('remote_sync_manual'), style: AppText.of(context).sectionTitle),
             const SizedBox(height: 12),
             TextField(
               controller: addressController,

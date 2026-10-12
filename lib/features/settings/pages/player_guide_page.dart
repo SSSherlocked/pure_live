@@ -129,7 +129,7 @@ class _PlayerGuidePageState extends State<PlayerGuidePage> {
                   key: PageStorageKey('guide-$i'),
                   initiallyExpanded: i == 0,
                   leading: Icon(_guideChapters[i].icon, color: theme.colorScheme.primary, size: 24),
-                  title: Text(i18n(_guideChapters[i].titleKey), style: theme.textTheme.titleMedium),
+                  title: Text(i18n(_guideChapters[i].titleKey)),
                   subtitle: Text(
                     i18n('player_guide_entries', args: {'count': _guideChapters[i].entries.length.toString()}),
                     style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),

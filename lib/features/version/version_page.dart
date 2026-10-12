@@ -242,7 +242,7 @@ class VersionPage extends GetView<VersionController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold)),
+                      Text(title, style: AppText.of(context).sectionTitle),
                       const SizedBox(height: 2),
                       Text(subtitle, style: AppText.of(context).secondary.copyWith(color: theme.hintColor.withValues(alpha: 0.8))),
                     ],
@@ -395,7 +395,7 @@ class VersionPage extends GetView<VersionController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(platformName, style: AppText.from(theme).sectionTitle.copyWith(fontWeight: FontWeight.bold)),
+                    Text(platformName, style: AppText.from(theme).sectionTitle),
                     const SizedBox(height: 2),
                     Text(
                       i18n("download_source", args: {"num": "$sourceIndex"}),

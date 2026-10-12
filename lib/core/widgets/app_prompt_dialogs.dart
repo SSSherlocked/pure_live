@@ -236,7 +236,7 @@ class _EditTextDialogState extends State<_EditTextDialog> {
                     children: [
                       Text(
                         widget.title,
-                        style: AppText.from(theme).sectionTitle.copyWith(fontWeight: FontWeight.w600),
+                        style: AppText.from(theme).sectionTitle,
                       ),
                       const SizedBox(height: 16),
                       TextField(

@@ -501,7 +501,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
             key: const ValueKey('resolution-preference-dialog'),
             scrollable: true,
             insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            title: Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
+            title: Text(title, style: AppText.of(context).sectionTitle),
             contentPadding: const EdgeInsets.symmetric(vertical: 12),
             content: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
@@ -580,7 +580,7 @@ class _WindowsPipResetTileState extends State<_WindowsPipResetTile> {
           key: const ValueKey('windows-pip-reset-dialog'),
           scrollable: true,
           insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          title: Text(i18n('windows_pip_reset_position'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
+          title: Text(i18n('windows_pip_reset_position'), style: AppText.of(context).sectionTitle),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Text(i18n('windows_pip_reset_position_confirm'), style: AppText.of(context).listPrimary),
@@ -703,7 +703,7 @@ class _AsmrSleepTimerDialogState extends State<_AsmrSleepTimerDialog> {
         key: const ValueKey('asmr-sleep-timer-dialog'),
         scrollable: true,
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        title: Text(i18n('asmr_sleep_timer'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
+        title: Text(i18n('asmr_sleep_timer'), style: AppText.of(context).sectionTitle),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: Column(

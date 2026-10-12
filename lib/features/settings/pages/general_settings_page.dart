@@ -220,7 +220,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 return SwitchListTile(
                   key: const ValueKey('windows-startup-switch'),
                   secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
-                  title: Text(i18n('startup'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
+                  title: Text(i18n('startup'), style: AppText.of(context).sectionTitle),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(

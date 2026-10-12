@@ -20,7 +20,7 @@ class ChatListColorModeTile extends StatelessWidget {
         children: [
           Text(
             i18n('chat_list_color_mode'),
-            style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+            style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
           ),
           const SizedBox(height: 2),
           Text(i18n('chat_list_color_mode_subtitle'), style: Theme.of(context).textTheme.bodySmall),
@@ -50,9 +50,9 @@ class ChatListColorModeTile extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   i18n('chat_list_color_name'),
-                  style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
                 ),
-                subtitle: Text(i18n('chat_list_color_name_subtitle'), style: Theme.of(context).textTheme.bodySmall),
+                subtitle: Text(i18n('chat_list_color_name_subtitle')),
                 value: settings.chatListColorName.v,
                 onChanged: (value) => settings.chatListColorName.v = value,
               ),
@@ -66,9 +66,9 @@ class ChatListColorModeTile extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   i18n('chat_list_show_avatar'),
-                  style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
                 ),
-                subtitle: Text(i18n('chat_list_show_avatar_subtitle'), style: Theme.of(context).textTheme.bodySmall),
+                subtitle: Text(i18n('chat_list_show_avatar_subtitle')),
                 value: settings.chatListShowAvatar.v,
                 onChanged: (value) => settings.chatListShowAvatar.v = value,
               ),
@@ -82,7 +82,7 @@ class ChatListColorModeTile extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   i18n('chat_list_show_fans_badge'),
-                  style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
                 ),
                 subtitle: Text(
                   i18n('chat_list_show_fans_badge_subtitle'),

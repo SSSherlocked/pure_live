@@ -31,8 +31,8 @@ class PlayerPresetPage extends GetView<SettingsService> {
                 child: Card(
                   margin: EdgeInsets.zero,
                   child: ListTile(
-                    title: Text(i18n(preset.nameKey), style: theme.textTheme.titleMedium),
-                    subtitle: Text(i18n(preset.descriptionKey), style: theme.textTheme.bodySmall),
+                    title: Text(i18n(preset.nameKey)),
+                    subtitle: Text(i18n(preset.descriptionKey)),
                     trailing: Obx(() {
                       final _ = SettingsService.to.player.outputSegmentRevision.value;
                       final active = SettingsService.to.player.currentPreset == preset;

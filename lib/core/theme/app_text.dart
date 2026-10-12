@@ -55,9 +55,18 @@ class CompactText extends StatelessWidget {
     if (context.dependOnInheritedWidgetOfExactType<_CompactTextMarker>() != null) return child;
     final theme = Theme.of(context);
     final compact = compactTextTheme(theme.textTheme);
+    final tiles = theme.listTileTheme;
     return _CompactTextMarker(
       child: Theme(
-        data: theme.copyWith(textTheme: compact),
+        data: theme.copyWith(
+          textTheme: compact,
+          // List tiles take their text from their own theme, fixed when the
+          // theme was built: shrink those to the compact roles too.
+          listTileTheme: tiles.copyWith(
+            titleTextStyle: tiles.titleTextStyle?.copyWith(fontSize: compact.titleMedium?.fontSize),
+            subtitleTextStyle: tiles.subtitleTextStyle?.copyWith(fontSize: compact.bodySmall?.fontSize),
+          ),
+        ),
         child: DefaultTextStyle.merge(style: TextStyle(fontSize: compact.bodyMedium?.fontSize), child: child),
       ),
     );

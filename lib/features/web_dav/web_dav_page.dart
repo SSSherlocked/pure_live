@@ -513,7 +513,7 @@ class _WebDavPageState extends State<WebDavPage> {
           displayName,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w500),
+          style: AppText.of(context).sectionTitle,
         ),
       ),
       subtitle: Text(

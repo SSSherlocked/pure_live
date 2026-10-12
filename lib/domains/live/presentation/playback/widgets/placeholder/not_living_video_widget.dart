@@ -20,7 +20,7 @@ class NotLivingVideoWidget extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final titleStyle = AppTextStyles.t14.copyWith(color: Colors.white, decoration: TextDecoration.none);
+    final titleStyle = AppText.of(context).listPrimary.copyWith(color: Colors.white, decoration: TextDecoration.none);
     final titlePainter = TextPainter(
       text: TextSpan(text: 'Ag', style: titleStyle),
       textDirection: Directionality.of(context),
@@ -72,7 +72,7 @@ class NotLivingVideoWidget extends StatelessWidget {
                 unawaited(
                   showDialog<void>(
                     context: context,
-                    builder: (_) => PlayOther(controller: controller),
+                    builder: (_) => CompactText(child: PlayOther(controller: controller)),
                   ),
                 );
               },
@@ -117,7 +117,7 @@ class NotLivingVideoWidget extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8),
-                    child: Text(i18n('play_video_failed'), style: AppTextStyles.t16.copyWith(color: Colors.white)),
+                    child: Text(i18n('play_video_failed'), style: AppText.of(context).sectionTitle.copyWith(color: Colors.white)),
                   ),
                   Text(
                     i18n('room_offline'),
@@ -127,7 +127,7 @@ class NotLivingVideoWidget extends StatelessWidget {
                   Text(
                     i18n('switch_other_room_hint'),
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.t14.copyWith(color: Colors.white),
+                    style: AppText.of(context).listPrimary.copyWith(color: Colors.white),
                   ),
                 ],
               ),

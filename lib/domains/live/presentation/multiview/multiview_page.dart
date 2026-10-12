@@ -499,7 +499,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Text(
             i18n('multiview_pick_for_cell', args: {'index': '${_targetCell + 1}'}),
-            style: AppTextStyles.t15Bold,
+            style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
         Expanded(
@@ -793,7 +793,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
       isScrollControlled: true,
       builder: (sheetContext) => SizedBox(
         height: MediaQuery.of(sheetContext).size.height * 0.72,
-        child: DanmakuSettingsContent(controller: MultiviewDanmakuSettingsSource(), embedded: true),
+        child: CompactText(child: DanmakuSettingsContent(controller: MultiviewDanmakuSettingsSource(), embedded: true)),
       ),
     );
   }
@@ -904,13 +904,13 @@ class _MultiviewCellView extends StatelessWidget {
           onTap: onTap,
           onLongPress: onLongPress,
           onSecondaryTap: onLongPress,
-          child: _buildContent(theme),
+          child: _buildContent(context, theme),
         ),
       ),
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent(BuildContext context, ThemeData theme) {
     final videoController = state.videoController;
     if (state.status == MultiviewCellStatus.playing && videoController != null) {
       final video = Video(
@@ -957,7 +957,7 @@ class _MultiviewCellView extends StatelessWidget {
     }
     return switch (state.status) {
       MultiviewCellStatus.empty => _buildEmptyContent(theme),
-      MultiviewCellStatus.resolving => _buildResolvingContent(),
+      MultiviewCellStatus.resolving => _buildResolvingContent(context),
       MultiviewCellStatus.offline => _buildOfflineContent(theme),
       MultiviewCellStatus.error => _buildErrorContent(theme),
       MultiviewCellStatus.playing => const SizedBox.shrink(),
@@ -997,7 +997,7 @@ class _MultiviewCellView extends StatelessWidget {
                   currentName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.t11.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                  style: AppText.from(theme).tag.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -1010,7 +1010,7 @@ class _MultiviewCellView extends StatelessWidget {
             value: i,
             child: Text(
               state.qualities[i].quality,
-              style: AppTextStyles.t13.copyWith(
+              style: AppText.of(context).body.copyWith(
                 color: i == state.qualityIndex ? theme.colorScheme.primary : null,
                 fontWeight: i == state.qualityIndex ? FontWeight.w700 : null,
               ),
@@ -1035,13 +1035,13 @@ class _MultiviewCellView extends StatelessWidget {
             child: Icon(Remix.add_circle_line, size: 26, color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
-          Text(i18n('multiview_empty_cell_hint'), style: AppTextStyles.t14Medium),
+          Text(i18n('multiview_empty_cell_hint'), style: AppText.from(theme).listPrimary.copyWith(fontWeight: FontWeight.w500)),
         ],
       ),
     );
   }
 
-  Widget _buildResolvingContent() {
+  Widget _buildResolvingContent(BuildContext context) {
     final roomLabel = _multiviewRoomLabel(state.room);
     return Center(
       child: Column(
@@ -1050,7 +1050,7 @@ class _MultiviewCellView extends StatelessWidget {
           const CircularProgressIndicator(strokeWidth: 2.5),
           if (roomLabel.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text(roomLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.t12Muted),
+            Text(roomLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor)),
           ],
         ],
       ),
@@ -1066,13 +1066,13 @@ class _MultiviewCellView extends StatelessWidget {
         children: [
           Icon(Remix.live_line, size: 30, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 10),
-          Text(i18n('multiview_room_offline'), style: AppTextStyles.t14Bold, textAlign: TextAlign.center),
+          Text(i18n('multiview_room_offline'), style: AppText.from(theme).listPrimary.copyWith(fontWeight: FontWeight.w700), textAlign: TextAlign.center),
           if (roomLabel.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(roomLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.t12Muted),
+            Text(roomLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.from(theme).secondary.copyWith(color: theme.hintColor)),
           ],
           const SizedBox(height: 6),
-          Text(i18n('multiview_room_offline_hint'), style: AppTextStyles.t12Muted, textAlign: TextAlign.center),
+          Text(i18n('multiview_room_offline_hint'), style: AppText.from(theme).secondary.copyWith(color: theme.hintColor), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -1096,7 +1096,7 @@ class _MultiviewCellView extends StatelessWidget {
         children: [
           Icon(Remix.error_warning_line, size: 30, color: theme.colorScheme.error),
           const SizedBox(height: 10),
-          Text(i18n('multiview_play_failed'), style: AppTextStyles.t14Bold, textAlign: TextAlign.center),
+          Text(i18n('multiview_play_failed'), style: AppText.from(theme).listPrimary.copyWith(fontWeight: FontWeight.w700), textAlign: TextAlign.center),
           if (detailMessage.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
@@ -1104,7 +1104,7 @@ class _MultiviewCellView extends StatelessWidget {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: AppTextStyles.t12Muted,
+              style: AppText.from(theme).secondary.copyWith(color: theme.hintColor),
             ),
           ],
           const SizedBox(height: 16),
@@ -1151,7 +1151,7 @@ class _RoomNameChip extends StatelessWidget {
               nick,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.t11.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+              style: AppText.of(context).tag.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -1175,7 +1175,7 @@ class _AudioFocusBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             i18n('multiview_audio_focus_badge'),
-            style: AppTextStyles.t11.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+            style: AppText.of(context).tag.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -1283,7 +1283,7 @@ class _AddCellSlot extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   i18n('multiview_add_cell'),
-                  style: AppTextStyles.t12.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+                  style: AppText.of(context).secondary.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
               ],
             ),

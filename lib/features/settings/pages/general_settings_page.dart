@@ -220,12 +220,12 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 return SwitchListTile(
                   key: const ValueKey('windows-startup-switch'),
                   secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
-                  title: Text(i18n('startup'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
+                  title: Text(i18n('startup'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       i18n(subtitleKey),
-                      style: AppTextStyles.t12.copyWith(
+                      style: AppText.of(context).secondary.copyWith(
                         color: statusKey.isNotEmpty && !applying
                             ? Theme.of(context).colorScheme.error
                             : Theme.of(context).hintColor.withValues(alpha: 0.75),
@@ -518,7 +518,7 @@ class _WindowSizeDialogState extends State<_WindowSizeDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(i18n('preset_options'), style: AppTextStyles.t13.copyWith(color: theme.hintColor)),
+            Text(i18n('preset_options'), style: AppText.of(context).body.copyWith(color: theme.hintColor)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -537,14 +537,14 @@ class _WindowSizeDialogState extends State<_WindowSizeDialog> {
               }).toList(),
             ),
             const SizedBox(height: 20),
-            Text(i18n('custom_input'), style: AppTextStyles.t13.copyWith(color: theme.hintColor)),
+            Text(i18n('custom_input'), style: AppText.of(context).body.copyWith(color: theme.hintColor)),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(child: _buildDimensionField(_widthController, i18n('width'), '1080')),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('×', style: AppTextStyles.t18),
+                  child: Text('×', style: AppText.of(context).pageTitle),
                 ),
                 Expanded(child: _buildDimensionField(_heightController, i18n('height'), '720')),
               ],
@@ -553,7 +553,7 @@ class _WindowSizeDialogState extends State<_WindowSizeDialog> {
             Text(
               _errorText ?? i18n('window_size_range_hint'),
               key: const ValueKey('window-size-feedback'),
-              style: AppTextStyles.t12.copyWith(color: _errorText == null ? theme.hintColor : theme.colorScheme.error),
+              style: AppText.of(context).secondary.copyWith(color: _errorText == null ? theme.hintColor : theme.colorScheme.error),
             ),
           ],
         ),
@@ -660,7 +660,7 @@ class _CountdownDurationDialogState extends State<_CountdownDurationDialog> {
             TextField(
               controller: _inputController,
               keyboardType: TextInputType.number,
-              style: AppTextStyles.t14,
+              style: AppText.of(context).listPrimary,
               maxLines: 1,
               decoration: InputDecoration(
                 labelText: i18n('custom_duration'),

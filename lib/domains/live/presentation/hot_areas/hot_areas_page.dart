@@ -73,7 +73,7 @@ class HotAreasPage extends GetView<HotAreasController> {
                         final title = Text(
                           item.name,
                           key: ValueKey('platform-title-${item.id}'),
-                          style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600),
+                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
                         );
                         final controls = buildControls();
                         final stackControls =

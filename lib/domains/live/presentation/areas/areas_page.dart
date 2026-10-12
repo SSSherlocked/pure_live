@@ -63,7 +63,7 @@ class AreasPage extends GetView<AreasController> {
                             const SizedBox(width: 8),
                             Text(
                               i18n("favorite_areas"),
-                              style: AppTextStyles.t12Bold.copyWith(
+                              style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(
                                 color: Theme.of(context).colorScheme.primary,
                                 letterSpacing: 0.5,
                               ),

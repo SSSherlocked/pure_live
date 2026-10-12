@@ -161,7 +161,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                     : () => _showPreferredResolutionSelectorDialog(_ResolutionPreferenceTarget.cellular),
                 trailing: Text(
                   _preferredResolutionLabel(SettingsService.to.player.resolvedPreferResolutionCellular),
-                  style: AppTextStyles.t13.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+                  style: AppText.of(context).body.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
               ),
@@ -501,7 +501,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
             key: const ValueKey('resolution-preference-dialog'),
             scrollable: true,
             insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            title: Text(title, style: AppTextStyles.t16Bold),
+            title: Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
             contentPadding: const EdgeInsets.symmetric(vertical: 12),
             content: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
@@ -535,7 +535,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               TextButton(
                 style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                 onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(),
-                child: Text(i18n('cancel'), style: AppTextStyles.t14Muted),
+                child: Text(i18n('cancel'), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor)),
               ),
             ],
           );
@@ -580,10 +580,10 @@ class _WindowsPipResetTileState extends State<_WindowsPipResetTile> {
           key: const ValueKey('windows-pip-reset-dialog'),
           scrollable: true,
           insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          title: Text(i18n('windows_pip_reset_position'), style: AppTextStyles.t16Bold),
+          title: Text(i18n('windows_pip_reset_position'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Text(i18n('windows_pip_reset_position_confirm'), style: AppTextStyles.t14),
+            child: Text(i18n('windows_pip_reset_position_confirm'), style: AppText.of(context).listPrimary),
           ),
           actionsOverflowDirection: VerticalDirection.down,
           actionsOverflowButtonSpacing: 8,
@@ -591,7 +591,7 @@ class _WindowsPipResetTileState extends State<_WindowsPipResetTile> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
               onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(false),
-              child: Text(i18n('cancel'), style: AppTextStyles.t14Muted),
+              child: Text(i18n('cancel'), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor)),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -703,7 +703,7 @@ class _AsmrSleepTimerDialogState extends State<_AsmrSleepTimerDialog> {
         key: const ValueKey('asmr-sleep-timer-dialog'),
         scrollable: true,
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        title: Text(i18n('asmr_sleep_timer'), style: AppTextStyles.t16Bold),
+        title: Text(i18n('asmr_sleep_timer'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: Column(
@@ -749,7 +749,7 @@ class _AsmrSleepTimerDialogState extends State<_AsmrSleepTimerDialog> {
           TextButton(
             style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
             onPressed: _saving ? null : () => Navigator.of(context, rootNavigator: true).pop(),
-            child: Text(i18n('cancel'), style: AppTextStyles.t14Muted),
+            child: Text(i18n('cancel'), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),

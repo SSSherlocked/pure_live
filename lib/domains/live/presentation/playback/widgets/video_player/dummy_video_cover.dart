@@ -55,7 +55,7 @@ class DummyVideoCover extends StatelessWidget {
                           key: const ValueKey('dummy-video-notice'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.t12.copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                          style: AppText.of(context).secondary.copyWith(color: Colors.white.withValues(alpha: 0.9)),
                         ),
                       ),
                     ],

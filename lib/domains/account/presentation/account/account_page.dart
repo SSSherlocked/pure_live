@@ -50,7 +50,7 @@ class AccountPage extends GetView<AccountController> {
                 ),
                 title: Text(
                   i18n('clear_all_accounts'),
-                  style: AppTextStyles.t15.copyWith(
+                  style: AppText.of(context).sectionTitle.copyWith(
                     fontWeight: FontWeight.w600,
                     color: enabled ? theme.colorScheme.error : theme.disabledColor,
                   ),
@@ -59,7 +59,7 @@ class AccountPage extends GetView<AccountController> {
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     i18n('clear_all_accounts_desc'),
-                    style: AppTextStyles.t12.copyWith(color: theme.hintColor.withValues(alpha: 0.75)),
+                    style: AppText.of(context).secondary.copyWith(color: theme.hintColor.withValues(alpha: 0.75)),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -143,7 +143,7 @@ class AccountPage extends GetView<AccountController> {
           leading: Image.asset(logo, width: 24, height: 24),
           title: Text(
             title,
-            style: AppTextStyles.t15.copyWith(
+            style: AppText.of(context).sectionTitle.copyWith(
               fontWeight: FontWeight.w600,
               color: isEnabled ? null : theme.disabledColor,
             ),
@@ -152,7 +152,7 @@ class AccountPage extends GetView<AccountController> {
             padding: const EdgeInsets.only(top: 2),
             child: Text(
               subtitle,
-              style: AppTextStyles.t12.copyWith(
+              style: AppText.of(context).secondary.copyWith(
                 color: isLogined ? theme.colorScheme.primary : theme.hintColor.withValues(alpha: 0.75),
                 fontWeight: isLogined ? FontWeight.w500 : FontWeight.normal,
               ),

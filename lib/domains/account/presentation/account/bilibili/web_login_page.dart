@@ -47,6 +47,7 @@ class BiliBiliWebLoginPage extends GetView<BiliBiliWebLoginController> {
       body: Obx(() {
         if (controller.isSwitchingToQr.value) {
           return _buildProgressState(
+            context,
             key: const ValueKey('bilibili-web-login-switching'),
             message: i18n('bilibili_opening_qr_login'),
           );
@@ -75,6 +76,7 @@ class BiliBiliWebLoginPage extends GetView<BiliBiliWebLoginController> {
               const ColoredBox(color: Colors.transparent),
             if (controller.isVerifying.value)
               _buildProgressState(
+            context,
                 key: const ValueKey('bilibili-web-login-verifying'),
                 message: i18n('account_verifying'),
                 backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.94),
@@ -87,7 +89,7 @@ class BiliBiliWebLoginPage extends GetView<BiliBiliWebLoginController> {
     );
   }
 
-  Widget _buildProgressState({required Key key, required String message, Color? backgroundColor}) {
+  Widget _buildProgressState(BuildContext context, {required Key key, required String message, Color? backgroundColor}) {
     return ColoredBox(
       key: key,
       color: backgroundColor ?? Colors.transparent,
@@ -99,7 +101,7 @@ class BiliBiliWebLoginPage extends GetView<BiliBiliWebLoginController> {
             children: [
               const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
               const SizedBox(height: 20),
-              Text(message, textAlign: TextAlign.center, style: AppTextStyles.t14),
+              Text(message, textAlign: TextAlign.center, style: AppText.of(context).listPrimary),
             ],
           ),
         ),
@@ -132,7 +134,7 @@ class BiliBiliWebLoginPage extends GetView<BiliBiliWebLoginController> {
                   Expanded(
                     child: Text(
                       message,
-                      style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onErrorContainer, height: 1.35),
+                      style: AppText.from(theme).body.copyWith(color: theme.colorScheme.onErrorContainer, height: 1.35),
                     ),
                   ),
                 ],

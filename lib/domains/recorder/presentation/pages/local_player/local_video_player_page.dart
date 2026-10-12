@@ -590,7 +590,7 @@ class _RecordingVideoFace extends StatelessWidget {
                               textAlign: TextAlign.center,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+                              style: AppText.of(context).sectionTitle.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 10),
                             Container(
@@ -606,7 +606,7 @@ class _RecordingVideoFace extends StatelessWidget {
                                   const SizedBox(width: 6),
                                   Text(
                                     i18n('audio_only_mode'),
-                                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                    style: AppText.of(context).secondary.copyWith(color: Colors.white70),
                                   ),
                                 ],
                               ),
@@ -848,7 +848,7 @@ class _RecordingControlBar extends StatelessWidget {
                   Obx(
                     () => Text(
                       _fmtTime(controller.position.value),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                      style: AppText.of(context).tag.copyWith(color: Colors.white),
                     ),
                   ),
                   Expanded(
@@ -878,7 +878,7 @@ class _RecordingControlBar extends StatelessWidget {
                   Obx(
                     () => Text(
                       _fmtTime(controller.duration.value),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                      style: AppText.of(context).tag.copyWith(color: Colors.white),
                     ),
                   ),
                 ],
@@ -1075,7 +1075,7 @@ class _RateButton extends StatelessWidget {
         onPressed: () => unawaited(_pick(context)),
         child: Text(
           '${controller.playbackRate.value.toStringAsFixed(controller.playbackRate.value == controller.playbackRate.value.roundToDouble() ? 1 : 2)}x',
-          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+          style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -1126,7 +1126,7 @@ class _FitButton extends StatelessWidget {
         onPressed: () => unawaited(_pick(context)),
         child: Text(
           i18n(AppConsts().videoFitType[SettingsService.to.player.resolvedVideoFitIndex]['desc'] as String),
-          style: const TextStyle(color: Colors.white, fontSize: 13),
+          style: AppText.of(context).body.copyWith(color: Colors.white),
         ),
       ),
     );
@@ -1179,7 +1179,7 @@ class _FileRow extends StatelessWidget {
                 ),
                 child: active
                     ? Icon(Icons.graphic_eq_rounded, size: 15, color: theme.colorScheme.onPrimary)
-                    : Text('${index + 1}', style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant)),
+                    : Text('${index + 1}', style: AppText.of(context).tag.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -1191,11 +1191,8 @@ class _FileRow extends StatelessWidget {
                       name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                        color: active ? accent : theme.colorScheme.onSurface,
-                      ),
+                      style: AppText.of(context).body.copyWith(fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                        color: active ? accent : theme.colorScheme.onSurface),
                     ),
                     if (details.isNotEmpty)
                       Padding(
@@ -1204,7 +1201,7 @@ class _FileRow extends StatelessWidget {
                           details,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                          style: AppText.of(context).tag.copyWith(color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ),
                   ],
@@ -1260,7 +1257,8 @@ class _FileRow extends StatelessWidget {
     children: [
       Icon(icon, size: 18),
       const SizedBox(width: 10),
-      Text(text, style: const TextStyle(fontSize: 13)),
+      // The popup menu's own text style (the body role).
+      Text(text),
     ],
   );
 
@@ -1339,12 +1337,12 @@ class _PlaylistPanel extends StatelessWidget {
                       controller.roomTitle ?? i18n('recorder_local_player_title'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
+                      style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
                     ),
                     Obx(
                       () => Text(
                         i18n('local_player_files', args: {'count': '${controller.videoFiles.length}'}),
-                        style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                        style: AppText.of(context).tag.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ),
                   ],
@@ -1385,7 +1383,7 @@ Widget _emptyState(BuildContext context, LocalVideoPlayerController controller, 
       children: [
         Icon(Remix.film_line, size: 56, color: color),
         const SizedBox(height: 14),
-        Text(i18n('recorder_local_player_playlist_empty'), style: TextStyle(color: color, fontSize: 13)),
+        Text(i18n('recorder_local_player_playlist_empty'), style: AppText.of(context).body.copyWith(color: color)),
         const SizedBox(height: 18),
         FilledButton.tonalIcon(
           onPressed: () => unawaited(controller.openFileDir()),
@@ -1541,7 +1539,7 @@ class _PortraitTopBar extends StatelessWidget {
                     '${i18n('local_player_index_label', args: {'index': '${controller.currentIndex.value + 1}'})}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: AppText.of(context).sectionTitle.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -1708,7 +1706,7 @@ class _SheetRow extends StatelessWidget {
             Icon(icon, size: 22, color: theme.colorScheme.onSurface),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(title, style: TextStyle(fontSize: 15, color: theme.colorScheme.onSurface)),
+              child: Text(title, style: AppText.of(context).sectionTitle.copyWith(color: theme.colorScheme.onSurface)),
             ),
             ?trailing,
             if (onTap != null && trailing == null)
@@ -1788,7 +1786,7 @@ class _SheetSpeedRow extends StatelessWidget {
         children: [
           Icon(Icons.speed_rounded, size: 22, color: theme.colorScheme.onSurface),
           const SizedBox(width: 14),
-          Text(i18n('playback_rate'), style: TextStyle(fontSize: 15, color: theme.colorScheme.onSurface)),
+          Text(i18n('playback_rate'), style: AppText.of(context).sectionTitle.copyWith(color: theme.colorScheme.onSurface)),
           const SizedBox(width: 12),
           Expanded(
             child: SingleChildScrollView(
@@ -1804,12 +1802,9 @@ class _SheetSpeedRow extends StatelessWidget {
                           selected: (controller.playbackRate.value - rate).abs() < 0.001,
                           onSelected: (_) => unawaited(controller.setRate(rate)),
                           visualDensity: VisualDensity.compact,
-                          labelStyle: TextStyle(
-                            fontSize: 12.5,
-                            color: (controller.playbackRate.value - rate).abs() < 0.001
+                          labelStyle: AppText.of(context).secondary.copyWith(color: (controller.playbackRate.value - rate).abs() < 0.001
                                 ? theme.colorScheme.onPrimary
-                                : theme.colorScheme.onSurface,
-                          ),
+                                : theme.colorScheme.onSurface),
                           selectedColor: theme.colorScheme.primary,
                           showCheckmark: false,
                         ),
@@ -1841,7 +1836,7 @@ class _SheetFitRow extends StatelessWidget {
         children: [
           Icon(Icons.high_quality_rounded, size: 22, color: theme.colorScheme.onSurface),
           const SizedBox(width: 14),
-          Text(i18n('video_fit'), style: TextStyle(fontSize: 15, color: theme.colorScheme.onSurface)),
+          Text(i18n('video_fit'), style: AppText.of(context).sectionTitle.copyWith(color: theme.colorScheme.onSurface)),
           const SizedBox(width: 12),
           Expanded(
             child: SingleChildScrollView(
@@ -1859,10 +1854,7 @@ class _SheetFitRow extends StatelessWidget {
                           selected: current == i,
                           onSelected: (_) => settings.videoFitIndex.v = i,
                           visualDensity: VisualDensity.compact,
-                          labelStyle: TextStyle(
-                            fontSize: 12.5,
-                            color: current == i ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-                          ),
+                          labelStyle: AppText.of(context).secondary.copyWith(color: current == i ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface),
                           selectedColor: theme.colorScheme.primary,
                           showCheckmark: false,
                         ),
@@ -1913,7 +1905,7 @@ class _ContextPanel extends StatelessWidget {
               controller.roomTitle ?? i18n('recorder_local_player_title'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
+              style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
             ),
           ),
           Padding(
@@ -1937,7 +1929,7 @@ class _ContextPanel extends StatelessWidget {
                                   '${i18n('recorder_local_player_title')} · ${controller.currentFileName}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 13.5, color: theme.colorScheme.onSurface),
+                                  style: AppText.of(context).body.copyWith(color: theme.colorScheme.onSurface),
                                 ),
                               ),
                               SizedBox(
@@ -1946,7 +1938,7 @@ class _ContextPanel extends StatelessWidget {
                                   i18n('local_player_files', args: {'count': '${controller.videoFiles.length}'}),
                                   textAlign: TextAlign.right,
                                   maxLines: 1,
-                                  style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+                                  style: AppText.of(context).secondary.copyWith(color: theme.colorScheme.onSurfaceVariant),
                                 ),
                               ),
                               Icon(
@@ -2042,7 +2034,7 @@ class _LandscapeTopBar extends StatelessWidget {
                     '${controller.currentIndex.value + 1}/${controller.videoFiles.length}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                    style: AppText.of(context).sectionTitle.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -2132,7 +2124,7 @@ class _DesktopLayout extends StatelessWidget {
                   controller.roomTitle ?? i18n('recorder_local_player_title'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   controller.videoFiles.isEmpty
@@ -2140,7 +2132,7 @@ class _DesktopLayout extends StatelessWidget {
                       : '${controller.currentFileName}   ${controller.currentIndex.value + 1}/${controller.videoFiles.length}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                  style: AppText.of(context).tag.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
             ),

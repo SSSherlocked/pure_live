@@ -236,7 +236,7 @@ class _EditTextDialogState extends State<_EditTextDialog> {
                     children: [
                       Text(
                         widget.title,
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 18),
+                        style: AppText.from(theme).sectionTitle.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 16),
                       TextField(
@@ -244,7 +244,7 @@ class _EditTextDialogState extends State<_EditTextDialog> {
                         autofocus: true,
                         maxLines: 5,
                         minLines: 4,
-                        style: theme.textTheme.bodyMedium?.copyWith(fontFamily: 'monospace', fontSize: 13, height: 1.5),
+                        style: AppText.from(theme).body.copyWith(fontFamily: 'monospace', height: 1.5),
                         decoration: InputDecoration(
                           hintText: widget.hintText ?? widget.title,
                           hintStyle: theme.textTheme.bodyMedium?.copyWith(

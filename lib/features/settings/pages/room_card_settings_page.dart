@@ -199,7 +199,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             Text(
               i18n('room_card_settings_scope_hint'),
               key: const ValueKey('room-card-settings-scope-hint'),
-              style: AppTextStyles.t12.copyWith(color: Theme.of(context).colorScheme.outline),
+              style: AppText.of(context).secondary.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
           ],
         );
@@ -226,8 +226,8 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
   }) {
     return SwitchListTile(
       secondary: Icon(icon),
-      title: Text(title, style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: AppTextStyles.t12),
+      title: Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
+      subtitle: Text(subtitle, style: AppText.of(context).secondary),
       value: value,
       onChanged: onChanged,
       contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
@@ -246,9 +246,9 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(i18n('room_card_show_platform'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
+                Text(i18n('room_card_show_platform'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(i18n('room_card_show_platform_subtitle'), style: AppTextStyles.t12),
+                Text(i18n('room_card_show_platform_subtitle'), style: AppText.of(context).secondary),
                 const SizedBox(height: 10),
                 Wrap(
                   key: const ValueKey('room-card-platform-mode'),
@@ -295,9 +295,9 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(i18n('room_card_layout'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
+                Text(i18n('room_card_layout'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(i18n('room_card_layout_subtitle'), style: AppTextStyles.t12),
+                Text(i18n('room_card_layout_subtitle'), style: AppText.of(context).secondary),
                 const SizedBox(height: 10),
                 Wrap(
                   key: const ValueKey('room-card-layout-mode'),

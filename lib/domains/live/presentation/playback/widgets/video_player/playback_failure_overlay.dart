@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/utils/i18n.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 
 /// Terminal failure stays actionable without replacing the native video subtree.
 class PlaybackFailureOverlay extends StatefulWidget {
@@ -66,14 +67,14 @@ class _PlaybackFailureOverlayState extends State<PlaybackFailureOverlay> {
                             child: Text(
                               i18nOr('playback_failure_title', 'Playback interrupted'),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: AppText.of(context).sectionTitle.copyWith(color: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             i18nOr('playback_failure_hint', 'Reload the room to get a fresh stream.'),
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            style: AppText.of(context).body.copyWith(color: Colors.white70),
                           ),
                           const SizedBox(height: 8),
                           FilledButton.icon(

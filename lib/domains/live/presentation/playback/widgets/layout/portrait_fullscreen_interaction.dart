@@ -167,7 +167,7 @@ class _PortraitFullscreenEntryHintState extends State<PortraitFullscreenEntryHin
                         i18n('portrait_fullscreen_restore_hint'),
                         key: const ValueKey('portrait-fullscreen-entry-hint'),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                        style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],

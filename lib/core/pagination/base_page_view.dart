@@ -301,12 +301,9 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
                 Expanded(
                   child: Text(
                     i18n('cellular_warning_msg'),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                    style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w500,
                       color: colors.onSurfaceVariant,
-                      height: 1.3,
-                    ),
+                      height: 1.3),
                   ),
                 ),
               ],
@@ -316,7 +313,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
                 BaseController.neverShowCellularBanner = true;
                 controller.showCellularBanner.value = false;
               },
-              child: Text(i18n('never_show'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              child: Text(i18n('never_show'), style: AppText.of(context).body.copyWith(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

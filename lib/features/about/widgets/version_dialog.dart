@@ -54,7 +54,7 @@ class NewVersionDialog extends StatelessWidget {
               }
             },
             icon: const Icon(Icons.open_in_new_rounded),
-            label: Text(i18n('open_source_free'), style: AppTextStyles.t15),
+            label: Text(i18n('open_source_free'), style: AppText.of(context).sectionTitle),
           ),
           MarkdownBlock(data: VersionUtil.latestUpdateLog, config: config),
           const SizedBox(height: 10),

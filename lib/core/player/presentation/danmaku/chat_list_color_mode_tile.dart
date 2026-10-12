@@ -20,7 +20,7 @@ class ChatListColorModeTile extends StatelessWidget {
         children: [
           Text(
             i18n('chat_list_color_mode'),
-            style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+            style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, color: labelColor),
           ),
           const SizedBox(height: 2),
           Text(i18n('chat_list_color_mode_subtitle'), style: Theme.of(context).textTheme.bodySmall),
@@ -50,7 +50,7 @@ class ChatListColorModeTile extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   i18n('chat_list_color_name'),
-                  style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: labelColor),
                 ),
                 subtitle: Text(i18n('chat_list_color_name_subtitle'), style: Theme.of(context).textTheme.bodySmall),
                 value: settings.chatListColorName.v,
@@ -66,7 +66,7 @@ class ChatListColorModeTile extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   i18n('chat_list_show_avatar'),
-                  style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: labelColor),
                 ),
                 subtitle: Text(i18n('chat_list_show_avatar_subtitle'), style: Theme.of(context).textTheme.bodySmall),
                 value: settings.chatListShowAvatar.v,
@@ -82,7 +82,7 @@ class ChatListColorModeTile extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   i18n('chat_list_show_fans_badge'),
-                  style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600, color: labelColor),
                 ),
                 subtitle: Text(
                   i18n('chat_list_show_fans_badge_subtitle'),

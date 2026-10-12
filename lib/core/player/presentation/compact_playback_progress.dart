@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 
 /// The position, seek bar and duration row a compact playback window shows.
 ///
@@ -30,6 +31,7 @@ class CompactPlaybackProgress extends StatelessWidget {
     if (total <= 0) return const SizedBox.shrink();
 
     final clamped = position.inMilliseconds.clamp(0, total).toDouble();
+    final timeStyle = AppText.of(context).tag.copyWith(color: Colors.white, height: 1.2);
 
     // The compact surfaces (the in-app small window, the PiP face) are bare
     // Stacks with no Scaffold or Card above them, and a Slider insists on a
@@ -42,7 +44,7 @@ class CompactPlaybackProgress extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
         child: Row(
           children: [
-            Text(formatPlaybackTime(position), style: _timeStyle),
+            Text(formatPlaybackTime(position), style: timeStyle),
             Expanded(
               child: onSeek == null
                   ? LinearProgressIndicator(value: clamped / total, minHeight: 14)
@@ -60,14 +62,13 @@ class CompactPlaybackProgress extends StatelessWidget {
                       ),
                     ),
             ),
-            Text(formatPlaybackTime(duration), style: _timeStyle),
+            Text(formatPlaybackTime(duration), style: timeStyle),
           ],
         ),
       ),
     );
   }
 
-  static const TextStyle _timeStyle = TextStyle(color: Colors.white, fontSize: 11, height: 1.2);
 }
 
 /// `m:ss`, widened to `h:mm:ss` once the media passes an hour.

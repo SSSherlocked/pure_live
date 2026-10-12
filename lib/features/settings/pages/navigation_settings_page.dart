@@ -152,7 +152,7 @@ class NavigationSettingsPage extends StatelessWidget {
                         final title = Text(
                           titleText,
                           key: ValueKey('navigation-menu-title-${menu.id}'),
-                          style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600),
+                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
                         );
                         final controls = buildControls();
                         final stackControls =
@@ -183,7 +183,7 @@ class NavigationSettingsPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text(
                 i18n('bottom_bar_single_tab_hint'),
-                style: AppTextStyles.t12.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75)),
+                style: AppText.of(context).secondary.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75)),
               ),
             ),
           const SizedBox(height: 32),
@@ -207,7 +207,7 @@ class NavigationSettingsPage extends StatelessWidget {
           Expanded(
             child: Text(
               i18n('drag_menu_to_sort_tip'),
-              style: AppTextStyles.t13.copyWith(
+              style: AppText.from(theme).body.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 height: 1.4,
               ),

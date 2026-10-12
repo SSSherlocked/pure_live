@@ -338,7 +338,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
                           ),
                           Text(
                             '${(_value * 100).round()}%',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                            style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),

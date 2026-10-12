@@ -40,7 +40,7 @@ class MpvOptionPage extends StatelessWidget {
                               color: option.key == selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 14),
-                            Expanded(child: Text(option.label, style: AppTextStyles.t14)),
+                            Expanded(child: Text(option.label, style: AppText.of(context).listPrimary)),
                           ],
                         ),
                       ),

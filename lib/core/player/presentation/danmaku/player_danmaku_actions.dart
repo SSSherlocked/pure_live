@@ -161,7 +161,9 @@ class DanmakuSettingsDialog extends StatelessWidget {
         icon: Icons.subtitles_outlined,
         title: i18n('settings_danmaku_title'),
         closeKey: const ValueKey('fullscreen-danmaku-settings-close'),
-        child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: includePipSettings),
+        child: CompactText(
+          child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: includePipSettings),
+        ),
       );
     }
     final compactLandscape = isLandscape && size.height < 620;
@@ -207,13 +209,13 @@ class DanmakuSettingsDialog extends StatelessWidget {
                       children: [
                         Text(
                           i18n('settings_danmaku_title'),
-                          style: AppTextStyles.t16Bold.copyWith(color: colorScheme.onSurface),
+                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700).copyWith(color: colorScheme.onSurface),
                         ),
                         Text(
                           i18n('danmaku_realtime_hint'),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.t12.copyWith(color: colorScheme.onSurfaceVariant),
+                          style: AppText.of(context).secondary.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -235,10 +237,12 @@ class DanmakuSettingsDialog extends StatelessWidget {
             ),
             Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.7), height: 1, thickness: 0.8),
             Expanded(
-              child: DanmakuSettingsContent(
-                controller: controller,
-                embedded: true,
-                includePipSettings: includePipSettings,
+              child: CompactText(
+                child: DanmakuSettingsContent(
+                  controller: controller,
+                  embedded: true,
+                  includePipSettings: includePipSettings,
+                ),
               ),
             ),
           ],
@@ -278,7 +282,9 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MenuAnchor(
+    // A dense menu: its entries use the compact text roles.
+    return CompactText(
+      child: MenuAnchor(
       controller: menu,
       menuChildren: [
         SubmenuButton(
@@ -325,6 +331,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
           ),
       ],
       child: SizedBox.fromSize(size: size),
+      ),
     );
   }
 }

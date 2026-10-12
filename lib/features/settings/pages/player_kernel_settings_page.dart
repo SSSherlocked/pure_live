@@ -159,7 +159,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
         onTap: () => showProxySettingsDialog(context),
         trailing: Text(
           SettingsService.to.proxy.enableProxy.v ? i18n("enabled") : i18n("disabled"),
-          style: AppTextStyles.t13.copyWith(
+          style: AppText.of(context).body.copyWith(
             color: SettingsService.to.proxy.enableProxy.v ? theme.colorScheme.primary : theme.hintColor,
             fontWeight: FontWeight.w600,
           ),
@@ -327,7 +327,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
       children: [
         Text(
           i18n("mpv_warning_text"),
-          style: AppTextStyles.t12.copyWith(color: theme.hintColor.withValues(alpha: 0.85)),
+          style: AppText.of(context).secondary.copyWith(color: theme.hintColor.withValues(alpha: 0.85)),
         ),
         InkWell(
           borderRadius: BorderRadius.circular(4),
@@ -340,7 +340,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   i18n("mpv_official_docs"),
-                  style: AppTextStyles.t12.copyWith(
+                  style: AppText.of(context).secondary.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
                     decoration: TextDecoration.underline,
@@ -404,7 +404,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                       RadioListTile<String>(
                         value: itemKey,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                        title: Text(i18n(PlayerConsts.names[itemKey]!), style: AppTextStyles.t15),
+                        title: Text(i18n(PlayerConsts.names[itemKey]!), style: AppText.of(pageContext).sectionTitle),
                       ),
                   ],
                 ),

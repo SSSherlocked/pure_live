@@ -30,7 +30,7 @@ class DouyuCookiePage extends GetView<DouyuCookieController> {
         TextField(
           key: const ValueKey('douyu-ltp0-input'),
           controller: controller.ltp0Controller,
-          style: AppTextStyles.t14,
+          style: AppText.of(context).listPrimary,
           autocorrect: false,
           enableSuggestions: false,
           scrollPadding: const EdgeInsets.only(bottom: 120),
@@ -43,7 +43,7 @@ class DouyuCookiePage extends GetView<DouyuCookieController> {
         TextField(
           key: const ValueKey('douyu-did-input'),
           controller: controller.didController,
-          style: AppTextStyles.t14,
+          style: AppText.of(context).listPrimary,
           autocorrect: false,
           enableSuggestions: false,
           scrollPadding: const EdgeInsets.only(bottom: 120),
@@ -75,7 +75,7 @@ class _DouyuCookieTip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = AppTextStyles.t13.copyWith(
+    final body = AppText.of(context).body.copyWith(
       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
       height: 1.4,
     );

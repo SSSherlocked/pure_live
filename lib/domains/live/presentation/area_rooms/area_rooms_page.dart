@@ -194,7 +194,7 @@ class _FavoriteAreaFloatingButtonState extends State<FavoriteAreaFloatingButton>
                   return Center(
                     child: Text(
                       firstChar,
-                      style: AppTextStyles.t12Bold.copyWith(color: theme.colorScheme.onPrimaryContainer),
+                      style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.onPrimaryContainer),
                     ),
                   );
                 },
@@ -202,7 +202,7 @@ class _FavoriteAreaFloatingButtonState extends State<FavoriteAreaFloatingButton>
             : Center(
                 child: Text(
                   firstChar,
-                  style: AppTextStyles.t12Bold.copyWith(color: theme.colorScheme.onPrimaryContainer),
+                  style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.onPrimaryContainer),
                 ),
               ),
       ),
@@ -279,7 +279,7 @@ class _FavoriteAreaFloatingButtonState extends State<FavoriteAreaFloatingButton>
                                           displayName,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: AppTextStyles.t12Bold.copyWith(
+                                          style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(
                                             color: Theme.of(context).colorScheme.primary,
                                             height: 1.2,
                                           ),

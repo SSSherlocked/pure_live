@@ -129,7 +129,7 @@ class RoomCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   room.nick ?? '',
-                  style: AppTextStyles.t16.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                  style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.3),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -163,7 +163,7 @@ class RoomCard extends StatelessWidget {
                   ),
                   child: Text(
                     room.title ?? '',
-                    style: AppTextStyles.t14.copyWith(
+                    style: AppText.of(context).listPrimary.copyWith(
                       color: theme.colorScheme.onSurface,
                       fontWeight: FontWeight.w500,
                       height: 1.45,
@@ -175,7 +175,7 @@ class RoomCard extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 4),
                   child: Text(
                     i18n('room_id_label', args: {"id": ?room.roomId}),
-                    style: AppTextStyles.t11.copyWith(
+                    style: AppText.of(context).tag.copyWith(
                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -204,7 +204,7 @@ class RoomCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAudienceMetric({required bool dense, bool inline = false}) {
+  Widget _buildAudienceMetric(BuildContext context, {required bool dense, bool inline = false}) {
     return Obx(() {
       final app = SettingsService.to.app;
       final preferReal = app.preferRealOnlineCounts.v;
@@ -238,7 +238,7 @@ class RoomCard extends StatelessWidget {
                 const SizedBox(width: 2),
                 Text(
                   displayValue,
-                  style: (dense ? AppTextStyles.t11 : AppTextStyles.t12).copyWith(
+                  style: (dense ? AppText.of(context).tag : AppText.of(context).secondary).copyWith(
                     color: color,
                     fontWeight: FontWeight.w600,
                   ),
@@ -258,7 +258,7 @@ class RoomCard extends StatelessWidget {
     });
   }
 
-  Widget _buildCoverPlatformBadge() {
+  Widget _buildCoverPlatformBadge(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: dense ? 7 : 8, vertical: dense ? 3 : 4),
       decoration: BoxDecoration(
@@ -268,7 +268,7 @@ class RoomCard extends StatelessWidget {
       child: Text(
         i18n('site_${room.platform ?? ''}'),
         maxLines: 1,
-        style: (dense ? AppTextStyles.t11 : AppTextStyles.t12).copyWith(
+        style: (dense ? AppText.of(context).tag : AppText.of(context).secondary).copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w600,
         ),
@@ -277,7 +277,7 @@ class RoomCard extends StatelessWidget {
   }
 
   /// The platform tag of the compact row, styled like the 关注 panel's tag.
-  Widget _buildCompactPlatformBadge(bool isDark) {
+  Widget _buildCompactPlatformBadge(BuildContext context, bool isDark) {
     final colors = Get.theme.colorScheme;
     return Container(
       key: const ValueKey('room-card-platform-badge'),
@@ -292,8 +292,7 @@ class RoomCard extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.fade,
         softWrap: false,
-        style: AppTextStyles.t11.copyWith(
-          fontSize: 10,
+        style: AppText.of(context).tag.copyWith(
           fontWeight: FontWeight.w600,
           color: colors.onSurfaceVariant,
         ),
@@ -301,7 +300,8 @@ class RoomCard extends StatelessWidget {
     );
   }
 
-  Widget? _buildCompactTrailing({
+  Widget? _buildCompactTrailing(
+    BuildContext context, {
     required RoomCardAppearance config,
     required bool isDark,
     required bool showAutomaticPlatformBadge,
@@ -315,7 +315,7 @@ class RoomCard extends StatelessWidget {
 
     // "Always" forces the tag at any width; "automatic" yields to the title.
     if (config.showPlatformBadge || (canShowMetrics && showAutomaticPlatformBadge)) {
-      children.add(_buildCompactPlatformBadge(isDark));
+      children.add(_buildCompactPlatformBadge(context, isDark));
     }
     if (canShowMetrics) {
       if (statusPending) {
@@ -328,7 +328,7 @@ class RoomCard extends StatelessWidget {
           ),
         );
       } else if (config.showAudience && room.isLiveNow) {
-        children.add(_buildAudienceMetric(dense: true, inline: true));
+        children.add(_buildAudienceMetric(context, dense: true, inline: true));
       } else if (config.showReplayBadge && room.isRecord == true) {
         children.add(
           CountChip(icon: Icons.videocam_rounded, count: i18n('replay'), dense: true, color: Get.theme.primaryColor),
@@ -405,6 +405,7 @@ class RoomCard extends StatelessWidget {
       textScaler: MediaQuery.textScalerOf(context),
     );
     final trailing = _buildCompactTrailing(
+      context,
       config: config,
       isDark: isDark,
       showAutomaticPlatformBadge: showAutomaticPlatformBadge,
@@ -438,7 +439,7 @@ class RoomCard extends StatelessWidget {
                       key: const ValueKey('room-card-anchor-name'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: (dense ? AppTextStyles.t13 : AppTextStyles.t15).copyWith(
+                      style: (dense ? AppText.of(context).body : AppText.of(context).sectionTitle).copyWith(
                         height: 1.2,
                         fontWeight: FontWeight.w700,
                         color: isDark ? Colors.white : Colors.black87,
@@ -451,8 +452,8 @@ class RoomCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: (config.showAnchorName
-                            ? (dense ? AppTextStyles.t12 : AppTextStyles.t13)
-                            : (dense ? AppTextStyles.t13 : AppTextStyles.t15))
+                            ? (dense ? AppText.of(context).secondary : AppText.of(context).body)
+                            : (dense ? AppText.of(context).body : AppText.of(context).sectionTitle))
                         .copyWith(
                           height: 1.2,
                           fontWeight: config.showAnchorName ? FontWeight.w500 : FontWeight.w700,
@@ -537,13 +538,13 @@ class RoomCard extends StatelessWidget {
                                 key: const ValueKey('room-card-platform-badge'),
                                 left: 8,
                                 top: 8,
-                                child: _buildCoverPlatformBadge(),
+                                child: _buildCoverPlatformBadge(context),
                               ),
                             if (config.showAudience && room.isLiveNow && !statusPending)
                               Positioned(
                                 right: showDelete ? (dense ? 44 : 48) : 8,
                                 top: 8,
-                                child: _buildAudienceMetric(dense: dense),
+                                child: _buildAudienceMetric(context, dense: dense),
                               ),
                             if (config.showReplayBadge && room.isRecord == true && !room.isLiveNow)
                               Positioned(
@@ -571,7 +572,7 @@ class RoomCard extends StatelessWidget {
                                     room.title ?? '',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: (dense ? AppTextStyles.t12 : AppTextStyles.t14).copyWith(
+                                    style: (dense ? AppText.of(context).secondary : AppText.of(context).listPrimary).copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
                                     ),
@@ -641,7 +642,7 @@ class RoomCard extends StatelessWidget {
                                       key: const ValueKey('room-card-anchor-name'),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: (dense ? AppTextStyles.t13 : AppTextStyles.t15).copyWith(
+                                      style: (dense ? AppText.of(context).body : AppText.of(context).sectionTitle).copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: isDark ? Colors.white : Colors.black87,
                                       ),
@@ -764,7 +765,7 @@ class CountChip extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               count,
-              style: (dense ? AppTextStyles.t12 : AppTextStyles.t13).copyWith(
+              style: (dense ? AppText.of(context).secondary : AppText.of(context).body).copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),

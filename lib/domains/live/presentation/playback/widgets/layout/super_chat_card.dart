@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pure_live/core/theme/app_text.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -151,7 +152,7 @@ class _SuperChatCardState extends State<SuperChatCard> {
       message.userName,
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: TextStyle(color: primaryText, fontSize: 14, height: 1.2, fontWeight: FontWeight.w600),
+      style: AppText.of(context).listPrimary.copyWith(color: primaryText, height: 1.2, fontWeight: FontWeight.w600),
     );
     final identity = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -207,12 +208,9 @@ class _SuperChatCardState extends State<SuperChatCard> {
         const SizedBox(width: 3),
         Text(
           '￥${message.price}',
-          style: TextStyle(
-            color: textColor,
-            fontSize: 15,
+          style: AppText.of(context).sectionTitle.copyWith(color: textColor,
             fontWeight: FontWeight.w700,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+            fontFeatures: const [FontFeature.tabularFigures()]),
         ),
       ],
     );
@@ -257,13 +255,10 @@ class _SuperChatCardState extends State<SuperChatCard> {
           const SizedBox(width: 3),
           Text(
             'SC',
-            style: TextStyle(
-              color: secondaryText,
-              fontSize: 12,
+            style: AppText.of(context).secondary.copyWith(color: secondaryText,
               height: 1,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
+              letterSpacing: 0.5),
           ),
         ],
       ),
@@ -278,13 +273,10 @@ class _SuperChatCardState extends State<SuperChatCard> {
         const SizedBox(width: 3),
         Text(
           _remainText,
-          style: TextStyle(
-            color: primaryText,
-            fontSize: 12,
+          style: AppText.of(context).secondary.copyWith(color: primaryText,
             height: 1,
             fontWeight: FontWeight.w500,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
+            fontFeatures: const [FontFeature.tabularFigures()]),
         ),
       ],
     );
@@ -315,7 +307,7 @@ class _SuperChatCardState extends State<SuperChatCard> {
         onDoubleTap: () => clipboard(_displayText(message.message)),
         child: SelectableText(
           _displayText(message.message),
-          style: TextStyle(color: textColor, fontSize: 14, height: 1.5, fontWeight: FontWeight.w400),
+          style: AppText.of(context).listPrimary.copyWith(color: textColor, height: 1.5, fontWeight: FontWeight.w400),
         ),
       ),
     );

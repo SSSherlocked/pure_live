@@ -242,9 +242,9 @@ class VersionPage extends GetView<VersionController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTextStyles.t16.copyWith(fontWeight: FontWeight.bold)),
+                      Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 2),
-                      Text(subtitle, style: AppTextStyles.t12.copyWith(color: theme.hintColor.withValues(alpha: 0.8))),
+                      Text(subtitle, style: AppText.of(context).secondary.copyWith(color: theme.hintColor.withValues(alpha: 0.8))),
                     ],
                   ),
                 ),
@@ -276,7 +276,7 @@ class VersionPage extends GetView<VersionController> {
       children: [
         Text(
           title,
-          style: AppTextStyles.t13.copyWith(
+          style: AppText.of(context).body.copyWith(
             fontWeight: FontWeight.w600,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
           ),
@@ -346,7 +346,7 @@ class VersionPage extends GetView<VersionController> {
                           githubOriginOnly
                               ? i18n('github_origin_source')
                               : i18n("download_source", args: {"num": "${i + 1}"}),
-                          style: AppTextStyles.t12.copyWith(fontWeight: FontWeight.w600),
+                          style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w600),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -395,11 +395,11 @@ class VersionPage extends GetView<VersionController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(platformName, style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.bold)),
+                    Text(platformName, style: AppText.from(theme).sectionTitle.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),
                     Text(
                       i18n("download_source", args: {"num": "$sourceIndex"}),
-                      style: AppTextStyles.t11.copyWith(color: theme.hintColor),
+                      style: AppText.from(theme).tag.copyWith(color: theme.hintColor),
                     ),
                   ],
                 ),
@@ -421,7 +421,7 @@ class VersionPage extends GetView<VersionController> {
                 ),
                 child: SelectableText(
                   targetUrl,
-                  style: AppTextStyles.t11.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: AppText.from(theme).tag.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(height: 8),

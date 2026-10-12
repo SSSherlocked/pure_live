@@ -251,7 +251,7 @@ class _TaskCard extends GetView<RecorderController> {
     };
   }
 
-  Widget _buildCoverImage(Color statusColor) {
+  Widget _buildCoverImage(BuildContext context, Color statusColor) {
     final coverUrl = normalizeNetworkImageUrl(task.cover);
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
@@ -280,7 +280,7 @@ class _TaskCard extends GetView<RecorderController> {
                   ),
                   child: Text(
                     _statusText(),
-                    style: AppTextStyles.t12.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: AppText.of(context).secondary.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -300,7 +300,7 @@ class _TaskCard extends GetView<RecorderController> {
         Flexible(
           child: Text(
             label,
-            style: AppTextStyles.t11.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+            style: AppText.from(theme).tag.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -321,7 +321,7 @@ class _TaskCard extends GetView<RecorderController> {
           Flexible(
             child: Text(
               label,
-              style: AppTextStyles.t12.copyWith(fontWeight: FontWeight.w600, color: c),
+              style: AppText.from(theme).secondary.copyWith(fontWeight: FontWeight.w600, color: c),
             ),
           ),
         ],
@@ -336,7 +336,7 @@ class _TaskCard extends GetView<RecorderController> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
       minimumSize: const Size(0, kMinInteractiveDimension),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      textStyle: AppTextStyles.t12.copyWith(fontWeight: FontWeight.w700),
+      textStyle: AppText.from(theme).secondary.copyWith(fontWeight: FontWeight.w700),
     );
 
     final outlineStyle = OutlinedButton.styleFrom(
@@ -344,7 +344,7 @@ class _TaskCard extends GetView<RecorderController> {
       minimumSize: const Size(0, kMinInteractiveDimension),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       side: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-      textStyle: AppTextStyles.t12.copyWith(fontWeight: FontWeight.w700),
+      textStyle: AppText.from(theme).secondary.copyWith(fontWeight: FontWeight.w700),
     );
 
     final dangerStyle = FilledButton.styleFrom(
@@ -352,7 +352,7 @@ class _TaskCard extends GetView<RecorderController> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
       minimumSize: const Size(0, kMinInteractiveDimension),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      textStyle: AppTextStyles.t12.copyWith(fontWeight: FontWeight.w700),
+      textStyle: AppText.from(theme).secondary.copyWith(fontWeight: FontWeight.w700),
     );
 
     Widget deleteButton() {
@@ -523,7 +523,7 @@ class _TaskCard extends GetView<RecorderController> {
                         task.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.t16.copyWith(fontWeight: FontWeight.w700, height: 1.2, letterSpacing: 0.1),
+                        style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700, height: 1.2, letterSpacing: 0.1),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -547,7 +547,7 @@ class _TaskCard extends GetView<RecorderController> {
                               task.nick,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.t14.copyWith(
+                              style: AppText.of(context).listPrimary.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -581,13 +581,13 @@ class _TaskCard extends GetView<RecorderController> {
                   if (constraints.maxWidth < 480 * textScale) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [_buildCoverImage(color), const SizedBox(height: 12), details],
+                      children: [_buildCoverImage(context, color), const SizedBox(height: 12), details],
                     );
                   }
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildCoverImage(color),
+                      _buildCoverImage(context, color),
                       const SizedBox(width: 14),
                       Expanded(child: details),
                     ],
@@ -644,7 +644,7 @@ class _TaskCard extends GetView<RecorderController> {
                       Expanded(
                         child: Text(
                           _statusText(),
-                          style: AppTextStyles.t12.copyWith(color: color, fontWeight: FontWeight.w700),
+                          style: AppText.of(context).secondary.copyWith(color: color, fontWeight: FontWeight.w700),
                         ),
                       ),
                     ],
@@ -674,7 +674,7 @@ class _TaskCard extends GetView<RecorderController> {
                             if (task.inputCoverageIncomplete) i18n('recorder_input_coverage_incomplete'),
                             if (task.inputTailDiscarded) i18n('recorder_input_tail_discarded'),
                           ].join('\n'),
-                          style: AppTextStyles.t12.copyWith(color: theme.colorScheme.onTertiaryContainer, height: 1.3),
+                          style: AppText.of(context).secondary.copyWith(color: theme.colorScheme.onTertiaryContainer, height: 1.3),
                         ),
                       ),
                     ],
@@ -700,7 +700,7 @@ class _TaskCard extends GetView<RecorderController> {
                           i18n('recorder_last_error', args: {'stage': _failureStageText(), 'error': task.lastError!}),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.t12.copyWith(color: theme.colorScheme.onErrorContainer, height: 1.3),
+                          style: AppText.of(context).secondary.copyWith(color: theme.colorScheme.onErrorContainer, height: 1.3),
                         ),
                       ),
                     ],
@@ -749,7 +749,7 @@ class _Tag extends StatelessWidget {
           Flexible(
             child: Text(
               text,
-              style: AppTextStyles.t11.copyWith(fontWeight: FontWeight.bold, color: color, letterSpacing: 0.2),
+              style: AppText.of(context).tag.copyWith(fontWeight: FontWeight.bold, color: color, letterSpacing: 0.2),
             ),
           ),
         ],
@@ -821,7 +821,7 @@ class _RemoveMonitorButtonState extends State<_RemoveMonitorButton> {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: _busy ? null : _remove,
-      child: Text(i18n('remove'), style: AppTextStyles.t15.copyWith(color: _busy ? null : Colors.red)),
+      child: Text(i18n('remove'), style: AppText.of(context).sectionTitle.copyWith(color: _busy ? null : Colors.red)),
     );
   }
 }
@@ -846,12 +846,12 @@ class _EmptyView extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             i18n("recorder_empty_title"),
-            style: AppTextStyles.t16.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+            style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
           ),
           const SizedBox(height: 8),
           Text(
             i18n("recorder_empty_subtitle"),
-            style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: AppText.of(context).body.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       ),

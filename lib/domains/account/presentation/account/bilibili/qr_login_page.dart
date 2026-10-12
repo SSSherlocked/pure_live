@@ -24,7 +24,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
-              child: Obx(() => _buildQrState(theme)),
+              child: Obx(() => _buildQrState(context, theme)),
             ),
           ),
           const SizedBox(height: 32),
@@ -33,12 +33,12 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
     );
   }
 
-  Widget _buildQrState(ThemeData theme) {
+  Widget _buildQrState(BuildContext context, ThemeData theme) {
     switch (controller.qrStatus.value) {
       case QRStatus.loading:
-        return _buildProgressState(i18n('qr_loading'));
+        return _buildProgressState(context, i18n('qr_loading'));
       case QRStatus.verifying:
-        return _buildProgressState(i18n('account_verifying'));
+        return _buildProgressState(context, i18n('account_verifying'));
       case QRStatus.verified:
         return _buildStatusMessage(
           theme,
@@ -99,7 +99,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
     );
   }
 
-  Widget _buildProgressState(String message) {
+  Widget _buildProgressState(BuildContext context, String message) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 56),
       child: Column(
@@ -107,7 +107,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
         children: [
           const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
           const SizedBox(height: 20),
-          Text(message, textAlign: TextAlign.center, style: AppTextStyles.t14),
+          Text(message, textAlign: TextAlign.center, style: AppText.of(context).listPrimary),
         ],
       ),
     );
@@ -139,7 +139,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
             child: Text(
               message,
               textAlign: TextAlign.start,
-              style: AppTextStyles.t13.copyWith(
+              style: AppText.from(theme).body.copyWith(
                 color: color,
                 fontWeight: highlighted ? FontWeight.w600 : FontWeight.normal,
                 height: 1.35,
@@ -169,7 +169,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
           Expanded(
             child: Text(
               i18n('qr_login_tip'),
-              style: AppTextStyles.t13.copyWith(
+              style: AppText.from(theme).body.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 height: 1.4,
               ),
@@ -196,7 +196,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: AppTextStyles.t14.copyWith(color: theme.hintColor),
+            style: AppText.from(theme).listPrimary.copyWith(color: theme.hintColor),
           ),
           const SizedBox(height: 16),
           TextButton.icon(

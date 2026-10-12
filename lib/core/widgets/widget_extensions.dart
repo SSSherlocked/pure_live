@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
-import 'package:pure_live/core/theme/app_text_styles.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 
 extension AppLayoutFactory on BuildContext {
   Widget buildGroupTitle(String text) {
@@ -10,7 +10,7 @@ extension AppLayoutFactory on BuildContext {
       padding: const EdgeInsets.only(left: 8, bottom: 8),
       child: Text(
         text,
-        style: AppTextStyles.t12.copyWith(
+        style: AppText.of(this).secondary.copyWith(
           fontWeight: FontWeight.bold,
           color: theme.colorScheme.primary.withValues(alpha: 0.65),
           letterSpacing: 0.5,
@@ -110,13 +110,13 @@ extension AppLayoutFactory on BuildContext {
     return Obx(
       () => SwitchListTile(
         secondary: icon != null ? Icon(icon, color: iconColor ?? theme.colorScheme.primary, size: 22) : null,
-        title: Text(title, style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
+        title: Text(title, style: AppText.of(this).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
         subtitle: subtitle != null && subtitle.isNotEmpty
             ? Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
                   subtitle,
-                  style: AppTextStyles.t12.copyWith(color: subtitleColor ?? theme.hintColor.withValues(alpha: 0.75)),
+                  style: AppText.of(this).secondary.copyWith(color: subtitleColor ?? theme.hintColor.withValues(alpha: 0.75)),
                   maxLines: isLong ? null : 1,
                   overflow: isLong ? TextOverflow.visible : TextOverflow.ellipsis,
                 ),
@@ -177,13 +177,13 @@ extension AppLayoutFactory on BuildContext {
       );
     }
 
-    final titleWidget = Text(title, style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600));
+    final titleWidget = Text(title, style: AppText.of(this).sectionTitle.copyWith(fontWeight: FontWeight.w600));
     final subtitleWidget = subtitle != null && subtitle.isNotEmpty
         ? Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text(
               subtitle,
-              style: AppTextStyles.t12.copyWith(color: subtitleColor ?? theme.hintColor.withValues(alpha: 0.75)),
+              style: AppText.of(this).secondary.copyWith(color: subtitleColor ?? theme.hintColor.withValues(alpha: 0.75)),
               maxLines: isLong ? null : 1,
               overflow: isLong ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
@@ -271,7 +271,7 @@ extension AppLayoutFactory on BuildContext {
         children: [
           Text(
             displayValue,
-            style: AppTextStyles.t14.copyWith(
+            style: AppText.of(this).listPrimary.copyWith(
               color: theme.hintColor.withValues(alpha: 0.75),
               fontWeight: FontWeight.w500,
             ),
@@ -300,7 +300,7 @@ extension AppLayoutFactory on BuildContext {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           titlePadding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 8),
           contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          title: Text(title, style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.bold)),
+          title: Text(title, style: AppText.of(this).pageTitle.copyWith(fontWeight: FontWeight.bold)),
           content: RadioGroup<T>(
             groupValue: value,
             onChanged: (T? newValue) {
@@ -318,7 +318,7 @@ extension AppLayoutFactory on BuildContext {
                   activeColor: innerTheme.colorScheme.primary,
                   title: Text(
                     itemDisplayText,
-                    style: AppTextStyles.t15.copyWith(
+                    style: AppText.of(this).sectionTitle.copyWith(
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: isSelected ? innerTheme.colorScheme.primary : innerTheme.textTheme.bodyLarge?.color,
                     ),
@@ -361,8 +361,8 @@ extension AppLayoutFactory on BuildContext {
               children: [
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final titleStyle = AppTextStyles.t16.copyWith(fontWeight: FontWeight.w600);
-                    final valueStyle = AppTextStyles.t13.copyWith(
+                    final titleStyle = AppText.of(this).sectionTitle.copyWith(fontWeight: FontWeight.w600);
+                    final valueStyle = AppText.of(this).body.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
                     );
@@ -411,7 +411,7 @@ extension AppLayoutFactory on BuildContext {
                 ),
                 if (subtitle != null && subtitle.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(subtitle, style: AppTextStyles.t12.copyWith(color: theme.hintColor.withValues(alpha: 0.75))),
+                  Text(subtitle, style: AppText.of(this).secondary.copyWith(color: theme.hintColor.withValues(alpha: 0.75))),
                 ],
                 const SizedBox(height: 2),
                 Transform.translate(

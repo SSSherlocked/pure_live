@@ -62,7 +62,7 @@ class _BackupSectionPickerPageState extends State<BackupSectionPickerPage> {
         children: [
           Text(
             i18n(_isExport ? 'backup_section_export_hint' : 'backup_section_import_hint'),
-            style: AppTextStyles.t13.copyWith(color: theme.hintColor),
+            style: AppText.of(context).body.copyWith(color: theme.hintColor),
           ),
           const SizedBox(height: 12),
           Card(
@@ -75,7 +75,7 @@ class _BackupSectionPickerPageState extends State<BackupSectionPickerPage> {
                     dense: false,
                     controlAffinity: ListTileControlAffinity.leading,
                     title: Text(backupSectionLabel(name)),
-                    subtitle: Text(name, style: AppTextStyles.t12.copyWith(color: theme.hintColor)),
+                    subtitle: Text(name, style: AppText.of(context).secondary.copyWith(color: theme.hintColor)),
                     value: _selected.contains(name),
                     onChanged: (value) => setState(() {
                       if (value == true) {

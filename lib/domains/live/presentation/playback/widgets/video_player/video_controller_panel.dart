@@ -198,7 +198,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                               ),
                               Text(
                                 "$percentage%",
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -291,7 +291,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                         unawaited(
                           showDialog<void>(
                             context: context,
-                            builder: (_) => PlayOther(controller: controller.livePlayController),
+                            builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
                           ),
                         );
                       }
@@ -380,12 +380,12 @@ class ErrorWidget extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(i18n("play_video_failed"), style: AppTextStyles.t14.copyWith(color: Colors.white)),
+            child: Text(i18n("play_video_failed"), style: AppText.of(context).listPrimary.copyWith(color: Colors.white)),
           ),
           ElevatedButton(
             onPressed: () => controller.refresh(),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.2)),
-            child: Text(i18n("retry"), style: AppTextStyles.t15.copyWith(color: Colors.white)),
+            child: Text(i18n("retry"), style: AppText.of(context).sectionTitle.copyWith(color: Colors.white)),
           ),
         ],
       ),
@@ -466,7 +466,7 @@ class TopActionBar extends StatelessWidget {
                             Text(
                               _liveRoomTitle(controller.room),
                               overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.t16.copyWith(
+                              style: AppText.of(context).sectionTitle.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.none,
@@ -510,7 +510,7 @@ class TopActionBar extends StatelessWidget {
                             unawaited(
                               showDialog<void>(
                                 context: context,
-                                builder: (_) => PlayOther(controller: controller.livePlayController),
+                                builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
                               ),
                             );
                           },
@@ -639,7 +639,7 @@ class _BatteryInfoState extends State<BatteryInfo> {
           child: Obx(
             () => Text(
               '${widget.controller.batteryLevel.value}',
-              style: const TextStyle(color: Colors.white, fontSize: 9, decoration: TextDecoration.none),
+              style: AppText.of(context).tag.copyWith(color: Colors.white, decoration: TextDecoration.none),
             ),
           ),
         ),
@@ -852,7 +852,7 @@ class PortraitStreamDiagnosticsBadge extends StatelessWidget {
                 '${geometry.width > 0 ? geometry.width : '--'}×${geometry.height > 0 ? geometry.height : '--'}  '
                 '$ratio→$effectiveRatio  $state  ${_overrideLabel(roomOverride)}\n'
                 '$evidence  C${(geometry.confidence * 100).round()}%  S${geometry.stableSampleCount}  $observedTime',
-                style: const TextStyle(color: Colors.white, fontSize: 11, decoration: TextDecoration.none),
+                style: AppText.of(context).tag.copyWith(color: Colors.white, decoration: TextDecoration.none),
               ),
             ),
           ),
@@ -961,7 +961,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                         label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.t13.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                        style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -984,7 +984,10 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
           controller.isMenuOpen.value = false;
           controller.enableController();
         },
+        // The menu's entries use the compact text roles; the chip on the bar
+        // keeps its own size.
         menuChildren: [
+          for (final entry in [
           SubmenuButton(
             key: const ValueKey('stream-menu-quality'),
             leadingIcon: const Icon(Icons.high_quality_rounded, size: 18),
@@ -1019,6 +1022,8 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
             ],
             child: Text(i18n('select_line')),
           ),
+          ])
+            CompactText(child: entry),
         ],
         builder: (context, menu, _) => chip(() => menu.isOpen ? menu.close() : menu.open()),
       );
@@ -1440,13 +1445,13 @@ class SettingsPanel extends StatelessWidget {
                       children: [
                         Text(
                           i18n('settings_danmaku_title'),
-                          style: AppTextStyles.t16Bold.copyWith(color: colorScheme.onSurface),
+                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700).copyWith(color: colorScheme.onSurface),
                         ),
                         Text(
                           i18n('danmaku_realtime_hint'),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.t12.copyWith(color: colorScheme.onSurfaceVariant),
+                          style: AppText.of(context).secondary.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -1471,7 +1476,9 @@ class SettingsPanel extends StatelessWidget {
               // PiP has a dedicated settings/preview page. Keeping those
               // controls out of the short landscape sheet leaves the live
               // picture visible and avoids a confusing nested long form.
-              child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: false),
+              child: CompactText(
+                child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: false),
+              ),
             ),
           ],
         ),

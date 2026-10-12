@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pure_live/core/theme/app_text.dart';
 
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/utils/i18n.dart';
@@ -220,7 +221,7 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
                   const SizedBox(height: 12),
                   Text(
                     "$percentage%",
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: AppText.of(context).tag.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   Expanded(
                     child: GestureDetector(

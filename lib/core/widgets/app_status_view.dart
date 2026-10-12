@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/utils/i18n.dart';
 import 'package:pure_live/core/layout/app_layout.dart';
-import 'package:pure_live/core/theme/app_text_styles.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 
 enum AppStatusType { loading, empty, error }
 
@@ -93,7 +93,7 @@ class _AppStatusViewState extends State<AppStatusView> {
             const SizedBox(height: 20),
             Text(
               finalTitle,
-              style: AppTextStyles.t15.copyWith(
+              style: AppText.of(context).sectionTitle.copyWith(
                 fontWeight: FontWeight.w600,
                 color: widget.titleColor ?? theme.textTheme.titleMedium?.color,
               ),
@@ -107,7 +107,7 @@ class _AppStatusViewState extends State<AppStatusView> {
                 child: Text(
                   finalSubtitle,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.t13.copyWith(color: widget.subtitleColor ?? theme.hintColor, height: 1.5),
+                  style: AppText.of(context).body.copyWith(color: widget.subtitleColor ?? theme.hintColor, height: 1.5),
                 ),
               ),
             ),

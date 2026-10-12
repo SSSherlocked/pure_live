@@ -105,7 +105,7 @@ class _FavoriteFloatingButtonState extends State<FavoriteFloatingButton> {
             isFavorite ? Get.theme.colorScheme.primary.withAlpha(125) : Get.theme.colorScheme.primary,
           ),
           shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
-          textStyle: WidgetStateProperty.all(AppTextStyles.t12),
+          textStyle: WidgetStateProperty.all(AppText.of(context).secondary),
           minimumSize: WidgetStateProperty.all(const Size(kMinInteractiveDimension, 32)),
           fixedSize: WidgetStateProperty.all(const Size.fromHeight(32)),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,

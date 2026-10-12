@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:pure_live/core/theme/app_text.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -97,7 +98,7 @@ class WebDavHelpPage extends StatelessWidget {
   Widget _buildSectionTitle(BuildContext context, String key) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(context.tr(key), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.2)),
+      child: Text(context.tr(key), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600, height: 1.2)),
     );
   }
 
@@ -105,7 +106,7 @@ class WebDavHelpPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(Theme.of(context)),
-      child: Text(context.tr(key), style: const TextStyle(fontSize: 13.5, height: 1.6)),
+      child: Text(context.tr(key), style: AppText.of(context).body.copyWith(height: 1.6)),
     );
   }
 
@@ -120,7 +121,7 @@ class WebDavHelpPage extends StatelessWidget {
             titleKey: 'webdav_help_server_title',
             subtitle: SelectableText(
               _davUrl,
-              style: TextStyle(fontSize: 13, color: theme.colorScheme.primary, decoration: TextDecoration.underline),
+              style: AppText.of(context).body.copyWith(color: theme.colorScheme.primary, decoration: TextDecoration.underline),
             ),
             action: IconButton(
               tooltip: context.tr('webdav_help_copy_server'),
@@ -133,14 +134,14 @@ class WebDavHelpPage extends StatelessWidget {
             context,
             icon: Remix.mail_line,
             titleKey: 'webdav_help_username_title',
-            subtitle: Text(context.tr('webdav_help_username_hint'), style: const TextStyle(fontSize: 12)),
+            subtitle: Text(context.tr('webdav_help_username_hint'), style: AppText.of(context).secondary),
           ),
           _divider(),
           _buildParameterRow(
             context,
             icon: Remix.lock_password_line,
             titleKey: 'webdav_help_app_password_title',
-            subtitle: Text(context.tr('webdav_help_app_password_hint'), style: const TextStyle(fontSize: 12)),
+            subtitle: Text(context.tr('webdav_help_app_password_hint'), style: AppText.of(context).secondary),
           ),
         ],
       ),
@@ -161,7 +162,7 @@ class WebDavHelpPage extends StatelessWidget {
         if (!stacked) {
           return ListTile(
             leading: Icon(icon, color: theme.colorScheme.primary, size: 22),
-            title: Text(context.tr(titleKey), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            title: Text(context.tr(titleKey), style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600)),
             subtitle: subtitle,
             trailing: action,
           );
@@ -182,7 +183,7 @@ class WebDavHelpPage extends StatelessWidget {
                   Expanded(
                     child: Text(
                       context.tr(titleKey),
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   ?action,
@@ -215,7 +216,7 @@ class WebDavHelpPage extends StatelessWidget {
           for (final step in steps)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Text(step, style: const TextStyle(fontSize: 13.5, height: 1.55)),
+              child: Text(step, style: AppText.of(context).body.copyWith(height: 1.55)),
             ),
           const SizedBox(height: 14),
           Semantics(
@@ -239,7 +240,7 @@ class WebDavHelpPage extends StatelessWidget {
                       color: theme.dividerColor.withValues(alpha: 0.02),
                       child: Text(
                         context.tr('webdav_help_image_failed'),
-                        style: TextStyle(fontSize: 11, color: theme.hintColor),
+                        style: AppText.of(context).tag.copyWith(color: theme.hintColor),
                       ),
                     ),
                   ),
@@ -274,12 +275,12 @@ class WebDavHelpPage extends StatelessWidget {
                 children: [
                   Text(
                     context.tr(issue.$1),
-                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
+                    style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     context.tr(issue.$2),
-                    style: TextStyle(fontSize: 12.5, height: 1.5, color: theme.colorScheme.onSurfaceVariant),
+                    style: AppText.of(context).secondary.copyWith(height: 1.5, color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

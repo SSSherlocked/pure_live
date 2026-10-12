@@ -237,7 +237,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
                       maxLines: stackMetadata ? null : 2,
                       overflow: stackMetadata ? TextOverflow.visible : TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: AppTextStyles.t16.fontSize,
+                        fontSize: AppText.of(context).sectionTitle.fontSize,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.1,
                       ),
@@ -247,7 +247,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
                   final units = Text(
                     "${fontModel.files.length} ${i18n("font_units_suffix")}",
                     key: ValueKey('font-family-units-${fontModel.id}'),
-                    style: AppTextStyles.t12Medium.copyWith(color: theme.hintColor.withValues(alpha: 0.6)),
+                    style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w500).copyWith(color: theme.hintColor.withValues(alpha: 0.6)),
                   );
                   final actions = _buildActionButtonRow(
                     context,
@@ -347,12 +347,12 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
           title: Text(
             "MI Sans",
             style: isDefaultActive
-                ? AppTextStyles.t14Bold.copyWith(color: theme.colorScheme.primary)
-                : AppTextStyles.t14SemiBold,
+                ? AppText.from(theme).listPrimary.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.primary)
+                : AppText.from(theme).listPrimary.copyWith(fontWeight: FontWeight.w600),
           ),
           subtitle: Text(
             i18n("factory_default_desc"),
-            style: AppTextStyles.t11.copyWith(color: theme.hintColor.withValues(alpha: 0.7)),
+            style: AppText.from(theme).tag.copyWith(color: theme.hintColor.withValues(alpha: 0.7)),
           ),
           trailing: isDefaultActive ? Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 18) : null,
           onTap: operationPending ? null : _setDefaultFont,
@@ -391,7 +391,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
             onPressed: operationPending ? null : () => _applyInstalledFont(context, fontModel),
             child: Text(
               i18n("apply"),
-              style: AppTextStyles.t13Bold.copyWith(color: theme.colorScheme.onPrimaryContainer),
+              style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.onPrimaryContainer),
             ),
           );
 
@@ -410,7 +410,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
           children: [
             Text(
               i18n("font_currently_active"),
-              style: AppTextStyles.t12Bold.copyWith(color: theme.colorScheme.primary),
+              style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.primary),
             ),
             Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 16),
             applyButton(),
@@ -451,7 +451,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
           ElevatedButton.icon(
             key: ValueKey('font-download-${fontModel.id}'),
             icon: const Icon(Remix.download_cloud_2_line, size: 15),
-            label: Text(i18n("download"), style: AppTextStyles.t13Bold),
+            label: Text(i18n("download"), style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.colorScheme.primaryContainer,
               foregroundColor: theme.colorScheme.onPrimaryContainer,
@@ -581,7 +581,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
                 ),
                 child: Text(
                   diskSize,
-                  style: AppTextStyles.t11Bold.copyWith(
+                  style: AppText.of(context).tag.copyWith(fontWeight: FontWeight.w700).copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
@@ -603,7 +603,7 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
                     key: ValueKey('font-family-license-${fontModel.id}'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.t11Bold.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: AppText.of(context).tag.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
               ),
@@ -685,12 +685,12 @@ class _FontWeightSelectorDialogState extends State<FontWeightSelectorDialog> {
                 Text(
                   i18n('font_selector_title', args: {"name": widget.fontName}),
                   key: const ValueKey('font-weight-selector-title'),
-                  style: AppTextStyles.t18Bold,
+                  style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   i18n('font_selector_subtitle'),
-                  style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: AppText.of(context).body.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 16),
                 _buildOption(

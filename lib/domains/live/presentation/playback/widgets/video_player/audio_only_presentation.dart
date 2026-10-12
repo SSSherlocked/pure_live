@@ -37,7 +37,7 @@ class AudioOnlyPresentation extends StatelessWidget {
                         textAlign: TextAlign.center,
                         maxLines: compact ? 1 : 2,
                         overflow: TextOverflow.ellipsis,
-                        style: (compact ? AppTextStyles.t14 : AppTextStyles.t16).copyWith(
+                        style: (compact ? AppText.of(context).listPrimary : AppText.of(context).sectionTitle).copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
@@ -126,7 +126,7 @@ class _Badge extends StatelessWidget {
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.t12.copyWith(
+              style: AppText.of(context).secondary.copyWith(
                 color: Colors.white.withValues(alpha: 0.85),
                 fontWeight: FontWeight.w600,
               ),

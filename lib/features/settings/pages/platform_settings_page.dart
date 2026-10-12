@@ -38,7 +38,7 @@ class PlatformSettingsPage extends GetView<SettingsService> {
                   children: [
                     Text(
                       _platformLabel(FavoriteRoomController.to.preferPlatform.value),
-                      style: AppTextStyles.t14.copyWith(color: Theme.of(context).hintColor.withValues(alpha: 0.75)),
+                      style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor.withValues(alpha: 0.75)),
                     ),
                     Icon(
                       Icons.chevron_right_rounded,
@@ -141,7 +141,7 @@ class _PreferPlatformSelectorDialogState extends State<_PreferPlatformSelectorDi
               if (sites.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(i18n('prefer_platform_filter_empty'), style: AppTextStyles.t14),
+                  child: Text(i18n('prefer_platform_filter_empty'), style: AppText.of(context).listPrimary),
                 );
               }
               return RadioGroup<String>(
@@ -158,7 +158,7 @@ class _PreferPlatformSelectorDialogState extends State<_PreferPlatformSelectorDi
                         (site) => RadioListTile<String>(
                           value: site.id,
                           activeColor: theme.colorScheme.primary,
-                          title: Text(site.name, style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w500)),
+                          title: Text(site.name, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w500)),
                         ),
                       )
                       .toList(growable: false),

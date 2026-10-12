@@ -22,13 +22,13 @@ class SuperChatPage extends StatelessWidget {
           Text(
             i18n('super_chat_empty_title'),
             textAlign: TextAlign.center,
-            style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.w700),
+            style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Text(
             i18n('super_chat_empty_subtitle'),
             textAlign: TextAlign.center,
-            style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: AppText.of(context).body.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       );

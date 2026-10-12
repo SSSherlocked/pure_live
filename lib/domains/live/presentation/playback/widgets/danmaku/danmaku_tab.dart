@@ -20,58 +20,56 @@ class DanmakuTabView extends GetView<LivePlayController> {
       // reloads: only the sections that need the new room show a loading
       // state, so the 关注 list never blanks out during the switch.
       Widget loading() => AppStatusView(type: AppStatusType.loading, title: "", subtitle: "");
-      return ColoredBox(
-        color: Theme.of(context).colorScheme.surface,
-        child: Column(
-          children: [
-            DanmakuSectionTabBar(controller: controller.tabController, tabs: controller.tabs),
-            Expanded(
-              child: TabBarView(
-                controller: controller.tabController,
-                physics: const PureLiveBoundedScrollPhysics(),
-                children: [
-                  for (final tab in controller.panelTabs)
-                    switch (tab) {
-                      LivePanelTab.danmakuList =>
-                        SettingsService.to.danmaku.hideDanmaku.v
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Text(i18n('danmaku_display_disabled_hint'), textAlign: TextAlign.center),
+      // The side panel is a dense surface: every text role one step smaller
+      // (the chat list keeps its own size setting).
+      return CompactText(
+        child: ColoredBox(
+          color: Theme.of(context).colorScheme.surface,
+          child: Column(
+            children: [
+              DanmakuSectionTabBar(controller: controller.tabController, tabs: controller.tabs),
+              Expanded(
+                child: TabBarView(
+                  controller: controller.tabController,
+                  physics: const PureLiveBoundedScrollPhysics(),
+                  children: [
+                    for (final tab in controller.panelTabs)
+                      switch (tab) {
+                        LivePanelTab.danmakuList =>
+                          SettingsService.to.danmaku.hideDanmaku.v
+                              ? Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Text(i18n('danmaku_display_disabled_hint'), textAlign: TextAlign.center),
+                                  ),
+                                )
+                              : detail == null
+                              ? loading()
+                              : DanmakuListView(room: detail, controller: controller),
+                        // RxList mutations do not invalidate this outer Obx unless
+                        // its value is read while building. Snapshot it here so new
+                        // SC entries appear immediately without switching tabs.
+                        LivePanelTab.superChat => Obx(
+                          () => SuperChatPage(messages: controller.superChats.toList(growable: false)),
+                        ),
+                        // 屏蔽管理 closes the page as its last section.
+                        LivePanelTab.danmakuSettings =>
+                          videoController == null
+                              ? loading()
+                              : DanmakuSettingsPage(
+                                  controller: videoController,
+                                  footer: const KeywordBlockPage(asSection: true),
                                 ),
-                              )
-                            : detail == null
-                            ? loading()
-                            : DanmakuListView(room: detail, controller: controller),
-                      // RxList mutations do not invalidate this outer Obx unless
-                      // its value is read while building. Snapshot it here so new
-                      // SC entries appear immediately without switching tabs.
-                      LivePanelTab.superChat => Obx(
-                        () => SuperChatPage(messages: controller.superChats.toList(growable: false)),
-                      ),
-                      // Desktop draws the dense settings at 80 % so they fit the
-                      // narrow side panel; phones and tablets keep full size for
-                      // readable text and touch targets. 屏蔽管理 closes the page
-                      // as its last section.
-                      LivePanelTab.danmakuSettings =>
-                        videoController == null
-                            ? loading()
-                            : DanmakuSettingsPage(
-                                controller: videoController,
-                                // Brought down to the 关注 panel's text size; a little less
-                                // on touch to keep its controls easy to hit.
-                                scale: AppLayout.of(context).touch ? 0.86 : 0.8,
-                                footer: const KeywordBlockPage(asSection: true),
-                              ),
-                      LivePanelTab.follow => FollowRoomsPage(
-                        key: const ValueKey('live-panel-follow'),
-                        controller: controller,
-                      ),
-                    },
-                ],
+                        LivePanelTab.follow => FollowRoomsPage(
+                          key: const ValueKey('live-panel-follow'),
+                          controller: controller,
+                        ),
+                      },
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     });
@@ -97,9 +95,8 @@ class DanmakuSectionTabBar extends StatelessWidget {
         tabAlignment: TabAlignment.fill,
         physics: const PureLiveBoundedScrollPhysics(),
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-        // Short labels at a smaller size keep the four sections airy.
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        labelStyle: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w500),
         controller: controller,
         // Five equal-width sections share a narrow panel: shrink a label that
         // does not fit instead of letting neighbouring labels overlap.

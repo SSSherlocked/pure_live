@@ -178,7 +178,7 @@ class _AccountCookieEditorPageState extends State<AccountCookieEditorPage> {
                             minLines: 3,
                             maxLines: 7,
                             controller: widget.controller,
-                            style: AppTextStyles.t14,
+                            style: AppText.of(context).listPrimary,
                             keyboardType: TextInputType.multiline,
                             textInputAction: TextInputAction.newline,
                             autocorrect: false,
@@ -202,7 +202,7 @@ class _AccountCookieEditorPageState extends State<AccountCookieEditorPage> {
                             label: Text(
                               i18n('save'),
                               textAlign: TextAlign.center,
-                              style: AppTextStyles.t14.copyWith(
+                              style: AppText.of(context).listPrimary.copyWith(
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.5,
                                 color: theme.colorScheme.onPrimary,
@@ -239,7 +239,7 @@ class _AccountCookieEditorPageState extends State<AccountCookieEditorPage> {
                 widget.tipBody ??
                 Text(
                   widget.tipText,
-                  style: AppTextStyles.t13.copyWith(
+                  style: AppText.of(context).body.copyWith(
                     color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                     height: 1.4,
                   ),

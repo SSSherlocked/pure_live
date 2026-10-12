@@ -478,11 +478,8 @@ class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
                                                 key: const ValueKey('portrait-fullscreen-enter-hint'),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  color: Theme.of(context).colorScheme.primary,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                                style: AppText.of(context).secondary.copyWith(color: Theme.of(context).colorScheme.primary,
+                                                  fontWeight: FontWeight.w600),
                                               ),
                                             ),
                                           ],

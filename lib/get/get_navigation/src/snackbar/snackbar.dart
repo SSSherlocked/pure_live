@@ -3,7 +3,7 @@ import 'dart:async';
 import '../../get_navigation.dart';
 import 'package:flutter/material.dart';
 import '../../../get_core/get_core.dart';
-import 'package:pure_live/core/theme/app_text_styles.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 
 typedef OnTap = void Function(GetSnackBar snack);
 typedef OnHover = void Function(GetSnackBar snack, SnackHoverState snackHoverState);
@@ -468,7 +468,7 @@ You need to either use message[String], or messageText[Widget] or define a userI
                             widget.titleText ??
                             Text(
                               widget.title ?? "",
-                              style: AppTextStyles.t16.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                              style: AppText.of(context).sectionTitle.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                       )
                     else
@@ -482,7 +482,7 @@ You need to either use message[String], or messageText[Widget] or define a userI
                       ),
                       child:
                           widget.messageText ??
-                          Text(widget.message ?? "", style: AppTextStyles.t14.copyWith(color: Colors.white)),
+                          Text(widget.message ?? "", style: AppText.of(context).listPrimary.copyWith(color: Colors.white)),
                     ),
                   ],
                 ),

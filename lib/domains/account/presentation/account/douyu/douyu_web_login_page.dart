@@ -71,6 +71,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
               const ColoredBox(color: Colors.transparent),
             if (controller.isVerifying.value)
               _buildProgressState(
+                context,
                 message: i18n('douyu_web_login_verifying'),
                 backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.94),
               ),
@@ -84,7 +85,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
     );
   }
 
-  Widget _buildProgressState({required String message, Color? backgroundColor}) {
+  Widget _buildProgressState(BuildContext context, {required String message, Color? backgroundColor}) {
     return ColoredBox(
       key: const ValueKey('douyu-web-login-verifying'),
       color: backgroundColor ?? Colors.transparent,
@@ -96,7 +97,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
             children: [
               const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
               const SizedBox(height: 20),
-              Text(message, textAlign: TextAlign.center, style: AppTextStyles.t14),
+              Text(message, textAlign: TextAlign.center, style: AppText.of(context).listPrimary),
             ],
           ),
         ),
@@ -128,7 +129,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
                   Expanded(
                     child: Text(
                       message,
-                      style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onSecondaryContainer, height: 1.35),
+                      style: AppText.from(theme).body.copyWith(color: theme.colorScheme.onSecondaryContainer, height: 1.35),
                     ),
                   ),
                 ],
@@ -165,7 +166,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
                   Expanded(
                     child: Text(
                       message,
-                      style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onErrorContainer, height: 1.35),
+                      style: AppText.from(theme).body.copyWith(color: theme.colorScheme.onErrorContainer, height: 1.35),
                     ),
                   ),
                 ],

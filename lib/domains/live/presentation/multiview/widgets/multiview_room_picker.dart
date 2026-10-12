@@ -87,7 +87,7 @@ class _MultiviewRoomPickerState extends State<MultiviewRoomPicker> {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
             child: TextField(
               onChanged: (value) => setState(() => _query = value),
-              style: AppTextStyles.t13,
+              style: AppText.of(context).body,
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Remix.search_line, size: 20),
@@ -127,13 +127,13 @@ class _MultiviewRoomPickerState extends State<MultiviewRoomPicker> {
                           room.nick ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.t14Medium,
+                          style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w500),
                         ),
                         subtitle: Text(
                           room.title ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.t12Muted,
+                          style: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor),
                         ),
                         trailing: _LiveStatusBadge(room: room),
                         onTap: () => widget.onPicked(room),
@@ -217,7 +217,7 @@ class _LiveStatusBadge extends StatelessWidget {
         const SizedBox(width: 5),
         Text(
           i18n(labelKey),
-          style: AppTextStyles.t11.copyWith(color: color, fontWeight: FontWeight.w600),
+          style: AppText.of(context).tag.copyWith(color: color, fontWeight: FontWeight.w600),
         ),
       ],
     );

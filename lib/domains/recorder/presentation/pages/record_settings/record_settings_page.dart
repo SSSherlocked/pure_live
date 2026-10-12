@@ -283,7 +283,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
           foregroundColor: theme.colorScheme.primary,
         ),
         icon: const Icon(Remix.folder_open_line, size: 18),
-        label: Text(i18n("recorder_open_folder"), style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.w600)),
+        label: Text(i18n("recorder_open_folder"), style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.w600)),
       ),
     );
     return LayoutBuilder(
@@ -458,8 +458,8 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                       selected: option.value == selected,
                       selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.05),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: Text(option.label, style: AppTextStyles.t16.copyWith(fontWeight: FontWeight.w600)),
-                      subtitle: option.description == null ? null : Text(option.description!, style: AppTextStyles.t12),
+                      title: Text(option.label, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600)),
+                      subtitle: option.description == null ? null : Text(option.description!, style: AppText.of(context).secondary),
                     ),
                   )
                   .toList(growable: false),
@@ -572,7 +572,7 @@ class _RecordIntegerDialogState extends State<_RecordIntegerDialog> {
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.done,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            style: AppTextStyles.t18,
+            style: AppText.of(context).pageTitle,
             decoration: InputDecoration(
               labelText: i18n("manual_input"),
               hintText: widget.hintText,

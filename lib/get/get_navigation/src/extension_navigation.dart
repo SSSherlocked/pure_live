@@ -5,7 +5,7 @@ import 'root/get_root.dart';
 import 'dialog/dialog_route.dart';
 
 import 'package:flutter/material.dart';
-import 'package:pure_live/core/theme/app_text_styles.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 import 'package:pure_live/get/get_navigation/src/routes/test_kit.dart';
 
 /// It replaces the Flutter Navigator, but needs no context.
@@ -201,7 +201,7 @@ extension ExtensionDialog on GetInterface {
             },
             child: Text(
               textCancel ?? "Cancel",
-              style: AppTextStyles.t14.copyWith(color: cancelTextColor ?? theme.colorScheme.secondary),
+              style: AppText.from(theme).listPrimary.copyWith(color: cancelTextColor ?? theme.colorScheme.secondary),
             ),
           ),
         );
@@ -220,7 +220,7 @@ extension ExtensionDialog on GetInterface {
             ),
             child: Text(
               textConfirm ?? "Ok",
-              style: AppTextStyles.t16.copyWith(color: confirmTextColor ?? theme.colorScheme.surface),
+              style: AppText.from(theme).sectionTitle.copyWith(color: confirmTextColor ?? theme.colorScheme.surface),
             ),
             onPressed: () {
               onConfirm?.call();

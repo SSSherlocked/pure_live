@@ -50,7 +50,7 @@ class CommonAppBarActions extends StatelessWidget {
                 children: [
                   Icon(Remix.search_line, size: 20, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text(i18n("search_live"), style: AppTextStyles.t14),
+                  Text(i18n("search_live"), style: AppText.of(context).listPrimary),
                 ],
               ),
             ),
@@ -62,7 +62,7 @@ class CommonAppBarActions extends StatelessWidget {
                 children: [
                   Icon(Remix.link, size: 20, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text(i18n("open_link"), style: AppTextStyles.t14),
+                  Text(i18n("open_link"), style: AppText.of(context).listPrimary),
                 ],
               ),
             ),
@@ -74,7 +74,7 @@ class CommonAppBarActions extends StatelessWidget {
                   children: [
                     Icon(Remix.layout_grid_line, size: 20, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 12),
-                    Text(i18n("multiview_title"), style: AppTextStyles.t14),
+                    Text(i18n("multiview_title"), style: AppText.of(context).listPrimary),
                   ],
                 ),
               ),
@@ -88,7 +88,7 @@ class CommonAppBarActions extends StatelessWidget {
                   children: [
                     Icon(Remix.download_2_line, size: 20, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 12),
-                    Text(i18n("record_center"), style: AppTextStyles.t14),
+                    Text(i18n("record_center"), style: AppText.of(context).listPrimary),
                   ],
                 ),
               ),
@@ -100,7 +100,7 @@ class CommonAppBarActions extends StatelessWidget {
                   children: [
                     Icon(Icons.add_to_photos_outlined, size: 20, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 12),
-                    Text(i18n("open_new_window"), style: AppTextStyles.t14),
+                    Text(i18n("open_new_window"), style: AppText.of(context).listPrimary),
                   ],
                 ),
               ),
@@ -112,7 +112,7 @@ class CommonAppBarActions extends StatelessWidget {
                 children: [
                   Icon(Remix.history_line, size: 20, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text(i18n("history"), style: AppTextStyles.t14),
+                  Text(i18n("history"), style: AppText.of(context).listPrimary),
                 ],
               ),
             ),

@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'package:pure_live/core/theme/app_text.dart';
 
 import 'package:flutter/material.dart';
-import 'package:pure_live/core/theme/app_text_styles.dart';
 
 class CountButton extends StatefulWidget {
   const CountButton({
@@ -72,7 +72,7 @@ class _CountButtonState extends State<CountButton> {
   Widget build(BuildContext context) {
     final backgroundColor = widget.backgroundColor ?? Theme.of(context).colorScheme.primary;
     final foregroundColor = widget.foregroundColor ?? Colors.white;
-    final effectiveTextStyle = widget.textStyle ?? AppTextStyles.t15.copyWith(color: Colors.white);
+    final effectiveTextStyle = widget.textStyle ?? AppText.of(context).sectionTitle.copyWith(color: Colors.white);
 
     return Directionality(
       textDirection: TextDirection.ltr,

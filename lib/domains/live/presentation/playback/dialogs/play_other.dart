@@ -441,8 +441,7 @@ class _PlatformTag extends StatelessWidget {
         i18n('site_$platform'),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: colors.onSurfaceVariant, fontSize: 10, fontWeight: FontWeight.w600),
+        style: AppText.of(context).tag.copyWith(color: colors.onSurfaceVariant, fontWeight: FontWeight.w600),
       ),
     );
   }

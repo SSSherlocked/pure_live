@@ -136,10 +136,10 @@ class _FontSettingsPageState extends State<FontSettingsPage> {
           key: const ValueKey('font-settings-reset-dialog'),
           scrollable: true,
           insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          title: Text(i18n('reset'), style: AppTextStyles.t16Bold),
+          title: Text(i18n('reset'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Text(i18n('font_settings_reset_confirm'), style: AppTextStyles.t14),
+            child: Text(i18n('font_settings_reset_confirm'), style: AppText.of(context).listPrimary),
           ),
           actionsOverflowDirection: VerticalDirection.down,
           actionsOverflowButtonSpacing: 8,
@@ -147,7 +147,7 @@ class _FontSettingsPageState extends State<FontSettingsPage> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
               onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(false),
-              child: Text(i18n('cancel'), style: AppTextStyles.t14Muted),
+              child: Text(i18n('cancel'), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor)),
             ),
             FilledButton(
               style: FilledButton.styleFrom(

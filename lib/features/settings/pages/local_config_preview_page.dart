@@ -238,7 +238,7 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
                           children: [
                             Text(
                               i18n('local_backup_config'),
-                              style: AppTextStyles.t14.copyWith(fontWeight: FontWeight.bold),
+                              style: AppText.of(context).listPrimary.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
                             DecoratedBox(
@@ -250,7 +250,7 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 child: Text(
                                   'backup v$backupVersion',
-                                  style: AppTextStyles.t11.copyWith(
+                                  style: AppText.of(context).tag.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: theme.colorScheme.onSecondaryContainer,
                                   ),
@@ -309,10 +309,10 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
               children: [
                 Text(
                   value,
-                  style: AppTextStyles.t12.copyWith(fontWeight: FontWeight.bold, color: color),
+                  style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.bold, color: color),
                 ),
                 const SizedBox(height: 2),
-                Text(label, style: AppTextStyles.t11.copyWith(color: theme.hintColor, height: 1.2)),
+                Text(label, style: AppText.of(context).tag.copyWith(color: theme.hintColor, height: 1.2)),
               ],
             ),
           ),

@@ -16,8 +16,8 @@ import 'package:pure_live/domains/live/data/platforms/sites.dart';
 /// lines need more than 100 px at a 3x scale.
 double areaCardGridMainAxisExtent(BuildContext context, double itemWidth) {
   final scaler = MediaQuery.textScalerOf(context);
-  final titleStyle = AppTextStyles.t12;
-  final subtitleStyle = AppTextStyles.t11;
+  final titleStyle = AppText.of(context).secondary;
+  final subtitleStyle = AppText.of(context).tag;
   final titleHeight = scaler.scale(titleStyle.fontSize ?? 12) * (titleStyle.height ?? 1.25);
   final subtitleHeight = scaler.scale(subtitleStyle.fontSize ?? 11) * (subtitleStyle.height ?? 1.25);
   final detailsHeight = math.max(72.0, titleHeight + subtitleHeight + 32);
@@ -131,11 +131,11 @@ class _AreaCardState extends State<AreaCard> {
                 displayName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.t12.copyWith(fontWeight: FontWeight.w600),
+                style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w600),
               ),
               subtitle: Text(
                 officialEntry ? i18n('open_in_system_browser') : displayTypeName,
-                style: AppTextStyles.t11.copyWith(fontWeight: FontWeight.w500),
+                style: AppText.of(context).tag.copyWith(fontWeight: FontWeight.w500),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

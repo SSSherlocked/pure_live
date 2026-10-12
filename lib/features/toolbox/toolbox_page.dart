@@ -71,7 +71,7 @@ class ToolBoxPage extends GetView<ToolBoxController> {
         children: [
           ExpansionTile(
             leading: Icon(icon, color: Theme.of(context).primaryColor),
-            title: Text(title, style: AppTextStyles.t12.copyWith(fontWeight: FontWeight.bold)),
+            title: Text(title, style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.bold)),
             initiallyExpanded: true,
             shape: const RoundedRectangleBorder(side: BorderSide(color: Colors.transparent)),
             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -81,10 +81,10 @@ class ToolBoxPage extends GetView<ToolBoxController> {
                 minLines: 3,
                 maxLines: 5,
                 controller: controller,
-                style: AppTextStyles.t13,
+                style: AppText.of(context).body,
                 decoration: InputDecoration(
                   hintText: i18n("toolbox_input_hint"),
-                  hintStyle: AppTextStyles.t13,
+                  hintStyle: AppText.of(context).body,
                   filled: true,
                   fillColor: Theme.of(context).dividerColor.withValues(alpha: .05),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),

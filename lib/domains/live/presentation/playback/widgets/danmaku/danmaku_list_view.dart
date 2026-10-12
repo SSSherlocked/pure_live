@@ -490,7 +490,7 @@ class DanmakuItem extends StatelessWidget {
     required bool showFansBadge,
     required int repeats,
   }) {
-    final base = AppTextStyles.t14.copyWith(fontSize: fontSize, fontWeight: fontWeight);
+    final base = AppText.of(context).listPrimary.copyWith(fontSize: fontSize, fontWeight: fontWeight);
     final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
     final repeated = repeats > 1;
     final card = DecoratedBox(
@@ -560,7 +560,7 @@ class DanmakuItem extends StatelessWidget {
                               danmaku.fansLevel.isEmpty
                                   ? danmaku.fansName
                                   : '${danmaku.fansName} ${danmaku.fansLevel}',
-                              style: AppTextStyles.t14.copyWith(
+                              style: AppText.of(context).listPrimary.copyWith(
                                 fontSize: fontSize * 0.72,
                                 height: 1.2,
                                 fontWeight: FontWeight.w600,
@@ -641,7 +641,7 @@ class _RepeatBadge extends StatelessWidget {
         ),
         child: Text(
           count > 999 ? '×999+' : '×$count',
-          style: AppTextStyles.t12.copyWith(
+          style: AppText.of(context).secondary.copyWith(
             fontSize: (fontSize * 0.7).clamp(9.0, 16.0),
             height: 1.2,
             fontWeight: FontWeight.w700,

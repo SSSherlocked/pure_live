@@ -137,10 +137,10 @@ class _HistoryPageState extends State<HistoryPage> {
           builder: (dialogContext) => AlertDialog(
             scrollable: true,
             insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            title: Text(title, style: AppTextStyles.t16Bold),
+            title: Text(title, style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
             content: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Text(message, style: AppTextStyles.t14),
+              child: Text(message, style: AppText.of(context).listPrimary),
             ),
             actionsOverflowDirection: VerticalDirection.down,
             actionsOverflowButtonSpacing: 8,
@@ -148,7 +148,7 @@ class _HistoryPageState extends State<HistoryPage> {
               TextButton(
                 style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                 onPressed: () => Navigator.of(dialogContext, rootNavigator: true).pop(false),
-                child: Text(i18n('cancel'), style: AppTextStyles.t14Muted),
+                child: Text(i18n('cancel'), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor)),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -328,7 +328,7 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
     return AlertDialog(
       scrollable: true,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      title: Text(i18n("history_limit"), style: AppTextStyles.t16Bold),
+      title: Text(i18n("history_limit"), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700)),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: SizedBox(
@@ -337,7 +337,7 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(i18n('history_limit_presets'), style: AppTextStyles.t12Muted),
+              Text(i18n('history_limit_presets'), style: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor)),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -345,26 +345,26 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
                 children: [
                   ...presetOptions.map(
                     (value) => ChoiceChip(
-                      label: Text('$value', style: AppTextStyles.t12),
+                      label: Text('$value', style: AppText.of(context).secondary),
                       selected: draftLimit == value,
                       onSelected: _saving ? null : (_) => _selectLimit(value),
                     ),
                   ),
                   ChoiceChip(
-                    label: Text(i18n('history_unlimited'), style: AppTextStyles.t12),
+                    label: Text(i18n('history_unlimited'), style: AppText.of(context).secondary),
                     selected: draftLimit == unlimitedHistoryLimit,
                     onSelected: _saving ? null : (_) => _selectLimit(unlimitedHistoryLimit),
                   ),
                   if (!presetOptions.contains(draftLimit) && draftLimit != unlimitedHistoryLimit)
                     ChoiceChip(
-                      label: Text('$draftLimit', style: AppTextStyles.t12),
+                      label: Text('$draftLimit', style: AppText.of(context).secondary),
                       selected: true,
                       onSelected: _saving ? null : (_) {},
                     ),
                 ],
               ),
               const SizedBox(height: 24),
-              Text(i18n('history_limit_custom'), style: AppTextStyles.t13Medium),
+              Text(i18n('history_limit_custom'), style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w500)),
               const SizedBox(height: 12),
               TextField(
                 controller: customController,
@@ -375,11 +375,11 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
                 onChanged: (_) {
                   if (customErrorKey != null) setState(() => customErrorKey = null);
                 },
-                style: AppTextStyles.t14,
+                style: AppText.of(context).listPrimary,
                 decoration: InputDecoration(
                   hintText: '50',
                   suffixText: i18n("items"),
-                  suffixStyle: AppTextStyles.t12Muted,
+                  suffixStyle: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor),
                   errorText: customErrorKey == null ? null : i18n(customErrorKey!),
                   border: const OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -391,13 +391,13 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _saving ? null : _applyCustomLimit,
-                  child: Text(i18n("apply"), style: AppTextStyles.t13Medium.copyWith(color: theme.colorScheme.primary)),
+                  child: Text(i18n("apply"), style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w500).copyWith(color: theme.colorScheme.primary)),
                 ),
               ),
               const SizedBox(height: 16),
-              Text('${i18n("current_value")}: ${_historyLimitLabel(draftLimit)}', style: AppTextStyles.t12Muted),
+              Text('${i18n("current_value")}: ${_historyLimitLabel(draftLimit)}', style: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor)),
               const SizedBox(height: 6),
-              Text(i18n('history_limit_desc'), style: AppTextStyles.t12Muted),
+              Text(i18n('history_limit_desc'), style: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor)),
             ],
           ),
         ),
@@ -408,14 +408,14 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
         TextButton(
           style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
           onPressed: _saving ? null : () => Navigator.pop(context),
-          child: Text(i18n("cancel"), style: AppTextStyles.t14Muted),
+          child: Text(i18n("cancel"), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor)),
         ),
         TextButton(
           style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
           onPressed: _saving ? null : _save,
           child: _saving
               ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(i18n("confirm"), style: AppTextStyles.t14Primary),
+              : Text(i18n("confirm"), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).colorScheme.primary)),
         ),
       ],
     );

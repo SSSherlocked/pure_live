@@ -2,19 +2,14 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
-import 'package:pure_live/core/widgets/uniform_scale.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_viewing_preset.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 
 class DanmakuSettingsPage extends StatelessWidget {
-  const DanmakuSettingsPage({super.key, required this.controller, this.scale = 1, this.footer});
+  const DanmakuSettingsPage({super.key, required this.controller, this.footer});
   final DanmakuSettingsSource controller;
-
-  /// Uniform size of the whole page; the room side panel uses 0.8 (0.86 on
-  /// touch).
-  final double scale;
 
   /// Extra section appended after the settings (the room panel's 屏蔽管理).
   final Widget? footer;
@@ -22,10 +17,7 @@ class DanmakuSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: UniformScale(
-        scale: scale,
-        child: DanmakuSettingsContent(controller: controller, footer: footer),
-      ),
+      body: DanmakuSettingsContent(controller: controller, footer: footer),
     );
   }
 }
@@ -74,6 +66,10 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
 
   bool get isEmbedded => widget.embedded;
 
+  /// Space between sections, and under a section title.
+  static const double _sectionGap = 14;
+  static const double _titleGap = 6;
+
   ThemeData get theme => Theme.of(context);
 
   Color get labelColor => isEmbedded ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
@@ -120,7 +116,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
         icon: Icon(icon, size: isEmbedded ? 16 : 18),
         label: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(label, maxLines: 1, style: TextStyle(fontSize: isEmbedded ? 12 : null)),
+          child: Text(label, maxLines: 1, style: AppText.of(context).secondary),
         ),
       );
     }
@@ -168,14 +164,14 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       key: ValueKey(widget.embedded ? 'danmaku-settings-content-embedded' : 'danmaku-settings-content-page'),
       controller: _scrollController,
       physics: const PureLiveScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: widget.embedded ? 12 : 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: widget.embedded ? 12 : 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // The side panel chat list has its own text size and spacing,
           // separate from the danmaku scrolling over the video below.
           context.buildGroupTitle(i18n('chat_list_display')),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
               _slider(
@@ -248,13 +244,13 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n('danmaku_templates')),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           _buildTemplateSection(theme),
-          const SizedBox(height: 20),
+          const SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n("danmaku_area")),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
               _switch(
@@ -279,10 +275,10 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: _sectionGap),
 
           context.buildGroupTitle(i18n("position")),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
               _counter(
@@ -306,10 +302,10 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: _sectionGap),
 
           context.buildGroupTitle(i18n("style")),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
               _slider(
@@ -461,14 +457,14 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   padding: EdgeInsets.fromLTRB(isEmbedded ? 14 : 16, 0, isEmbedded ? 14 : 16, isEmbedded ? 10 : 12),
                   child: Text(
                     '${SettingsService.to.danmaku.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode)} FPS',
-                    style: TextStyle(color: digitColor, fontWeight: FontWeight.w600, fontSize: isEmbedded ? 13 : null),
+                    style: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.w600),
                   ),
                 ),
             ],
           ),
-          SizedBox(height: widget.embedded ? 16 : 20),
+          const SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n('danmaku_repeat_filter')),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
               _switch(
@@ -493,9 +489,9 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n('danmaku_screen_interaction')),
-          const SizedBox(height: 8),
+          const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
               _switch(
@@ -514,7 +510,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: _sectionGap),
           if (widget.footer != null) widget.footer!,
           const SizedBox(height: 12),
         ],
@@ -589,7 +585,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     double? stepSize,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -599,24 +595,24 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               Expanded(
                 child: Text(
                   title,
-                  style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+                  style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   display,
-                  style: AppTextStyles.t12.copyWith(fontWeight: FontWeight.bold, color: digitColor),
+                  style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.bold, color: digitColor),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           SizedBox(
             width: double.infinity,
             child: ThumbOnlySlider(
@@ -647,14 +643,14 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     required Color digitColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Text(
               title,
-              style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+              style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
             ),
           ),
           const SizedBox(width: 8),
@@ -673,7 +669,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             valueMinWidth: 48,
             decrementIcon: const Icon(Icons.remove, size: 16, color: Colors.white),
             incrementIcon: const Icon(Icons.add, size: 16, color: Colors.white),
-            textStyle: TextStyle(color: digitColor, fontSize: 14, fontWeight: FontWeight.bold),
+            textStyle: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -694,18 +690,19 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       child: SwitchListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: isEmbedded ? 14 : 16),
         dense: false,
-        visualDensity: VisualDensity.standard,
+        // A little shorter than a standard row: the tab is a dense list.
+        visualDensity: const VisualDensity(vertical: -2),
         title: Text(
           title,
-          style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600, color: labelColor),
+          style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
         ),
         subtitle: subtitle == null
             ? null
             : Text(
                 subtitle,
                 style: subtitleColor != null
-                    ? Theme.of(context).textTheme.bodySmall?.copyWith(color: subtitleColor)
-                    : Theme.of(context).textTheme.bodySmall,
+                    ? AppText.of(context).secondary.copyWith(color: subtitleColor)
+                    : AppText.of(context).secondary,
               ),
         value: value,
         activeThumbColor: theme.colorScheme.primary,

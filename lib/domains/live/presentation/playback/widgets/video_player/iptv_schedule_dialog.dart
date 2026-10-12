@@ -244,7 +244,7 @@ class _ScheduleHeader extends StatelessWidget {
       i18n('channel_schedule'),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w700, color: theme.textTheme.titleLarge?.color),
+      style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700, color: theme.textTheme.titleLarge?.color),
     );
     final close = IconButton(
       key: const ValueKey('iptv-schedule-close'),
@@ -312,7 +312,7 @@ class _ScheduleStatus extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTextStyles.t13.copyWith(color: Theme.of(context).hintColor),
+              style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor),
             ),
             if (action != null) ...[const SizedBox(height: 16), action!],
           ],
@@ -353,7 +353,7 @@ class _ProgrammeTile extends StatelessWidget {
       ),
       child: Text(
         '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
-        style: AppTextStyles.t13.copyWith(
+        style: AppText.of(context).body.copyWith(
           fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
           color: isCurrent ? primary : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.65),
         ),
@@ -363,7 +363,7 @@ class _ProgrammeTile extends StatelessWidget {
       programme.title,
       maxLines: 3,
       overflow: TextOverflow.ellipsis,
-      style: AppTextStyles.t14.copyWith(
+      style: AppText.of(context).listPrimary.copyWith(
         fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
         color: isCurrent ? primary : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.85),
       ),
@@ -446,7 +446,7 @@ class _LiveTag extends StatelessWidget {
             i18n('live_tag'),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+            style: AppText.of(context).tag.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),

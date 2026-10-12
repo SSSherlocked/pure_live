@@ -257,7 +257,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
               Expanded(
                 child: Text(
                   i18n("select_sync_interval"),
-                  style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.bold),
+                  style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -324,7 +324,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
                 Expanded(
                   child: Text(
                     i18n("dialog_import_playlist_title"),
-                    style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.bold),
+                    style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -389,7 +389,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
                 Expanded(
                   child: Text(
                     i18n("dialog_import_epg_title"),
-                    style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.bold),
+                    style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -550,7 +550,7 @@ class _UserAgentDialogState extends State<_UserAgentDialog> {
               Icon(Remix.tv_line, color: theme.colorScheme.primary, size: 24),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(i18n("edit_ua_title"), style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.bold)),
+                child: Text(i18n("edit_ua_title"), style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -592,7 +592,7 @@ class _UserAgentDialogState extends State<_UserAgentDialog> {
                                 onPressed: () => controller.clear(),
                               ),
                             ),
-                            style: AppTextStyles.t13.copyWith(fontFamily: 'monospace'),
+                            style: AppText.of(context).body.copyWith(fontFamily: 'monospace'),
                           ),
                         ),
                         Container(
@@ -923,7 +923,7 @@ class _EpgSourceDialogState extends State<_EpgSourceDialog> {
         title: Row(
           children: [
             Expanded(
-              child: Text(i18n('select_epg_source'), style: AppTextStyles.t11.copyWith(fontWeight: FontWeight.bold)),
+              child: Text(i18n('select_epg_source'), style: AppText.of(context).tag.copyWith(fontWeight: FontWeight.bold)),
             ),
             IconButton(
               tooltip: i18n('close'),

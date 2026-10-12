@@ -513,7 +513,7 @@ class _WebDavPageState extends State<WebDavPage> {
           displayName,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.t16.copyWith(fontWeight: FontWeight.w500),
+          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w500),
         ),
       ),
       subtitle: Text(
@@ -580,7 +580,7 @@ class _WebDavPageState extends State<WebDavPage> {
         children: [
           Icon(Icons.error, size: 64, color: Theme.of(context).colorScheme.onPrimaryContainer),
           const SizedBox(height: 16),
-          Text(message, textAlign: TextAlign.center, style: AppTextStyles.t12),
+          Text(message, textAlign: TextAlign.center, style: AppText.of(context).secondary),
           TextButton(onPressed: controller.loadFiles, child: Text(i18n("retry"))),
         ],
       ),
@@ -662,7 +662,7 @@ class _WebDavConfigDialogState extends State<_WebDavConfigDialog> {
           Expanded(
             child: Tooltip(
               message: titleText,
-              child: Text(titleText, maxLines: 3, overflow: TextOverflow.ellipsis, style: AppTextStyles.t18Bold),
+              child: Text(titleText, maxLines: 3, overflow: TextOverflow.ellipsis, style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.w700)),
             ),
           ),
         ],

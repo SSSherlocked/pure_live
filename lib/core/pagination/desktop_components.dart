@@ -60,7 +60,7 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
         pageNodes.add(
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Text("...", style: AppTextStyles.t13Muted),
+            child: Text("...", style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor)),
           ),
         );
       }
@@ -81,7 +81,7 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
           pageNodes.add(
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 4),
-              child: Text("...", style: AppTextStyles.t13Muted),
+              child: Text("...", style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor)),
             ),
           );
         }
@@ -90,7 +90,7 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
         pageNodes.add(
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Text("...", style: AppTextStyles.t13Muted),
+            child: Text("...", style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor)),
           ),
         );
       }
@@ -159,12 +159,12 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (showSelector) ...[
-                        Text('${i18n("per_page")}: ', style: AppTextStyles.t13Muted),
+                        Text('${i18n("per_page")}: ', style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor)),
                         const SizedBox(width: 6),
                         CompactPageSizeSelector(controller: controller, options: options),
                         const SizedBox(width: 24),
                       ],
-                      Text(i18n("go_to"), style: AppTextStyles.t13Muted),
+                      Text(i18n("go_to"), style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor)),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         child: SizedBox(
@@ -181,7 +181,7 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            style: AppTextStyles.t13.copyWith(height: 1.2),
+                            style: AppText.of(context).body.copyWith(height: 1.2),
                             textAlignVertical: TextAlignVertical.center,
                             decoration: InputDecoration(
                               isDense: true,
@@ -192,7 +192,7 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
                           ),
                         ),
                       ),
-                      Text(i18n("page_unit"), style: AppTextStyles.t13Muted),
+                      Text(i18n("page_unit"), style: AppText.of(context).body.copyWith(color: Theme.of(context).hintColor)),
                     ],
                   ),
                 ],
@@ -227,8 +227,8 @@ class _DesktopPaginationBarState extends State<DesktopPaginationBar> {
           child: Text(
             "$pageNum",
             style: isCurrent
-                ? AppTextStyles.t13Bold.copyWith(color: theme.colorScheme.onPrimary)
-                : AppTextStyles.t13.copyWith(color: theme.colorScheme.onSurface),
+                ? AppText.of(context).body.copyWith(fontWeight: FontWeight.w700).copyWith(color: theme.colorScheme.onPrimary)
+                : AppText.of(context).body.copyWith(color: theme.colorScheme.onSurface),
           ),
         ),
       ),
@@ -265,8 +265,8 @@ class CompactPageSizeSelector extends StatelessWidget {
                 child: Text(
                   '$value',
                   style: currentSize == value
-                      ? AppTextStyles.t13Bold.copyWith(color: Theme.of(context).colorScheme.primary)
-                      : AppTextStyles.t13,
+                      ? AppText.of(context).body.copyWith(fontWeight: FontWeight.w700).copyWith(color: Theme.of(context).colorScheme.primary)
+                      : AppText.of(context).body,
                 ),
               ),
             );
@@ -282,7 +282,7 @@ class CompactPageSizeSelector extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$currentSize', style: AppTextStyles.t13),
+              Text('$currentSize', style: AppText.of(context).body),
               const SizedBox(width: 4),
               Icon(Icons.arrow_drop_down_rounded, size: 18, color: Theme.of(context).hintColor),
             ],

@@ -233,14 +233,14 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Text(i18n('remote_sync_my_device'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(i18n('remote_sync_my_device'), style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             if (service.qrData.isNotEmpty)
               QrCodeWidget(data: service.qrData, size: 180, padding: const EdgeInsets.all(12)),
             const SizedBox(height: 12),
             SelectableText(
               service.address.isEmpty ? i18n('remote_sync_no_address') : service.address,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(i18n('remote_sync_scan_hint'), textAlign: TextAlign.center),
@@ -271,7 +271,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
                 Expanded(
                   child: Text(
                     i18n('remote_sync_devices'),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (service.isDiscovering.value)
@@ -348,7 +348,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(i18n('remote_sync_manual'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(i18n('remote_sync_manual'), style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             TextField(
               controller: addressController,

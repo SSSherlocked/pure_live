@@ -56,7 +56,7 @@ class _AboutPageState extends State<AboutPage> {
                 const SizedBox(height: 18),
                 Text(
                   i18n("app_name"),
-                  style: AppTextStyles.t18.copyWith(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.bold, letterSpacing: 0.5),
                 ),
                 const SizedBox(height: 6),
                 Container(
@@ -68,7 +68,7 @@ class _AboutPageState extends State<AboutPage> {
                   ),
                   child: Text(
                     'v${VersionUtil.version}',
-                    style: AppTextStyles.t11.copyWith(
+                    style: AppText.of(context).tag.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
@@ -92,7 +92,7 @@ class _AboutPageState extends State<AboutPage> {
                 ),
                 child: Text(
                   'v${VersionUtil.version}',
-                  style: AppTextStyles.t11.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+                  style: AppText.of(context).tag.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
               ),
               stackTrailingOnNarrow: true,

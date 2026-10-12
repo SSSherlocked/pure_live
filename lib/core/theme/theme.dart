@@ -84,7 +84,8 @@ class MyTheme {
 
       labelLarge: scale(localized.labelLarge, font.fontSizeBodyMedium.v).copyWith(fontWeight: medium),
       labelMedium: scale(localized.labelMedium, font.fontSizeBodySmall.v),
-      labelSmall: scale(localized.labelSmall, font.fontSizeBodySmall.v - 1),
+      // AppText.tag: platform tags, badges, counts.
+      labelSmall: scale(localized.labelSmall, font.fontSizeBodySmall.v - 1).copyWith(fontWeight: medium),
     );
   }
 

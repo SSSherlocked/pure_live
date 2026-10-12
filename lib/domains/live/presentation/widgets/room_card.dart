@@ -515,8 +515,10 @@ class RoomCard extends StatelessWidget {
                           children: [
                             AspectRatio(
                               aspectRatio: 16 / 9,
+                              // Rounded only where it meets the card's corners;
+                              // square where the cover meets the name row.
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(radius),
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
                                 child: ColoredBox(
                                   color: isDark ? Colors.grey[850]! : Colors.grey.shade100,
                                   child: _buildCover(context, isDark),
@@ -556,10 +558,9 @@ class RoomCard extends StatelessWidget {
                               left: 0,
                               right: 0,
                               bottom: 0,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.vertical(bottom: Radius.circular(radius)),
-                                child: Container(
-                                  color: Colors.black.withValues(alpha: 0.55),
+                              child: ColoredBox(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                child: Padding(
                                   padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: dense ? 4 : 6),
                                   child: Text(
                                     room.title ?? '',

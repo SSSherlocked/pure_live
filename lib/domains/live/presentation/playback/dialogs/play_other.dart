@@ -384,7 +384,8 @@ class _RoomSwitchCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   // The same title/subtitle pair as the danmaku settings panel's rows.
-                  style: AppText.from(theme).sectionTitle,
+                  // Bold like the home page's 关注 rows.
+                  style: AppText.from(theme).sectionTitle.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(

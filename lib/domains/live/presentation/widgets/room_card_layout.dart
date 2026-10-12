@@ -9,6 +9,11 @@ import 'package:pure_live/core/config/room_card_settings_controller.dart';
 /// single helper prevents a grid delegate from reserving the old cover-card
 /// extent and making the compact preset look ineffective.
 abstract final class RoomCardLayoutMetrics {
+  /// The shortest a room list row may be: the 关注 panel's rows and the
+  /// compact room cards share it, so both lists have the same rhythm. Larger
+  /// text grows a row past it.
+  static const double listRowMinHeight = 72;
+
   static double compactHeight({
     required RoomCardAppearance appearance,
     required bool dense,
@@ -19,7 +24,8 @@ abstract final class RoomCardLayoutMetrics {
     final avatarHeight = appearance.showAvatar ? (dense ? 34.0 : 40.0) : 0.0;
     final minimumInteractiveContent = hasAction || !dense ? 48.0 : 40.0;
     final contentHeight = _textHeight(appearance: appearance, dense: dense, textScaler: textScaler);
-    return math.max(minimumInteractiveContent, math.max(avatarHeight, contentHeight)) + verticalPadding * 2;
+    final fitted = math.max(minimumInteractiveContent, math.max(avatarHeight, contentHeight)) + verticalPadding * 2;
+    return math.max(listRowMinHeight, fitted);
   }
 
   static double gridMainAxisExtent({

@@ -176,9 +176,10 @@ class LivePlayController extends GetxController
   /// Keeps the room's fullscreen state in step with the desktop window.
   late final _NativeFullscreenSync _nativeFullscreenSync = _NativeFullscreenSync(this);
 
-  /// Side panel sections in the user's order, fixed for this room session.
+  /// Side panel sections the user keeps, in their order, fixed for this room
+  /// session.
   late final List<LivePanelTab> panelTabs = Get.isRegistered<ThemeSettingsController>()
-      ? SettingsService.to.theme.resolvedLivePanelTabOrder
+      ? SettingsService.to.theme.visibleLivePanelTabs
       : LivePanelTab.defaultOrder;
 
   late final List<String> tabs = [for (final tab in panelTabs) i18n(tab.shortLabelKey)];

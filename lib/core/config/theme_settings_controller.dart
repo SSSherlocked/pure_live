@@ -28,6 +28,9 @@ class ThemeSettingsController extends GetxController {
   /// Order of the live room side panel sections (comma-separated ids).
   final RxString livePanelTabOrder = hiveString('livePanelTabOrder', LivePanelTab.defaultOrderValue);
 
+  /// Side panel sections switched off in 侧栏标签 (comma-separated ids).
+  final RxString livePanelHiddenTabs = hiveString('livePanelHiddenTabs', '');
+
   /// Preferred width of the live room side panel in the split layout.
   final RxDouble livePanelWidth = hiveDouble('livePanelWidth', LivePanelWidth.defaultValue);
 
@@ -37,6 +40,15 @@ class ThemeSettingsController extends GetxController {
   DisplayMode get displayMode => DisplayMode.parse(displayModeName.v);
 
   List<LivePanelTab> get resolvedLivePanelTabOrder => LivePanelTab.decode(livePanelTabOrder.v);
+
+  Set<LivePanelTab> get hiddenLivePanelTabs => LivePanelTab.decodeSet(livePanelHiddenTabs.v);
+
+  /// The sections a room's side panel shows, in order.
+  List<LivePanelTab> get visibleLivePanelTabs =>
+      LivePanelTab.visible(resolvedLivePanelTabOrder, hiddenLivePanelTabs);
+
+  static String normalizeLivePanelHiddenTabs(String value) =>
+      LivePanelTab.encode(LivePanelTab.defaultOrder.where(LivePanelTab.decodeSet(value).contains));
 
   String get resolvedThemeModeName => normalizeThemeMode(themeModeName.v);
   ThemeMode get themeMode => AppConsts.themeModes[resolvedThemeModeName]!;
@@ -174,6 +186,7 @@ class ThemeSettingsController extends GetxController {
       'crossAxisSpacing': resolvedCrossAxisSpacing,
       'mainAxisSpacing': resolvedMainAxisSpacing,
       'livePanelTabOrder': normalizeLivePanelTabOrder(livePanelTabOrder.v),
+      'livePanelHiddenTabs': normalizeLivePanelHiddenTabs(livePanelHiddenTabs.v),
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
       'displayMode': displayMode.name,
     };
@@ -192,6 +205,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelTabOrder': normalizeLivePanelTabOrder(
         (json['livePanelTabOrder'] ?? LivePanelTab.defaultOrderValue) as String,
       ),
+      'livePanelHiddenTabs': normalizeLivePanelHiddenTabs((json['livePanelHiddenTabs'] ?? '') as String),
       'livePanelWidth': _parseLivePanelWidth(json['livePanelWidth']),
       'displayMode': DisplayMode.parse(json['displayMode']).name,
     };
@@ -207,6 +221,7 @@ class ThemeSettingsController extends GetxController {
     crossAxisSpacing.v = parsed['crossAxisSpacing'];
     mainAxisSpacing.v = parsed['mainAxisSpacing'];
     livePanelTabOrder.v = parsed['livePanelTabOrder'];
+    livePanelHiddenTabs.v = parsed['livePanelHiddenTabs'];
     livePanelWidth.v = parsed['livePanelWidth'];
     displayModeName.v = parsed['displayMode'];
   }
@@ -223,6 +238,7 @@ class ThemeSettingsController extends GetxController {
       'crossAxisSpacing': parsed['crossAxisSpacing'],
       'mainAxisSpacing': parsed['mainAxisSpacing'],
       'livePanelTabOrder': parsed['livePanelTabOrder'],
+      'livePanelHiddenTabs': parsed['livePanelHiddenTabs'],
       'livePanelWidth': parsed['livePanelWidth'],
       'displayMode': parsed['displayMode'],
     };

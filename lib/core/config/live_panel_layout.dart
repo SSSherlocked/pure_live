@@ -24,7 +24,20 @@ enum LivePanelTab {
   /// section of 弹幕设置 rather than a tab of its own.
   static const List<LivePanelTab> defaultOrder = [danmakuList, superChat, follow, danmakuSettings];
 
-  static String encode(List<LivePanelTab> order) => order.map((tab) => tab.id).join(',');
+  static String encode(Iterable<LivePanelTab> order) => order.map((tab) => tab.id).join(',');
+
+  /// The sections named in [raw], ignoring unknown ids.
+  static Set<LivePanelTab> decodeSet(String? raw) => {
+    for (final id in (raw ?? '').split(','))
+      ...LivePanelTab.values.where((tab) => tab.id == id.trim()),
+  };
+
+  /// [order] without the [hidden] sections. The panel always keeps one: with
+  /// everything hidden it shows the danmaku list.
+  static List<LivePanelTab> visible(List<LivePanelTab> order, Set<LivePanelTab> hidden) {
+    final shown = [for (final tab in order) if (!hidden.contains(tab)) tab];
+    return shown.isEmpty ? const [LivePanelTab.danmakuList] : shown;
+  }
 
   static final String defaultOrderValue = encode(defaultOrder);
 

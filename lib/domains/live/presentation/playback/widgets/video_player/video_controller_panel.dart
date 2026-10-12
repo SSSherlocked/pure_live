@@ -129,6 +129,17 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
     });
   }
 
+  /// 小窗播放 from the ⋯ menu (Android), the same as the Windows bar button.
+  Future<void> _enterPip() async {
+    final service = GlobalPlayerService.instance;
+    if (!service.initialized || service.player.isPipPreparing.value) return;
+    try {
+      await controller.livePlayController.enterPipPresentation();
+    } catch (_) {
+      ToastUtil.show(i18n('pip_enter_failed'));
+    }
+  }
+
   void _castCurrentRoom(BuildContext context) {
     controller.enableController();
     KnownRoomLinkDialog.castPlayUrlByRoomId(
@@ -351,6 +362,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                           },
                           // 投屏 is a menu entry on Android, inline and fullscreen alike.
                           onCast: policy.castInMoreMenu ? () => _castCurrentRoom(context) : null,
+                          onPip: policy.pipInMoreMenu ? () => unawaited(_enterPip()) : null,
                         ),
                       );
                     },
@@ -452,11 +464,6 @@ class TopActionBar extends StatelessWidget {
                     for (final slot in PlayerControlPolicy.of(context).leadingSlots)
                       switch (slot) {
                         TopActionLeadingSlot.back => BackButton(controller: controller),
-                        TopActionLeadingSlot.datetime => const DatetimeInfo(key: ValueKey('fullscreen-leading-time')),
-                        TopActionLeadingSlot.battery => BatteryInfo(
-                          key: const ValueKey('fullscreen-leading-battery'),
-                          controller: controller,
-                        ),
                       },
 
                     Expanded(
@@ -503,23 +510,6 @@ class TopActionBar extends StatelessWidget {
 
                     for (final slot in PlayerControlPolicy.of(context).trailingSlots)
                       switch (slot) {
-                        TopActionTrailingSlot.roomHistory => IconButton(
-                          key: const ValueKey('fullscreen-room-history'),
-                          icon: const Icon(Icons.swap_horiz_outlined),
-                          visualDensity: VisualDensity.standard,
-                          constraints: PlayerControlDensity.actionConstraints(context),
-                          color: Colors.white,
-                          onPressed: () {
-                            unawaited(
-                              showDialog<void>(
-                                context: context,
-                                // The side panel leaves the picture undimmed.
-                                barrierColor: Colors.transparent,
-                                builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
-                              ),
-                            );
-                          },
-                        ),
                         TopActionTrailingSlot.datetime => const DatetimeInfo(),
                         TopActionTrailingSlot.battery => BatteryInfo(controller: controller),
                         TopActionTrailingSlot.pip => PIPButton(

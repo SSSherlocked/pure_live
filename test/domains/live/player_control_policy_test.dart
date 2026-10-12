@@ -60,17 +60,21 @@ void main() {
 
   test('top bar slots', () {
     expect(_policy(layout: phone, fullscreen: false, android: true).leadingSlots, isEmpty);
-    expect(_policy(layout: phone, fullscreen: true, android: true).leadingSlots, [
-      TopActionLeadingSlot.back,
-      TopActionLeadingSlot.datetime,
-      TopActionLeadingSlot.battery,
+    expect(_policy(layout: phone, fullscreen: true, android: true).leadingSlots, [TopActionLeadingSlot.back]);
+    expect(_policy(layout: phone, fullscreen: false, android: true).trailingSlots, isEmpty);
+    expect(_policy(layout: phone, fullscreen: true, android: true).trailingSlots, [
+      TopActionTrailingSlot.datetime,
+      TopActionTrailingSlot.battery,
     ]);
-    expect(_policy(layout: phone, fullscreen: false, android: true).trailingSlots, [TopActionTrailingSlot.pip]);
     expect(_policy(layout: desktop, fullscreen: true, windows: true).trailingSlots, [
-      TopActionTrailingSlot.roomHistory,
       TopActionTrailingSlot.datetime,
       TopActionTrailingSlot.battery,
       TopActionTrailingSlot.pip,
     ]);
+  });
+
+  test('picture-in-picture is a menu entry on Android only', () {
+    expect(_policy(layout: phone, fullscreen: false, android: true).pipInMoreMenu, isTrue);
+    expect(_policy(layout: desktop, fullscreen: false, windows: true).pipInMoreMenu, isFalse);
   });
 }

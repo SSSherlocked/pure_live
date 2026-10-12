@@ -275,6 +275,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
     this.isAudioOnly,
     this.onToggleAudioOnly,
     this.onCast,
+    this.onPip,
   });
 
   final MenuController menu;
@@ -287,6 +288,9 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
 
   /// Adds the 投屏 entry.
   final VoidCallback? onCast;
+
+  /// Adds the 小窗播放 entry.
+  final VoidCallback? onPip;
 
   @override
   Widget build(BuildContext context) {
@@ -336,6 +340,13 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
             leadingIcon: const Icon(Remix.tv_2_line, size: 18),
             onPressed: onCast,
             child: Text(i18n('cast_screen')),
+          ),
+        if (onPip != null)
+          MenuItemButton(
+            key: const ValueKey('player-more-pip'),
+            leadingIcon: const Icon(CustomIcons.float_window, size: 18),
+            onPressed: onPip,
+            child: Text(i18n('float_window_play')),
           ),
       ],
       child: SizedBox.fromSize(size: size),

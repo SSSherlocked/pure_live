@@ -4,9 +4,9 @@ import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 
 /// Slots of the player's top bar, in order (see [PlayerControlPolicy]).
-enum TopActionLeadingSlot { back, datetime, battery }
+enum TopActionLeadingSlot { back }
 
-enum TopActionTrailingSlot { roomHistory, datetime, battery, pip }
+enum TopActionTrailingSlot { datetime, battery, pip }
 
 /// Every rule for which player control appears where, in one table.
 ///
@@ -54,23 +54,21 @@ class PlayerControlPolicy {
 
   // --- Top bar -----------------------------------------------------------
 
-  /// Fullscreen has its own back button; Android puts the clock and battery
-  /// beside it, where the status bar would be.
-  List<TopActionLeadingSlot> get leadingSlots => [
-    if (fullscreen) TopActionLeadingSlot.back,
-    if (fullscreen && android) TopActionLeadingSlot.datetime,
-    if (fullscreen && android) TopActionLeadingSlot.battery,
+  /// Fullscreen has its own back button.
+  List<TopActionLeadingSlot> get leadingSlots => [if (fullscreen) TopActionLeadingSlot.back];
+
+  /// The clock and battery only in fullscreen, where the page around the
+  /// player is hidden, on every platform at the top right. Switching rooms is
+  /// the long press on the picture, not a bar button. Picture-in-picture is a
+  /// bar button on Windows; on Android it is a ⋯ entry ([pipInMoreMenu]).
+  List<TopActionTrailingSlot> get trailingSlots => [
+    if (fullscreen) TopActionTrailingSlot.datetime,
+    if (fullscreen) TopActionTrailingSlot.battery,
+    if (windows) TopActionTrailingSlot.pip,
   ];
 
-  /// 关注 (switching rooms) and, off Android, the clock and battery only in
-  /// fullscreen, where the page around the player is hidden. Picture-in-
-  /// picture wherever the platform has it.
-  List<TopActionTrailingSlot> get trailingSlots => [
-    if (fullscreen) TopActionTrailingSlot.roomHistory,
-    if (fullscreen && !android) TopActionTrailingSlot.datetime,
-    if (fullscreen && !android) TopActionTrailingSlot.battery,
-    if (android || windows) TopActionTrailingSlot.pip,
-  ];
+  /// 小窗播放 is a ⋯ menu entry on Android.
+  bool get pipInMoreMenu => android;
 
   /// 投屏 is a ⋯ menu entry wherever casting exists (Android), never a bar
   /// button. 纯音频 and 画面比例 are ⋯ entries everywhere.

@@ -10,10 +10,27 @@ class CookieSettingsController extends GetxController {
 
   static void Function()? onRestored;
 
-  final RxString bilibiliCookie = hiveString('bilibiliCookie', '');
+  /// Every stored credential: these live in the system's secure store, not in
+  /// the settings database (see [SecureCredentialStore]). The UID and the
+  /// Douyu save time are not secrets and stay where they were.
+  static const List<String> secureKeys = <String>[
+    'bilibiliCookie',
+    'huyaCookie',
+    'douyuCookie',
+    'douyuLtp0',
+    'douyuDid',
+    'douyinCookie',
+    'kuaishouCookie',
+    'twitchCookie',
+    'soopCookie',
+    'yyCookie',
+    'bigoCookie',
+  ];
+
+  final RxString bilibiliCookie = secureString('bilibiliCookie', '');
   final RxInt bilibiliUid = hiveInt('bilibiliUid', 0);
-  final RxString huyaCookie = hiveString('huyaCookie', '');
-  final RxString douyuCookie = hiveString('douyuCookie', '');
+  final RxString huyaCookie = secureString('huyaCookie', '');
+  final RxString douyuCookie = secureString('douyuCookie', '');
 
   /// When the stored Douyu cookie was last obtained or renewed (epoch seconds,
   /// 0 = unknown).
@@ -29,14 +46,14 @@ class CookieSettingsController extends GetxController {
   /// Douyu's silent renewal needs both, and they are *not* part of the page
   /// cookie — the viewer copies them from `passport.douyu.com` separately, which
   /// is why they are stored next to the cookie instead of inside it.
-  final RxString douyuLtp0 = hiveString('douyuLtp0', '');
-  final RxString douyuDid = hiveString('douyuDid', '');
-  final RxString douyinCookie = hiveString('douyinCookie', '');
-  final RxString kuaishouCookie = hiveString('kuaishouCookie', '');
-  final RxString twitchCookie = hiveString('twitchCookie', '');
-  final RxString soopCookie = hiveString('soopCookie', '');
-  final RxString yyCookie = hiveString('yyCookie', '');
-  final RxString bigoCookie = hiveString('bigoCookie', '');
+  final RxString douyuLtp0 = secureString('douyuLtp0', '');
+  final RxString douyuDid = secureString('douyuDid', '');
+  final RxString douyinCookie = secureString('douyinCookie', '');
+  final RxString kuaishouCookie = secureString('kuaishouCookie', '');
+  final RxString twitchCookie = secureString('twitchCookie', '');
+  final RxString soopCookie = secureString('soopCookie', '');
+  final RxString yyCookie = secureString('yyCookie', '');
+  final RxString bigoCookie = secureString('bigoCookie', '');
 
   @override
   void onInit() {

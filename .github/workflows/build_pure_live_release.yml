@@ -24,10 +24,10 @@ on:
         type: boolean
         default: true
       build_ios:
-        description: Build unsigned iOS app and TrollStore IPA
+        description: Build unsigned iOS app and TrollStore IPA (rarely needed)
         required: true
         type: boolean
-        default: true
+        default: false
       run_quality:
         description: Run analyze, tests and public interface probes first
         required: true
@@ -442,16 +442,18 @@ jobs:
             PureLive-*-linux-x64.deb
           if-no-files-found: error
           retention-days: 3
-  apple:
-    name: Apple platform packages
+  # macOS and iOS build on separate runners: iOS is built rarely and is off
+  # by default, so a regular build does not pay for it.
+  macos:
+    name: macOS package
     if: >-
       ${{
         always() &&
-        (inputs.build_macos || inputs.build_ios) &&
+        inputs.build_macos &&
         (needs.quality.result == 'success' || needs.quality.result == 'skipped') }}
     needs: [quality]
     runs-on: macos-15
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Select Xcode 26 toolchain
@@ -473,14 +475,12 @@ jobs:
       - uses: ./.github/actions/get-version
         id: version
       - name: Build macOS release
-        if: ${{ inputs.build_macos }}
         run: |
           flutter build macos \
             --release \
             --dart-define=PURELIVE_BUILD_SOURCE=github-manual
       - name: Locate macOS application
         id: macos_app
-        if: ${{ inputs.build_macos }}
         shell: bash
         run: |
           set -euo pipefail
@@ -491,7 +491,6 @@ jobs:
           fi
           echo "app_path=$app_path" >> "$GITHUB_OUTPUT"
       - name: Verify macOS application
-        if: ${{ inputs.build_macos }}
         shell: bash
         run: |
           set -euo pipefail
@@ -503,7 +502,6 @@ jobs:
           fi
           lipo -info "$executable"
       - name: Archive macOS application
-        if: ${{ inputs.build_macos }}
         shell: bash
         run: |
           set -euo pipefail
@@ -511,7 +509,6 @@ jobs:
           APP="${{ steps.macos_app.outputs.app_path }}"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-macos-universal.zip"
       - name: Verify macOS packages
-        if: ${{ inputs.build_macos }}
         shell: bash
         run: |
           set -euo pipefail
@@ -519,7 +516,6 @@ jobs:
           test -f "PureLive-${VERSION}-macos-universal.zip"
           ls -lh "PureLive-${VERSION}-macos-universal.zip"
       - name: Upload macOS artifacts
-        if: ${{ inputs.build_macos }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-macos
@@ -527,8 +523,37 @@ jobs:
             PureLive-*-macos-universal.zip
           if-no-files-found: error
           retention-days: 3
+  ios:
+    name: iOS package
+    if: >-
+      ${{
+        always() &&
+        inputs.build_ios &&
+        (needs.quality.result == 'success' || needs.quality.result == 'skipped') }}
+    needs: [quality]
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select Xcode 26 toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcode_path=$(find /Applications -maxdepth 1 -type d -name 'Xcode_26*.app' -print | sort | tail -n 1)
+          test -n "$xcode_path"
+          sudo xcode-select --switch "$xcode_path/Contents/Developer"
+          xcodebuild -version
+      - uses: ./.github/actions/setup-flutter
+      - name: Resolve packages
+        run: flutter pub get --enforce-lockfile
+      - name: Generate production AppConfig
+        run: |
+          dart run enven \
+            --env-files .env,.env.prod \
+            --class-name AppConfig
+      - uses: ./.github/actions/get-version
+        id: version
       - name: Build iOS device application
-        if: ${{ inputs.build_ios }}
         run: |
           flutter build ios \
             --release \
@@ -536,7 +561,6 @@ jobs:
             --dart-define=PURELIVE_BUILD_SOURCE=github-manual
       - name: Locate built Runner.app
         id: ios_app
-        if: ${{ inputs.build_ios }}
         shell: bash
         run: |
           set -euo pipefail
@@ -547,7 +571,6 @@ jobs:
           fi
           echo "app_path=$app_path" >> "$GITHUB_OUTPUT"
       - name: Archive unsigned iOS application
-        if: ${{ inputs.build_ios }}
         shell: bash
         run: |
           set -euo pipefail
@@ -555,7 +578,6 @@ jobs:
           APP="${{ steps.ios_app.outputs.app_path }}"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-ios-arm64-unsigned-app.zip"
       - name: Create TrollStore entitlements
-        if: ${{ inputs.build_ios }}
         shell: bash
         run: |
           set -euo pipefail
@@ -573,7 +595,6 @@ jobs:
           PLIST
           echo "entitlements=$ENT" >> "$GITHUB_ENV"
       - name: Ad-hoc sign iOS application
-        if: ${{ inputs.build_ios }}
         shell: bash
         run: |
           set -euo pipefail
@@ -592,7 +613,6 @@ jobs:
           codesign -dvv "$APP" 2>&1 | head -30
           codesign --verify --deep --strict "$APP"
       - name: Package TrollStore IPA
-        if: ${{ inputs.build_ios }}
         shell: bash
         run: |
           set -euo pipefail
@@ -605,7 +625,6 @@ jobs:
           cd "$WORK_DIR"
           zip -r -q "$GITHUB_WORKSPACE/PureLive-${VERSION}-ios-arm64-trollstore.ipa" Payload
       - name: Verify TrollStore IPA
-        if: ${{ inputs.build_ios }}
         shell: bash
         run: |
           set -euo pipefail
@@ -619,7 +638,6 @@ jobs:
           unzip -q "$IPA" -d "$TMPD"
           codesign --verify --deep --strict "$TMPD/Payload/Runner.app"
       - name: Upload iOS artifacts
-        if: ${{ inputs.build_ios }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-ios
@@ -640,13 +658,15 @@ jobs:
         (!inputs.build_android || needs.android.result == 'success') &&
         (!inputs.build_windows || needs.windows.result == 'success') &&
         (!inputs.build_linux || needs.linux.result == 'success') &&
-        (!(inputs.build_macos || inputs.build_ios) || needs.apple.result == 'success') }}
+        (!inputs.build_macos || needs.macos.result == 'success') &&
+        (!inputs.build_ios || needs.ios.result == 'success') }}
     needs:
       - quality
       - android
       - windows
       - linux
-      - apple
+      - macos
+      - ios
     runs-on: ubuntu-latest
     permissions:
       contents: write

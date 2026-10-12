@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:pure_live/core/storage/secure_credential_store.dart';
+import 'package:pure_live/core/config/cookie_settings_controller.dart';
 import 'package:pure_live/core/platform/app_path_manager.dart';
 
 import 'package:pure_live/core/index.dart';
@@ -79,6 +81,10 @@ class AppInitializer {
         'history=${migrationReport.historyCount}.',
       );
     }
+    // Credentials live in the system's secure store. Load them before any
+    // controller reads them, after the upgrade migration (which may still bring
+    // older cookies into the settings database for this step to move).
+    await SecureCredentialStore.initialize(keys: CookieSettingsController.secureKeys);
     // Settings and controller registration is a hard startup dependency for
     // MyApp.build.  Leaving this future detached created a first-launch race:
     // a freshly upgraded install could build the widget tree before

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
+import 'package:pure_live/core/storage/secure_credential_store.dart';
 
 final _persistCurrentValue = Expando<void Function()>('hive-persist-current');
 
@@ -16,6 +17,15 @@ RxString hiveString(String key, String defaultValue) {
   final initialValue = HivePrefUtil.getString(key) ?? defaultValue;
 
   return RxString(initialValue)..hive(key);
+}
+
+/// A credential kept in the system's secure store (see [SecureCredentialStore]);
+/// read and written exactly like a [hiveString].
+RxString secureString(String key, String defaultValue) {
+  final rx = RxString(SecureCredentialStore.read(key) ?? defaultValue);
+  _persistCurrentValue[rx] = () => SecureCredentialStore.write(key, rx.value);
+  ever<String>(rx, (value) => SecureCredentialStore.write(key, value));
+  return rx;
 }
 
 RxInt hiveInt(String key, int defaultValue) {

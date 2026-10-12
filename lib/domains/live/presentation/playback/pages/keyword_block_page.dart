@@ -380,7 +380,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
     double? stepSize,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

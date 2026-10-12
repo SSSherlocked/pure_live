@@ -381,12 +381,11 @@ class RoomCard extends StatelessWidget {
       ..addAll([
         if (metrics.isNotEmpty)
           Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: metrics.length > 1 ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               for (var index = 0; index < metrics.length; index++) ...[
-                if (index > 0) const SizedBox(height: 3),
+                if (index > 0) const SizedBox(height: RoomCardLayoutMetrics.compactLineGap),
                 metrics[index],
               ],
             ],
@@ -448,55 +447,65 @@ class RoomCard extends StatelessWidget {
       height: height,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: dense ? 8 : 10),
-        child: Row(
-          children: [
-            if (config.showAvatar) ...[
-              KeyedSubtree(
-                key: const ValueKey('room-card-avatar'),
-                child: CommonAvatar(avatarUrl: room.avatar, fallbackName: room.nick, dense: dense),
-              ),
-              SizedBox(width: dense ? 8 : 10),
-            ],
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Like the 关注 panel: streamer first, room title below.
-                  if (config.showAnchorName) ...[
-                    Text(
-                      room.nick ?? '',
-                      key: const ValueKey('room-card-anchor-name'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: (dense ? AppText.of(context).body : AppText.of(context).sectionTitle).copyWith(
-                        height: 1.2,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: dense ? 2 : 3),
-                  ],
-                  Text(
-                    room.title ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: (config.showAnchorName
-                            ? (dense ? AppText.of(context).secondary : AppText.of(context).body)
-                            : (dense ? AppText.of(context).body : AppText.of(context).sectionTitle))
-                        .copyWith(
-                          height: 1.2,
-                          fontWeight: config.showAnchorName ? FontWeight.w500 : FontWeight.w700,
-                          color: config.showAnchorName
-                              ? (isDark ? Colors.grey[400] : Colors.grey[700])
-                              : (isDark ? Colors.white : Colors.black87),
-                        ),
+        // The text and the tag/heat columns share one height (the taller of
+        // the two), first lines on one top edge and last lines on one bottom
+        // edge, the group centred in the row.
+        child: Center(
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (config.showAvatar) ...[
+                  KeyedSubtree(
+                    key: const ValueKey('room-card-avatar'),
+                    child: Center(child: CommonAvatar(avatarUrl: room.avatar, fallbackName: room.nick, dense: dense)),
                   ),
+                  SizedBox(width: dense ? 8 : 10),
                 ],
-              ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: config.showAnchorName
+                        ? MainAxisAlignment.spaceBetween
+                        : MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Like the 关注 panel: streamer first, room title below.
+                      if (config.showAnchorName) ...[
+                        Text(
+                          room.nick ?? '',
+                          key: const ValueKey('room-card-anchor-name'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (dense ? AppText.of(context).body : AppText.of(context).sectionTitle).copyWith(
+                            height: 1.2,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: RoomCardLayoutMetrics.compactLineGap),
+                      ],
+                      Text(
+                        room.title ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: (config.showAnchorName
+                                ? (dense ? AppText.of(context).secondary : AppText.of(context).body)
+                                : (dense ? AppText.of(context).body : AppText.of(context).sectionTitle))
+                            .copyWith(
+                              height: 1.2,
+                              fontWeight: config.showAnchorName ? FontWeight.w500 : FontWeight.w700,
+                              color: config.showAnchorName
+                                  ? (isDark ? Colors.grey[400] : Colors.grey[700])
+                                  : (isDark ? Colors.white : Colors.black87),
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                ?trailing,
+              ],
             ),
-            ?trailing,
-          ],
+          ),
         ),
       ),
     );

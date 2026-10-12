@@ -56,6 +56,10 @@ abstract final class RoomCardLayoutMetrics {
     return math.max(baseCaptionHeight, scaledCaptionHeight);
   }
 
+  /// The gap between the two lines of a compact row, on both sides: the
+  /// streamer and the room title, the platform tag and the heat.
+  static const double compactLineGap = 6;
+
   static double _textHeight({
     required RoomCardAppearance appearance,
     required bool dense,
@@ -64,6 +68,6 @@ abstract final class RoomCardLayoutMetrics {
     final titleHeight = textScaler.scale(dense ? 13 : 15) * 1.2;
     if (!appearance.showAnchorName) return titleHeight;
     final subtitleHeight = textScaler.scale(dense ? 12 : 13) * 1.2;
-    return titleHeight + (dense ? 2 : 3) + subtitleHeight;
+    return titleHeight + compactLineGap + subtitleHeight;
   }
 }

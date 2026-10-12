@@ -11,7 +11,9 @@ class NavigationSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final allMenus = [HomeMenu.favorites, HomeMenu.popular, HomeMenu.areas, HomeMenu.record];
+    // 录制中心 lives in the top-right menu, not the bottom bar, so it is not
+    // offered here.
+    final allMenus = [HomeMenu.favorites, HomeMenu.popular, HomeMenu.areas];
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n("navigation_display_settings"))),

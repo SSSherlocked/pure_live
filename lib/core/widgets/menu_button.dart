@@ -14,14 +14,11 @@ import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 /// as the phone's top-right menu, with 设置 at the rail's bottom edge instead.
 /// 数据与备份 and 关于 are reached through 设置 there too.
 class MenuButton extends StatelessWidget {
-  const MenuButton({super.key, this.railActions = false, this.showRecord = true});
+  const MenuButton({super.key, this.railActions = false});
 
   /// Wide-layout navigation rail mode: 全平台搜索 / 链接解析 / 多画面 /
   /// 录制中心 / 历史记录, and no 设置, which the rail shows at its bottom edge.
   final bool railActions;
-
-  /// Whether 录制中心 is offered in [railActions] mode.
-  final bool showRecord;
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +69,7 @@ class MenuButton extends StatelessWidget {
           item('toolbox', Remix.link, i18n('toolbox_title')),
           if (SettingsService.to.app.enableMultiView.v)
             item('multiview', Remix.layout_grid_line, i18n('multiview_title')),
-          if (showRecord) item('record', Remix.download_2_line, i18n('record_center')),
+          item('record', Remix.download_2_line, i18n('record_center')),
           if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
             item('new_window', Icons.add_to_photos_outlined, i18n('open_new_window')),
           item('history', Remix.history_line, i18n('history')),

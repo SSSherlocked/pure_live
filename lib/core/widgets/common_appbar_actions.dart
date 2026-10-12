@@ -78,10 +78,9 @@ class CommonAppBarActions extends StatelessWidget {
                   ],
                 ),
               ),
-            // 录制中心 is never a bottom tab; while the navigation settings show
-            // it, it is the last entry here (the desktop rail menu does the same).
-            if (SettingsService.to.app.savedMenuIds.v.contains(HomeMenu.record.id))
-              PopupMenuItem(
+            // 录制中心 is never a bottom tab, so this menu always offers it
+            // (the desktop rail menu does the same).
+            PopupMenuItem(
                 value: 3,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Row(

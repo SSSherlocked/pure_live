@@ -275,7 +275,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
                       body: currentWidget,
                       index: adjustedIndex,
                       activeMenuIds: tabletActiveMenuIds,
-                      showRecord: activeMenuIds.contains(HomeMenu.record.id),
                       onDestinationSelected: onDestinationSelected,
                     ),
             );

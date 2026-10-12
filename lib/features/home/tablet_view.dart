@@ -6,7 +6,6 @@ class HomeTabletView extends StatelessWidget {
   final Widget body;
   final int index;
   final List<String> activeMenuIds;
-  final bool showRecord;
   final void Function(int) onDestinationSelected;
 
   const HomeTabletView({
@@ -14,7 +13,6 @@ class HomeTabletView extends StatelessWidget {
     required this.body,
     required this.index,
     required this.activeMenuIds,
-    required this.showRecord,
     required this.onDestinationSelected,
   });
 
@@ -95,7 +93,7 @@ class HomeTabletView extends StatelessWidget {
                         : NavigationRailLabelType.none,
                     leading: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: MenuButton(railActions: true, showRecord: showRecord),
+                      child: MenuButton(railActions: true),
                     ),
                     trailing: Expanded(
                       child: Align(

@@ -9,6 +9,7 @@ import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_timer_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_volume_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_link_dialog.dart';
+import 'package:pure_live/domains/live/presentation/playback/dialogs/video_details_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/recorder/presentation/widgets/record_room_actions.dart';
 
@@ -82,6 +83,10 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
 
       case 8:
         _openNewWindow();
+        break;
+
+      case 9:
+        unawaited(VideoDetailsDialog.show(context, controller));
         break;
     }
 
@@ -180,6 +185,9 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
       _item(value: 6, icon: RemixIcons.share_forward_line, text: i18n('share')),
 
       if (Platform.isWindows) _item(value: 8, icon: Icons.open_in_new_rounded, text: i18n('open_room_in_new_window')),
+
+      // Always last.
+      _item(value: 9, icon: Remix.information_line, text: i18n('video_details')),
     ];
   }
 

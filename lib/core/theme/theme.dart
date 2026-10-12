@@ -112,9 +112,11 @@ class MyTheme {
       textTheme: textTheme,
       primaryTextTheme: textTheme,
     );
-    // 深色模式纯黑背景: pages and the base surface go pure black; raised
-    // containers (cards, sheets) keep their tonal greys so they stay distinct.
-    if (isDark && SettingsService.to.theme.pureBlackDark.v) {
+    // 深色模式纯黑背景: pages, dialogs (the player's side panels), sheets and
+    // menus go pure black; cards inside them keep their tonal greys so they
+    // stay distinct.
+    final pureBlack = isDark && SettingsService.to.theme.pureBlackDark.v;
+    if (pureBlack) {
       baseTheme = baseTheme.copyWith(
         scaffoldBackgroundColor: Colors.black,
         canvasColor: Colors.black,
@@ -192,12 +194,30 @@ class MyTheme {
       bottomSheetTheme: BottomSheetThemeData(
         elevation: 0,
         showDragHandle: true,
-        backgroundColor: baseTheme.colorScheme.surfaceContainer,
+        backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainer,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       ),
+      // Black menus over a black page need an edge to read as a layer.
+      menuTheme: pureBlack
+          ? MenuThemeData(
+              style: MenuStyle(
+                backgroundColor: const WidgetStatePropertyAll(Colors.black),
+                side: WidgetStatePropertyAll(BorderSide(color: baseTheme.colorScheme.outlineVariant)),
+              ),
+            )
+          : null,
+      popupMenuTheme: pureBlack
+          ? PopupMenuThemeData(
+              color: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: baseTheme.colorScheme.outlineVariant),
+              ),
+            )
+          : null,
       dialogTheme: DialogThemeData(
         elevation: 0,
-        backgroundColor: baseTheme.colorScheme.surfaceContainerHigh,
+        backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainerHigh,
         titleTextStyle: textTheme.titleLarge?.copyWith(fontWeight: semiBold),
         contentTextStyle: textTheme.bodyMedium,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),

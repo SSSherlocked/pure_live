@@ -14,18 +14,16 @@ abstract final class RoomCardLayoutMetrics {
   /// text grows a row past it.
   static const double listRowMinHeight = 72;
 
+  /// A compact row is [listRowMinHeight] tall, or as tall as its text plus
+  /// 8 px above and below when larger text needs more; the avatar and the
+  /// delete button always fit within the minimum.
   static double compactHeight({
     required RoomCardAppearance appearance,
     required bool dense,
-    bool hasAction = false,
     TextScaler textScaler = TextScaler.noScaling,
   }) {
-    final verticalPadding = dense ? 8.0 : 10.0;
-    final avatarHeight = appearance.showAvatar ? (dense ? 34.0 : 40.0) : 0.0;
-    final minimumInteractiveContent = hasAction || !dense ? 48.0 : 40.0;
     final contentHeight = _textHeight(appearance: appearance, dense: dense, textScaler: textScaler);
-    final fitted = math.max(minimumInteractiveContent, math.max(avatarHeight, contentHeight)) + verticalPadding * 2;
-    return math.max(listRowMinHeight, fitted);
+    return math.max(listRowMinHeight, contentHeight + 16);
   }
 
   static double gridMainAxisExtent({

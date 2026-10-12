@@ -401,7 +401,6 @@ class RoomCard extends StatelessWidget {
     final height = RoomCardLayoutMetrics.compactHeight(
       appearance: config,
       dense: dense,
-      hasAction: showDelete,
       textScaler: MediaQuery.textScalerOf(context),
     );
     final trailing = _buildCompactTrailing(

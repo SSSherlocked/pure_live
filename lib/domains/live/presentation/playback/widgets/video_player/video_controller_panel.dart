@@ -3,13 +3,11 @@ import 'dart:async';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/utils/live_quality_label.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
-import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
@@ -1591,7 +1589,6 @@ class BottomActionBar extends StatelessWidget {
       children: [
         PlayPauseButton(controller: controller),
         if (!compact) RefreshButton(controller: controller),
-        if (!compact) FavoriteButton(controller: controller),
         if (!SettingsService.to.danmaku.hideDanmaku.value) ...[
           PlayerDanmakuButton(controller: controller),
           PlayerDanmakuSettingsButton(
@@ -1827,85 +1824,6 @@ class CastButton extends StatelessWidget {
     );
   }
 }
-
-class FavoriteButton extends StatefulWidget {
-  const FavoriteButton({super.key, required this.controller});
-
-  final VideoController controller;
-
-  @override
-  State<FavoriteButton> createState() => _FavoriteButtonState();
-}
-
-class _FavoriteButtonState extends State<FavoriteButton> {
-  bool _pending = false;
-
-  Future<void> _toggleFavorite(bool isFavorite) async {
-    if (_pending) return;
-    setState(() => _pending = true);
-    final controller = widget.controller;
-    controller.enableController();
-    try {
-      final changed = isFavorite
-          ? await FavoriteRoomController.to.removeRoomDurably(controller.room)
-          : await FavoriteRoomController.to.addRoomDurably(controller.room);
-      if (changed) EventBus.instance.emit('changeFavorite', true);
-    } catch (error) {
-      debugPrint('Favorite room change failed: $error');
-      ToastUtil.show(i18n('favorite_changes_save_failed'));
-    } finally {
-      if (mounted) setState(() => _pending = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final room = widget.controller.room;
-      final favoriteRooms = FavoriteRoomController.to.favoriteRooms.value;
-      final isFavorite = favoriteRooms.any((candidate) => candidate.hasSameIdentity(room));
-      final actionLabel = i18n(isFavorite ? 'unfollow' : 'follow');
-      return Semantics(
-        button: true,
-        label: actionLabel,
-        child: Tooltip(
-          message: actionLabel,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              key: const ValueKey('fullscreen-favorite-action'),
-              borderRadius: BorderRadius.circular(8),
-              onTap: _pending ? null : () => _toggleFavorite(isFavorite),
-              child: ConstrainedBox(
-                constraints: PlayerControlDensity.actionConstraints(context),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      if (_pending)
-                        const SizedBox.square(
-                          dimension: 15,
-                          child: CircularProgressIndicator(strokeWidth: 1.8, color: Colors.white),
-                        )
-                      else
-                        Icon(isFavorite ? Icons.check_rounded : Icons.close, color: Colors.white, size: 15),
-                      const SizedBox(width: 2),
-                      Text(isFavorite ? i18n('followed') : i18n('follow'), style: const TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-}
-
-// Settings panel widgets
 
 class SettingsPanel extends StatelessWidget {
   const SettingsPanel({super.key, required this.controller});

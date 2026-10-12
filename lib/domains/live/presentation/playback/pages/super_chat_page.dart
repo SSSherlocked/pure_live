@@ -1,4 +1,3 @@
-import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/super_chat_card.dart';
 
@@ -10,25 +9,17 @@ class SuperChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (messages.isEmpty) {
-      final theme = Theme.of(context);
+      // Only the one-line hint: no icon or headline for an empty tab.
       return ListView(
         key: const ValueKey('super-chat-empty-state'),
         primary: false,
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         children: [
-          Icon(Remix.chat_smile_3_line, size: 42, color: theme.colorScheme.primary),
-          const SizedBox(height: 16),
-          Text(
-            i18n('super_chat_empty_title'),
-            textAlign: TextAlign.center,
-            style: AppText.of(context).pageTitle.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
           Text(
             i18n('super_chat_empty_subtitle'),
             textAlign: TextAlign.center,
-            style: AppText.of(context).body.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: AppText.of(context).body.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       );

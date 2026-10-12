@@ -18,6 +18,9 @@ const Duration douyuWebLoginPollInterval = Duration(seconds: 2);
 /// Where the page session (`dy_auth` / `acf_*`) lives.
 final WebUri douyuSiteCookieUri = WebUri('https://www.douyu.com/');
 
+/// Where the H5 (phone) sign-in may leave its session instead.
+final WebUri douyuMobileSiteCookieUri = WebUri('https://m.douyu.com/');
+
 /// Where the renewal key `LTP0` and the login's `dy_did` live.
 final WebUri douyuPassportCookieUri = WebUri('https://passport.douyu.com/');
 
@@ -132,7 +135,9 @@ class DouyuWebLoginController extends GetxController {
     Map<String, String> site;
     Map<String, String> passport;
     try {
-      site = await _cookieLoader(douyuSiteCookieUri);
+      // Phones sign in through Douyu's H5 page, which may keep the session on
+      // m.douyu.com; the www values win where both have one.
+      site = {...await _cookieLoader(douyuMobileSiteCookieUri), ...await _cookieLoader(douyuSiteCookieUri)};
       passport = await _cookieLoader(douyuPassportCookieUri);
     } catch (_) {
       if (_isCurrent(revision)) _showError('douyu_web_login_cookie_failed');

@@ -1,5 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/network/douyu_utils.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:pure_live/domains/account/presentation/account/douyu/douyu_web_login_controller.dart';
@@ -59,9 +60,12 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
                 onWebViewCreated: controller.onWebViewCreated,
                 onLoadStop: controller.onLoadStop,
                 onUpdateVisitedHistory: controller.onUpdateVisitedHistory,
-                // The renewal request presents this same browser identity, so
-                // the session is issued to it rather than to a mobile one.
-                initialSettings: InAppWebViewSettings(userAgent: DouyuUtils.userAgent),
+                // Phones keep the WebView's own (mobile) identity: Douyu then
+                // serves its H5 sign-in with SMS and password login. Forcing a
+                // desktop identity got the desktop page, which defaults to QR
+                // and squeezes its other tabs off a phone screen. Desktop keeps
+                // the identity its renewal requests present.
+                initialSettings: InAppWebViewSettings(userAgent: PlatformUtils.isMobile ? null : DouyuUtils.userAgent),
               )
             else
               const ColoredBox(color: Colors.transparent),

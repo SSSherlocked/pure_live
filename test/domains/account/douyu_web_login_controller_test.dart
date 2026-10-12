@@ -94,6 +94,27 @@ void main() {
     expect(completions, 1);
   });
 
+  test('an H5 sign-in that keeps its session on m.douyu.com is found', () async {
+    final controller = DouyuWebLoginController(
+      cookieLoader: (WebUri uri) async => switch (uri.host) {
+        'm.douyu.com' => const {'acf_jwt_token': 'h5-session', 'dy_did': 'h5-did'},
+        'passport.douyu.com' => const {'LTP0': 'long-term', 'dy_did': 'passport-did'},
+        _ => const <String, String>{},
+      },
+      renewer: ({required String cookie, required String ltp0, required String did}) async {
+        renewals.add((cookie: cookie, ltp0: ltp0, did: did));
+        return 'acf_jwt_token=renewed';
+      },
+      saveCredentials: ({required String ltp0, required String did}) => saved.add((ltp0: ltp0, did: did)),
+      completeLogin: () => completions++,
+      transitionDelay: Duration.zero,
+    );
+    await controller.checkLogin();
+
+    expect(renewals.single.cookie, contains('acf_jwt_token=h5-session'));
+    expect(completions, 1);
+  });
+
   test('before signing in, page loads stay quiet and an explicit check explains', () async {
     final controller = build(siteCookies: const {'dy_did': 'site-did'});
     await controller.checkLogin();

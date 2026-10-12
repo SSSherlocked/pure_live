@@ -57,6 +57,9 @@ class LivePlayNormalLayout extends StatelessWidget {
   final VoidCallback? onEnterLandscapeFullscreen;
   final VoidCallback? onEnterPortraitFullscreen;
 
+  double get _frameAspectRatio =>
+      sourceAspectRatio.isFinite && sourceAspectRatio > 0 ? sourceAspectRatio : 16 / 9;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -100,7 +103,16 @@ class LivePlayNormalLayout extends StatelessWidget {
           return Row(
             key: const ValueKey('live-play-desktop-split'),
             children: [
-              Expanded(child: video),
+              // The frame follows the stream's own ratio and sits centred, as
+              // large as fits: spare room on either axis is page background.
+              // A fixed 16:9 frame forced to the full width used to fill the
+              // sides with black once the window was wider than the picture.
+              Expanded(
+                child: Center(
+                  key: const ValueKey('live-play-desktop-video'),
+                  child: AspectRatio(aspectRatio: _frameAspectRatio, child: video),
+                ),
+              ),
               SizedBox(
                 key: const ValueKey('live-play-desktop-panel'),
                 width: panelWidth,
@@ -577,6 +589,9 @@ class LivePlayContent extends StatelessWidget {
       body: SafeArea(
         child: Obx(() {
           final manager = GlobalPlayerService.instance.player;
+          // Rebuild when the stream's picture size is known or changes: the
+          // desktop frame follows its aspect ratio.
+          manager.videoPresentationRevision.value;
           final settings = SettingsService.to.player;
           final isPortrait = manager.isVerticalVideo.value;
           final useAdaptivePortraitFrame =

@@ -460,6 +460,12 @@ final class LivePlayerFacade {
     final size = handle?.combinedSnapshot.geometry.videoSize;
     final next = size != null && size.height > size.width;
     if (next != isVerticalVideo.value) isVerticalVideo.value = next;
+    // Layouts that follow the picture's aspect ratio watch this counter; the
+    // size itself lives in the handle snapshot, which is not observable.
+    if (size != _lastPresentedVideoSize) {
+      _lastPresentedVideoSize = size;
+      videoPresentationRevision.value++;
+    }
     final dummy =
         (size != null && isDummyVideoSize(width: size.width, height: size.height)) ||
         isAudioOnlyPlatform(_room?.platform);
@@ -537,6 +543,7 @@ final class LivePlayerFacade {
   final RxBool isInPip = false.obs;
   final RxBool isPipPreparing = false.obs;
   final RxInt videoPresentationRevision = 0.obs;
+  VideoSize? _lastPresentedVideoSize;
   StreamSubscription<bool>? _pipStateSub;
 
   /// System fullscreen — immersive + orientation lock on mobile, window

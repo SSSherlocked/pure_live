@@ -290,6 +290,13 @@ class _SuperChatCardState extends State<SuperChatCard> {
     );
   }
 
+  /// The message as shown. The raw text can end in a line break (or an
+  /// invisible zero-width character) that a web page hides but a Flutter
+  /// text widget draws as one more, empty line at the bottom of the card.
+  static String _displayText(String raw) => raw.replaceAll(_edgeInvisibles, '');
+
+  static final RegExp _edgeInvisibles = RegExp(r'^[\s\u200B-\u200D\u2060\uFEFF]+|[\s\u200B-\u200D\u2060\uFEFF]+$');
+
   Future<void> clipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     ToastUtil.show(i18n('copied_to_clipboard'));
@@ -305,11 +312,9 @@ class _SuperChatCardState extends State<SuperChatCard> {
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 9),
       decoration: BoxDecoration(color: backgroundColor),
       child: GestureDetector(
-        onDoubleTap: () => clipboard(message.message.trim()),
-        // Platforms often end the message with line breaks, which left a tall
-        // empty band under the text.
+        onDoubleTap: () => clipboard(_displayText(message.message)),
         child: SelectableText(
-          message.message.trim(),
+          _displayText(message.message),
           style: TextStyle(color: textColor, fontSize: 14, height: 1.5, fontWeight: FontWeight.w400),
         ),
       ),

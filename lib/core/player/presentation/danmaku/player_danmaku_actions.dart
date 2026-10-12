@@ -329,7 +329,10 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
           Obx(
             () => MenuItemButton(
               key: const ValueKey('player-more-audio-only'),
-              leadingIcon: Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
+              // The arrow column of 画面比例 stays empty here, so the icons align.
+              leadingIcon: playerMenuLeading(
+                Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
+              ),
               onPressed: onToggleAudioOnly,
               child: Text(i18n('audio_only_mode')),
             ),
@@ -337,14 +340,14 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
         if (onCast != null)
           MenuItemButton(
             key: const ValueKey('player-more-cast'),
-            leadingIcon: const Icon(Remix.tv_2_line, size: 18),
+            leadingIcon: playerMenuLeading(const Icon(Remix.tv_2_line, size: 18)),
             onPressed: onCast,
             child: Text(i18n('cast_screen')),
           ),
         if (onPip != null)
           MenuItemButton(
             key: const ValueKey('player-more-pip'),
-            leadingIcon: const Icon(CustomIcons.float_window, size: 18),
+            leadingIcon: playerMenuLeading(const Icon(CustomIcons.float_window, size: 18)),
             onPressed: onPip,
             child: Text(i18n('float_window_play')),
           ),

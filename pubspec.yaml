@@ -352,8 +352,6 @@ flutter:
     - assets/emo/images/bilibili/
     - assets/emo/json/
     - assets/translations/
-    - assets/animations/empty.json
-    - assets/animations/error.json
     - assets/fonts/fonts-manifest.json
     - assets/certificates/
   # 字体配置

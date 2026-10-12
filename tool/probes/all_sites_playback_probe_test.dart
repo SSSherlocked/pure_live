@@ -18,7 +18,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:pure_live/core/models/live_room.dart';
 import 'package:pure_live/core/config/settings_service.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
-import 'package:pure_live/domains/live/domain/live_site.dart';
+import 'package:pure_live/shared/platforms/live_site.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/domains/live/data/playback_header_resolver.dart';

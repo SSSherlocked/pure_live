@@ -8,7 +8,6 @@ Kotlin Gradle Plugin, which conflicts with AGP 9 Built-in Kotlin.
 | --- | --- | --- |
 | `flutter_exit_app` | 2.1.2 | <https://github.com/xang555/flutter_exit_app> |
 | `flutter_inappwebview_android` | 1.2.0-beta.3 | <https://github.com/pichillilorenzo/flutter_inappwebview> |
-| `flutter_js` | 0.8.7 | <https://github.com/abner/flutter_js> |
 | `mobile_scanner` | 7.4.0 | <https://github.com/juliansteenbakker/mobile_scanner> |
 | `share_handler_android` | 0.0.11 | <https://github.com/AboutShout/share_handler> |
 

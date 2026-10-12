@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
@@ -302,24 +303,16 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
         LeftSubmenuButton(
           key: const ValueKey('player-more-video-fit'),
           leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
+          labels: [for (final option in AppConsts().videoFitType) i18n(option['desc'] as String)],
           menuChildren: [
             for (final (index, option) in AppConsts().videoFitType.indexed)
               Obx(
-                () => MenuItemButton(
+                () => PlayerMenuChoice(
                   key: ValueKey('player-video-fit-$index'),
-                  leadingIcon: SizedBox(
-                    width: 18,
-                    child: SettingsService.to.player.resolvedVideoFitIndex == index
-                        ? const Icon(Icons.check_rounded, size: 18)
-                        : null,
-                  ),
+                  label: i18n(option['desc'] as String),
+                  labels: [for (final option in AppConsts().videoFitType) i18n(option['desc'] as String)],
+                  selected: SettingsService.to.player.resolvedVideoFitIndex == index,
                   onPressed: () => SettingsService.to.player.videoFitIndex.v = index,
-                  // A little room after the label balances the check mark
-                  // on the left.
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 16),
-                    child: Text(i18n(option['desc'] as String)),
-                  ),
                 ),
               ),
           ],

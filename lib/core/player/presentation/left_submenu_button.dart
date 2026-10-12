@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 
-/// Width of a player submenu (qualities, lines, 画面比例).
+/// Width of a player submenu whose labels are not given.
 const double playerSubmenuWidth = 152;
 
 /// The leading column of a player menu entry: a fixed-width slot for the
@@ -31,19 +32,28 @@ class LeftSubmenuButton extends StatelessWidget {
     required this.menuChildren,
     required this.child,
     this.leadingIcon,
+    this.labels,
   });
 
   final List<Widget> menuChildren;
   final Widget child;
   final Widget? leadingIcon;
 
+  /// The submenu's labels, when its entries are [PlayerMenuChoice]s: the
+  /// submenu is then as wide as the longest one plus the entry padding.
+  final List<String>? labels;
+
   @override
   Widget build(BuildContext context) {
+    final names = labels;
+    final width = names == null
+        ? playerSubmenuWidth
+        : menuLabelWidth(context, names, PlayerMenuChoice.styleOf(context)) + playerMenuItemPadding;
     return SubmenuButton(
       leadingIcon: playerMenuLeading(leadingIcon, arrow: true),
       // The arrow is drawn before the label instead.
       submenuIcon: const WidgetStatePropertyAll(SizedBox.shrink()),
-      alignmentOffset: const Offset(-playerSubmenuWidth, 0),
+      alignmentOffset: Offset(-width, 0),
       menuStyle: const MenuStyle(
         alignment: AlignmentDirectional.topStart,
         padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 8)),
@@ -51,7 +61,7 @@ class LeftSubmenuButton extends StatelessWidget {
       // The offset above assumes this exact width. MenuStyle's minimum size
       // does not reach a submenu panel, which shrank to its labels and left a
       // gap as wide as the difference; sizing every entry pins the panel.
-      menuChildren: [for (final item in menuChildren) SizedBox(width: playerSubmenuWidth, child: item)],
+      menuChildren: [for (final item in menuChildren) SizedBox(width: width, child: item)],
       child: child,
     );
   }

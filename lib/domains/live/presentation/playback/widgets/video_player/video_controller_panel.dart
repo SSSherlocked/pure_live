@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
@@ -940,9 +941,10 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
             switching: switching,
             entries: [
               for (var index = 0; index < state.qualites.length; index++)
-                _choice(
+                PlayerMenuChoice(
                   key: ValueKey('stream-menu-quality-$index'),
                   label: state.qualites[index].quality,
+                  labels: [for (final quality in state.qualites) quality.quality],
                   selected: state.currentQuality == index,
                   onPressed: switching
                       ? null
@@ -961,9 +963,13 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
               switching: switching,
               entries: [
                 for (var index = 0; index < state.lineCount; index++)
-                  _choice(
+                  PlayerMenuChoice(
                     key: ValueKey('stream-menu-line-$index'),
                     label: i18n('toolbox_line', args: {'index': (index + 1).toString()}),
+                    labels: [
+                      for (var line = 0; line < state.lineCount; line++)
+                        i18n('toolbox_line', args: {'index': (line + 1).toString()}),
+                    ],
                     selected: state.currentLineIndex == index,
                     onPressed: switching
                         ? null
@@ -1036,23 +1042,6 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  /// One quality or line entry; the check mark sits where 画面比例 puts its own.
-  static Widget _choice({
-    required Key key,
-    required String label,
-    required bool selected,
-    required VoidCallback? onPressed,
-  }) {
-    return MenuItemButton(
-      key: key,
-      leadingIcon: SizedBox(width: 18, child: selected ? const Icon(Icons.check_rounded, size: 18) : null),
-      // The current choice stays enabled (it only closes the menu), the way
-      // 画面比例 shows its own; re-selecting it must not reload the stream.
-      onPressed: selected ? () {} : onPressed,
-      child: Padding(padding: const EdgeInsetsDirectional.only(end: 16), child: Text(label)),
     );
   }
 }

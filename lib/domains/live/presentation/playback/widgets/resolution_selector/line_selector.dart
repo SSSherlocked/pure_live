@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 
@@ -27,6 +28,8 @@ class LineSelector extends StatelessWidget {
         tooltip: i18n("select_play_line"),
         color: Get.theme.colorScheme.surfaceContainerHighest,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        // As wide as the entries, not the 112 px default minimum.
+        constraints: const BoxConstraints(),
         offset: const Offset(0.0, 5.0),
         onOpened: () {
           controller.updateUI(isMenuOpen: true);
@@ -73,9 +76,26 @@ class LineSelector extends StatelessWidget {
 
             return PopupMenuItem<int>(
               value: index,
-              child: Text(
-                i18n("toolbox_line", args: {"index": (index + 1).toString()}),
-                style: AppText.of(context).secondary.copyWith(color: isSelected ? Get.theme.colorScheme.primary : null),
+              // Centred in the width of the longest entry; the current one bold
+              // in the primary colour.
+              child: SizedBox(
+                width: menuLabelWidth(
+                  context,
+                  [
+                    for (var line = 0; line < state.player.lineCount; line++)
+                      i18n("toolbox_line", args: {"index": (line + 1).toString()}),
+                  ],
+                  AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700),
+                ),
+                child: Text(
+                  i18n("toolbox_line", args: {"index": (index + 1).toString()}),
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: AppText.of(context).secondary.copyWith(
+                    color: isSelected ? Get.theme.colorScheme.primary : null,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
               ),
             );
           });

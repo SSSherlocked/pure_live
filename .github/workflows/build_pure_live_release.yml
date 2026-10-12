@@ -184,27 +184,12 @@ jobs:
           fi
           cp "$source" "$target"
           ls -lh "$target"
-      - name: Generate Android SHA256SUM file
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
-          SHA_FILE="ANDROID_SHA256SUM.txt"
-          rm -f "$SHA_FILE"
-          sha256sum "PureLive-${VERSION}-android-arm64-v8a-release.apk" >> "$SHA_FILE"
-          cat "$SHA_FILE"
-      - name: Verify Android SHA256SUM
-        shell: bash
-        run: |
-          set -euo pipefail
-          sha256sum --check ANDROID_SHA256SUM.txt
       - name: Upload Android artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-android
           path: |
             PureLive-*-android-arm64-v8a-release.apk
-            ANDROID_SHA256SUM.txt
           if-no-files-found: error
           retention-days: 3
   windows:
@@ -699,83 +684,11 @@ jobs:
         shell: bash
         run: |
           find artifacts -type f -print | sort
-      - name: Verify Android SHA256SUM
-        shell: bash
-        run: |
-          set -euo pipefail
-          checksum_file=$(find artifacts -type f -name 'ANDROID_SHA256SUM.txt' -print -quit)
-          if [[ -z "$checksum_file" ]]; then
-            echo "ANDROID_SHA256SUM.txt not found."
-            exit 1
-          fi
-          cd "$(dirname "$checksum_file")"
-          sha256sum --check "$(basename "$checksum_file")"
       - name: Read version description
         id: version
         uses: juliangruber/read-file-action@271ff311a4947af354c6abcd696a306553b9ec18 # v1
         with:
           path: assets/version.json
-      - name: Generate BUILD_METADATA.json
-        shell: bash
-        env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
-          REPOSITORY: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-          REF: ${{ github.ref }}
-          ACTOR: ${{ github.actor }}
-          WORKFLOW: ${{ github.workflow }}
-          RUN_ID: ${{ github.run_id }}
-          RUN_NUMBER: ${{ github.run_number }}
-        run: |
-          set -euo pipefail
-          python <<'PY'
-          import json
-          import os
-          from datetime import datetime, timezone
-          from pathlib import Path
-
-          def pinned_flutter_version():
-              # Every build job installs the SDK pinned in .fvmrc.
-              try:
-                  return json.loads(Path(".fvmrc").read_text(encoding="utf-8"))["flutter"]
-              except Exception:
-                  return "unknown"
-
-          artifacts = []
-          for path in sorted(Path("artifacts").rglob("*")):
-              if path.is_file():
-                  artifacts.append({
-                      "name": path.name,
-                      "path": str(path),
-                      "size": path.stat().st_size,
-                  })
-          metadata = {
-              "project": "PureLive",
-              "repository": os.environ["REPOSITORY"],
-              "release_tag": os.environ["RELEASE_TAG"],
-              "commit": os.environ["SHA"],
-              "ref": os.environ["REF"],
-              "workflow": os.environ["WORKFLOW"],
-              "run_id": int(os.environ["RUN_ID"]),
-              "run_number": int(os.environ["RUN_NUMBER"]),
-              "actor": os.environ["ACTOR"],
-              "flutter_version": pinned_flutter_version(),
-              "generated_at": datetime.now(timezone.utc).isoformat(),
-              "build_options": {
-                  "android": "${{ inputs.build_android }}",
-                  "windows": "${{ inputs.build_windows }}",
-                  "linux": "${{ inputs.build_linux }}",
-                  "macos": "${{ inputs.build_macos }}",
-                  "ios": "${{ inputs.build_ios }}",
-                  "quality": "${{ inputs.run_quality }}",
-              },
-              "artifacts": artifacts,
-          }
-          Path("BUILD_METADATA.json").write_text(
-              json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          PY
       - name: Build Release Body
         id: release_body
         shell: bash
@@ -801,7 +714,6 @@ jobs:
           ### 📱 Android 版
           - Android 8.0+（API 26，FFmpegKit 录制依赖要求）
           - ARM64-v8a
-          - 统一 SHA256 校验文件：[**ANDROID_SHA256SUM.txt**](https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/ANDROID_SHA256SUM.txt)
           ### 🐧 Linux 版
           - Linux x64
           - **DEB 安装包**：适合 Debian/Ubuntu 及其衍生发行版
@@ -810,8 +722,6 @@ jobs:
           - unsigned iOS device application
           - TrollStore / ad-hoc IPA
           - ARM64
-          ### 🔧 Build Metadata
-          [**BUILD_METADATA.json**](https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/BUILD_METADATA.json)
           ### 📝 本次更新
           $RELEASE_DESCRIPTION
           EOF
@@ -829,7 +739,6 @@ jobs:
           fail_on_unmatched_files: false
           files: |
             artifacts/**/*
-            BUILD_METADATA.json
   update-json:
     timeout-minutes: 15
     name: Update releases.json

@@ -106,7 +106,7 @@ class LivePlayNormalLayout extends StatelessWidget {
             children: [
               // The player fills its area - title and controls follow the
               // window on both axes - while the picture inside keeps its ratio,
-              // centred and as large as fits, on the page background.
+              // centred and as large as fits, letterboxed in black.
               Expanded(key: const ValueKey('live-play-desktop-video'), child: desktopVideo ?? video),
               SizedBox(
                 key: const ValueKey('live-play-desktop-panel'),
@@ -597,7 +597,7 @@ class LivePlayContent extends StatelessWidget {
               settings.portraitLayoutMode != PortraitLayoutMode.compatibility;
           return LivePlayNormalLayout(
             video: LivePlayVideo(controller: controller, expandToParent: useAdaptivePortraitFrame),
-            desktopVideo: LivePlayVideo(controller: controller, expandToParent: true, pageSurface: true),
+            desktopVideo: LivePlayVideo(controller: controller, expandToParent: true),
             resolution: ResolutionsRow(controller: controller),
             danmaku: _buildDanmaku(),
             showPanel: controller.site != Sites.iptvSite,

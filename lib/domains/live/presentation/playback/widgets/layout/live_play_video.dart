@@ -14,7 +14,6 @@ class LivePlayVideo extends StatelessWidget {
     required this.controller,
     this.expandToParent = false,
     this.transparentSurface = false,
-    this.pageSurface = false,
     this.videoViewportAspectRatio,
     this.portraitFullscreenDisplayMode,
   });
@@ -22,12 +21,6 @@ class LivePlayVideo extends StatelessWidget {
   final LivePlayController controller;
   final bool expandToParent;
   final bool transparentSurface;
-
-  /// The picture sits on the page background instead of black: the frame
-  /// fills its area and the video is letterboxed in page colour. Placeholders
-  /// (loading, offline, failed) keep their black backdrop - they are drawn
-  /// for one.
-  final bool pageSurface;
   final double? videoViewportAspectRatio;
   final PortraitFullscreenDisplayMode? portraitFullscreenDisplayMode;
 
@@ -36,26 +29,25 @@ class LivePlayVideo extends StatelessWidget {
     return LivePlayVideoFrame(
       expandToParent: expandToParent,
       child: ColoredBox(
-        color: transparentSurface || pageSurface ? Colors.transparent : Colors.black,
+        color: transparentSurface ? Colors.transparent : Colors.black,
         child: Obx(() {
           final state = controller.state.value;
           final videoController = state.player.videoController;
           if (videoController == null) {
-            final placeholder = switch (livePlayPlaceholderFor(state.room)) {
+            return switch (livePlayPlaceholderFor(state.room)) {
               LivePlayPlaceholder.loading => const VideoLoading(),
               LivePlayPlaceholder.loadFailed => RoomLoadFailedWidget(onRetry: controller.onInitPlayerState),
               LivePlayPlaceholder.notLiving => NotLivingVideoWidget(controller: controller),
             };
-            return pageSurface ? ColoredBox(color: Colors.black, child: placeholder) : placeholder;
           }
           return Stack(
             fit: StackFit.expand,
             children: [
               ColoredBox(
-                color: transparentSurface || pageSurface ? Colors.transparent : Colors.black,
+                color: transparentSurface ? Colors.transparent : Colors.black,
                 child: VideoPlayer(
                   controller: videoController,
-                  surfaceColor: transparentSurface || pageSurface ? Colors.transparent : Colors.black,
+                  surfaceColor: transparentSurface ? Colors.transparent : Colors.black,
                   videoViewportAspectRatio: videoViewportAspectRatio,
                   portraitFullscreenDisplayMode: portraitFullscreenDisplayMode,
                 ),

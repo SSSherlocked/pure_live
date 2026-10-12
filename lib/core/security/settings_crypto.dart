@@ -168,8 +168,7 @@ class SyncKeyPair {
     final random = FortunaRandom()..seed(KeyParameter(secureRandomBytes(32)));
     final generator = ECKeyGenerator()..init(ParametersWithRandom(ECKeyGeneratorParameters(_curve), random));
     final pair = generator.generateKeyPair();
-    final public = pair.publicKey as ECPublicKey;
-    return SyncKeyPair._(pair.privateKey as ECPrivateKey, public.Q!.getEncoded(false));
+    return SyncKeyPair._(pair.privateKey, pair.publicKey.Q!.getEncoded(false));
   }
 
   final ECPrivateKey _private;

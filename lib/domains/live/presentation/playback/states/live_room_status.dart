@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:pure_live/core/utils/i18n.dart';
+import 'package:pure_live/core/utils/live_quality_label.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 

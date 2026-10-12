@@ -6,7 +6,6 @@ import 'package:pure_live/domains/live/domain/playback_startup_timing.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/domain/live_audio_focus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/utils/event_bus.dart';

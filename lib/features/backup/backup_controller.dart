@@ -380,7 +380,7 @@ class BackupController extends GetxController {
     final json = const JsonEncoder.withIndent('  ').convert(data);
     final String content;
     try {
-      content = encrypt ? await BackupCipher.encrypt(json, password!) : json;
+      content = encrypt ? await BackupCipher.encrypt(json, password) : json;
     } catch (_) {
       return false;
     }

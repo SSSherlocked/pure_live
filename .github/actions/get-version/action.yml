@@ -1,21 +1,48 @@
-name: Read PureLive version
+name: Stamp PureLive version
 description: >
-  Parse `version:` from pubspec.yaml into the display form (build number
-  stripped) and the artifact form ('+' replaced by '-') used in file names.
+  Writes the run's version into pubspec.yaml (tool/release_version.py stamp)
+  so every build, installer and file name reads it, and reports it. The
+  workflow's `version` input is the source; empty keeps the pubspec version.
+  With require_notes the version must have a RELEASE_NOTES.md section, so a
+  release without notes fails before anything is built.
+inputs:
+  version:
+    description: Version to build, e.g. 3.2.2 (a leading v is accepted).
+    required: false
+    default: ""
+  require_notes:
+    description: Fail unless RELEASE_NOTES.md has this version's section.
+    required: false
+    default: "false"
 outputs:
   version:
-    description: Display version, e.g. 3.2.0.
-    value: ${{ steps.parse.outputs.version }}
+    description: Display version, e.g. 3.2.2.
+    value: ${{ steps.stamp.outputs.version }}
+  build_number:
+    description: Build number, one above the previous version's.
+    value: ${{ steps.stamp.outputs.build_number }}
   artifact_version:
-    description: File-name-safe version, e.g. 3.2.0-4109.
-    value: ${{ steps.parse.outputs.artifact_version }}
+    description: File-name-safe version, e.g. 3.2.2-4111.
+    value: ${{ steps.stamp.outputs.artifact_version }}
+  tag:
+    description: Release tag, e.g. v3.2.2.
+    value: ${{ steps.stamp.outputs.tag }}
 runs:
   using: composite
   steps:
-    - id: parse
+    - id: stamp
       shell: bash
+      env:
+        VERSION_INPUT: ${{ inputs.version }}
+        REQUIRE_NOTES: ${{ inputs.require_notes }}
+        # The notes are Chinese; Windows consoles are not UTF-8 by default.
+        PYTHONIOENCODING: utf-8
       run: |
         set -euo pipefail
-        full_version="$(grep '^version:' pubspec.yaml | sed 's/version: //; s/[`"'"'"']//g')"
-        echo "version=${full_version%%+*}" >> "$GITHUB_OUTPUT"
-        echo "artifact_version=${full_version/+/-}" >> "$GITHUB_OUTPUT"
+        # Windows runners name it python; elsewhere python3 is the safe name.
+        if [[ "${RUNNER_OS:-}" == "Windows" ]]; then py=python; else py=python3; fi
+        "$py" tool/release_version.py stamp --version "$VERSION_INPUT"
+        if [[ "$REQUIRE_NOTES" == "true" ]]; then
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//')
+          "$py" tool/release_version.py notes --version "$version" > /dev/null
+        fi

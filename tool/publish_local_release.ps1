@@ -28,15 +28,7 @@ try {
     if (git status --porcelain) { throw 'Commit all changes before publishing.' }
     $versionLine = Select-String -Path 'pubspec.yaml' -Pattern '^version:\s*(\S+)' | Select-Object -First 1
     $fullVersion = $versionLine.Matches[0].Groups[1].Value
-    if ($Platform -ne 'Current') {
-        $versionFeed = Get-Content -LiteralPath 'assets\version.json' -Raw -Encoding utf8 | ConvertFrom-Json
-        $platformKey = $Platform.ToLowerInvariant()
-        $platformVersion = $versionFeed.platforms.$platformKey
-        if (-not $platformVersion.version -or -not $platformVersion.build_number) {
-            throw "assets/version.json is missing the $Platform platform version."
-        }
-        $fullVersion = "$($platformVersion.version)+$($platformVersion.build_number)"
-    }
+    # pubspec.yaml is the one version source for every platform.
     $displayVersion = $fullVersion.Split('+')[0]
     $artifactVersion = $fullVersion.Replace('+', '-')
     if ($Tag -ne "v$displayVersion") { throw "Tag $Tag does not match pubspec version v$displayVersion." }

@@ -103,6 +103,8 @@ jobs:
         run: python tool/audit_repository.py
       - name: Text styles
         run: python tool/check_text_styles.py
+      - name: Version
+        run: python tool/release_version.py check
       - name: Tool tests
         env:
           # PowerShell device-harness tests target the Windows workstation.

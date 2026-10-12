@@ -37,19 +37,8 @@ $repositoryFullVersion = $versionLine.Matches[0].Groups[1].Value
 $fullVersion = $repositoryFullVersion
 $displayVersion = $fullVersion.Split('+')[0]
 $buildNumber = if ($fullVersion.Contains('+')) { $fullVersion.Split('+')[1] } else { '1' }
-if ($Target -eq 'WindowsX64') {
-    # Maintained platforms can intentionally be released at different
-    # versions. Always build Windows from its platform feed entry rather than
-    # silently stamping the newer Android/pubspec version onto the EXE.
-    $versionFeedPath = Join-Path $repoRoot 'assets\version.json'
-    $versionFeed = Get-Content -LiteralPath $versionFeedPath -Raw -Encoding utf8 | ConvertFrom-Json
-    if (-not $versionFeed.platforms.windows.version -or -not $versionFeed.platforms.windows.build_number) {
-        throw 'assets/version.json is missing the Windows platform version.'
-    }
-    $displayVersion = [string]$versionFeed.platforms.windows.version
-    $buildNumber = [string]$versionFeed.platforms.windows.build_number
-    $fullVersion = "$displayVersion+$buildNumber"
-}
+# pubspec.yaml is the one version source (tool/release_version.py); the
+# update feed follows a published release and is never read for a build.
 $artifactVersion = $fullVersion.Replace('+', '-')
 $artifactDirectory = if ($CandidateLabel) { "$artifactVersion-$CandidateLabel" } else { $artifactVersion }
 $output = Join-Path $repoRoot "local-artifacts\$artifactDirectory"

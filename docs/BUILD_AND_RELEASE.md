@@ -209,9 +209,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/flutterw.ps1 pub run en
 
 第三方地址不属于本仓库的镜像，脚本不会改写：`third_party/media_kit/hook/native_bundles.json` 里 Predidit 的 libmpv 构建、`tool/prefetch_android_native.ps1` 里 akashskypatel 的 ffmpeg-kit builders。`docs/` 下的历史记录同样保持原样。
 
+## 版本号
+
+版本号只有一个来源：发布工作流 **PureLive All-Platform Release** 的 `version` 输入（例如 `3.2.2`）。其余全部由 `tool/release_version.py` 派生，不要手改：
+
+| 派生项 | 由谁写入 |
+|---|---|
+| `pubspec.yaml` 的 `version: 3.2.2+<构建号>` | 每个构建任务在构建前写入自己的工作区；发布成功后由工作流提交回 `master`。版本变化时构建号自动加 1，重复构建同一版本则不变 |
+| 安装包与文件名、Android versionName/Code、iOS/macOS 版本、Windows 安装器版本 | Flutter 与打包工具读取上面写入的 `pubspec.yaml` |
+| 标签与 Release 名 `v3.2.2` | 发布任务 |
+| Release 正文的“本次更新”、应用内更新说明 | `RELEASE_NOTES.md` 的 `# Pure Live v3.2.2` 一节；缺少这一节时，发布在构建开始前就会失败 |
+| `assets/version.json`（应用内更新源） | 发布成功后由工作流生成并提交。本次未构建的平台保留原来的条目，不会被提示一个不存在的安装包 |
+
+`version` 留空时沿用 `pubspec.yaml` 当前的版本，适合只出测试包。CI 的 `Version` 检查保证更新源不会领先于 `pubspec.yaml`。
+
+发布步骤：在 `RELEASE_NOTES.md` 写好新版本一节并推送 → 运行发布工作流，`version` 填新版本号并勾选 `create_release`。
+
 ## 发布检查清单
 
-1. 更新 `pubspec.yaml`、`assets/version.json` 与 `RELEASE_NOTES.md`。
+1. 在 `RELEASE_NOTES.md` 写好新版本一节（版本号本身由发布工作流写入，见上文）。
 2. 运行 `tool/local_ci.ps1 -Scope Full` 一次。
 3. 按本轮发布范围串行运行 `tool/build_local_release.ps1 -Target <目标> -Configuration Release -SkipQuality`，逐个平台核对产物、构建记录和 SHA-256。
 4. 当前任务明确安排设备验收时，再运行 `tool/install_android_local.ps1` 覆盖安装并启动；正式 Release 使用仓库持久签名验证升级链。

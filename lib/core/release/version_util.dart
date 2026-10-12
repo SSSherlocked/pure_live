@@ -36,7 +36,6 @@ class VersionUtil {
 
   static String latestVersion = '';
   static int? latestBuildNumber;
-  static int latestVersionNum = 0;
   static String latestUpdateLog = '';
   static bool prerelease = false;
   static String downloadUrl = '';
@@ -174,8 +173,6 @@ class VersionUtil {
 
     latestVersion = parsedVersion;
 
-    latestVersionNum = _versionInt(selected['version_num']) ?? 0;
-
     latestBuildNumber = parsedBuildNumber;
 
     latestUpdateLog = selected['version_desc']?.toString() ?? '';
@@ -285,7 +282,6 @@ class VersionUtil {
 
     latestBuildNumber = buildNumber > 0 ? buildNumber : null;
 
-    latestVersionNum = 0;
     latestUpdateLog = '';
     prerelease = false;
     downloadUrl = '';

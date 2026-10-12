@@ -51,14 +51,20 @@ def run_step(script, directory, **values):
 
 @unittest.skipUnless(BASH, 'Set BASH_EXE to a local Bash executable')
 class ReleaseWorkflowDataTest(unittest.TestCase):
-    def test_tag_validation_treats_input_as_data(self):
-        cases = (('v3.2.0', 0), ('', 1), ('v3.2', 1), ('$(touch INJECTION_MARKER)', 1))
-        for workflow in WORKFLOWS:
-            for tag, expected in cases:
-                with self.subTest(workflow=workflow, tag=tag), tempfile.TemporaryDirectory() as directory:
-                    result = run_step(step_script(workflow, 'Validate release tag'), directory, TAG=tag)
-                    self.assertEqual(result.returncode, expected, result.stderr)
-                    self.assertFalse((Path(directory) / 'INJECTION_MARKER').exists())
+    def test_version_input_is_validated_as_data(self):
+        # The workflow's only free-form input; tool/release_version.py stamp
+        # (run by .github/actions/get-version) validates it.
+        cases = (('3.2.2', 0), ('v3.2.2', 0), ('', 0), ('v3.2', 1), ('3.1.0', 1), ('$(touch INJECTION_MARKER)', 1))
+        for version, expected in cases:
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'pubspec.yaml').write_text('name: x\nversion: 3.2.1+4110\n', encoding='utf-8')
+                result = subprocess.run(
+                    [sys.executable, str(ROOT / 'tool/release_version.py'), '--root', directory, 'stamp', '--version', version],
+                    cwd=directory, capture_output=True, encoding='utf-8', timeout=10,
+                )
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                self.assertFalse((root / 'INJECTION_MARKER').exists())
 
     def test_release_markdown_is_preserved_without_execution(self):
         descriptions = (

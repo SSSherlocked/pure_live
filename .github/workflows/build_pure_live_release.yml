@@ -19,7 +19,7 @@ on:
         type: boolean
         default: true
       build_macos:
-        description: Build macOS universal application archive
+        description: Build macOS Apple Silicon and Intel archives
         required: true
         type: boolean
         default: true
@@ -38,11 +38,15 @@ on:
         required: true
         type: boolean
         default: false
-      release_tag:
-        description: Release tag (e.g. v1.0.0) – required if create_release is true
-        required: true
+      version:
+        description: >-
+          Version, e.g. 3.2.2. Builds, installers, file names, the tag (v3.2.2)
+          and the release all use it; a release writes it back to pubspec.yaml
+          and the update feed. Empty keeps the current pubspec version.
+          A release needs a "# Pure Live v<version>" section in RELEASE_NOTES.md.
+        required: false
         type: string
-        default: "v3.2.0"
+        default: ""
 permissions:
   contents: read
 concurrency:
@@ -127,6 +131,11 @@ jobs:
           java-version: "26"
           cache: gradle
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: ${{ inputs.create_release }}
       - name: Configure Android signing
         shell: bash
         env:
@@ -169,8 +178,6 @@ jobs:
             --split-per-abi \
             --target-platform android-arm64 \
             --dart-define=PURELIVE_BUILD_SOURCE=github-manual
-      - uses: ./.github/actions/get-version
-        id: version
       - name: Rename Android APK
         shell: bash
         run: |
@@ -206,6 +213,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -227,8 +239,6 @@ jobs:
           if (Test-Path $source) {
             Copy-Item $source $target -Force
           }
-      - uses: ./.github/actions/get-version
-        id: version
       - name: Package Windows EXE
         shell: pwsh
         run: |
@@ -363,6 +373,11 @@ jobs:
             libxfixes-dev \
             libxcb1-dev
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: ${{ inputs.create_release }}
       - name: Verify Flutter SDK
         run: flutter --version
       - name: Resolve packages
@@ -377,8 +392,6 @@ jobs:
           flutter build linux \
             --release \
             --dart-define=PURELIVE_BUILD_SOURCE=github-manual
-      - uses: ./.github/actions/get-version
-        id: version
       - name: Create portable archives
         shell: bash
         run: |
@@ -450,6 +463,11 @@ jobs:
           sudo xcode-select --switch "$xcode_path/Contents/Developer"
           xcodebuild -version
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -457,8 +475,6 @@ jobs:
           dart run enven \
             --env-files .env,.env.prod \
             --class-name AppConfig
-      - uses: ./.github/actions/get-version
-        id: version
       - name: Build macOS release
         run: |
           flutter build macos \
@@ -560,6 +576,11 @@ jobs:
           sudo xcode-select --switch "$xcode_path/Contents/Developer"
           xcodebuild -version
       - uses: ./.github/actions/setup-flutter
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -567,8 +588,6 @@ jobs:
           dart run enven \
             --env-files .env,.env.prod \
             --class-name AppConfig
-      - uses: ./.github/actions/get-version
-        id: version
       - name: Build iOS device application
         run: |
           flutter build ios \
@@ -687,26 +706,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Validate release tag
-        shell: bash
-        env:
-          TAG: ${{ inputs.release_tag }}
-        run: |
-          set -euo pipefail
-          if [[ -z "$TAG" ]]; then
-            echo "release_tag is required when create_release=true."
-            exit 1
-          fi
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid release tag: $TAG"
-            echo "Expected format: v1.2.3"
-            exit 1
-          fi
+      # The commit that was built, not whatever master is by now.
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: master
           fetch-depth: 0
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: "true"
       - name: Download all build artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v7.0.1
         with:
@@ -715,18 +724,27 @@ jobs:
         shell: bash
         run: |
           find artifacts -type f -print | sort
-      - name: Read version description
-        id: version
-        uses: juliangruber/read-file-action@271ff311a4947af354c6abcd696a306553b9ec18 # v1
-        with:
-          path: assets/version.json
+      # 本次更新: the version's section of RELEASE_NOTES.md.
+      - name: Release notes
+        id: notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          python3 tool/release_version.py notes --version "$VERSION" --out release_notes.md
+          {
+            echo "text<<PURELIVE_NOTES_EOF"
+            cat release_notes.md
+            echo "PURELIVE_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Build Release Body
         id: release_body
         shell: bash
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
           REPOSITORY: ${{ github.repository }}
-          RELEASE_DESCRIPTION: ${{ fromJson(steps.version.outputs.content).version_desc }}
+          RELEASE_DESCRIPTION: ${{ steps.notes.outputs.text }}
         run: |
           set -euo pipefail
           cat << EOF > release_body.txt
@@ -760,8 +778,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
-          tag_name: ${{ inputs.release_tag }}
-          name: ${{ inputs.release_tag }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           body_path: ${{ steps.release_body.outputs.body_path }}
           prerelease: false
           generate_release_notes: false
@@ -772,7 +791,7 @@ jobs:
             artifacts/**/*
   update-json:
     timeout-minutes: 15
-    name: Update releases.json
+    name: Write back the version, the update feed and releases.json
     if: ${{ always() && inputs.create_release && needs.publish-release.result == 'success' }}
     needs:
       - publish-release
@@ -785,10 +804,23 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
+      # pubspec.yaml and the update feed follow the published version: only a
+      # release that exists is ever offered to the app.
+      - uses: ./.github/actions/get-version
+        id: version
+        with:
+          version: ${{ inputs.version }}
+          require_notes: "true"
+      - name: Update the update feed (assets/version.json)
+        shell: bash
+        env:
+          BUILT: >-
+            ${{ inputs.build_android && 'android,' || '' }}${{ inputs.build_windows && 'windows,' || '' }}${{ inputs.build_linux && 'linux,' || '' }}${{ inputs.build_macos && 'macos,' || '' }}${{ inputs.build_ios && 'ios' || '' }}
+        run: python3 tool/release_version.py feed --built "$BUILT"
       - name: Update assets/releases.json
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
@@ -838,19 +870,21 @@ jobs:
               encoding="utf-8",
           )
           PY
-      - name: Commit and Push releases.json
+      - name: Commit and push the version and indexes
         shell: bash
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          FULL_VERSION: ${{ steps.version.outputs.version }}+${{ steps.version.outputs.build_number }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ -z "$(git status --porcelain -- assets/releases.json)" ]]; then
-            echo "assets/releases.json has no changes."
+          files=(pubspec.yaml assets/version.json assets/releases.json)
+          if [[ -z "$(git status --porcelain -- "${files[@]}")" ]]; then
+            echo "Version and indexes are already up to date."
             exit 0
           fi
-          git add assets/releases.json
-          git commit -m "chore: update releases.json for $RELEASE_TAG [skip ci]"
+          git add "${files[@]}"
+          git commit -m "chore: release $RELEASE_TAG ($FULL_VERSION) [skip ci]"
           git pull --rebase origin master
           git push origin master

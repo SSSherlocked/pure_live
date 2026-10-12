@@ -96,8 +96,9 @@ class DanmakuSectionTabBar extends StatelessWidget {
         physics: const PureLiveBoundedScrollPhysics(),
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
         // One role above the list text: the section names lead the panel.
-        labelStyle: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w500),
+        // Bold whether selected or not; the colour marks the current tab.
+        labelStyle: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700),
+        unselectedLabelStyle: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700),
         controller: controller,
         // Five equal-width sections share a narrow panel: shrink a label that
         // does not fit instead of letting neighbouring labels overlap.

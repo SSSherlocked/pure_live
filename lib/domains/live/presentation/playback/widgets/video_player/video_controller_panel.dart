@@ -186,9 +186,10 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
           final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: barHeight);
           // Phones tighten the inline player's floating controls.
+          final layout = AppLayout.of(context);
           final compactControls = useCompactInlinePlayerControls(
             fullscreen: GlobalPlayerService.instance.player.fullscreenUI,
-            mobile: PlatformUtils.isMobile,
+            phoneLayout: layout.phone,
           );
 
           final IconData iconData = currentVolume <= 0
@@ -290,7 +291,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       }
                       // Touch: a second tap hides visible controls (upstream #886),
                       // as in other video apps. Desktop clicks keep revealing them.
-                      if (PlatformUtils.isMobile &&
+                      if (layout.touch &&
                           controller.showController.value &&
                           GlobalPlayerService.instance.player.isPlayingNow) {
                         controller.toggleController();
@@ -1141,7 +1142,7 @@ class BottomActionBar extends StatelessWidget {
                     return _buildPortraitFullscreenLayout();
                   }
                   final compact = constraints.maxWidth < 760;
-                  final left = _buildLeftActions();
+                  final left = _buildLeftActions(wideLayout: AppLayout.of(context).wide);
                   final right = _buildRightActions(compact: compact);
 
                   if (fullscreen) {
@@ -1160,7 +1161,7 @@ class BottomActionBar extends StatelessWidget {
                   final inlineRight = _buildRightActions(
                     compact: false,
                     includeExpand: !pinExpand,
-                    includeStreamSelector: !PlatformUtils.isMobile,
+                    includeStreamSelector: !AppLayout.of(context).phone,
                   );
                   return Row(
                     children: [
@@ -1237,7 +1238,7 @@ class BottomActionBar extends StatelessWidget {
 
   /// The same group in every mode — inline, fullscreen and portrait
   /// fullscreen — so a control never appears in one and not another.
-  Widget _buildLeftActions() {
+  Widget _buildLeftActions({bool wideLayout = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1249,9 +1250,9 @@ class BottomActionBar extends StatelessWidget {
             controller: controller,
             // Desktop always, and fullscreen phones, open it as the docked side
             // panel the 关注 panel uses.
-            dockedInLandscape:
-                PlatformUtils.isDesktop ||
-                (PlatformUtils.isMobile && GlobalPlayerService.instance.player.fullscreenUI),
+            // The wide layout and fullscreen open it as the docked side panel
+            // the 关注 panel uses.
+            dockedInLandscape: wideLayout || GlobalPlayerService.instance.player.fullscreenUI,
             // The room keeps its bar up while the panel is open, exactly as the
             // private button did; the pinning is the caller's policy, not the
             // shared button's.

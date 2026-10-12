@@ -16,7 +16,7 @@ import 'package:pure_live/core/platform/macos_window_button_inset.dart';
 /// only what they paint, never their structure.
 ///
 /// From the outside in:
-/// - text scale for the whole app;
+/// - text scale for the whole app, and the [AppLayout] every page reads;
 /// - window chrome: the Windows/Linux title bar, or the macOS inset that keeps
 ///   content clear of the traffic-light buttons;
 /// - the Material UI theme bridged in ([MaterialUiThemeBridge]);
@@ -40,9 +40,21 @@ class AppShell extends StatelessWidget {
     } else if (PlatformUtils.isMacOS) {
       content = MacOSWindowButtonInset(child: content);
     }
+    // The layout every page reads (AppLayout.of): resolved here once from the
+    // viewer's 显示模式 and the window width, not re-measured per page.
+    final layoutChild = content;
+    final width = MediaQuery.sizeOf(context).width;
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
-      child: content,
+      child: Obx(() {
+        final layout = AppLayout.resolve(
+          mode: SettingsService.to.theme.displayMode,
+          width: width,
+          mobilePlatform: PlatformUtils.isMobile,
+        );
+        AppLayout.current = layout;
+        return AppLayoutScope(layout: layout, child: layoutChild);
+      }),
     );
   }
 }

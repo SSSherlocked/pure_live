@@ -6,12 +6,12 @@ const double compactPlayerActionExtent = 36;
 /// How much the compact layout shrinks icons (24 → 20, 28 → 23).
 const double compactPlayerIconScale = 0.82;
 
-/// Whether a player uses the compact control layout: every phone whose player
-/// is not fullscreen. The inline player is a strip of the page, so its
-/// floating controls are smaller and closer together; fullscreen keeps the
+/// Whether a player uses the compact control layout: the phone layout when the
+/// player is not fullscreen. The inline player is then a strip of the page, so
+/// its floating controls are smaller and closer together; fullscreen keeps the
 /// full size.
-bool useCompactInlinePlayerControls({required bool fullscreen, required bool mobile}) {
-  return mobile && !fullscreen;
+bool useCompactInlinePlayerControls({required bool fullscreen, required bool phoneLayout}) {
+  return phoneLayout && !fullscreen;
 }
 
 /// Tells the player's action buttons below it whether to use the compact

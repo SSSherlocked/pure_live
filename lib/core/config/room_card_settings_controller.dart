@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 
@@ -341,7 +340,8 @@ class RoomCardSettingsController extends GetxController {
     super.onClose();
   }
 
-  RoomCardViewport get currentViewport => PlatformUtils.isMobile ? RoomCardViewport.mobile : RoomCardViewport.desktop;
+  /// The phone layout uses the phone preset, the wide layout the desktop one.
+  RoomCardViewport get currentViewport => AppLayout.current.wide ? RoomCardViewport.desktop : RoomCardViewport.mobile;
 
   Rx<RoomCardAppearance> configRxFor(RoomCardViewport viewport) {
     return viewport == RoomCardViewport.mobile ? mobileConfig : desktopConfig;

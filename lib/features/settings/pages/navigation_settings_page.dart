@@ -176,7 +176,8 @@ class NavigationSettingsPage extends StatelessWidget {
               ),
             );
           }),
-          if (PlatformUtils.isMobile)
+          // Only the phone layout has a bottom bar.
+          if (AppLayout.of(context).phone)
             Padding(
               key: const ValueKey('navigation-single-tab-hint'),
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

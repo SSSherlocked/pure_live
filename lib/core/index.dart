@@ -6,6 +6,7 @@ export 'theme/index.dart';
 export 'utils/index.dart';
 export 'utils/string_to_boolean.dart';
 export 'widgets/index.dart';
+export 'layout/app_layout.dart';
 export 'package:flutter_color/flutter_color.dart';
 export 'package:flutter/material.dart';
 export 'package:permission_handler/permission_handler.dart';

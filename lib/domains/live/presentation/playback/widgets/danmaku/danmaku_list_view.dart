@@ -8,7 +8,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:flame_barrage/flame_barrage.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
@@ -238,7 +237,7 @@ class DanmakuListViewState extends State<DanmakuListView> {
     // path.
     if (isDanmakuUserScrollStart(
       notification,
-      acceptDirectionOnlyUserScroll: PlatformUtils.isDesktop,
+      acceptDirectionOnlyUserScroll: AppLayout.of(context).pointer,
       hasActivePointer: _activeScrollPointers > 0,
     )) {
       _pauseAutoScroll();

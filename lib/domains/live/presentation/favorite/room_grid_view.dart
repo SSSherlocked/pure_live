@@ -1,18 +1,14 @@
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
 
+/// Pull-to-refresh belongs to every layout except paged lists (wide + pointer):
+/// a touch tablet keeps it, a desktop window keeps its page bar.
 @visibleForTesting
-bool shouldWrapFavoritePullToRefresh({required double viewportWidth, required bool isMobilePlatform}) {
-  // A wide Android/iOS tablet still uses the touch-first home shell and must
-  // keep pull-to-refresh. Width alone only selects the responsive grid; it is
-  // not a reliable desktop-platform signal.
-  return isMobilePlatform || viewportWidth <= 680;
-}
+bool shouldWrapFavoritePullToRefresh(AppLayout layout) => !layout.pagedLists;
 
 class RoomGridView extends GetView<FavoriteController> {
   const RoomGridView({
@@ -106,7 +102,7 @@ class RoomGridView extends GetView<FavoriteController> {
             );
           }
 
-          if (!shouldWrapFavoritePullToRefresh(viewportWidth: width, isMobilePlatform: PlatformUtils.isMobile)) {
+          if (!shouldWrapFavoritePullToRefresh(AppLayout.of(context))) {
             return buildScrollable(const PureLiveScrollPhysics(parent: AlwaysScrollableScrollPhysics()));
           }
 

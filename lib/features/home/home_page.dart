@@ -233,7 +233,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
       onPopInvokedWithResult: onBackButtonPressed,
       child: LayoutBuilder(
         builder: (context, constraint) {
-          final bool isTablet = constraint.maxWidth > 680;
+          // The display mode decides, not this page's own measurement.
+          final bool isTablet = AppLayout.of(context).wide;
 
           return Obx(() {
             final activeMenuIds = List<String>.from(SettingsService.to.app.savedMenuIds.v);

@@ -14,8 +14,27 @@ class HomeMobileView extends StatelessWidget {
     required this.onDestinationSelected,
   });
 
+  /// Widest the phone layout grows: phone mode on a large screen keeps a
+  /// phone-width column instead of stretching cards and the bottom bar.
+  static const double maxContentWidth = 600;
+
   @override
   Widget build(BuildContext context) {
+    // One widget shape at every width, so crossing the breakpoint never
+    // remounts the pages; only the width limit changes.
+    final limit = MediaQuery.sizeOf(context).width > AppLayout.wideBreakpoint ? maxContentWidth : double.infinity;
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: limit),
+          child: _buildScaffold(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold() {
     return Scaffold(
       bottomNavigationBar: Obx(() {
         final List<NavigationDestination> destinations = [];

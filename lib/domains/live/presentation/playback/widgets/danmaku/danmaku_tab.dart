@@ -1,5 +1,4 @@
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
@@ -59,7 +58,7 @@ class DanmakuTabView extends GetView<LivePlayController> {
                             ? loading()
                             : DanmakuSettingsPage(
                                 controller: videoController,
-                                scale: PlatformUtils.isMobile ? 1 : 0.8,
+                                scale: AppLayout.of(context).touch ? 1 : 0.8,
                                 footer: const KeywordBlockPage(asSection: true),
                               ),
                       LivePanelTab.follow => FollowRoomsPage(

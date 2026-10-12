@@ -90,7 +90,7 @@ class ThemeSettingsPage extends GetView<SettingsService> {
               subtitle: i18n("main_axis_spacing_subtitle"),
               onTap: () => showMainAxisSpacingDialog(context),
             ),
-            if (Get.width > 680)
+            if (AppLayout.of(context).pagedLists)
               context.buildTile(
                 icon: Remix.pages_line,
                 title: i18n('page_settings'),

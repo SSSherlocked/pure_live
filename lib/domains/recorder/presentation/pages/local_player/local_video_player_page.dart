@@ -4,7 +4,6 @@ import 'dart:async';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:media_core_ui/media_core_ui.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:media_core/media_core.dart' show MediaPlayerView;
@@ -39,7 +38,9 @@ class LocalVideoPlayerPage extends GetView<LocalVideoPlayerController> {
       controller: controller,
       child: _RecordingBackBoundary(
         controller: controller,
-        child: Get.width <= 680 ? _MobileLayout(controller: controller) : _DesktopLayout(controller: controller),
+        child: AppLayout.of(context).phone
+            ? _MobileLayout(controller: controller)
+            : _DesktopLayout(controller: controller),
       ),
     );
   }
@@ -320,7 +321,7 @@ class _RecordingPlayerAreaState extends State<_PlayerArea> {
                   // On a phone the fullscreen shape draws its own top bar, so the
                   // row is skipped there to avoid two copies of the same buttons
                   // landing on top of each other.
-                  if (Get.width > 680 && !(controller.fullscreenActive.value && _isTouchDevice))
+                  if (AppLayout.of(context).wide && !(controller.fullscreenActive.value && _isTouchDevice))
                     Positioned(
                       top: 8 + _edgeInsets(context).top,
                       right: 8 + _edgeInsets(context).right,
@@ -918,14 +919,14 @@ class _RecordingControlBar extends StatelessWidget {
                                 controller: controller,
                                 iconColor: Colors.white,
                                 // Desktop opens the docked side panel, as in a room.
-                                dockedInLandscape: PlatformUtils.isDesktop,
+                                dockedInLandscape: AppLayout.of(context).wide,
                               ),
                             ],
                           )
                         : const SizedBox.shrink(),
                   ),
-                  if (Get.width > 680) _VolumeControls(controller: controller, showSlider: showVolumeSlider),
-                  if (Get.width > 680) _RateButton(controller: controller),
+                  if (AppLayout.of(context).wide) _VolumeControls(controller: controller, showSlider: showVolumeSlider),
+                  if (AppLayout.of(context).wide) _RateButton(controller: controller),
                   const Spacer(),
                   _FitButton(),
                   Obx(

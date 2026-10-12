@@ -1,6 +1,5 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 
@@ -62,8 +61,8 @@ class _FavoriteFloatingButtonState extends State<FavoriteFloatingButton> {
       if (widget.compact) {
         final icon = Icon(isFavorite ? Remix.heart_3_fill : Remix.heart_3_line, size: 19);
         void onPressed() => _toggleFavorite(context, isFavorite);
-        // Phones show the bare icon, like the other header actions.
-        if (PlatformUtils.isMobile) {
+        // Touch layouts show the bare icon, like the other header actions.
+        if (AppLayout.of(context).touch) {
           return Tooltip(
             message: label,
             child: IconButton(

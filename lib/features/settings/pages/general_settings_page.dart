@@ -33,6 +33,23 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               subtitle: i18n("theme_customization_desc"),
               onTap: () => Get.to(() => const ThemeSettingsPage()),
             ),
+            Obx(() {
+              final mode = SettingsService.to.theme.displayMode;
+              // A wide layout on a phone-sized screen works, but cramped.
+              final cramped =
+                  MediaQuery.sizeOf(context).shortestSide < 600 &&
+                  (mode == DisplayMode.tablet || mode == DisplayMode.desktop);
+              return context.buildTile(
+                icon: Icons.devices_rounded,
+                title: i18n('display_mode'),
+                subtitle:
+                    '${i18n('display_mode_${mode.name}')} · '
+                    '${i18n(cramped ? 'display_mode_narrow_warning' : 'display_mode_${mode.name}_desc')}',
+                isLong: true,
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showDisplayModeDialog(context),
+              );
+            }),
             context.buildTile(
               icon: Remix.menu_line,
               title: i18n("navigation_display_settings"),
@@ -360,6 +377,23 @@ class GeneralSettingsPage extends GetView<SettingsService> {
         ),
       ),
     );
+  }
+
+  /// Picks 显示模式 and rebuilds the whole app once, so controllers that cached
+  /// the previous layout (paged lists, room card presets) follow at once.
+  Future<void> _showDisplayModeDialog(BuildContext context) async {
+    final theme = SettingsService.to.theme;
+    final value = await showDialog<String>(
+      context: context,
+      builder: (_) => ThemeChoiceDialog<String>(
+        title: i18n('display_mode'),
+        value: theme.displayMode.name,
+        items: {for (final mode in DisplayMode.values) mode.name: i18n('display_mode_${mode.name}')},
+      ),
+    );
+    if (value == null || value == theme.displayMode.name) return;
+    theme.displayModeName.v = value;
+    await Get.forceAppUpdate();
   }
 
   void _showWindowSizeDialog(BuildContext context) {

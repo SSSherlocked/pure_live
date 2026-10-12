@@ -31,6 +31,11 @@ class ThemeSettingsController extends GetxController {
   /// Preferred width of the live room side panel in the split layout.
   final RxDouble livePanelWidth = hiveDouble('livePanelWidth', LivePanelWidth.defaultValue);
 
+  /// 显示模式: phone, tablet or desktop layout, or follow the screen (default).
+  final RxString displayModeName = hiveString('displayMode', DisplayMode.auto.name);
+
+  DisplayMode get displayMode => DisplayMode.parse(displayModeName.v);
+
   List<LivePanelTab> get resolvedLivePanelTabOrder => LivePanelTab.decode(livePanelTabOrder.v);
 
   String get resolvedThemeModeName => normalizeThemeMode(themeModeName.v);
@@ -170,6 +175,7 @@ class ThemeSettingsController extends GetxController {
       'mainAxisSpacing': resolvedMainAxisSpacing,
       'livePanelTabOrder': normalizeLivePanelTabOrder(livePanelTabOrder.v),
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
+      'displayMode': displayMode.name,
     };
   }
 
@@ -187,6 +193,7 @@ class ThemeSettingsController extends GetxController {
         (json['livePanelTabOrder'] ?? LivePanelTab.defaultOrderValue) as String,
       ),
       'livePanelWidth': _parseLivePanelWidth(json['livePanelWidth']),
+      'displayMode': DisplayMode.parse(json['displayMode']).name,
     };
   }
 
@@ -201,6 +208,7 @@ class ThemeSettingsController extends GetxController {
     mainAxisSpacing.v = parsed['mainAxisSpacing'];
     livePanelTabOrder.v = parsed['livePanelTabOrder'];
     livePanelWidth.v = parsed['livePanelWidth'];
+    displayModeName.v = parsed['displayMode'];
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
@@ -216,6 +224,7 @@ class ThemeSettingsController extends GetxController {
       'mainAxisSpacing': parsed['mainAxisSpacing'],
       'livePanelTabOrder': parsed['livePanelTabOrder'],
       'livePanelWidth': parsed['livePanelWidth'],
+      'displayMode': parsed['displayMode'],
     };
   }
 

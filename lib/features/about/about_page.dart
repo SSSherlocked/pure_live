@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:remixicon/remixicon.dart'; // 🌟 Imported Remix Icons pack
 
 class AboutPage extends StatefulWidget {
@@ -36,8 +35,8 @@ class _AboutPageState extends State<AboutPage> {
                     return Transform.scale(scale: value, child: child);
                   },
                   child: Container(
-                    width: PlatformUtils.isMobile ? 80 : 96,
-                    height: PlatformUtils.isMobile ? 80 : 96,
+                    width: AppLayout.of(context).phone ? 80 : 96,
+                    height: AppLayout.of(context).phone ? 80 : 96,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.08), width: 1),

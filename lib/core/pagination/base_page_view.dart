@@ -1,7 +1,6 @@
 import 'package:pure_live/core/widgets/refresh_indicators.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/pagination/base_controller.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 
 class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends StatelessWidget {
   final C controller;
@@ -53,8 +52,8 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
   @override
   Widget build(BuildContext context) {
     final bool showBtn = showScrollToTopBtn ?? true;
-    final double currentWidth = context.width;
-    final bool isDesktop = currentWidth > 680 && !PlatformUtils.isMobile;
+    // Paged lists with a page bar belong to the wide pointer (desktop) layout.
+    final bool isDesktop = AppLayout.of(context).pagedLists;
 
     double bottomPadding = isDesktop ? (customDesktopBottomPadding ?? 70) : (customMobileBottomPadding ?? 20);
 

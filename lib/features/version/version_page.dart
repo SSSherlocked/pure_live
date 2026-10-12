@@ -287,7 +287,7 @@ class VersionPage extends GetView<VersionController> {
             final double maxWidth = constraints.maxWidth;
             final textScale = MediaQuery.textScalerOf(context).scale(1);
             int maxColumns = 2;
-            if (PlatformUtils.isDesktop && textScale <= 1.5) {
+            if (AppLayout.of(context).pointer && textScale <= 1.5) {
               maxColumns = maxWidth > 800 ? 4 : (maxWidth > 500 ? 3 : 2);
             }
 

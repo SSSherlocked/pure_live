@@ -201,7 +201,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
 
   void _showCellActions(MultiviewCellState state) {
     final isWide =
-        PlatformUtils.isDesktop &&
+        AppLayout.of(context).pointer &&
         MediaQuery.sizeOf(context).width > _wideBreakpoint &&
         _displayMode == _DisplayMode.normal;
     final hasQuality =
@@ -273,7 +273,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
     if (room == null) {
       _openPickerFor(
         state.index,
-        isWide: PlatformUtils.isDesktop && MediaQuery.sizeOf(context).width > _wideBreakpoint,
+        isWide: AppLayout.of(context).pointer && MediaQuery.sizeOf(context).width > _wideBreakpoint,
       );
       return;
     }
@@ -325,7 +325,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
           ),
           body: LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = PlatformUtils.isDesktop && constraints.maxWidth > _wideBreakpoint;
+              final isWide = AppLayout.of(context).pointer && constraints.maxWidth > _wideBreakpoint;
               return Column(
                 children: [
                   _buildToolbar(),

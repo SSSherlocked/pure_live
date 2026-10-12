@@ -21,8 +21,10 @@ import 'package:pure_live/domains/live/data/platforms/sites.dart';
 
 enum LivePlayNormalLayoutKind { portraitStack, desktopSplit }
 
-LivePlayNormalLayoutKind resolveLivePlayNormalLayout(double width) {
-  return width <= 680 ? LivePlayNormalLayoutKind.portraitStack : LivePlayNormalLayoutKind.desktopSplit;
+/// The room page follows the app layout: stacked in the phone layout,
+/// side by side in the wide one.
+LivePlayNormalLayoutKind resolveLivePlayNormalLayout(AppLayout layout) {
+  return layout.wide ? LivePlayNormalLayoutKind.desktopSplit : LivePlayNormalLayoutKind.portraitStack;
 }
 
 /// Stable normal-room composition shared by production and widget tests.
@@ -72,7 +74,7 @@ class LivePlayNormalLayout extends StatelessWidget {
             child: video,
           );
         }
-        if (resolveLivePlayNormalLayout(constraints.maxWidth) == LivePlayNormalLayoutKind.portraitStack) {
+        if (resolveLivePlayNormalLayout(AppLayout.of(context)) == LivePlayNormalLayoutKind.portraitStack) {
           final useAdaptivePortraitFrame =
               isPortraitSource && adaptivePortraitHeight && portraitLayoutMode != PortraitLayoutMode.compatibility;
           if (useAdaptivePortraitFrame) {
@@ -576,7 +578,7 @@ class LivePlayContent extends StatelessWidget {
   }
 
   Widget _buildNormalView(BuildContext context) {
-    final compactHeader = MediaQuery.sizeOf(context).width < 600;
+    final compactHeader = AppLayout.of(context).phone;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -590,7 +592,7 @@ class LivePlayContent extends StatelessWidget {
           final settings = SettingsService.to.player;
           final isPortrait = manager.isVerticalVideo.value;
           final useAdaptivePortraitFrame =
-              MediaQuery.sizeOf(context).width <= 680 &&
+              AppLayout.of(context).phone &&
               isPortrait &&
               settings.enablePortraitStreamAdaptation.v &&
               settings.portraitAdaptiveHeight.v &&

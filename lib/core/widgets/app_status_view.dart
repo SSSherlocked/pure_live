@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/utils/i18n.dart';
+import 'package:pure_live/core/layout/app_layout.dart';
 import 'package:pure_live/core/theme/app_text_styles.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -41,7 +42,7 @@ class _AppStatusViewState extends State<AppStatusView> {
   Widget _buildLoadingWidget(Color color) {
     final double size = widget.isMini
         ? 24
-        : Get.width > 680
+        : AppLayout.of(context).wide
         ? 32
         : 24;
     return LoadingAnimationWidget.threeArchedCircle(color: color, size: size);

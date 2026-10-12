@@ -10,12 +10,15 @@ import 'package:remixicon/remixicon.dart';
 /// The preview is the full export, so it carries each platform's cookie, the
 /// Douyu renewal key and the WebDAV password. None of that belongs on screen
 /// (or in a screenshot): the whole `cookie` section is masked, and so is any
-/// field elsewhere whose name says it is a credential. Only the length is kept,
-/// so the viewer can still see that a value is set.
+/// field elsewhere whose name says it is a credential. A set value becomes
+/// [hiddenConfigValue], drawn in grey, so the viewer still sees it is set.
 @visibleForTesting
 Map<String, dynamic> maskConfigSecrets(Map<String, dynamic> config) {
   return {for (final entry in config.entries) entry.key: _maskValue(entry.key, entry.value, inSecretSection: false)};
 }
+
+/// What a masked credential shows in the preview.
+const String hiddenConfigValue = '[hidden value]';
 
 const Set<String> _secretSections = <String>{'cookie'};
 const List<String> _secretKeyParts = <String>['cookie', 'password', 'passwd', 'token', 'secret', 'ltp0'];
@@ -37,7 +40,7 @@ Object? _maskValue(String key, Object? value, {required bool inSecretSection}) {
     return [for (final item in value) _maskValue(key, item, inSecretSection: secretSection)];
   }
   if (value is String && value.isNotEmpty && (secretSection || _isSecretKey(key))) {
-    return i18n('local_config_secret_masked', args: {'count': '${value.length}'});
+    return hiddenConfigValue;
   }
   return value;
 }
@@ -152,7 +155,26 @@ class _LocalConfigPreviewPageState extends State<LocalConfigPreviewPage> {
                       ],
                       border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3), width: 0.5),
                     ),
-                    child: JsonWidget(json: _configData, initialExpandDepth: 2),
+                    child: JsonWidget(
+                      json: _configData,
+                      initialExpandDepth: 2,
+                      // Flings keep scrolling, like the rest of the app.
+                      physics: const PureLiveScrollPhysics(),
+                      // A masked credential reads as a grey placeholder, not a
+                      // quoted string.
+                      nodeBuilder: (context, index, node, child) {
+                        if (node.value != hiddenConfigValue) return child;
+                        return Text.rich(
+                          TextSpan(
+                            children: [
+                              if (node.describeKey case final key?)
+                                TextSpan(text: key, style: TextStyle(color: theme.colorScheme.primary)),
+                              TextSpan(text: hiddenConfigValue, style: TextStyle(color: theme.hintColor)),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

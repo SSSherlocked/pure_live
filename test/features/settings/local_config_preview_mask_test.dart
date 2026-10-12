@@ -33,6 +33,7 @@ void main() {
     }
 
     final cookie = masked['cookie'] as Map;
+    expect(cookie['bilibiliCookie'], hiddenConfigValue);
     // Numbers and empty values say nothing secret and stay as they are.
     expect(cookie['douyuCookieSavedAt'], 1760000000);
     expect(cookie['huyaCookie'], '');

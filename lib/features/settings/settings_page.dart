@@ -5,7 +5,6 @@ import 'package:pure_live/features/settings/pages/local_config_preview_page.dart
 import 'package:pure_live/features/settings/pages/general_settings_page.dart';
 import 'package:pure_live/features/settings/pages/platform_settings_page.dart';
 import 'package:pure_live/features/settings/pages/cache_data_settings_page.dart';
-import 'package:pure_live/features/settings/pages/network_proxy_settings_page.dart';
 
 class SettingsPage extends GetView<SettingsService> {
   const SettingsPage({super.key});
@@ -45,8 +44,8 @@ class SettingsPage extends GetView<SettingsService> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          // One flat list: no group headings. Theme, background, navigation
-          // and refresh live inside 通用; 播放器内核 inside 视频; 备份与恢复
+          // One flat list: no group headings. Theme, navigation, refresh and
+          // the network proxy live inside 通用; 播放器内核 inside 视频; 备份与恢复
           // inside 数据管理与备份.
           context.buildModernCard([
             context.buildTile(
@@ -66,12 +65,6 @@ class SettingsPage extends GetView<SettingsService> {
               title: i18n("platform_settings"),
               subtitle: i18n("platform_settings_desc"),
               onTap: () => Get.to(() => const PlatformSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.global_line,
-              title: i18n("custom_network_proxy"),
-              subtitle: i18n("custom_network_proxy_desc"),
-              onTap: () => Get.to(() => const NetworkProxySettingsPage()),
             ),
             context.buildTile(
               icon: Remix.database_2_line,

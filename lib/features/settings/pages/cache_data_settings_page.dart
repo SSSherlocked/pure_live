@@ -159,6 +159,27 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
           context.buildGroupTitle(i18n("cache_and_data")),
           context.buildModernCard([
             Obx(() {
+              final customDirectory = SettingsService.to.cache.downloadDirectory.value.trim();
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  context.buildTile(
+                    icon: Remix.folder_2_line,
+                    title: i18n('download_directory'),
+                    subtitle: customDirectory.isEmpty ? i18n('download_directory_default_label') : customDirectory,
+                    isLong: true,
+                    onTap: _pickDownloadDirectory,
+                  ),
+                  if (customDirectory.isNotEmpty)
+                    context.buildTile(
+                      icon: Remix.refresh_line,
+                      title: i18n('download_directory_reset'),
+                      onTap: _resetDownloadDirectory,
+                    ),
+                ],
+              );
+            }),
+            Obx(() {
               final size = SettingsService.to.cache.cacheSizeMB.value;
               final turns = SettingsService.to.cache.refreshTurns.value;
               final busy = SettingsService.to.cache.isBusy;
@@ -215,27 +236,6 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
                     : () => _confirmClearCache(theme),
               ),
             ),
-            Obx(() {
-              final customDirectory = SettingsService.to.cache.downloadDirectory.value.trim();
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  context.buildTile(
-                    icon: Remix.folder_2_line,
-                    title: i18n('download_directory'),
-                    subtitle: customDirectory.isEmpty ? i18n('download_directory_default_label') : customDirectory,
-                    isLong: true,
-                    onTap: _pickDownloadDirectory,
-                  ),
-                  if (customDirectory.isNotEmpty)
-                    context.buildTile(
-                      icon: Remix.refresh_line,
-                      title: i18n('download_directory_reset'),
-                      onTap: _resetDownloadDirectory,
-                    ),
-                ],
-              );
-            }),
           ]),
           const SizedBox(height: 32),
         ],

@@ -130,10 +130,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
                   )
                 : null,
           ),
-        ]),
-        const SizedBox(height: 20),
-        context.buildGroupTitle(i18n("backup_settings")),
-        context.buildModernCard([
           context.buildTile(
             icon: Remix.folder_open_line,
             title: i18n("backup_directory"),

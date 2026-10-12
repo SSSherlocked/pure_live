@@ -21,7 +21,7 @@ Layering is `app -> core, shared, domains, features`; `core -> nothing above`;
 - `lib/shared/platforms/`: the site adapters (bilibili, douyu, huya, ...) and the
   platform contract (`live_site`, `live_danmaku`, `live_directory`, ...) that
   playback, recording and account all use.
-- `lib/domains/`: business domains (live, iptv, account, recorder, wallpaper),
+- `lib/domains/`: business domains (live, iptv, account, recorder),
   each self-contained as `data` + `domain` + `presentation`.
 - `lib/features/`: lightweight independent pages.
 - `test/`: deterministic Dart/Widget tests; `tool/probes/`: opt-in external/native probes.

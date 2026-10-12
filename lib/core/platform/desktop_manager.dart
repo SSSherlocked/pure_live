@@ -17,7 +17,6 @@ import 'package:pure_live/core/widgets/share_command_import_dialog.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 
-
 class DesktopTrayMenuCoordinator {
   Future<void>? _activeTransaction;
 
@@ -289,13 +288,7 @@ class CustomTitleBar extends StatelessWidget {
 
     return Obx(() {
       final isFullscreen = GlobalPlayerService.instance.player.isWindowFullscreen.value;
-      // With a wallpaper behind it, the title bar keeps a translucent wash of
-      // the colour it would otherwise paint: the picture reaches the top edge of
-      // the window while the app name and the window controls stay readable over
-      // any artwork.
-      final Color titleBarColor = isFullscreen || isDark ? Colors.black : theme.scaffoldBackgroundColor;
-      final bool wallpaperBehind = !isFullscreen && AppCanvasScope.ownedByBackgroundOf(context);
-      final bgColor = wallpaperBehind ? titleBarColor.withValues(alpha: kWallpaperSurfaceOpacity) : titleBarColor;
+      final bgColor = isFullscreen || isDark ? Colors.black : theme.scaffoldBackgroundColor;
       final iconColor = isFullscreen || isDark ? Colors.white.withValues(alpha: 0.75) : Colors.black;
       final currentSize = SettingsService.to.window.windowSize.value;
       final showSizeText = SettingsService.to.window.isTracking.value;

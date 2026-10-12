@@ -243,7 +243,7 @@ class PlayerSettingsController extends GetxController {
   final RxBool enablePortraitStreamAdaptation = hiveBool('enablePortraitStreamAdaptation', true);
 
   /// Wide room layout: the space around the picture takes the page colour
-  /// (or wallpaper) instead of black.
+  /// instead of black.
   final RxBool letterboxPageColor = hiveBool('letterboxPageColor', false);
   final RxBool portraitAdaptiveHeight = hiveBool('portraitAdaptiveHeight', true);
   final RxString portraitLayoutModeName = hiveString('portraitLayoutMode', PortraitLayoutMode.balanced.name);

@@ -8,8 +8,8 @@ import 'package:pure_live/features/settings/pages/font_family_manager_page.dart'
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
-import 'package:pure_live/domains/wallpaper/presentation/wallpaper_page.dart';
 import 'package:pure_live/features/settings/pages/navigation_settings_page.dart';
+import 'package:pure_live/features/settings/widgets/network_proxy_settings_section.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
 import 'package:pure_live/core/config/window_size_controller.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -32,12 +32,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               title: i18n("theme_customization"),
               subtitle: i18n("theme_customization_desc"),
               onTap: () => Get.to(() => const ThemeSettingsPage()),
-            ),
-            context.buildTile(
-              icon: Remix.image_line,
-              title: i18n("ui_background_settings"),
-              subtitle: i18n("background_entry_subtitle"),
-              onTap: () => Get.to(() => const WallpaperPage()),
             ),
             context.buildTile(
               icon: Remix.menu_line,
@@ -105,6 +99,23 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v.roundToDouble(),
               ),
             ),
+            // Caps the room and PiP danmaku frame rate (see
+            // DanmakuSettingsController.resolveAdaptiveDanmakuFps).
+            Obx(() {
+              final info = DisplayModeService.info.value;
+              final mode = SettingsService.to.app.refreshRateMode;
+              final suffix = info == null
+                  ? ''
+                  : ' · ${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
+              return context.buildTile(
+                title: i18n('danmaku_max_refresh_rate'),
+                subtitle: '${_refreshRateModeLabel(mode)} · ${_refreshRateModeDescription(mode)}$suffix',
+                icon: Remix.speed_up_line,
+                isLong: true,
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showRefreshRateModeDialog(context),
+              );
+            }),
             context.buildSwitchTile(
               title: i18n('chat_list_bubble'),
               subtitle: i18n('chat_list_bubble_subtitle'),
@@ -123,99 +134,81 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               onTap: () => showLanguageSelectDialog(context),
             ),
           ]),
-          // Only Android and Windows have entries left in 通用.
-          if (Platform.isAndroid || Platform.isWindows) ...[
+          // Only Windows has entries left in 通用.
+          if (Platform.isWindows) ...[
             const SizedBox(height: 20),
             context.buildGroupTitle(i18n("general")),
             context.buildModernCard([
               Obx(() {
                 final info = DisplayModeService.info.value;
-                final mode = SettingsService.to.app.refreshRateMode;
-                final suffix = info == null
-                    ? ''
-                    : ' · ${info.currentRefreshRate.toStringAsFixed(0)} / '
-                          '${info.maxRefreshRate.toStringAsFixed(0)} Hz';
+                final mode = info == null
+                    ? i18n('display_mode_detecting')
+                    : '${info.width} × ${info.height} · '
+                          '${info.currentRefreshRate.toStringAsFixed(0)} Hz '
+                          '(${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz)';
                 return context.buildTile(
-                  title: i18n('refresh_rate_mode'),
-                  subtitle: '${_refreshRateModeLabel(mode)} · ${_refreshRateModeDescription(mode)}$suffix',
+                  title: i18n('windows_dynamic_refresh_rate'),
+                  subtitle: '${i18n('windows_dynamic_refresh_rate_subtitle')}\n$mode',
                   icon: Remix.speed_up_line,
                   isLong: true,
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => _showRefreshRateModeDialog(context),
+                  trailing: const Icon(Icons.refresh_rounded),
+                  onTap: () => DisplayModeService.refreshInfo(),
                 );
               }),
-              if (Platform.isWindows)
-                Obx(() {
-                  final info = DisplayModeService.info.value;
-                  final mode = info == null
-                      ? i18n('display_mode_detecting')
-                      : '${info.width} × ${info.height} · '
-                            '${info.currentRefreshRate.toStringAsFixed(0)} Hz '
-                            '(${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz)';
-                  return context.buildTile(
-                    title: i18n('windows_dynamic_refresh_rate'),
-                    subtitle: '${i18n('windows_dynamic_refresh_rate_subtitle')}\n$mode',
-                    icon: Remix.speed_up_line,
-                    isLong: true,
-                    trailing: const Icon(Icons.refresh_rounded),
-                    onTap: () => DisplayModeService.refreshInfo(),
-                  );
-                }),
-              if (Platform.isWindows)
-                context.buildSwitchTile(
-                  title: i18n('open_new_window'),
-                  subtitle: i18n("open_new_window_subtitle"),
-                  value: SettingsService.to.app.enableNewWindowPlay,
-                  icon: Icons.add_to_photos_outlined,
-                ),
-              if (Platform.isWindows) ...[
-                Obx(() {
-                  final startup = SettingsService.to.startup;
-                  final applying = startup.isApplyingStartup.v;
-                  final statusKey = startup.startupStatusKey.v;
-                  final subtitleKey = applying
-                      ? 'startup_applying'
-                      : statusKey.isNotEmpty
-                      ? statusKey
-                      : 'startup_subtitle';
-                  return SwitchListTile(
-                    key: const ValueKey('windows-startup-switch'),
-                    secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
-                    title: Text(i18n('startup'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        i18n(subtitleKey),
-                        style: AppTextStyles.t12.copyWith(
-                          color: statusKey.isNotEmpty && !applying
-                              ? Theme.of(context).colorScheme.error
-                              : Theme.of(context).hintColor.withValues(alpha: 0.75),
-                        ),
+              context.buildSwitchTile(
+                title: i18n('open_new_window'),
+                subtitle: i18n("open_new_window_subtitle"),
+                value: SettingsService.to.app.enableNewWindowPlay,
+                icon: Icons.add_to_photos_outlined,
+              ),
+              Obx(() {
+                final startup = SettingsService.to.startup;
+                final applying = startup.isApplyingStartup.v;
+                final statusKey = startup.startupStatusKey.v;
+                final subtitleKey = applying
+                    ? 'startup_applying'
+                    : statusKey.isNotEmpty
+                    ? statusKey
+                    : 'startup_subtitle';
+                return SwitchListTile(
+                  key: const ValueKey('windows-startup-switch'),
+                  secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
+                  title: Text(i18n('startup'), style: AppTextStyles.t15.copyWith(fontWeight: FontWeight.w600)),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      i18n(subtitleKey),
+                      style: AppTextStyles.t12.copyWith(
+                        color: statusKey.isNotEmpty && !applying
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).hintColor.withValues(alpha: 0.75),
                       ),
                     ),
-                    value: startup.enableStartUp.v,
-                    onChanged: applying ? null : (value) => unawaited(startup.setStartupEnabled(value)),
-                    contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
-                  );
-                }),
-                context.buildTile(
-                  icon: Remix.aspect_ratio_line,
-                  title: i18n("window_size"),
-                  subtitle:
-                      "${SettingsService.to.window.resolvedStoredWidth.toInt()} × "
-                      "${SettingsService.to.window.resolvedStoredHeight.toInt()}",
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => _showWindowSizeDialog(context),
-                ),
-                context.buildSwitchTile(
-                  title: i18n("no_exit_confirm"),
-                  subtitle: i18n("no_exit_confirm_subtitle"),
-                  value: SettingsService.to.exit.dontAskExit,
-                  icon: Remix.error_warning_line,
-                ),
-              ],
+                  ),
+                  value: startup.enableStartUp.v,
+                  onChanged: applying ? null : (value) => unawaited(startup.setStartupEnabled(value)),
+                  contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
+                );
+              }),
+              context.buildTile(
+                icon: Remix.aspect_ratio_line,
+                title: i18n("window_size"),
+                subtitle:
+                    "${SettingsService.to.window.resolvedStoredWidth.toInt()} × "
+                    "${SettingsService.to.window.resolvedStoredHeight.toInt()}",
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showWindowSizeDialog(context),
+              ),
+              context.buildSwitchTile(
+                title: i18n("no_exit_confirm"),
+                subtitle: i18n("no_exit_confirm_subtitle"),
+                value: SettingsService.to.exit.dontAskExit,
+                icon: Remix.error_warning_line,
+              ),
             ]),
           ],
+          const SizedBox(height: 20),
+          const NetworkProxySettingsSection(),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("timer_settings")),
           context.buildModernCard([
@@ -307,7 +300,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         scrollable: true,
-        title: Text(i18n('refresh_rate_mode')),
+        title: Text(i18n('danmaku_max_refresh_rate')),
         contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
         content: SizedBox(
           width: 360,

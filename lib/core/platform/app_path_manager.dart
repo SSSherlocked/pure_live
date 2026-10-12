@@ -29,9 +29,9 @@ class AppPathManager {
   static const String dirEmojiCache = 'EMOJI_CACHE';
   static const String dirMigrationBackup = 'MIGRATION_BACKUP';
 
-  /// Clips applied as a video background. They run to tens of megabytes, so
-  /// they live as files instead of being rewritten into the settings box.
-  static const String dirWallpaper = 'WALLPAPER';
+  /// Clips of the retired video background. Only read to remove what an
+  /// earlier version left behind.
+  static const String dirRetiredWallpaper = 'WALLPAPER';
 
   /// Canonical directory used by [FontDownloadManager] for downloaded fonts.
   /// Keep this in one place so the manager page and downloader never drift to
@@ -372,7 +372,6 @@ class AppPathManager {
   Future<Directory> get imageCacheDir => getDir(dirImageCache);
   Future<Directory> get recordsDir => getDir(dirRecords);
   Future<Directory> get emojiCacheDir => getDir(dirEmojiCache);
-  Future<Directory> get wallpaperDir => getDir(dirWallpaper);
   Future<Directory> get migrationWorkingDir => getDir(p.join(dirMigrationBackup, 'working'));
 
   String get basePath => _basePath ?? (throw StateError('AppPathManager 尚未初始化'));

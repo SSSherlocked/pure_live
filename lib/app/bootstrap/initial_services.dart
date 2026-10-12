@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
+import 'package:path/path.dart' as p;
+import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/release/release_history_source.dart';
 import 'package:pure_live/core/platform/multi_instance_settings_source.dart';
 import 'package:pure_live/core/platform/desktop_exit_port.dart';
@@ -45,7 +48,6 @@ import 'package:pure_live/domains/recorder/data/services/stream_resolver_service
 import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_controller.dart';
 import 'package:pure_live/domains/iptv/presentation/channel_detail_controller.dart';
 import 'package:pure_live/domains/recorder/data/record_settings_controller.dart';
-import 'package:pure_live/domains/wallpaper/domain/background_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_controller.dart';
@@ -116,7 +118,6 @@ class InitialServices {
     final db = DbService();
     await db.init();
     Get.put<DbService>(db, permanent: true);
-    Get.lazyPut(() => BackgroundController(), fenix: true);
   }
 
   static Future<void> init() async {
@@ -127,6 +128,7 @@ class InitialServices {
     // first ThemeData. This makes the selection survive a full process restart.
     await SettingsService.to.font.ensureInitialized();
     await _migrateRoomScopedAudioOnly();
+    unawaited(_removeRetiredAppearanceSettings());
     initLazyControllers();
     _initHeavyServicesInBackground();
   }
@@ -161,6 +163,20 @@ class InitialServices {
     await HivePrefUtil.remove('audioOnly');
     SettingsService.to.player.audioOnly.v = false;
     await HivePrefUtil.setBool(migrationKey, true);
+  }
+
+  /// The app background (wallpaper) and the loading-animation picker were
+  /// removed; drop their stored values and the downloaded wallpaper clips.
+  static Future<void> _removeRetiredAppearanceSettings() async {
+    try {
+      for (final key in const ['backgroundConfig', 'loadingStyle', 'loadingStyleColorSwitch']) {
+        if (HivePrefUtil.containsKey(key)) await HivePrefUtil.remove(key);
+      }
+      final dir = Directory(p.join(AppPathManager().basePath, AppPathManager.dirRetiredWallpaper));
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } catch (error) {
+      developer.log('Removing retired appearance settings failed: $error', name: 'InitialServices');
+    }
   }
 
   static void _initHeavyServicesInBackground() {

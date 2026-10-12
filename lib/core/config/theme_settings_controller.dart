@@ -12,7 +12,6 @@ class ThemeSettingsController extends GetxController {
   static const double minSpacing = 0;
   static const double maxSpacing = 64;
   static final String defaultThemeColorHex = Colors.blue.hex;
-  static final Set<String> _loadingStyleKeys = AppConsts.loadingStyleKeys.toSet();
 
   final List<Worker> _workers = [];
   final RxString themeModeName = hiveString('themeMode', defaultThemeModeName);
@@ -25,8 +24,6 @@ class ThemeSettingsController extends GetxController {
   final RxString languageName = hiveString('language', defaultLanguageName);
   final RxDouble crossAxisSpacing = hiveDouble('crossAxisSpacing', defaultSpacing);
   final RxDouble mainAxisSpacing = hiveDouble('mainAxisSpacing', defaultSpacing);
-  final RxString loadingStyle = hiveString('loadingStyle', AppConsts.defaultLoadingStyleKey);
-  final RxString loadingStyleColorSwitch = hiveString('loadingStyleColorSwitch', '');
 
   /// Order of the live room side panel sections (comma-separated ids).
   final RxString livePanelTabOrder = hiveString('livePanelTabOrder', LivePanelTab.defaultOrderValue);
@@ -44,12 +41,6 @@ class ThemeSettingsController extends GetxController {
   Locale get language => AppConsts.languages[resolvedLanguageName]!;
   double get resolvedCrossAxisSpacing => normalizeSpacing(crossAxisSpacing.v);
   double get resolvedMainAxisSpacing => normalizeSpacing(mainAxisSpacing.v);
-  String get resolvedLoadingStyle => normalizeLoadingStyle(loadingStyle.v);
-  String get resolvedLoadingStyleColorHex => normalizeLoadingStyleColor(loadingStyleColorSwitch.v);
-  Color? get loadingStyleColor {
-    final hex = resolvedLoadingStyleColorHex;
-    return hex.isEmpty ? null : HexColor(hex);
-  }
 
   final Map<ColorSwatch<Object>, String> colorsNameMap = AppConsts.themeColors.map(
     (k, v) => MapEntry(ColorTools.createPrimarySwatch(v), k),
@@ -63,11 +54,6 @@ class ThemeSettingsController extends GetxController {
       ever<String>(themeModeName, (value) => _repairString(themeModeName, value, normalizeThemeMode)),
       ever<String>(themeColorSwitch, (value) => _repairString(themeColorSwitch, value, normalizeThemeColor)),
       ever<String>(languageName, (value) => _repairString(languageName, value, normalizeLanguage)),
-      ever<String>(loadingStyle, (value) => _repairString(loadingStyle, value, normalizeLoadingStyle)),
-      ever<String>(
-        loadingStyleColorSwitch,
-        (value) => _repairString(loadingStyleColorSwitch, value, normalizeLoadingStyleColor),
-      ),
       everAll([crossAxisSpacing, mainAxisSpacing], (_) => _repairSpacingAndRefreshTheme()),
     ]);
   }
@@ -109,16 +95,6 @@ class ThemeSettingsController extends GetxController {
 
   static String normalizeThemeColor(String value) => _canonicalHex(value) ?? defaultThemeColorHex;
 
-  static String normalizeLoadingStyleColor(String value) {
-    if (value.trim().isEmpty) return '';
-    return _canonicalHex(value) ?? '';
-  }
-
-  static String normalizeLoadingStyle(String value) {
-    final normalized = value.trim();
-    return _loadingStyleKeys.contains(normalized) ? normalized : AppConsts.defaultLoadingStyleKey;
-  }
-
   static double normalizeSpacing(num value) {
     final converted = value.toDouble();
     if (!converted.isFinite) return defaultSpacing;
@@ -145,8 +121,6 @@ class ThemeSettingsController extends GetxController {
     languageName.v = resolvedLanguageName;
     crossAxisSpacing.v = resolvedCrossAxisSpacing;
     mainAxisSpacing.v = resolvedMainAxisSpacing;
-    loadingStyle.v = resolvedLoadingStyle;
-    loadingStyleColorSwitch.v = resolvedLoadingStyleColorHex;
   }
 
   void _repairString(RxString setting, String value, String Function(String) normalize) {
@@ -194,8 +168,6 @@ class ThemeSettingsController extends GetxController {
       'language': resolvedLanguageName,
       'crossAxisSpacing': resolvedCrossAxisSpacing,
       'mainAxisSpacing': resolvedMainAxisSpacing,
-      'loadingStyle': resolvedLoadingStyle,
-      'loadingStyleColorSwitch': resolvedLoadingStyleColorHex,
       'livePanelTabOrder': normalizeLivePanelTabOrder(livePanelTabOrder.v),
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
     };
@@ -211,8 +183,6 @@ class ThemeSettingsController extends GetxController {
       'languageName': normalizeLanguage((json['language'] ?? json['languageName'] ?? defaultLanguageName) as String),
       'crossAxisSpacing': _parseSpacing(json['crossAxisSpacing']),
       'mainAxisSpacing': _parseSpacing(json['mainAxisSpacing']),
-      'loadingStyle': normalizeLoadingStyle((json['loadingStyle'] ?? AppConsts.defaultLoadingStyleKey) as String),
-      'loadingStyleColorSwitch': normalizeLoadingStyleColor((json['loadingStyleColorSwitch'] ?? '') as String),
       'livePanelTabOrder': normalizeLivePanelTabOrder(
         (json['livePanelTabOrder'] ?? LivePanelTab.defaultOrderValue) as String,
       ),
@@ -229,8 +199,6 @@ class ThemeSettingsController extends GetxController {
     languageName.v = parsed['languageName'];
     crossAxisSpacing.v = parsed['crossAxisSpacing'];
     mainAxisSpacing.v = parsed['mainAxisSpacing'];
-    loadingStyle.v = parsed['loadingStyle'];
-    loadingStyleColorSwitch.v = parsed['loadingStyleColorSwitch'];
     livePanelTabOrder.v = parsed['livePanelTabOrder'];
     livePanelWidth.v = parsed['livePanelWidth'];
   }
@@ -246,8 +214,6 @@ class ThemeSettingsController extends GetxController {
       'language': parsed['languageName'],
       'crossAxisSpacing': parsed['crossAxisSpacing'],
       'mainAxisSpacing': parsed['mainAxisSpacing'],
-      'loadingStyle': parsed['loadingStyle'],
-      'loadingStyleColorSwitch': parsed['loadingStyleColorSwitch'],
       'livePanelTabOrder': parsed['livePanelTabOrder'],
       'livePanelWidth': parsed['livePanelWidth'],
     };

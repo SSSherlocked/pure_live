@@ -23,7 +23,6 @@ import 'package:pure_live/core/player/presentation/popup_route_tracker.dart';
 import 'package:pure_live/domains/iptv/data/services/epg_import_manager.dart';
 import 'package:pure_live/domains/live/data/link/shared_live_link_opener.dart';
 import 'package:pure_live/domains/iptv/data/services/iptv_import_manager.dart';
-import 'package:pure_live/domains/wallpaper/domain/background_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 
 void main(List<String> args) async {
@@ -58,7 +57,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with DesktopWindowMixin {
   SharedMediaReceiver? _sharedMediaReceiver;
-  bool _dynamicThemeChangeScheduled = false;
+  bool _themeChangeScheduled = false;
+  ThemeData? _pendingLightTheme;
+  ThemeData? _pendingDarkTheme;
 
   @override
   void initState() {
@@ -95,18 +96,7 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
       defaultEngine = targetEngine;
     }
     await GlobalPlayerService.instance.initialize(defaultEngine: defaultEngine);
-
-    // A wallpaper and a live stream cannot share the decoder, so the background
-    // hands its player over for as long as playback runs. The engine is the
-    // source of truth here rather than the route stack: playback continues after
-    // the room page is popped and inside the floating window, where a route
-    // observer would never see it.
-    _wallpaperHandoffSub = GlobalPlayerService.instance.player.onPlaying.listen((playing) {
-      unawaited(BackgroundController.to.setPlaybackActive(playing));
-    });
   }
-
-  StreamSubscription<bool>? _wallpaperHandoffSub;
 
   @override
   void dispose() {
@@ -115,8 +105,6 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
     }
     final receiver = _sharedMediaReceiver;
     if (receiver != null) unawaited(receiver.dispose());
-    unawaited(_wallpaperHandoffSub?.cancel());
-    _wallpaperHandoffSub = null;
     unawaited(GlobalPlayerService.instance.dispose());
     super.dispose();
   }
@@ -149,38 +137,27 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
     await receiver.start();
   }
 
-  void _applyDynamicTheme(
-    material.ColorScheme? lightDynamic,
-    material.ColorScheme? darkDynamic,
-    ThemeData lightThemeData,
-    ThemeData darkThemeData,
-  ) {
-    if (_dynamicThemeChangeScheduled) {
-      return;
-    }
-
-    _dynamicThemeChangeScheduled = true;
+  /// Pushes the rebuilt themes into GetX after the frame.
+  ///
+  /// GetX reads `GetMaterialApp(theme:, darkTheme:)` only once, at startup, so
+  /// a runtime change reaches the pages only through [Get.changeTheme]. Both
+  /// themes are pushed: the active brightness cannot be read here (this context
+  /// sits above the app's [Theme], so `Theme.of` answers the light fallback),
+  /// and pushing only that one left dark-only settings such as 深色模式纯黑背景
+  /// without effect.
+  void _scheduleThemeChange(ThemeData lightTheme, ThemeData darkTheme) {
+    _pendingLightTheme = lightTheme;
+    _pendingDarkTheme = darkTheme;
+    if (_themeChangeScheduled) return;
+    _themeChangeScheduled = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _dynamicThemeChangeScheduled = false;
-
-      if (!mounted) {
-        return;
-      }
-
-      final brightness = Theme.of(context).brightness;
-
-      if (SettingsService.to.theme.enableDynamicTheme.v && lightDynamic != null && darkDynamic != null) {
-        final scheme = brightness == Brightness.dark
-            ? toFlutterColorScheme(darkDynamic)
-            : toFlutterColorScheme(lightDynamic);
-
-        final theme = MyTheme(colorScheme: scheme);
-
-        Get.changeTheme(brightness == Brightness.dark ? theme.darkThemeData : theme.lightThemeData);
-      } else {
-        Get.changeTheme(brightness == Brightness.dark ? darkThemeData : lightThemeData);
-      }
+      _themeChangeScheduled = false;
+      final light = _pendingLightTheme;
+      final dark = _pendingDarkTheme;
+      if (!mounted || light == null || dark == null) return;
+      Get.changeTheme(light);
+      Get.changeTheme(dark);
     });
   }
 
@@ -202,17 +179,7 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
             lightTheme = MyTheme(primaryColor: themeColor).lightThemeData;
             darkTheme = MyTheme(primaryColor: themeColor).darkThemeData;
           }
-          _applyDynamicTheme(lightDynamic, darkDynamic, lightTheme, darkTheme);
-
-          // A wallpaper is painted behind the navigator by [AppBackgroundLayer].
-          // The pages are made transparent by [WallpaperCanvasTransparency] in
-          // [AppShell], not by the theme: GetX reads `theme:` only once,
-          // at startup, so a runtime change here never reaches a page.
-          final wallpaperOwnsCanvas = BackgroundController.to.occupiesCanvas.value;
-          if (wallpaperOwnsCanvas) {
-            lightTheme = lightTheme.copyWith(scaffoldBackgroundColor: Colors.transparent);
-            darkTheme = darkTheme.copyWith(scaffoldBackgroundColor: Colors.transparent);
-          }
+          _scheduleThemeChange(lightTheme, darkTheme);
 
           return GetMaterialApp(
             // The localized title is rendered by CustomTitleBar. A stable
@@ -223,14 +190,8 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
             scrollBehavior: MyCustomScrollBehavior(),
             debugShowCheckedModeBanner: false,
             themeMode: SettingsService.to.theme.themeMode,
-            theme: lightTheme.copyWith(
-              appBarTheme: const AppBarTheme(surfaceTintColor: Colors.transparent),
-              pageTransitionsTheme: appPageTransitionsTheme,
-            ),
-            darkTheme: darkTheme.copyWith(
-              appBarTheme: const AppBarTheme(surfaceTintColor: Colors.transparent),
-              pageTransitionsTheme: appPageTransitionsTheme,
-            ),
+            theme: lightTheme,
+            darkTheme: darkTheme,
             locale: context.locale,
             navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver(), PopupRouteTracker.instance],
             builder: FlutterSmartDialog.init(

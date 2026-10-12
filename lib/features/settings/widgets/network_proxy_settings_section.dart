@@ -13,14 +13,16 @@ final TextInputFormatter _proxyHostInputFormatter = TextInputFormatter.withFunct
   );
 });
 
-class NetworkProxySettingsPage extends StatefulWidget {
-  const NetworkProxySettingsPage({super.key});
+/// The 网络代理 group of the 通用 settings page: the app request proxy and the
+/// playback proxy, each a switch with its endpoint fields below it.
+class NetworkProxySettingsSection extends StatefulWidget {
+  const NetworkProxySettingsSection({super.key});
 
   @override
-  State<NetworkProxySettingsPage> createState() => _NetworkProxySettingsPageState();
+  State<NetworkProxySettingsSection> createState() => _NetworkProxySettingsSectionState();
 }
 
-class _NetworkProxySettingsPageState extends State<NetworkProxySettingsPage> {
+class _NetworkProxySettingsSectionState extends State<NetworkProxySettingsSection> {
   final proxyCtrl = SettingsService.to.proxy;
 
   late final TextEditingController _appHostController;
@@ -131,61 +133,49 @@ class _NetworkProxySettingsPageState extends State<NetworkProxySettingsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(i18n("network_proxy_settings"))),
-      body: SettingsContentWidth(child: Obx(() {
-        return ListView(
-          physics: const PureLiveScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          children: [
-            context.buildGroupTitle(i18n("app_proxy_group_title")),
-            context.buildModernCard([
-              SwitchListTile(
-                secondary: Icon(Remix.apps_line, color: theme.colorScheme.primary),
-                title: Text(i18n("enable_app_proxy")),
-                subtitle: Text(i18n("enable_app_proxy_desc")),
-                value: proxyCtrl.enableAppProxy.v,
-                onChanged: (val) => proxyCtrl.enableAppProxy.v = val,
+    return Obx(() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          context.buildGroupTitle(i18n("custom_network_proxy")),
+          context.buildModernCard([
+            SwitchListTile(
+              secondary: Icon(Remix.apps_line, color: theme.colorScheme.primary),
+              title: Text(i18n("enable_app_proxy")),
+              subtitle: Text(i18n("enable_app_proxy_desc")),
+              value: proxyCtrl.enableAppProxy.v,
+              onChanged: (val) => proxyCtrl.enableAppProxy.v = val,
+            ),
+            if (proxyCtrl.enableAppProxy.v)
+              _buildEndpointFields(
+                keyPrefix: 'app-proxy',
+                hostController: _appHostController,
+                portController: _appPortController,
+                portInvalid: _appPortInvalid,
+                onHostChanged: (value) => proxyCtrl.appProxyHost.v = normalizeProxyHost(value),
+                onPortChanged: (value) => _updatePort(value, isAppProxy: true),
+                portHint: '7890',
               ),
-              if (proxyCtrl.enableAppProxy.v) ...[
-                _buildEndpointFields(
-                  keyPrefix: 'app-proxy',
-                  hostController: _appHostController,
-                  portController: _appPortController,
-                  portInvalid: _appPortInvalid,
-                  onHostChanged: (value) => proxyCtrl.appProxyHost.v = normalizeProxyHost(value),
-                  onPortChanged: (value) => _updatePort(value, isAppProxy: true),
-                  portHint: '7890',
-                ),
-              ],
-            ]),
-
-            const SizedBox(height: 24),
-            context.buildGroupTitle(i18n("player_proxy_group_title")),
-            context.buildModernCard([
-              SwitchListTile(
-                secondary: Icon(Remix.video_line, color: theme.colorScheme.primary),
-                title: Text(i18n("enable_player_proxy")),
-                subtitle: Text(i18n("enable_player_proxy_desc")),
-                value: proxyCtrl.enableProxy.v,
-                onChanged: (val) => proxyCtrl.enableProxy.v = val,
+            SwitchListTile(
+              secondary: Icon(Remix.video_line, color: theme.colorScheme.primary),
+              title: Text(i18n("enable_player_proxy")),
+              subtitle: Text(i18n("enable_player_proxy_desc")),
+              value: proxyCtrl.enableProxy.v,
+              onChanged: (val) => proxyCtrl.enableProxy.v = val,
+            ),
+            if (proxyCtrl.enableProxy.v)
+              _buildEndpointFields(
+                keyPrefix: 'player-proxy',
+                hostController: _playerHostController,
+                portController: _playerPortController,
+                portInvalid: _playerPortInvalid,
+                onHostChanged: (value) => proxyCtrl.proxyHost.v = normalizeProxyHost(value),
+                onPortChanged: (value) => _updatePort(value, isAppProxy: false),
+                portHint: '1080',
               ),
-              if (proxyCtrl.enableProxy.v) ...[
-                _buildEndpointFields(
-                  keyPrefix: 'player-proxy',
-                  hostController: _playerHostController,
-                  portController: _playerPortController,
-                  portInvalid: _playerPortInvalid,
-                  onHostChanged: (value) => proxyCtrl.proxyHost.v = normalizeProxyHost(value),
-                  onPortChanged: (value) => _updatePort(value, isAppProxy: false),
-                  portHint: '1080',
-                ),
-              ],
-            ]),
-            const SizedBox(height: 32),
-          ],
-        );
-      })),
-    );
+          ]),
+        ],
+      );
+    });
   }
 }

@@ -17,7 +17,6 @@ enum HomeMenu {
 }
 
 class AppConsts {
-  static const String defaultLoadingStyleKey = 'default';
   static const Set<String> supportAndroidAbis = {'arm64-v8a', 'armeabi-v7a', 'x86_64'};
   static const Map<String, ThemeMode> themeModes = {
     "System": ThemeMode.system,
@@ -73,100 +72,4 @@ class AppConsts {
     800: 'font_weight_extra_bold',
     900: 'font_weight_black',
   };
-
-  /// Every spinner the loading-style picker offers, by key.
-  ///
-  /// The names are not carried here: `loading_style_<key>` resolves them
-  /// through the locale files, so an English interface cannot fall back to
-  /// a Chinese label the way the old nameZh / nameEn columns did.
-  static const List<String> loadingStyleKeys = <String>[
-    "default",
-    "rotatingPlain",
-    "doubleBounce",
-    "wave",
-    "wanderingCubes",
-    "fadingFour",
-    "fadingCube",
-    "pulse",
-    "chasingDots",
-    "threeBounce",
-    "circle",
-    "cubeGrid",
-    "fadingCircle",
-    "rotatingCircle",
-    "foldingCube",
-    "pumpingHeart",
-    "hourGlass",
-    "pouringHourGlass",
-    "pouringHourGlassRefined",
-    "fadingGrid",
-    "ring",
-    "ripple",
-    "spinningCircle",
-    "spinningLines",
-    "squareCircle",
-    "dualRing",
-    "pianoWave",
-    "dancingSquare",
-    "threeInOut",
-    "waveSpinner",
-    "pulsingGrid",
-    "waveDots",
-    "inkDrop",
-    "twistingDots",
-    "threeRotatingDots",
-    "staggeredDotsWave",
-    "fourRotatingDots",
-    "fallingDot",
-    "progressiveDots",
-    "discreteCircular",
-    "threeArchedCircle",
-    "bouncingBall",
-    "flickr",
-    "hexagonDots",
-    "beat",
-    "twoRotatingArc",
-    "horizontalRotatingDots",
-    "newtonCradle",
-    "stretchedDots",
-    "halfTriangleDot",
-    "dotsTriangle",
-    "ballPulse",
-    "ballGridPulse",
-    "ballClipRotate",
-    "ballClipRotatePulse",
-    "squareSpin",
-    "ballClipRotateMultiple",
-    "ballPulseRise",
-    "ballRotate",
-    "cubeTransition",
-    "ballZigZag",
-    "ballZigZagDeflect",
-    "ballTrianglePath",
-    "ballTrianglePathColored",
-    "ballTrianglePathColoredFilled",
-    "ballScale",
-    "lineScale",
-    "lineScaleParty",
-    "ballScaleMultiple",
-    "ballPulseSync",
-    "ballBeat",
-    "lineScalePulseOut",
-    "lineScalePulseOutRapid",
-    "ballScaleRipple",
-    "ballScaleRippleMultiple",
-    "ballSpinFadeLoader",
-    "lineSpinFadeLoader",
-    "triangleSkewSpin",
-    "pacman",
-    "ballGridBeat",
-    "semiCircleSpin",
-    "ballRotateChase",
-    "orbit",
-    "audioEqualizer",
-    "circleStrokeSpin",
-  ];
-
-  /// The locale key holding one spinner's display name.
-  static String loadingStyleLabel(String key) => 'loading_style_$key';
 }

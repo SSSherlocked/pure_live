@@ -9,7 +9,6 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/features/settings/pages/page_settings_page.dart';
 import 'package:pure_live/features/settings/pages/font_settings_page.dart';
 import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
-import 'package:pure_live/features/settings/pages/loading_style_settings_page.dart';
 import 'package:pure_live/features/settings/pages/room_card_settings_page.dart';
 import 'package:pure_live/features/settings/widgets/app_color_picker_dialog.dart';
 
@@ -63,36 +62,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                 value: SettingsService.to.theme.pureBlackDark,
                 icon: Remix.contrast_drop_2_line,
                 enabled: SettingsService.to.theme.themeMode != ThemeMode.light,
-              ),
-            ),
-            Obx(
-              () => context.buildTile(
-                iconWidget: SizedBox(
-                  key: ValueKey(SettingsService.to.theme.resolvedLoadingStyle),
-                  width: 24,
-                  child: AppStatusView(
-                    type: AppStatusType.loading,
-                    title: i18n('refresh_loading'),
-                    subtitle: '',
-                    isMini: true,
-                  ),
-                ),
-                title: i18n("change_loading_style"),
-                subtitle: i18n("change_loading_style_subtitle"),
-                onTap: () => Get.to(() => const LoadingStyleSettingsPage()),
-                stackTrailingOnNarrow: true,
-                trailing: Obx(() {
-                  final String currentKey = SettingsService.to.theme.resolvedLoadingStyle;
-                  final String style = AppConsts.loadingStyleKeys.contains(currentKey)
-                      ? currentKey
-                      : AppConsts.defaultLoadingStyleKey;
-                  final String displayName = i18n(AppConsts.loadingStyleLabel(style));
-
-                  return Text(
-                    displayName,
-                    style: AppTextStyles.t13.copyWith(color: Theme.of(context).colorScheme.outline),
-                  );
-                }),
               ),
             ),
           ]),
@@ -222,11 +191,8 @@ class ThemeSettingsPage extends GetView<SettingsService> {
       labels: buildAppColorPickerLabels(translate: (key) => i18n(key), isChinese: isZh, enableOpacity: false),
       customColorSwatchesAndNames: AppConsts.colorsNameMap,
       onColorChanged: (Color color) {
+        // The app root rebuilds both themes from this value.
         SettingsService.to.theme.themeColorSwitch.v = color.hex;
-        final lightTheme = MyTheme(primaryColor: color).lightThemeData;
-        final darkTheme = MyTheme(primaryColor: color).darkThemeData;
-        Get.changeTheme(lightTheme);
-        Get.changeTheme(darkTheme);
       },
     );
   }

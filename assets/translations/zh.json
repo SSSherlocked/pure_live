@@ -1983,6 +1983,7 @@
   "douyu_web_login_cookie_failed": "读取网页 Cookie 失败，请重试",
   "douyu_web_login_no_session": "还没有检测到登录态，请先在页面里完成登录",
   "douyu_web_login_no_ltp0": "已登录，但没有拿到 LTP0：登录未保存。可换一种登录方式重试，或改用手动填写",
+  "douyu_web_login_waiting_ltp0": "已检测到登录态，正在等待 LTP0…若一直停在这里，请点「我已登录」查看原因",
   "douyu_web_login_no_did": "已登录，但没有拿到 dy_did：登录未保存，请重试",
   "douyu_web_login_refresh_failed": "已拿到 LTP0，但立即续期失败：登录未保存，请重试",
   "douyu_web_login_success": "斗鱼登录成功，已完成一次续期",

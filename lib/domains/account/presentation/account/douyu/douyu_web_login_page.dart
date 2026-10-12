@@ -58,6 +58,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
                 initialUrlRequest: URLRequest(url: WebUri(douyuWebLoginUrl)),
                 onWebViewCreated: controller.onWebViewCreated,
                 onLoadStop: controller.onLoadStop,
+                onUpdateVisitedHistory: controller.onUpdateVisitedHistory,
                 // The renewal request presents this same browser identity, so
                 // the session is issued to it rather than to a mobile one.
                 initialSettings: InAppWebViewSettings(userAgent: DouyuUtils.userAgent),
@@ -70,7 +71,9 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
                 backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.94),
               ),
             if (!controller.isVerifying.value && controller.errorMessageKey.value.isNotEmpty)
-              _buildErrorBanner(theme, i18n(controller.errorMessageKey.value)),
+              _buildErrorBanner(theme, i18n(controller.errorMessageKey.value))
+            else if (!controller.isVerifying.value && controller.infoMessageKey.value.isNotEmpty)
+              _buildInfoBanner(theme, i18n(controller.infoMessageKey.value)),
           ],
         );
       }),
@@ -91,6 +94,42 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
               const SizedBox(height: 20),
               Text(message, textAlign: TextAlign.center, style: AppTextStyles.t14),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoBanner(ThemeData theme, String message) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SafeArea(
+        minimum: const EdgeInsets.all(12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Material(
+            key: const ValueKey('douyu-web-login-info'),
+            color: theme.colorScheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(16),
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.onSecondaryContainer),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: AppTextStyles.t13.copyWith(color: theme.colorScheme.onSecondaryContainer, height: 1.35),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

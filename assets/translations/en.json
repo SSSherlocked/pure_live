@@ -1983,6 +1983,7 @@
   "douyu_web_login_cookie_failed": "Could not read the web cookies, please try again",
   "douyu_web_login_no_session": "No sign-in detected yet; finish signing in on the page first",
   "douyu_web_login_no_ltp0": "Signed in, but no LTP0 was found, so nothing was saved. Try another sign-in method, or enter the cookie manually",
+  "douyu_web_login_waiting_ltp0": "Signed in; waiting for LTP0… If this does not move on, tap \"I have signed in\" to see why",
   "douyu_web_login_no_did": "Signed in, but no dy_did was found, so nothing was saved. Please try again",
   "douyu_web_login_refresh_failed": "LTP0 was found but the immediate renewal failed, so nothing was saved. Please try again",
   "douyu_web_login_success": "Signed in to Douyu; the session was renewed once",

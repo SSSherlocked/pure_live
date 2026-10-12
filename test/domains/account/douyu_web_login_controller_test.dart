@@ -50,7 +50,7 @@ void main() {
     expect(controller.showWebView.value, isFalse);
   });
 
-  test('a failed renewal stores nothing and keeps the page open', () async {
+  test('a failed renewal stores nothing, keeps the page open and stops automatic retries', () async {
     final controller = build(renewedCookie: null);
     await controller.checkLogin();
 
@@ -59,15 +59,26 @@ void main() {
     expect(completions, 0);
     expect(controller.errorMessageKey.value, 'douyu_web_login_refresh_failed');
     expect(controller.showWebView.value, isTrue);
+
+    // The poll does not keep asking Douyu; the viewer's own check does.
+    await controller.checkLogin();
+    expect(renewals, hasLength(1));
+    await controller.checkNow();
+    expect(renewals, hasLength(2));
   });
 
-  test('a session without LTP0 is not a sign-in', () async {
+  test('a session without LTP0 is not a sign-in: the poll waits, an explicit check explains', () async {
     final controller = build(passportCookies: const {'dy_did': 'passport-did'});
     await controller.checkLogin();
 
     expect(renewals, isEmpty);
     expect(saved, isEmpty);
+    expect(controller.errorMessageKey.value, isEmpty);
+    expect(controller.infoMessageKey.value, 'douyu_web_login_waiting_ltp0');
+
+    await controller.checkNow();
     expect(controller.errorMessageKey.value, 'douyu_web_login_no_ltp0');
+    expect(controller.infoMessageKey.value, isEmpty);
   });
 
   test('LTP0 on the site cookie is used, but never sent as part of the session', () async {

@@ -132,9 +132,6 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
             enableLoadMore: true,
             wrapMobileRefresh: false,
             preserveContentWhenEmpty: true,
-            showScrollToTopBtn: SettingsService.to.page.showScrollToTopBtn.v,
-            showPageSizeSelector: SettingsService.to.page.showPageSizeSelector.v,
-            pageSizeOptions: SettingsService.to.page.pageSizeOptions,
             contentBuilder: (context, list, _) {
               final activeSiteIndex = controller.tabSiteIndex.value;
               return TabBarView(

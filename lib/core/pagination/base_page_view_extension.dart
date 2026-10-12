@@ -31,8 +31,8 @@ extension BasePageViewContentExtension<C extends BasePageScrollAndStateBone<T>, 
                       ? const SizedBox.shrink()
                       : DesktopPaginationBar(
                           controller: controller,
-                          showSelector: showPageSizeSelector,
-                          options: pageSizeOptions,
+                          showSelector: pageSizeSelectorVisible,
+                          options: pageSizes,
                         ),
                 ),
             ],

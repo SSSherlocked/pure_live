@@ -89,11 +89,13 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("audio_settings")),
           context.buildModernCard([
-            context.buildSwitchTile(
-              title: i18n("global_mute"),
-              subtitle: i18n("global_mute_subtitle"),
-              value: SettingsService.to.vol.globalVolumeMute,
-              icon: SettingsService.to.vol.globalVolumeMute.v ? Remix.volume_mute_line : Remix.volume_up_line,
+            Obx(
+              () => context.buildSwitchTile(
+                title: i18n("global_mute"),
+                subtitle: i18n("global_mute_subtitle"),
+                value: SettingsService.to.vol.globalVolumeMute,
+                icon: SettingsService.to.vol.globalVolumeMute.v ? Remix.volume_mute_line : Remix.volume_up_line,
+              ),
             ),
             if (_isMobile)
               Obx(

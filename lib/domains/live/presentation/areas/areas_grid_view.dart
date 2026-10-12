@@ -156,9 +156,6 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
         enableLoadMore: true,
         customMobileBottomPadding: 85,
         customDesktopBottomPadding: 135,
-        showScrollToTopBtn: SettingsService.to.page.showScrollToTopBtn.v,
-        showPageSizeSelector: SettingsService.to.page.showPageSizeSelector.v,
-        pageSizeOptions: SettingsService.to.page.pageSizeOptions,
         emptyBuilder: (context) => EmptyView(
           icon: Remix.apps_2_line,
           title: i18n("empty_areas_title"),
@@ -179,7 +176,6 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
           enableRefresh: true,
           enableLoadMore: false,
           showPageSizeSelector: false,
-          pageSizeOptions: SettingsService.to.page.pageSizeOptions,
           emptyBuilder: (context) => EmptyView(
             icon: Remix.apps_2_line,
             title: i18n("empty_areas_title"),
@@ -214,9 +210,6 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
               enableLoadMore: true,
               customMobileBottomPadding: 85,
               customDesktopBottomPadding: 135,
-              showScrollToTopBtn: SettingsService.to.page.showScrollToTopBtn.v,
-              showPageSizeSelector: SettingsService.to.page.showPageSizeSelector.v,
-              pageSizeOptions: SettingsService.to.page.pageSizeOptions,
               emptyBuilder: (context) => EmptyView(
                 icon: Remix.apps_2_line,
                 title: i18n("empty_areas_title"),
@@ -273,8 +266,10 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
   }
 
   Widget buildFlattenAreasView(List<LiveArea> childrenList, ScrollController scrollController, {Key? scrollKey}) {
+    // The spacing settings are read at layout time, so the builder has its own
+    // Obx to follow them.
     return LayoutBuilder(
-      builder: (context, constraint) {
+      builder: (context, constraint) => Obx(() {
         final width = constraint.maxWidth;
         final crossAxisCount = width > 1280 ? 9 : (width > 960 ? 7 : (width > 640 ? 5 : 3));
         final spacing = SettingsService.to.theme.crossAxisSpacing.v;
@@ -299,7 +294,7 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
             return AreaCard(key: ValueKey('${area.platform}:${area.areaId}'), category: area);
           },
         );
-      },
+      }),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:pure_live/core/widgets/refresh_indicators.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/pagination/base_controller.dart';
+import 'package:pure_live/core/config/page_settings_controller.dart';
 
 class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends StatelessWidget {
   final C controller;
@@ -21,9 +22,12 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
   /// navigation and the caller's recovery actions. Initial failures still
   /// use the full-page status until a snapshot has been published.
   final bool preserveContentWhenEmpty;
+  /// The scroll-to-top button, page-size selector and its sizes. Left null,
+  /// each follows the page settings and is read where it is shown, inside an
+  /// `Obx`, so changing the setting updates a page that is already open.
   final bool? showScrollToTopBtn;
-  final bool showPageSizeSelector;
-  final List<int> pageSizeOptions;
+  final bool? showPageSizeSelector;
+  final List<int>? pageSizeOptions;
   final double? customMobileBottomPadding;
   final double? customDesktopBottomPadding;
 
@@ -40,8 +44,8 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
     this.wrapMobileRefresh = true,
     this.preserveContentWhenEmpty = false,
     this.showScrollToTopBtn,
-    this.showPageSizeSelector = false,
-    this.pageSizeOptions = const [],
+    this.showPageSizeSelector,
+    this.pageSizeOptions,
     this.customMobileBottomPadding,
     this.customDesktopBottomPadding,
     this.notLoginBuilder,
@@ -49,9 +53,15 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
     this.emptyBuilder,
   });
 
+  static PageSettingsController? get _pageSettings =>
+      Get.isRegistered<SettingsService>() ? SettingsService.to.page : null;
+
+  bool get scrollToTopVisible => showScrollToTopBtn ?? _pageSettings?.showScrollToTopBtn.v ?? true;
+  bool get pageSizeSelectorVisible => showPageSizeSelector ?? _pageSettings?.showPageSizeSelector.v ?? false;
+  List<int> get pageSizes => pageSizeOptions ?? _pageSettings?.pageSizeOptions ?? const [];
+
   @override
   Widget build(BuildContext context) {
-    final bool showBtn = showScrollToTopBtn ?? true;
     // Paged lists with a page bar belong to the wide pointer (desktop) layout.
     final bool isDesktop = AppLayout.of(context).pagedLists;
 
@@ -175,7 +185,14 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
               ),
             ],
           ),
-          if (showBtn) Positioned(right: 16, bottom: bottomPadding, child: buildFloatingButtons(context)),
+          if (showScrollToTopBtn == null && _pageSettings != null)
+            Obx(
+              () => scrollToTopVisible
+                  ? Positioned(right: 16, bottom: bottomPadding, child: buildFloatingButtons(context))
+                  : const SizedBox.shrink(),
+            )
+          else if (scrollToTopVisible)
+            Positioned(right: 16, bottom: bottomPadding, child: buildFloatingButtons(context)),
           Positioned(
             top: 0,
             left: 0,

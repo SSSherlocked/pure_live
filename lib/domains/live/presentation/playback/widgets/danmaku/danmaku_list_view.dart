@@ -270,6 +270,11 @@ class DanmakuListViewState extends State<DanmakuListView> {
 
   Widget _nameHintBar(BuildContext context) {
     if (widget.room.platform != PlatformIds.bilibili) return const SizedBox.shrink();
+    // Follows the cookie, so signing in from the hint's own button clears it.
+    return Obx(() => _bilibiliNameHint(context));
+  }
+
+  Widget _bilibiliNameHint(BuildContext context) {
     final signedIn = CookieSettingsController.to.bilibiliCookie.v.trim().isNotEmpty;
     final String? text;
     final String? action;

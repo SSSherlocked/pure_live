@@ -44,24 +44,25 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
           enableLoadMore: true,
           customMobileBottomPadding: 85,
           customDesktopBottomPadding: 135,
-          showScrollToTopBtn: SettingsService.to.page.showScrollToTopBtn.v,
-          showPageSizeSelector: SettingsService.to.page.showPageSizeSelector.v,
-          pageSizeOptions: SettingsService.to.page.pageSizeOptions,
           emptyBuilder: (context) => EmptyView(icon: Icons.live_tv_rounded, title: i18n('no_data'), subtitle: ''),
           contentBuilder: (context, list, scrollController) {
             return Obx(() {
               final roomCardAppearance = SettingsService.to.roomCard.resolve();
+              // Read here, not in the LayoutBuilder below: a read at layout
+              // time is not tracked by this Obx.
+              final spacing = SettingsService.to.theme.crossAxisSpacing.v;
+              final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
+              final fixedCardWidth = SettingsService.to.roomCard.currentCardWidth;
               return LayoutBuilder(
                 builder: (context, constraint) {
                   final width = constraint.maxWidth;
                   final crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
-                  final spacing = SettingsService.to.theme.crossAxisSpacing.v;
                   final sizing = resolveRoomGridSizing(
                     width: width,
                     autoColumns: crossAxisCount,
                     spacing: spacing,
                     basePadding: 6,
-                    fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+                    fixedCardWidth: fixedCardWidth,
                   );
                   final itemWidth = sizing.itemWidth;
                   return GridView.builder(
@@ -72,7 +73,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: sizing.columns,
                       crossAxisSpacing: spacing,
-                      mainAxisSpacing: SettingsService.to.theme.mainAxisSpacing.v,
+                      mainAxisSpacing: rowSpacing,
                       mainAxisExtent: RoomCardLayoutMetrics.gridMainAxisExtent(
                         itemWidth: itemWidth,
                         appearance: roomCardAppearance,

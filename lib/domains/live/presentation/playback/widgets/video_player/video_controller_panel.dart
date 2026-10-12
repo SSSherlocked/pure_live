@@ -1089,8 +1089,11 @@ class BottomActionBar extends StatelessWidget {
                   colors: [Colors.transparent, Colors.black45],
                 ),
               ),
+              // The actions read settings (hide danmaku) and player state at
+              // layout time, after the outer Obx has stopped listening, so
+              // they get an Obx of their own.
               child: LayoutBuilder(
-                builder: (context, constraints) {
+                builder: (context, constraints) => Obx(() {
                   final policy = PlayerControlPolicy.of(context);
                   final fullscreen = policy.fullscreen;
                   if (portraitFullscreen) {
@@ -1140,7 +1143,7 @@ class BottomActionBar extends StatelessWidget {
                         ),
                     ],
                   );
-                },
+                }),
               ),
             ),
           ),

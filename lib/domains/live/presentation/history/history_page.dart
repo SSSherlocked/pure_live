@@ -196,6 +196,11 @@ class _HistoryPageState extends State<HistoryPage> {
       body: Obx(() {
         const dense = true;
         final rooms = HistoryController.to.historyRooms.v;
+        // Read here, not in the LayoutBuilder below: a read at layout time is
+        // not tracked by this Obx and would miss a settings change.
+        final spacing = SettingsService.to.theme.crossAxisSpacing.v;
+        final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
+        final fixedCardWidth = SettingsService.to.roomCard.currentCardWidth;
         return LayoutBuilder(
           builder: (context, constraint) {
             final width = constraint.maxWidth;
@@ -203,9 +208,9 @@ class _HistoryPageState extends State<HistoryPage> {
             final sizing = resolveRoomGridSizing(
               width: width,
               autoColumns: crossAxisCount,
-              spacing: SettingsService.to.theme.crossAxisSpacing.v,
+              spacing: spacing,
               basePadding: 6,
-              fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
+              fixedCardWidth: fixedCardWidth,
             );
             final indicators = appRefreshIndicators(context, maxWidth: width);
             return EasyRefresh(
@@ -221,8 +226,8 @@ class _HistoryPageState extends State<HistoryPage> {
                       gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
                         lastChildLayoutTypeBuilder: (index) => LastChildLayoutType.none,
                         crossAxisCount: sizing.columns,
-                        crossAxisSpacing: SettingsService.to.theme.crossAxisSpacing.v,
-                        mainAxisSpacing: SettingsService.to.theme.mainAxisSpacing.v,
+                        crossAxisSpacing: spacing,
+                        mainAxisSpacing: rowSpacing,
                       ),
                       itemCount: rooms.length,
                       itemBuilder: (context, index) => RoomCard(

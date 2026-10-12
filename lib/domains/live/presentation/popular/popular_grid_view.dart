@@ -18,9 +18,6 @@ class PopularGridView extends StatelessWidget {
         final autoColumns = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
         return BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
-          showScrollToTopBtn: SettingsService.to.page.showScrollToTopBtn.v,
-          pageSizeOptions: SettingsService.to.page.pageSizeOptions,
-          showPageSizeSelector: SettingsService.to.page.showPageSizeSelector.v,
           emptyBuilder: (c) => AppStatusView(
             type: AppStatusType.empty,
             icon: RemixIcons.fire_fill,
@@ -31,6 +28,7 @@ class PopularGridView extends StatelessWidget {
           ),
           contentBuilder: (context, list, scrollController) => Obx(() {
             final spacing = SettingsService.to.theme.crossAxisSpacing.v;
+            final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
             final sizing = resolveRoomGridSizing(
               width: width,
               autoColumns: autoColumns,
@@ -55,7 +53,7 @@ class PopularGridView extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, row) => Padding(
                         padding: EdgeInsets.only(
-                          bottom: row + 1 < rows ? SettingsService.to.theme.mainAxisSpacing.v : 0,
+                          bottom: row + 1 < rows ? rowSpacing : 0,
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

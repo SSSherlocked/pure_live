@@ -63,7 +63,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
   @override
   Widget build(BuildContext context) {
     // Paged lists with a page bar belong to the wide pointer (desktop) layout.
-    final bool isDesktop = AppLayout.of(context).pagedLists;
+    final bool isDesktop = AppLayout.of(context).pagedLists && controller.pagesOnDesktop;
 
     double bottomPadding = isDesktop ? (customDesktopBottomPadding ?? 70) : (customMobileBottomPadding ?? 20);
 

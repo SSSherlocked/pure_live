@@ -13,6 +13,11 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 
 class FavoriteController extends LocalReactivePageController<LiveRoom>
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
+  /// Every followed room on one page, desktop included; the platform tab bar
+  /// carries the refresh button instead of a page bar.
+  @override
+  bool get pagesOnDesktop => false;
+
   final RefreshConfigController refreshConfigController = Get.find<RefreshConfigController>();
 
   late TabController tabController;

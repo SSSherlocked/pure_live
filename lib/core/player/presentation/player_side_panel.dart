@@ -5,7 +5,7 @@ import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 
 /// The fullscreen player's menu panel: a full-height column docked to the right
-/// edge, top and bottom flush with the screen, as wide as the room side panel.
+/// edge, top and bottom flush with the screen, with a width of its own.
 ///
 /// Every fullscreen menu (关注, 画质与线路, 弹幕设置) uses this one shape, so
 /// they open in the same place and leave the same part of the picture visible.
@@ -27,13 +27,13 @@ class PlayerSidePanel extends StatefulWidget {
   final double? headerHeight;
   final Key? closeKey;
 
-  /// The panel width for [screen]: the room side panel width, at least 320 and
-  /// never more than 90% of the screen.
+  /// The panel width for [screen]: the fullscreen panel width, at least 320
+  /// and never more than 90% of the screen.
   static double widthFor(Size screen, {double? preferred}) {
     final preferredWidth =
         preferred ??
         (Get.isRegistered<ThemeSettingsController>()
-            ? SettingsService.to.theme.livePanelWidth.v
+            ? SettingsService.to.theme.fullscreenPanelWidth.v
             : LivePanelWidth.defaultValue);
     return math.min(math.max(LivePanelWidth.normalize(preferredWidth), 320.0), screen.width * 0.9);
   }
@@ -43,8 +43,8 @@ class PlayerSidePanel extends StatefulWidget {
 }
 
 /// The panel's left edge resizes it like the room side panel's: the width
-/// follows the drag and is written to 侧栏宽度 once, when the drag ends, so
-/// both panels keep one width.
+/// follows the drag and is saved once, when the drag ends. Fullscreen panels
+/// keep their own width, apart from the room's side panel.
 class _PlayerSidePanelState extends State<PlayerSidePanel> {
   double? _dragWidth;
   bool _hovered = false;
@@ -60,7 +60,7 @@ class _PlayerSidePanelState extends State<PlayerSidePanel> {
     if (dragged == null) return;
     setState(() => _dragWidth = null);
     if (Get.isRegistered<ThemeSettingsController>()) {
-      SettingsService.to.theme.livePanelWidth.v = LivePanelWidth.normalize(dragged.roundToDouble());
+      SettingsService.to.theme.fullscreenPanelWidth.v = LivePanelWidth.normalize(dragged.roundToDouble());
     }
   }
 

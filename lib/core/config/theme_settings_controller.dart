@@ -34,6 +34,10 @@ class ThemeSettingsController extends GetxController {
   /// Preferred width of the live room side panel in the split layout.
   final RxDouble livePanelWidth = hiveDouble('livePanelWidth', LivePanelWidth.defaultValue);
 
+  /// Width of the fullscreen player's side panels (关注, 弹幕设置), set by
+  /// dragging their edge; separate from the room's own side panel.
+  final RxDouble fullscreenPanelWidth = hiveDouble('fullscreenPanelWidth', LivePanelWidth.defaultValue);
+
   /// 显示模式: phone, tablet or desktop layout, or follow the screen (default).
   final RxString displayModeName = hiveString('displayMode', DisplayMode.auto.name);
 
@@ -188,6 +192,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelTabOrder': normalizeLivePanelTabOrder(livePanelTabOrder.v),
       'livePanelHiddenTabs': normalizeLivePanelHiddenTabs(livePanelHiddenTabs.v),
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
+      'fullscreenPanelWidth': LivePanelWidth.normalize(fullscreenPanelWidth.v),
       'displayMode': displayMode.name,
     };
   }
@@ -207,6 +212,7 @@ class ThemeSettingsController extends GetxController {
       ),
       'livePanelHiddenTabs': normalizeLivePanelHiddenTabs((json['livePanelHiddenTabs'] ?? '') as String),
       'livePanelWidth': _parseLivePanelWidth(json['livePanelWidth']),
+      'fullscreenPanelWidth': _parseLivePanelWidth(json['fullscreenPanelWidth']),
       'displayMode': DisplayMode.parse(json['displayMode']).name,
     };
   }
@@ -223,6 +229,7 @@ class ThemeSettingsController extends GetxController {
     livePanelTabOrder.v = parsed['livePanelTabOrder'];
     livePanelHiddenTabs.v = parsed['livePanelHiddenTabs'];
     livePanelWidth.v = parsed['livePanelWidth'];
+    fullscreenPanelWidth.v = parsed['fullscreenPanelWidth'];
     displayModeName.v = parsed['displayMode'];
   }
 
@@ -240,6 +247,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelTabOrder': parsed['livePanelTabOrder'],
       'livePanelHiddenTabs': parsed['livePanelHiddenTabs'],
       'livePanelWidth': parsed['livePanelWidth'],
+      'fullscreenPanelWidth': parsed['fullscreenPanelWidth'],
       'displayMode': parsed['displayMode'],
     };
   }

@@ -38,7 +38,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
     // mode before the first frame prevents BasePageView from starting a second
     // network refresh from inside build while the controller's initial request
     // is still running.
-    final initialIsDesktop = AppLayout.current.pagedLists;
+    final initialIsDesktop = AppLayout.current.pagedLists && pagesOnDesktop;
     _lastIsDesktop = initialIsDesktop;
     pageSize.value = initialIsDesktop && Get.isRegistered<SettingsService>()
         ? SettingsService.to.page.defaultPageSize.v
@@ -109,7 +109,11 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
     await refreshData();
   }
 
-  bool get usesDesktopPagination => _lastIsDesktop ?? AppLayout.current.pagedLists;
+  /// Whether the wide pointer layout pages this list with a page bar. A list
+  /// that returns false shows everything at once there too.
+  bool get pagesOnDesktop => true;
+
+  bool get usesDesktopPagination => _lastIsDesktop ?? (AppLayout.current.pagedLists && pagesOnDesktop);
 
   void _scrollListener() {
     _syncScrollFlags();
@@ -188,7 +192,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
         curve: Curves.easeOutCubic,
       );
     } else {
-      if (_lastIsDesktop ?? AppLayout.current.pagedLists) {
+      if (_lastIsDesktop ?? (AppLayout.current.pagedLists && pagesOnDesktop)) {
         refreshData();
       } else {
         easyRefreshController.callRefresh();

@@ -118,12 +118,29 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
     final availableSitesList = widget.availableSitesList;
     return Column(
       children: [
-        ScrollableTabBar(
-          key: const ValueKey('favorite-platform-tabs'),
-          controller: _tabController,
-          isScrollable: true,
-          physics: const PureLiveBoundedScrollPhysics(),
-          tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
+        Row(
+          children: [
+            Expanded(
+              child: ScrollableTabBar(
+                key: const ValueKey('favorite-platform-tabs'),
+                controller: _tabController,
+                isScrollable: true,
+                physics: const PureLiveBoundedScrollPhysics(),
+                tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
+              ),
+            ),
+            // Desktop has no pull-to-refresh; the refresh that lived in the
+            // page bar sits at the end of the tab bar.
+            if (AppLayout.of(context).pagedLists)
+              Obx(
+                () => IconButton(
+                  key: const ValueKey('favorite-refresh'),
+                  tooltip: i18n('refresh'),
+                  onPressed: controller.loadding.value ? null : () => controller.refreshData(),
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+              ),
+          ],
         ),
         Expanded(
           child: BasePageView<FavoriteController, LiveRoom>(

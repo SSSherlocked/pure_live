@@ -452,6 +452,7 @@ class DanmakuItem extends StatelessWidget {
       final settings = SettingsService.to.danmaku;
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
+      final nameFontWeight = FontWeight(settings.chatListNameFontWeight.v.clamp(100, 900).toInt());
       final spacing = settings.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble();
       final repeats = danmaku.type == LiveMessageType.chat ? controller.danmakuRepeatsOf(danmaku).value : 1;
       return _buildCard(
@@ -462,6 +463,7 @@ class DanmakuItem extends StatelessWidget {
         fontSize,
         spacing,
         fontWeight: fontWeight,
+        nameFontWeight: nameFontWeight,
         bubble: settings.chatListBubble.v,
         colorMode: settings.resolvedChatListColorMode,
         colorName: settings.chatListColorName.v,
@@ -480,6 +482,7 @@ class DanmakuItem extends StatelessWidget {
     double fontSize,
     double spacing, {
     required FontWeight fontWeight,
+    required FontWeight nameFontWeight,
     required bool bubble,
     required ChatListColorMode colorMode,
     required bool colorName,
@@ -569,8 +572,7 @@ class DanmakuItem extends StatelessWidget {
                       TextSpan(
                         text: "${danmaku.userName}: ",
                         style: base.copyWith(
-                          // The name stays two steps bolder than the message.
-                          fontWeight: FontWeight((fontWeight.value + 200).clamp(100, 900).toInt()),
+                          fontWeight: nameFontWeight,
                           color: colorName ? vibrantColor : textColor,
                         ),
                       ),

@@ -30,6 +30,7 @@ class DanmakuSettingsController extends GetxController {
   static const bool defaultPipDanmakuNoEmojiMode = false;
   static const double defaultChatListFontSize = 14.0;
   static const int defaultChatListFontWeight = 500;
+  static const int defaultChatListNameFontWeight = 700;
   static const double defaultChatListItemSpacing = 4.0;
   static const int defaultDanmakuMaxVisibleCount = 48;
 
@@ -71,6 +72,9 @@ class DanmakuSettingsController extends GetxController {
   /// Text weight of the chat list, 100-900; independent of the danmaku on the
   /// video.
   final RxInt chatListFontWeight = hiveInt('chatListFontWeight', defaultChatListFontWeight);
+
+  /// Weight of the sender's name in the chat list, set apart from the message.
+  final RxInt chatListNameFontWeight = hiveInt('chatListNameFontWeight', defaultChatListNameFontWeight);
 
   /// Vertical gap between chat list messages in the room side panel.
   final RxDouble chatListItemSpacing = hiveDouble('chatListItemSpacing', defaultChatListItemSpacing);
@@ -157,6 +161,10 @@ class DanmakuSettingsController extends GetxController {
     danmakuFontSize.v = _boundedDouble(danmakuFontSize.v, fallback: defaultDanmakuFontSize, min: 10, max: 30);
     danmakuFontWeight.v = normalizeFontWeight(danmakuFontWeight.v);
     chatListFontWeight.v = normalizeFontWeight(chatListFontWeight.v, fallback: defaultChatListFontWeight);
+    chatListNameFontWeight.v = normalizeFontWeight(
+      chatListNameFontWeight.v,
+      fallback: defaultChatListNameFontWeight,
+    );
     danmakuFontBorder.v = _boundedDouble(danmakuFontBorder.v, fallback: defaultDanmakuFontBorder, min: 0, max: 4);
     danmakuLetterSpacing.v = _boundedDouble(danmakuLetterSpacing.v, fallback: 0.0, min: -2, max: 8);
     danmakuOpacity.v = _boundedDouble(danmakuOpacity.v, fallback: defaultDanmakuOpacity, min: 0, max: 1);
@@ -206,6 +214,7 @@ class DanmakuSettingsController extends GetxController {
       'hideDanmaku': hideDanmaku.v,
       'chatListFontSize': chatListFontSize.v,
       'chatListFontWeight': chatListFontWeight.v,
+      'chatListNameFontWeight': chatListNameFontWeight.v,
       'chatListItemSpacing': chatListItemSpacing.v,
       'chatListBubble': chatListBubble.v,
       'chatListColorMode': chatListColorMode.v,
@@ -253,6 +262,9 @@ class DanmakuSettingsController extends GetxController {
       ),
       'chatListFontWeight': typed<int>(
         normalizeFontWeight(json['chatListFontWeight'], fallback: defaultChatListFontWeight),
+      ),
+      'chatListNameFontWeight': typed<int>(
+        normalizeFontWeight(json['chatListNameFontWeight'], fallback: defaultChatListNameFontWeight),
       ),
       'chatListItemSpacing': typed<double>(
         _boundedDouble(json['chatListItemSpacing'], fallback: defaultChatListItemSpacing, min: 0, max: 16),
@@ -331,6 +343,7 @@ class DanmakuSettingsController extends GetxController {
     hideDanmaku.v = parsed['hideDanmaku'];
     chatListFontSize.v = parsed['chatListFontSize'];
     chatListFontWeight.v = parsed['chatListFontWeight'];
+    chatListNameFontWeight.v = parsed['chatListNameFontWeight'];
     chatListItemSpacing.v = parsed['chatListItemSpacing'];
     chatListBubble.v = parsed['chatListBubble'];
     chatListColorMode.v = parsed['chatListColorMode'];
@@ -378,6 +391,10 @@ class DanmakuSettingsController extends GetxController {
         max: 28,
       ),
       'chatListFontWeight': normalizeFontWeight(danmaku['chatListFontWeight'], fallback: defaultChatListFontWeight),
+      'chatListNameFontWeight': normalizeFontWeight(
+        danmaku['chatListNameFontWeight'],
+        fallback: defaultChatListNameFontWeight,
+      ),
       'chatListItemSpacing': _boundedDouble(
         danmaku['chatListItemSpacing'],
         fallback: defaultChatListItemSpacing,

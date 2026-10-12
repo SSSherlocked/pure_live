@@ -122,6 +122,21 @@ class GeneralSettingsPage extends GetView<SettingsService> {
             Obx(
               () => context.buildSliderTile(
                 context,
+                icon: Icons.person_outline_rounded,
+                title: i18n('chat_list_name_font_weight'),
+                value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
+                min: 100,
+                max: 900,
+                displayValue: i18n(
+                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
+                      'font_weight_normal',
+                ),
+                onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
                 icon: Remix.text_spacing,
                 title: i18n('chat_list_item_spacing'),
                 value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),

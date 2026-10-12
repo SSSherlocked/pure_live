@@ -208,6 +208,23 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               _slider(
                 theme,
+                title: i18n('chat_list_name_font_weight'),
+                value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
+                min: 100,
+                max: 900,
+                stepSize: 100,
+                display: i18n(
+                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
+                      'font_weight_normal',
+                ),
+                semanticValueBuilder: (value) =>
+                    i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
+                onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
+                labelColor: labelColor,
+                digitColor: digitColor,
+              ),
+              _slider(
+                theme,
                 title: i18n('chat_list_item_spacing'),
                 value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
                 min: 0,

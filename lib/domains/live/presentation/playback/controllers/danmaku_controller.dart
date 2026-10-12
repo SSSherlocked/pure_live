@@ -11,6 +11,7 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/core/player/core/live_message_normalization.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_play_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_session_host.dart';
+import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_stall_watchdog.dart';
 
 /// Owns exactly one room-bound danmaku session.
 ///
@@ -24,12 +25,19 @@ class DanmakuController extends GetxController {
     this.startTimeout = const Duration(seconds: 20),
     this.stopTimeout = const Duration(seconds: 5),
     this.recoveryAllowed,
+    this.stallCheckInterval = const Duration(seconds: 15),
   });
 
   final DanmakuSessionHost _main;
   final Duration startTimeout;
   final Duration stopTimeout;
   final bool Function(LiveRoom liveroom)? recoveryAllowed;
+
+  /// How often a connected session is checked for a silent stall.
+  final Duration stallCheckInterval;
+  final DanmakuStallWatchdog _stallWatchdog = DanmakuStallWatchdog();
+  Timer? _stallTimer;
+  LiveRoom? _sessionRoom;
   final DanmakuMessageGate _messageGate = DanmakuMessageGate();
   final DanmakuRepeatedFilter _repeatedMessageFilter = DanmakuRepeatedFilter();
   final DanmakuSimilarityFilter _similarityFilter = DanmakuSimilarityFilter();
@@ -194,6 +202,9 @@ class DanmakuController extends GetxController {
     final danmakuCapability = Sites.danmakuCapability(liveroom.platform);
     engine.onMessage = (msg) {
       if (!_acceptsCallback(engine, key, token)) return;
+      // Anything the room sends shows the session is alive, including messages
+      // the filters below drop.
+      _stallWatchdog.record(DateTime.now());
       if (msg.type == LiveMessageType.chat) {
         if (!_messageGate.accepts(normalizeLiveMessage(msg)) || _isBlocked(msg)) return;
         final danmakuSettings = SettingsService.to.danmaku;
@@ -259,7 +270,27 @@ class DanmakuController extends GetxController {
       _sessionKey = key;
       _main.updateDanmakuRoomId(liveroom.roomId?.toString());
       _addStatusMessage(i18n('danmaku_connected'));
+      _sessionRoom = liveroom;
+      _stallWatchdog.reset();
+      _stallTimer?.cancel();
+      _stallTimer = Timer.periodic(stallCheckInterval, (_) => _checkForStall());
     };
+  }
+
+  /// Reconnects a session that went silent without closing (see
+  /// [DanmakuStallWatchdog]). Only while the video plays and danmaku are
+  /// allowed; the visible history stays.
+  void _checkForStall() {
+    final room = _sessionRoom;
+    if (room == null || _sessionKey == null || !_initialized) return;
+    if (!GlobalPlayerService.instance.player.isPlayingNow) return;
+    final now = DateTime.now();
+    if (!_stallWatchdog.shouldRecover(now)) return;
+    if (!_isRecoveryAllowed(room)) return;
+    _stallWatchdog.markRecovered(now);
+    CoreLog.w('Danmaku session ${_roomKey(room)} went silent; reconnecting.');
+    _addStatusMessage(i18n('danmaku_stall_reconnecting'));
+    unawaited(connectRoom(room, force: true));
   }
 
   bool _acceptsCallback(LiveDanmaku engine, String key, int token) {
@@ -320,6 +351,9 @@ class DanmakuController extends GetxController {
     _sessionToken++;
     _sessionKey = null;
     _connectingKey = null;
+    _stallTimer?.cancel();
+    _stallTimer = null;
+    _stallWatchdog.reset();
     _main.updateDanmakuRoomId(null);
     if (clearRenderer) _main.clearRenderedDanmaku();
     if (engine == null) return;
@@ -391,6 +425,10 @@ class DanmakuController extends GetxController {
 
   @override
   void onClose() {
+    // The floating window may keep the session (below); its silence check
+    // goes with this controller either way.
+    _stallTimer?.cancel();
+    _stallTimer = null;
     _settingsWorker?.dispose();
     _filterWorker?.dispose();
     _similarityFilterWorker?.dispose();

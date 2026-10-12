@@ -5,6 +5,8 @@ import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
+import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
+import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
@@ -68,6 +70,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
 
   StreamSubscription<dynamic>? subscription;
   Worker? _favoritesWorker;
+  Worker? _sortWorker;
 
   @override
   void initState() {
@@ -81,16 +84,21 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     // The 关注 tab stays mounted for the whole room session, so follow list
     // edits must show up without reopening it.
     _favoritesWorker = ever(FavoriteRoomController.to.favoriteRooms, (_) => _updateRooms());
+    _sortWorker = ever(SettingsService.to.roomCard.favoriteSortModeName, (_) => _updateRooms());
   }
 
   void _updateRooms() {
     if (!mounted) return;
     final allRooms = FavoriteRoomController.to.favoriteRooms.v;
 
-    final liveList = allRooms.where((room) => room.isLiveNow && room.isRecord == false).toList()
-      ..sort(_compareAudience);
-    final recordList = allRooms.where((room) => room.effectiveLiveStatus == LiveStatus.replay).toList()
-      ..sort(_compareAudience);
+    // The same order as the home 关注 page (its 排序 setting).
+    final platformOrder = Get.isRegistered<FavoriteController>()
+        ? [for (final site in Get.find<FavoriteController>().availableFavoriteSites) site.id]
+        : const <String>[];
+    final liveList = allRooms.where((room) => room.isLiveNow && room.isRecord == false).toList();
+    final recordList = allRooms.where((room) => room.effectiveLiveStatus == LiveStatus.replay).toList();
+    sortFavoriteRooms(liveList, platformOrder: platformOrder);
+    sortFavoriteRooms(recordList, platformOrder: platformOrder);
     onlineRooms.assignAll(liveList);
     recordingRooms.assignAll(recordList);
 
@@ -98,21 +106,12 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     refreshing.value = false;
   }
 
-  int _compareAudience(LiveRoom left, LiveRoom right) {
-    final app = SettingsService.to.app;
-    return LiveRoom.compareAudienceRanking(
-      left,
-      right,
-      preferRealOnline: app.preferRealOnlineCounts.v,
-      platformEnabled: app.isRealOnlineEnabledFor,
-    );
-  }
-
   @override
   void dispose() {
     tabController.dispose();
     subscription?.cancel();
     _favoritesWorker?.dispose();
+    _sortWorker?.dispose();
     super.dispose();
   }
 
@@ -170,6 +169,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                   ),
                 ),
               ),
+              const FavoriteSortButton(key: ValueKey('follow-panel-sort'), iconSize: 18),
               Obx(
                 () => IconButton(
                   key: const ValueKey('room-history-refresh'),

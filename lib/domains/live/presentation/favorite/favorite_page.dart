@@ -1,6 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/config/room_card_settings_controller.dart';
+import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
 import 'package:pure_live/domains/live/presentation/favorite/room_grid_view.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
@@ -36,7 +36,7 @@ class FavoritePage extends GetView<FavoriteController> {
                       ],
                     ),
                   ),
-                  const _FavoriteSortButton(),
+                  const FavoriteSortButton(key: ValueKey('favorite-sort')),
                 ],
               ),
             ),
@@ -108,6 +108,16 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
     controller.selectSiteIndex(tabController.index);
   }
 
+  /// A horizontal fling steps through the status tabs: left to the next,
+  /// right to the previous.
+  void _swipeStatus(double velocity) {
+    const threshold = 300.0;
+    final status = widget.controller.tabController;
+    if (status.indexIsChanging || velocity.abs() < threshold) return;
+    final next = (status.index + (velocity < 0 ? 1 : -1)).clamp(0, status.length - 1);
+    if (next != status.index) status.animateTo(next);
+  }
+
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChanged);
@@ -174,10 +184,12 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
             preserveContentWhenEmpty: true,
             contentBuilder: (context, list, _) {
               final activeSiteIndex = controller.tabSiteIndex.value;
-              return TabBarView(
+              final platformTabsShown = SettingsService.to.roomCard.showFavoritePlatformTabs.v;
+              final pages = TabBarView(
                 controller: _tabController,
-                // No swiping to another platform while the tab bar is hidden.
-                physics: SettingsService.to.roomCard.showFavoritePlatformTabs.v
+                // With the platform tabs hidden a swipe changes the status
+                // tab (已开播 / 录播 / 未开播) instead; see below.
+                physics: platformTabsShown
                     ? const PureLiveBoundedScrollPhysics()
                     : const NeverScrollableScrollPhysics(),
                 children: availableSitesList.asMap().entries.map((entry) {
@@ -200,6 +212,13 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
                     },
                   );
                 }).toList(),
+              );
+              if (platformTabsShown) return pages;
+              return GestureDetector(
+                key: const ValueKey('favorite-status-swipe'),
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragEnd: (details) => _swipeStatus(details.primaryVelocity ?? 0),
+                child: pages,
               );
             },
           ),
@@ -250,46 +269,6 @@ class _FavoriteEmptyState extends StatelessWidget {
         subtitle: subtitle,
         buttonText: canShowOffline ? i18n('favorite_show_offline') : i18n('retry'),
         onButtonPressed: canShowOffline ? () => controller.animateToStatusIndex(2) : controller.refreshData,
-      );
-    });
-  }
-}
-
-/// The 排序 button at the end of the status tabs: a small, quiet icon that
-/// opens the three orders, the current one bold in the primary colour.
-class _FavoriteSortButton extends StatelessWidget {
-  const _FavoriteSortButton();
-
-  static String labelOf(FavoriteSortMode mode) => switch (mode) {
-    FavoriteSortMode.name => i18n('favorite_sort_name'),
-    FavoriteSortMode.platform => i18n('favorite_sort_platform'),
-    FavoriteSortMode.audience => i18n('favorite_sort_audience'),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final settings = SettingsService.to.roomCard;
-    return Obx(() {
-      final current = settings.favoriteSortMode;
-      return PopupMenuButton<FavoriteSortMode>(
-        key: const ValueKey('favorite-sort'),
-        tooltip: i18n('favorite_sort'),
-        icon: Icon(Icons.filter_list_rounded, size: 20, color: colors.onSurfaceVariant),
-        onSelected: (mode) => settings.favoriteSortModeName.v = mode.name,
-        itemBuilder: (context) => [
-          for (final mode in FavoriteSortMode.values)
-            PopupMenuItem<FavoriteSortMode>(
-              value: mode,
-              child: Text(
-                labelOf(mode),
-                style: AppText.of(context).body.copyWith(
-                  color: mode == current ? colors.primary : null,
-                  fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ),
-        ],
       );
     });
   }

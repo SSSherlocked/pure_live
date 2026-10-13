@@ -1,16 +1,28 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
+import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 
-/// An entry a home page adds at the top of the top-right menu, such as the
-/// 关注 page's 排序. [onSelected] gets the menu button's context, so a
-/// follow-up menu can open where the top-right menu was.
+/// A choice a home page adds at the top of the top-right menu, such as the
+/// 关注 page's 排序: a submenu of [choices] opening to the left, like the
+/// player's submenus, the [selected] one bold in the primary colour.
 class HomePageMenuAction {
-  const HomePageMenuAction({required this.icon, required this.label, required this.onSelected});
+  const HomePageMenuAction({
+    required this.icon,
+    required this.label,
+    required this.choices,
+    required this.selected,
+    required this.onSelected,
+  });
 
   final IconData icon;
   final String label;
-  final void Function(BuildContext anchor) onSelected;
+  final List<String> choices;
+
+  /// The index of the current choice; read inside an [Obx].
+  final int Function() selected;
+  final ValueChanged<int> onSelected;
 }
 
 /// The home page's top-right menu: the page's own [pageAction], then 搜索直播,
@@ -24,45 +36,73 @@ class CommonAppBarActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = SettingsService.to.app;
+    final action = pageAction;
+    // With a submenu entry, every entry keeps its arrow column.
+    final arrowColumn = action != null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Builder(
-          builder: (anchor) => PopupMenuButton<String>(
-            key: const ValueKey('home-more-menu'),
-            tooltip: i18n("more"),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            offset: const Offset(0, 10),
-            position: PopupMenuPosition.under,
-            onSelected: (action) {
-              switch (action) {
-                case 'page':
-                  pageAction?.onSelected(anchor);
-                case 'search':
-                  Get.toNamed(RoutePath.kSearch);
-                case 'areas':
-                  Get.toNamed(RoutePath.kAreas);
-                case 'popular':
-                  Get.toNamed(RoutePath.kPopular);
-                case 'history':
-                  Get.toNamed(RoutePath.kHistory);
-              }
-            },
-            itemBuilder: (context) => [
-              if (pageAction case final action?) ...[
-                homeMenuItem(context, 'page', action.icon, action.label),
-                const PopupMenuDivider(),
-              ],
-              homeMenuItem(context, 'search', Remix.search_line, i18n("search_live")),
-              if (app.showsMenu(HomeMenu.areas)) homeMenuItem(context, 'areas', Remix.apps_2_line, i18n("areas_title")),
-              if (app.showsMenu(HomeMenu.popular))
-                homeMenuItem(context, 'popular', Remix.fire_line, i18n("popular_title")),
-              homeMenuItem(context, 'history', Remix.history_line, i18n("history")),
+        MenuAnchor(
+          style: homeMenuStyle,
+          alignmentOffset: const Offset(0, 4),
+          menuChildren: [
+            if (action != null) ...[
+              LeftSubmenuButton(
+                key: const ValueKey('home-page-menu-action'),
+                leadingIcon: homeMenuIcon(context, action.icon),
+                labels: action.choices,
+                menuChildren: [
+                  for (final (index, choice) in action.choices.indexed)
+                    Obx(
+                      () => PlayerMenuChoice(
+                        key: ValueKey('home-page-menu-choice-$index'),
+                        label: choice,
+                        labels: action.choices,
+                        selected: action.selected() == index,
+                        onPressed: () => action.onSelected(index),
+                      ),
+                    ),
+                ],
+                child: Text(action.label, style: AppText.of(context).listPrimary),
+              ),
+              const Divider(height: 16),
             ],
-            child: const SizedBox.square(
-              dimension: kMinInteractiveDimension,
-              child: Icon(Remix.menu_search_line, size: 24),
+            homeMenuItem(
+              context,
+              icon: Remix.search_line,
+              text: i18n("search_live"),
+              arrowColumn: arrowColumn,
+              onPressed: () => Get.toNamed(RoutePath.kSearch),
             ),
+            if (app.showsMenu(HomeMenu.areas))
+              homeMenuItem(
+                context,
+                icon: Remix.apps_2_line,
+                text: i18n("areas_title"),
+                arrowColumn: arrowColumn,
+                onPressed: () => Get.toNamed(RoutePath.kAreas),
+              ),
+            if (app.showsMenu(HomeMenu.popular))
+              homeMenuItem(
+                context,
+                icon: Remix.fire_line,
+                text: i18n("popular_title"),
+                arrowColumn: arrowColumn,
+                onPressed: () => Get.toNamed(RoutePath.kPopular),
+              ),
+            homeMenuItem(
+              context,
+              icon: Remix.history_line,
+              text: i18n("history"),
+              arrowColumn: arrowColumn,
+              onPressed: () => Get.toNamed(RoutePath.kHistory),
+            ),
+          ],
+          builder: (context, menu, _) => homeMenuToggle(
+            menu,
+            key: const ValueKey('home-more-menu'),
+            icon: Remix.menu_search_line,
+            tooltip: i18n("more"),
           ),
         ),
         const SizedBox(width: 4),

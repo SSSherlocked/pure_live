@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:pinyindart/pinyindart.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
@@ -77,24 +75,14 @@ void _applySortMode(FavoriteSortMode? mode) {
   if (mode != null) SettingsService.to.roomCard.favoriteSortModeName.v = mode.name;
 }
 
-/// The home 关注 page's 排序 entry in the top-right menu: its orders open
-/// under the menu button ([anchor]), where the menu was.
+/// The home 关注 page's 排序 entry in the top-right menu: a submenu of the
+/// three orders.
 HomePageMenuAction favoriteSortMenuAction() => HomePageMenuAction(
   icon: Icons.filter_list_rounded,
   label: i18n('favorite_sort'),
-  onSelected: (anchor) {
-    final button = anchor.findRenderObject() as RenderBox?;
-    final overlay = Overlay.of(anchor).context.findRenderObject() as RenderBox?;
-    if (button == null || overlay == null || !button.attached) return;
-    final bottomLeft = button.localToGlobal(Offset(0, button.size.height + 10), ancestor: overlay);
-    final bottomRight = button.localToGlobal(button.size.bottomRight(const Offset(0, 10)), ancestor: overlay);
-    unawaited(showMenu<FavoriteSortMode>(
-      context: anchor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      position: RelativeRect.fromRect(Rect.fromPoints(bottomLeft, bottomRight), Offset.zero & overlay.size),
-      items: _sortItems(anchor),
-    ).then(_applySortMode));
-  },
+  choices: [for (final mode in FavoriteSortMode.values) _labelOf(mode)],
+  selected: () => SettingsService.to.roomCard.favoriteSortMode.index,
+  onSelected: (index) => _applySortMode(FavoriteSortMode.values[index]),
 );
 
 /// The 排序 button of the room's 关注 panel: a small, quiet icon opening the

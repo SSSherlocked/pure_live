@@ -20,7 +20,7 @@ class _AboutPageState extends State<AboutPage> {
 
     return Scaffold(
       appBar: AppBar(),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: <Widget>[
@@ -109,7 +109,7 @@ class _AboutPageState extends State<AboutPage> {
             ),
           ]),
         ],
-      ),
+      )),
     );
   }
 

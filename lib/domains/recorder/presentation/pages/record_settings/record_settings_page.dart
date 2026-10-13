@@ -28,7 +28,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n("record_settings"))),
-      body: Obx(
+      body: SettingsContentWidth(child: Obx(
         () => ListView(
           physics: const PureLiveScrollPhysics(),
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
@@ -229,7 +229,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
             const SizedBox(height: 60),
           ],
         ),
-      ),
+      )),
     );
   }
 

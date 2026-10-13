@@ -92,7 +92,7 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
           ),
         ],
       ),
-      body: Obx(() {
+      body: SettingsContentWidth(child: Obx(() {
         final versions = allReleased.toList(growable: false);
         final loading = historyLoading.value;
         if (loading && versions.isEmpty) return const AppStatusView(type: AppStatusType.loading);
@@ -120,7 +120,7 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
               ),
           ],
         );
-      }),
+      })),
     );
   }
 

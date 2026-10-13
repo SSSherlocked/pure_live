@@ -15,7 +15,7 @@ class AccountPage extends GetView<AccountController> {
 
     return Scaffold(
       appBar: AppBar(title: Text(i18n('third_party_auth'))),
-      body: ListView(
+      body: SettingsContentWidth(child: ListView(
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -71,7 +71,7 @@ class AccountPage extends GetView<AccountController> {
           }),
           const SizedBox(height: 32),
         ],
-      ),
+      )),
     );
   }
 

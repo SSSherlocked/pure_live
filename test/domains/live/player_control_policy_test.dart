@@ -69,12 +69,13 @@ void main() {
     expect(_policy(layout: desktop, fullscreen: true, windows: true).trailingSlots, [
       TopActionTrailingSlot.datetime,
       TopActionTrailingSlot.battery,
-      TopActionTrailingSlot.pip,
     ]);
   });
 
-  test('picture-in-picture is a menu entry on Android only', () {
+  test('picture-in-picture is a menu entry wherever the platform has it', () {
     expect(_policy(layout: phone, fullscreen: false, android: true).pipInMoreMenu, isTrue);
-    expect(_policy(layout: desktop, fullscreen: false, windows: true).pipInMoreMenu, isFalse);
+    expect(_policy(layout: desktop, fullscreen: false, windows: true).pipInMoreMenu, isTrue);
+    expect(_policy(layout: desktop, fullscreen: true, windows: true).pipInMoreMenu, isTrue);
+    expect(_policy(layout: desktop, fullscreen: false).pipInMoreMenu, isFalse);
   });
 }

@@ -518,15 +518,9 @@ class TopActionBar extends StatelessWidget {
                       switch (slot) {
                         TopActionTrailingSlot.datetime => const DatetimeInfo(),
                         TopActionTrailingSlot.battery => BatteryInfo(controller: controller),
-                        TopActionTrailingSlot.pip => PIPButton(
-                          key: GlobalPlayerService.instance.player.fullscreenUI
-                              ? const ValueKey('fullscreen-pip-shortcut')
-                              : const ValueKey('playback-action-pip'),
-                          controller: controller,
-                        ),
                       },
-                    // ⋯ (画面比例 / 纯音频) closes the top-right group, inline and
-                    // in fullscreen alike.
+                    // ⋯ (画面比例 / 纯音频 / 投屏 / 小窗) closes the top-right
+                    // group, inline and in fullscreen alike.
                     PlayerMoreMenuButton(key: const ValueKey('player-top-more-menu'), menu: moreMenu),
                   ],
                 ),
@@ -673,46 +667,6 @@ class BackButton extends StatelessWidget {
       constraints: PlayerControlDensity.actionConstraints(context),
       icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
     );
-  }
-}
-
-class PIPButton extends StatelessWidget {
-  const PIPButton({super.key, required this.controller});
-
-  final VideoController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final service = GlobalPlayerService.instance;
-    if (!service.initialized) {
-      return IconButton(
-        tooltip: i18n('float_window_play'),
-        visualDensity: VisualDensity.standard,
-        constraints: PlayerControlDensity.actionConstraints(context),
-        color: Colors.white,
-        onPressed: null,
-        icon: const Icon(CustomIcons.float_window),
-      );
-    }
-    final manager = service.player;
-    return Obx(() {
-      return IconButton(
-        tooltip: i18n('float_window_play'),
-        visualDensity: VisualDensity.standard,
-        constraints: PlayerControlDensity.actionConstraints(context),
-        color: Colors.white,
-        onPressed: manager.isPipPreparing.value
-            ? null
-            : () async {
-                try {
-                  await controller.livePlayController.enterPipPresentation();
-                } catch (_) {
-                  ToastUtil.show(i18n('pip_enter_failed'));
-                }
-              },
-        icon: const Icon(CustomIcons.float_window),
-      );
-    });
   }
 }
 

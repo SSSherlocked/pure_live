@@ -318,11 +318,9 @@ class _RecordingPlayerAreaState extends State<_PlayerArea> {
                   // fullscreen. (The control bar at the bottom only holds the
                   // transport, volume, rate, fit and fullscreen controls.)
                   //
-                  // Wide layout only: the phone layout draws its own top bars.
-                  // Touch fullscreen skips it too: those actions sit in the
-                  // fullscreen bar's menu there, so the picture stays clear.
-                  if (AppLayout.of(context).wide &&
-                      !(controller.fullscreenActive.value && AppLayout.of(context).touch))
+                  // Wide layout only: the phone layout draws its own top bars,
+                  // which carry the same ⋯ menu.
+                  if (AppLayout.of(context).wide)
                     Positioned(
                       top: 8 + _edgeInsets(context).top,
                       right: 8 + _edgeInsets(context).right,
@@ -465,8 +463,8 @@ class _RecordingKeyboardShortcutsState extends State<RecordingKeyboardShortcuts>
   }
 }
 
-/// The picture's top-right cluster: back, audio-only, screenshot and
-/// picture-in-picture.
+/// The picture's top-right cluster: back (in fullscreen) and the ⋯ menu
+/// ([_RecordingMoreMenu]).
 ///
 /// It floats over a roomy window's picture, and the fullscreen chrome reuses the
 /// same row inside its top bar — there [includeBack] is false, because that bar
@@ -506,42 +504,66 @@ class _RecordingCornerActions extends StatelessWidget {
                       ),
                     ),
             ),
+          _RecordingMoreMenu(controller: controller),
+        ],
+      ),
+    );
+  }
+}
+
+/// The ⋯ menu of the picture's top-right corner: 纯音频, 截图 and 小窗播放,
+/// in the wide layout and in every fullscreen shape alike, the way the live
+/// room's ⋯ menu holds its extras. The phone's inline page keeps them in its
+/// settings sheet instead.
+class _RecordingMoreMenu extends StatelessWidget {
+  const _RecordingMoreMenu({required this.controller});
+
+  final LocalVideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    // A dense menu, like the player's: its entries use the compact roles.
+    return CompactText(
+      child: MenuAnchor(
+        menuChildren: [
           Obx(
-            () => SizedBox(
-              width: 32,
-              child: IconButton(
-                color: controller.isAudioOnly.value ? const Color(0xFFFFD166) : Colors.white,
-                iconSize: 20,
-                tooltip: controller.isAudioOnly.value ? i18n('restore_video_mode') : i18n('switch_audio_only_mode'),
-                icon: Icon(controller.isAudioOnly.value ? Remix.headphone_fill : Remix.headphone_line),
-                onPressed: () => controller.isAudioOnly.toggle(),
+            () => MenuItemButton(
+              key: const ValueKey('local-player-more-audio-only'),
+              leadingIcon: Icon(
+                controller.isAudioOnly.value ? Icons.check_rounded : Icons.headphones_rounded,
+                size: 18,
               ),
+              onPressed: () => controller.isAudioOnly.toggle(),
+              child: Text(i18n('audio_only_mode')),
             ),
           ),
-          SizedBox(
-            width: 32,
-            child: IconButton(
-              color: Colors.white,
-              iconSize: 20,
-              tooltip: i18n('local_player_screenshot'),
-              icon: const Icon(Icons.photo_camera_rounded),
-              onPressed: () async {
-                final name = await controller.saveScreenshot();
-                ToastUtil.show(name ?? i18n('path_or_permission_error'));
-              },
-            ),
+          MenuItemButton(
+            key: const ValueKey('local-player-more-screenshot'),
+            leadingIcon: const Icon(Icons.photo_camera_rounded, size: 18),
+            onPressed: () async {
+              final name = await controller.saveScreenshot();
+              ToastUtil.show(name ?? i18n('path_or_permission_error'));
+            },
+            child: Text(i18n('local_player_screenshot')),
           ),
-          SizedBox(
-            width: 32,
-            child: IconButton(
-              color: Colors.white,
-              iconSize: 20,
-              tooltip: i18n('pip_window_play'),
-              icon: const Icon(Remix.picture_in_picture_line),
-              onPressed: () => unawaited(_enterRecordingPip(controller)),
-            ),
+          MenuItemButton(
+            key: const ValueKey('local-player-more-pip'),
+            leadingIcon: const Icon(Remix.picture_in_picture_line, size: 18),
+            onPressed: () => unawaited(_enterRecordingPip(controller)),
+            child: Text(i18n('pip_window_play')),
           ),
         ],
+        builder: (context, menu, _) => SizedBox(
+          width: 32,
+          child: IconButton(
+            key: const ValueKey('local-player-more-menu'),
+            color: Colors.white,
+            iconSize: 20,
+            tooltip: i18n('settings_more'),
+            icon: const Icon(Icons.more_horiz_rounded),
+            onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+          ),
+        ),
       ),
     );
   }

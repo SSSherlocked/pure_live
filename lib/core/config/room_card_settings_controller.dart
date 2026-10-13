@@ -277,7 +277,7 @@ class RoomCardSettingsController extends GetxController {
   }
 
   static const int autoColumns = 0;
-  static const int maxColumns = 8;
+  static const int maxColumns = 20;
 
   static int normalizeColumns(num value) =>
       value.isFinite ? value.round().clamp(autoColumns, maxColumns).toInt() : autoColumns;

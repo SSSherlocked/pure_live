@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:remixicon/remixicon.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:pure_live/features/backup/backup_recovery_service.dart';
@@ -21,10 +22,42 @@ class BackupSettingsSections extends StatefulWidget {
 
 enum _BackupAction { create, restore, directory }
 
+class _LogFileEntry {
+  const _LogFileEntry(this.path, this.size, this.modified);
+
+  final String path;
+  final int size;
+  final DateTime modified;
+
+  String get name => p.basename(path);
+}
+
 class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
+  /// Height of the embedded log file list, as in Simple Live.
+  static const double _logListHeight = 300;
+
   final LogController logController = LogController.to;
   String get backupDirectory => BackupController.to.backupDirectory.v;
   _BackupAction? _backupAction;
+  List<_LogFileEntry> _logFiles = const [];
+  Worker? _logStatusWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadLogFiles());
+    // Switching the log on creates a file; list it once the switch settles.
+    _logStatusWorker = ever<bool>(logController.isApplyingLogStatus, (applying) {
+      if (!applying) unawaited(_loadLogFiles());
+    });
+  }
+
+  @override
+  void dispose() {
+    _logStatusWorker?.dispose();
+    _logStatusWorker = null;
+    super.dispose();
+  }
 
   Future<void> _runBackupAction(
     _BackupAction action,
@@ -66,35 +99,126 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
     }
   }
 
-  /// Android keeps the logs under the app's own external directory, which the
-  /// system file manager cannot browse; the newest file is shared instead.
-  Future<void> _shareLatestLogFile() async {
+  /// The saved log files, newest first.
+  Future<void> _loadLogFiles() async {
     try {
+      await Log.flush();
       final logDir = await LogFileWriter.resolveLogDirectory();
-      if (!await logDir.exists()) {
-        ToastUtil.show(i18n('log_dir_not_exist'));
-        return;
+      final entries = <_LogFileEntry>[];
+      if (await logDir.exists()) {
+        await for (final entity in logDir.list()) {
+          if (entity is! File || !entity.path.endsWith('.log')) continue;
+          final stat = await entity.stat();
+          entries.add(_LogFileEntry(entity.path, stat.size, stat.modified));
+        }
       }
-      final logs = await logDir.list().where((entry) => entry is File && entry.path.endsWith('.log')).toList();
-      if (logs.isEmpty) {
-        ToastUtil.show(i18n('log_file_not_found'));
-        return;
-      }
-      // File names are timestamps, so the newest sorts last.
-      logs.sort((a, b) => a.path.compareTo(b.path));
-      await SharePlus.instance.share(ShareParams(files: [XFile(logs.last.path)]));
-    } catch (_) {
-      ToastUtil.show(i18n('open_log_dir_failed'));
+      entries.sort((a, b) => b.modified.compareTo(a.modified));
+      if (mounted) setState(() => _logFiles = entries);
+    } catch (error) {
+      debugPrint('Loading log files failed: $error');
     }
   }
 
-  Future<void> _openLogBrowser(Uri uri) async {
-    try {
-      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (!opened && mounted) ToastUtil.show(i18n('open_log_browser_failed'));
-    } catch (_) {
-      if (mounted) ToastUtil.show(i18n('open_log_browser_failed'));
+  /// Deletes every log file except the one being written.
+  Future<void> _clearLogFiles() async {
+    final active = Log.activeLogFilePath;
+    var failed = false;
+    for (final entry in _logFiles) {
+      if (entry.path == active) continue;
+      try {
+        await File(entry.path).delete();
+      } catch (_) {
+        failed = true;
+      }
     }
+    if (failed) ToastUtil.show(i18n('clear_log_files_failed'));
+    await _loadLogFiles();
+  }
+
+  Future<void> _shareLogFile(_LogFileEntry entry) async {
+    try {
+      await Log.flush();
+      await SharePlus.instance.share(ShareParams(files: [XFile(entry.path)]));
+    } catch (_) {
+      ToastUtil.show(i18n('log_share_failed'));
+    }
+  }
+
+  Future<void> _saveLogFile(_LogFileEntry entry) async {
+    try {
+      await Log.flush();
+      final bytes = await File(entry.path).readAsBytes();
+      final saved = await FilePicker.saveFile(fileName: entry.name, bytes: bytes);
+      if (saved != null) ToastUtil.show(i18n('log_file_saved'));
+    } catch (_) {
+      ToastUtil.show(i18n('log_file_save_failed'));
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    const kb = 1024;
+    const mb = kb * 1024;
+    if (bytes >= mb) return '${(bytes / mb).toStringAsFixed(2)} ${i18n('unit_mb')}';
+    if (bytes >= kb) return '${(bytes / kb).toStringAsFixed(1)} ${i18n('unit_kb')}';
+    return '$bytes ${i18n('unit_b')}';
+  }
+
+  Widget _buildLogFileList(BuildContext context) {
+    final theme = Theme.of(context);
+    final text = AppText.of(context);
+    final active = Log.activeLogFilePath;
+    // Not a SizedBox: buildModernCard drops those as spacers.
+    return ConstrainedBox(
+      constraints: const BoxConstraints.tightFor(height: _logListHeight),
+      child: _logFiles.isEmpty
+          ? Center(
+              child: Text(
+                i18n('log_file_not_found'),
+                style: text.secondary.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            )
+          : ListView.separated(
+              physics: const PureLiveScrollPhysics(),
+              itemCount: _logFiles.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 0.5,
+                thickness: 0.5,
+                indent: 16,
+                endIndent: 16,
+                color: theme.dividerColor.withValues(alpha: 0.05),
+              ),
+              itemBuilder: (context, index) {
+                final entry = _logFiles[index];
+                final size = _formatFileSize(entry.size);
+                return ListTile(
+                  visualDensity: VisualDensity.compact,
+                  contentPadding: const EdgeInsets.only(left: 16, right: 4),
+                  title: Text(entry.name, style: text.listPrimary),
+                  subtitle: Text(
+                    entry.path == active ? '$size · ${i18n('log_file_in_use')}' : size,
+                    style: text.secondary.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // share_plus cannot share files on Linux.
+                      if (!Platform.isLinux)
+                        IconButton(
+                          tooltip: i18n('share'),
+                          icon: const Icon(RemixIcons.share_forward_line),
+                          onPressed: () => _shareLogFile(entry),
+                        ),
+                      IconButton(
+                        tooltip: i18n('save'),
+                        icon: const Icon(Remix.download_2_line),
+                        onPressed: () => _saveLogFile(entry),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+    );
   }
 
   @override
@@ -197,27 +321,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
                   : () => unawaited(logController.setLoggingEnabled(!logController.storedEnableLog.v)),
             );
           }),
-          Obx(() {
-            if (!logController.enableLog ||
-                logController.isApplyingLogStatus.v ||
-                logController.serverPort.value == 0) {
-              return const SizedBox.shrink();
-            }
-            final uri = Uri(
-              scheme: 'http',
-              host: logController.serverAddress.value,
-              port: logController.serverPort.value,
-            );
-            return context.buildTile(
-              icon: Remix.global_line,
-              title: i18n("view_logs_in_browser"),
-              subtitle: uri.toString(),
-              isLong: true,
-              trailing: const Icon(Remix.arrow_right_s_line),
-              onTap: () => _openLogBrowser(uri),
-            );
-          }),
-
           context.buildTile(
             icon: Remix.file_list_3_line,
             title: i18n("view_logs_in_app"),
@@ -225,15 +328,9 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             isLong: true,
             onTap: () => Get.toNamed(RoutePath.kLogs),
           ),
-          if (Platform.isAndroid)
-            context.buildTile(
-              icon: RemixIcons.share_forward_line,
-              title: i18n("share_log_file"),
-              subtitle: i18n("share_log_file_desc"),
-              isLong: true,
-              onTap: _shareLatestLogFile,
-            )
-          else
+          // Android keeps the logs in the app's own external directory, which
+          // the system file manager cannot browse; the list below shares them.
+          if (!Platform.isAndroid)
             context.buildTile(
               icon: Remix.folder_open_line,
               title: i18n("open_log_dir"),
@@ -242,6 +339,21 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
               onTap: _openLogDirectory,
             ),
         ]),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(child: context.buildGroupTitle(i18n('log_files'))),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: TextButton.icon(
+                onPressed: _logFiles.isEmpty ? null : _clearLogFiles,
+                icon: const Icon(Icons.clear_all),
+                label: Text(i18n('clear_log_files')),
+              ),
+            ),
+          ],
+        ),
+        context.buildModernCard([_buildLogFileList(context)]),
       ],
     );
   }

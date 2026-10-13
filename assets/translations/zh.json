@@ -1032,7 +1032,6 @@
   "open_log_dir_desc": "查看并管理日志文件",
   "log_dir_not_exist": "日志目录不存在",
   "open_log_dir_failed": "打开日志目录失败",
-  "open_log_browser_failed": "日志页面打开失败，请检查默认浏览器设置",
   "open_font_dir_failed": "字体目录打开失败，请检查目录访问权限",
   "playlist_settings": "播放源设置",
   "import_playlist": "导入播放源",
@@ -1045,7 +1044,6 @@
   "video_quality_settings": "画质设置",
   "playback_behavior_settings": "播放行为设置",
   "core_kernel_settings": "核心内核设置",
-  "view_logs_in_browser": "在浏览器中查看日志",
   "recording_room_title": "录播",
   "logined": "已登录",
   "custom_network_proxy": "网络代理",
@@ -1837,8 +1835,6 @@
   "chat_list_bubble_border_opacity": "气泡边框不透明度",
   "chat_list_bubble_fill": "气泡背景色",
   "chat_list_bubble_fill_opacity": "背景不透明度",
-  "share_log_file": "分享日志文件",
-  "share_log_file_desc": "把最新的日志文件发送给其它应用",
   "log_file_not_found": "还没有日志文件",
   "super_chat_pinned": "留言板常驻",
   "super_chat_pinned_subtitle": "留言列表永久保留每条 SC，直到离开直播间",
@@ -1849,5 +1845,11 @@
   "log_page_title": "日志",
   "log_empty": "暂无日志",
   "log_share_failed": "分享日志失败",
-  "danmaku_line_spacing": "弹幕间距"
+  "danmaku_line_spacing": "弹幕间距",
+  "log_files": "日志列表",
+  "clear_log_files": "清空日志",
+  "clear_log_files_failed": "部分日志文件未能删除",
+  "log_file_in_use": "正在写入",
+  "log_file_saved": "日志已保存",
+  "log_file_save_failed": "保存日志失败"
 }

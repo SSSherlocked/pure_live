@@ -1032,7 +1032,6 @@
   "open_log_dir_desc": "View and manage log files",
   "log_dir_not_exist": "Log directory does not exist",
   "open_log_dir_failed": "Failed to open log directory",
-  "open_log_browser_failed": "Could not open the log page. Check the default browser settings",
   "open_font_dir_failed": "Could not open the font folder. Check folder access permissions",
   "playlist_settings": "Playlist Settings",
   "import_playlist": "Import Playlist",
@@ -1045,7 +1044,6 @@
   "video_quality_settings": "Video Quality Settings",
   "playback_behavior_settings": "Playback Behavior Settings",
   "core_kernel_settings": "Core Kernel Settings",
-  "view_logs_in_browser": "View Logs in Browser",
   "recording_room_title": "Recording",
   "logined": "Logged in",
   "custom_network_proxy": "Network Proxy",
@@ -1837,8 +1835,6 @@
   "chat_list_bubble_border_opacity": "Bubble outline opacity",
   "chat_list_bubble_fill": "Bubble background",
   "chat_list_bubble_fill_opacity": "Background opacity",
-  "share_log_file": "Share log file",
-  "share_log_file_desc": "Send the newest log file to another app",
   "log_file_not_found": "No log file yet",
   "super_chat_pinned": "Keep super chats",
   "super_chat_pinned_subtitle": "The super chat list keeps every super chat until you leave the room",
@@ -1849,5 +1845,11 @@
   "log_page_title": "Log",
   "log_empty": "No log entries yet",
   "log_share_failed": "Sharing the log failed",
-  "danmaku_line_spacing": "Danmaku spacing"
+  "danmaku_line_spacing": "Danmaku spacing",
+  "log_files": "Log files",
+  "clear_log_files": "Clear logs",
+  "clear_log_files_failed": "Some log files could not be deleted",
+  "log_file_in_use": "Being written",
+  "log_file_saved": "Log saved",
+  "log_file_save_failed": "Failed to save the log"
 }

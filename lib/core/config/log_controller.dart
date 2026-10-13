@@ -24,11 +24,6 @@ class LogController extends GetxService {
   static LogController get to => Get.find<LogController>();
   final LogStatusApplier _applyLogStatus;
 
-  // The endpoint belongs to the current HttpServer instance. Persisting it
-  // makes the next process advertise a dead port before logging is enabled.
-  final RxString serverAddress = ''.obs;
-  final RxInt serverPort = 0.obs;
-
   final RxBool storedEnableLog = hiveBool(enableLocalLogKey, false);
   final RxBool _isApplyingLogStatus = false.obs;
   final RxString _logStatusKey = ''.obs;
@@ -98,7 +93,6 @@ class LogController extends GetxService {
         return _recordFailure(previous);
       }
       _commitVerifiedState(enabled);
-      if (!enabled) _clearRuntimeEndpoint();
       if (!isClosed) _logStatusKey.v = '';
       return true;
     } catch (error, stackTrace) {
@@ -145,7 +139,6 @@ class LogController extends GetxService {
 
   bool _recordFailure(bool previous) {
     _commitVerifiedState(previous);
-    if (!previous) _clearRuntimeEndpoint();
     if (!isClosed) _logStatusKey.v = 'local_log_apply_failed';
     return false;
   }
@@ -157,11 +150,6 @@ class LogController extends GetxService {
     storedEnableLog.v = enabled;
   }
 
-  void _clearRuntimeEndpoint() {
-    if (serverAddress.v.isNotEmpty) serverAddress.v = '';
-    if (serverPort.v != 0) serverPort.v = 0;
-  }
-
   @override
   void onClose() {
     _stopKernelLogPump();
@@ -170,11 +158,6 @@ class LogController extends GetxService {
     _pendingTarget = null;
     Log.dispose();
     super.onClose();
-  }
-
-  void updateServerInfo(String address, int port) {
-    serverAddress.value = address;
-    serverPort.value = port;
   }
 
   bool get enableLog => storedEnableLog.v;

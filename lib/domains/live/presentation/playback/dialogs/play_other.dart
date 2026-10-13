@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
@@ -32,12 +33,14 @@ class PlayOther extends StatelessWidget {
       detailFontSize: theme.textTheme.bodySmall?.fontSize ?? 12,
       detailLineHeight: theme.textTheme.bodySmall?.height ?? 1.33,
     ).headerHeight;
+    // A tighter title row: the tabs sit right under it.
+    final tightHeaderHeight = math.max(40.0, headerHeight - 8);
 
     return PlayerSidePanel(
       key: const ValueKey('fullscreen-room-history-dialog'),
       icon: Icons.favorite_rounded,
       title: i18n('follow'),
-      headerHeight: headerHeight,
+      headerHeight: tightHeaderHeight,
       closeKey: const ValueKey('room-history-close'),
       child: FollowRoomSwitcher(controller: controller, onSwitch: () => Navigator.of(context).pop()),
     );
@@ -134,7 +137,8 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(10, 8, 4, 6),
+          // No gap above the tabs: the panel's title row is right above them.
+          padding: const EdgeInsets.fromLTRB(10, 0, 4, 6),
           child: Row(
             children: [
               Expanded(

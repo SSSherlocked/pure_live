@@ -269,7 +269,8 @@ class DanmakuSettingsDialog extends StatelessWidget {
 }
 
 /// The player's ⋯ menu: 画面比例 (a submenu of every video-fit mode, the
-/// current one checked) and, when the host supplies them, 纯音频 and 投屏.
+/// current one checked) and, when the host supplies them, 纯音频, 投屏, 小窗播放
+/// and the host's own [leadingEntries] / [trailingEntries].
 ///
 /// The menu is attached to this invisible anchor, which the host places at a
 /// fixed spot on the player rather than inside the auto-hiding top bar: the
@@ -284,10 +285,17 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
     this.onToggleAudioOnly,
     this.onCast,
     this.onPip,
+    this.leadingEntries = const [],
+    this.trailingEntries = const [],
   });
 
   final MenuController menu;
   final Size size;
+
+  /// The host's own entries before 画面比例 and after the built-in ones
+  /// (the live room's fullscreen 录制 submenu and 视频详情).
+  final List<Widget> leadingEntries;
+  final List<Widget> trailingEntries;
 
   /// Reads the room's audio-only state (an observable); with
   /// [onToggleAudioOnly] it adds the 纯音频 entry.
@@ -307,6 +315,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
       child: MenuAnchor(
       controller: menu,
       menuChildren: [
+        ...leadingEntries,
         LeftSubmenuButton(
           key: const ValueKey('player-more-video-fit'),
           leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
@@ -351,6 +360,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
             onPressed: onPip,
             child: Text(i18n('float_window_play')),
           ),
+        ...trailingEntries,
       ],
       child: SizedBox.fromSize(size: size),
       ),

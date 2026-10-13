@@ -4,6 +4,9 @@ import 'package:pure_live/domains/recorder/domain/models/record_status.dart';
 import 'package:pure_live/domains/recorder/domain/models/live_record_task.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_controller.dart';
 
+/// One of the room's 录制 actions, in the order the dialog and menus list them.
+enum RecordRoomAction { start, page, monitor, stop, delete }
+
 /// The room's 录制 actions: the action dialog (start now, record center, add or
 /// remove the monitor, stop) and what each choice does. Opened from the room
 /// header's menu.
@@ -46,35 +49,57 @@ class RecordRoomActions {
         exists: initialTask != null,
         isRunning: _isTaskRunning(initialTask),
       );
-
       if (!context.mounted || action == null) return;
-      final task = _findTask(liveroom);
-      final exists = task != null;
-      final isRunning = _isTaskRunning(task);
-
-      switch (action) {
-        case "start":
-          await _startRecording(liveroom: liveroom, task: task, exists: exists, isRunning: isRunning);
-          break;
-
-        case "monitor":
-          await _addMonitor(liveroom: liveroom, exists: exists);
-          break;
-
-        case "stop":
-          await _stopRecording(task: task, exists: exists, isRunning: isRunning);
-          break;
-
-        case "delete":
-          await _removeMonitor(task: task, exists: exists, isRunning: isRunning);
-          break;
-
-        case "page":
-          await onOpenRecordCenter();
-          break;
-      }
+      await _perform(action, liveroom);
     } finally {
       _busy = false;
+    }
+  }
+
+  /// Carries out [action] for [liveroom] — the same work as choosing it in the
+  /// action dialog, for hosts that list the actions themselves (the
+  /// fullscreen ⋯ menu). The room's state is re-read first, so a stale entry
+  /// does nothing.
+  Future<void> perform(RecordRoomAction action, LiveRoom liveroom) async {
+    if (_busy) return;
+    _busy = true;
+    try {
+      await _perform(action, liveroom);
+    } finally {
+      _busy = false;
+    }
+  }
+
+  /// Whether [action] applies to [liveroom] right now; a menu disables the
+  /// rest, exactly as the action dialog does.
+  bool isEnabled(RecordRoomAction action, LiveRoom liveroom) {
+    final task = _findTask(liveroom);
+    final exists = task != null;
+    final running = _isTaskRunning(task);
+    return switch (action) {
+      RecordRoomAction.start => !running,
+      RecordRoomAction.page => true,
+      RecordRoomAction.monitor => !exists,
+      RecordRoomAction.stop => running,
+      RecordRoomAction.delete => exists && !running,
+    };
+  }
+
+  Future<void> _perform(RecordRoomAction action, LiveRoom liveroom) async {
+    final task = _findTask(liveroom);
+    final exists = task != null;
+    final isRunning = _isTaskRunning(task);
+    switch (action) {
+      case RecordRoomAction.start:
+        await _startRecording(liveroom: liveroom, task: task, exists: exists, isRunning: isRunning);
+      case RecordRoomAction.monitor:
+        await _addMonitor(liveroom: liveroom, exists: exists);
+      case RecordRoomAction.stop:
+        await _stopRecording(task: task, exists: exists, isRunning: isRunning);
+      case RecordRoomAction.delete:
+        await _removeMonitor(task: task, exists: exists, isRunning: isRunning);
+      case RecordRoomAction.page:
+        await onOpenRecordCenter();
     }
   }
 
@@ -137,10 +162,10 @@ class RecordRoomActions {
     await recorderController.unRecorder(task);
   }
 
-  Future<String?> _showActionDialog(BuildContext context, {required bool exists, required bool isRunning}) {
+  Future<RecordRoomAction?> _showActionDialog(BuildContext context, {required bool exists, required bool isRunning}) {
     final theme = Theme.of(context);
 
-    return showDialog<String>(
+    return showDialog<RecordRoomAction>(
       context: context,
       builder: (dialogContext) {
         final mediaQuery = MediaQuery.of(dialogContext);
@@ -220,35 +245,35 @@ class RecordRoomActions {
                             title: i18n("start_record_now"),
                             color: Colors.green,
                             enabled: !isRunning,
-                            onTap: () => Navigator.pop(dialogContext, "start"),
+                            onTap: () => Navigator.pop(dialogContext, RecordRoomAction.start),
                           ),
                           _ActionTile(
                             icon: Icons.video_library_rounded,
                             title: i18n("go_record_center"),
                             color: theme.colorScheme.primary,
                             enabled: true,
-                            onTap: () => Navigator.pop(dialogContext, "page"),
+                            onTap: () => Navigator.pop(dialogContext, RecordRoomAction.page),
                           ),
                           _ActionTile(
                             icon: Remix.checkbox_circle_line,
                             title: i18n("add_monitor"),
                             color: theme.colorScheme.primary,
                             enabled: !exists,
-                            onTap: () => Navigator.pop(dialogContext, "monitor"),
+                            onTap: () => Navigator.pop(dialogContext, RecordRoomAction.monitor),
                           ),
                           _ActionTile(
                             icon: Icons.stop_circle_outlined,
                             title: i18n("stop_record"),
                             color: Colors.orange,
                             enabled: isRunning,
-                            onTap: () => Navigator.pop(dialogContext, "stop"),
+                            onTap: () => Navigator.pop(dialogContext, RecordRoomAction.stop),
                           ),
                           _ActionTile(
                             icon: Icons.delete_outline_rounded,
                             title: i18n("remove_monitor"),
                             color: Colors.redAccent,
                             enabled: exists && !isRunning,
-                            onTap: () => Navigator.pop(dialogContext, "delete"),
+                            onTap: () => Navigator.pop(dialogContext, RecordRoomAction.delete),
                           ),
                         ],
                       ),

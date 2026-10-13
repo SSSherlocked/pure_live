@@ -33,6 +33,7 @@ class LeftSubmenuButton extends StatelessWidget {
     required this.child,
     this.leadingIcon,
     this.labels,
+    this.entryLeadingWidth = 0,
   });
 
   final List<Widget> menuChildren;
@@ -43,12 +44,16 @@ class LeftSubmenuButton extends StatelessWidget {
   /// submenu is then as wide as the longest one plus the entry padding.
   final List<String>? labels;
 
+  /// Extra width per entry when the submenu's entries carry a leading icon
+  /// (icon plus gap) besides their [labels].
+  final double entryLeadingWidth;
+
   @override
   Widget build(BuildContext context) {
     final names = labels;
     final width = names == null
         ? playerSubmenuWidth
-        : menuLabelWidth(context, names, PlayerMenuChoice.styleOf(context)) + playerMenuItemPadding;
+        : menuLabelWidth(context, names, PlayerMenuChoice.styleOf(context)) + playerMenuItemPadding + entryLeadingWidth;
     return SubmenuButton(
       leadingIcon: playerMenuLeading(leadingIcon, arrow: true),
       // The arrow is drawn before the label instead.

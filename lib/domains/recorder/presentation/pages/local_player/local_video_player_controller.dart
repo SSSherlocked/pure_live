@@ -214,9 +214,6 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     }
   }
 
-  /// 桌面端的全屏形态：为真时页面只渲染视频区（直播全屏的同款行为）。
-  final isFullscreen = false.obs;
-
   /// The fullscreen keeps the picture's own vertical shape: a portrait
   /// recording goes fullscreen without being rotated or stretched into a
   /// landscape window, the way the live room's portrait panel fullscreen does.
@@ -296,9 +293,8 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   /// 这一步永远看到 false，直接就把页面弹掉了。
   void _syncFullscreenFromDriver() {
     final active = fullscreenDriver.isSystemFullscreen;
-    if (fullscreenActive.value == active && isFullscreen.value == active) return;
+    if (fullscreenActive.value == active) return;
     fullscreenActive.value = active;
-    isFullscreen.value = active;
     if (!active) portraitFullscreen.value = false;
   }
 
@@ -319,26 +315,18 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     }
     fullscreenActive.value = false;
     portraitFullscreen.value = false;
-    isFullscreen.value = false;
     return true;
   }
 
   Future<void> enterFullscreen() async {
-    final isMobile = PlatformUtils.isMobile;
     final portrait = isPortraitVideo;
     fullscreenActive.value = true;
     portraitFullscreen.value = portrait;
-    if (isMobile) {
-      // A landscape recording rotates the whole page into the landscape shape;
-      // a portrait one goes immersive in place, like the room's portrait panel
-      // fullscreen, so the picture stays vertical instead of being stretched.
-      if (!portrait) await WindowService().landScape();
-      await WindowService().doEnterFullScreen();
-      isFullscreen.value = false;
-      return;
-    }
+    // On a phone a landscape recording rotates the whole page into landscape;
+    // a portrait one goes immersive in place, like the room's portrait panel
+    // fullscreen, so the picture stays vertical instead of being stretched.
+    if (PlatformUtils.isMobile && !portrait) await WindowService().landScape();
     await WindowService().doEnterFullScreen();
-    isFullscreen.value = true;
   }
 
   StreamSubscription<bool>? _pipStateSub;

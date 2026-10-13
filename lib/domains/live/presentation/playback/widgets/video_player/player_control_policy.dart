@@ -74,6 +74,10 @@ class PlayerControlPolicy {
   /// (Android, Windows, macOS), in every layout; never a bar button.
   bool get pipInMoreMenu => pip;
 
+  /// Fullscreen hides the room page's own menu, so its 录制 (a submenu) and
+  /// 视频详情 join the ⋯ menu, and a red button beside it shows recording.
+  bool get roomActionsInMoreMenu => fullscreen;
+
   /// 投屏 is a ⋯ menu entry wherever casting exists (Android), never a bar
   /// button. 纯音频 and 画面比例 are ⋯ entries everywhere.
   bool get castInMoreMenu => android;

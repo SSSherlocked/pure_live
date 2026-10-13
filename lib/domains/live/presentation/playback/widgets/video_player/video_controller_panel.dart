@@ -26,6 +26,10 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/portrait_playback_picker_dialog.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
+import 'package:remixicon/remixicon.dart';
+import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
+import 'package:pure_live/domains/live/presentation/playback/dialogs/video_details_dialog.dart';
+import 'package:pure_live/domains/live/presentation/playback/widgets/button/live_play_menu_button.dart';
 
 /// The full-surface gesture layer sits below the visible controller bars, but
 /// platform accessibility/input bridges can still deliver a tap to that layer
@@ -365,6 +369,23 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                           // 投屏 is a menu entry on Android, inline and fullscreen alike.
                           onCast: policy.castInMoreMenu ? () => _castCurrentRoom(context) : null,
                           onPip: policy.pipInMoreMenu ? () => unawaited(_enterPip()) : null,
+                          // Fullscreen hides the room page and its menu, so 录制
+                          // leads the ⋯ menu and 视频详情 ends it there.
+                          leadingEntries: [
+                            if (policy.roomActionsInMoreMenu)
+                              LiveRoomRecordMenuEntry(controller: controller.livePlayController),
+                          ],
+                          trailingEntries: [
+                            if (policy.roomActionsInMoreMenu)
+                              MenuItemButton(
+                                key: const ValueKey('player-more-video-details'),
+                                leadingIcon: playerMenuLeading(const Icon(Remix.information_line, size: 18)),
+                                onPressed: () => unawaited(
+                                  VideoDetailsDialog.showPanel(context, controller.livePlayController),
+                                ),
+                                child: Text(i18n('video_details')),
+                              ),
+                          ],
                         ),
                       );
                     },
@@ -521,6 +542,9 @@ class TopActionBar extends StatelessWidget {
                       },
                     // ⋯ (画面比例 / 纯音频 / 投屏 / 小窗) closes the top-right
                     // group, inline and in fullscreen alike.
+                    // Red while the room records, beside the ⋯ in fullscreen.
+                    if (PlayerControlPolicy.of(context).roomActionsInMoreMenu)
+                      LiveRoomRecordingIndicator(controller: controller.livePlayController),
                     PlayerMoreMenuButton(key: const ValueKey('player-top-more-menu'), menu: moreMenu),
                   ],
                 ),

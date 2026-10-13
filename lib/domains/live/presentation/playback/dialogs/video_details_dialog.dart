@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
@@ -116,15 +118,38 @@ List<VideoDetail> buildVideoDetails({
 ///
 /// A floating window over the room so the picture stays visible behind it.
 class VideoDetailsDialog extends StatefulWidget {
-  const VideoDetailsDialog({super.key, required this.controller});
+  const VideoDetailsDialog({super.key, required this.controller, this.embedded = false});
 
   final LivePlayController controller;
 
+  /// The rows and the copy button only, for [showPanel]'s side panel.
+  final bool embedded;
+
+  /// The room page's window; the picture behind it stays undimmed.
   static Future<void> show(BuildContext context, LivePlayController controller) {
     return showDialog<void>(
       context: context,
-      barrierColor: Colors.black26,
+      barrierColor: Colors.transparent,
       builder: (_) => VideoDetailsDialog(controller: controller),
+    );
+  }
+
+  /// Fullscreen: the right-edge side panel the other fullscreen menus use,
+  /// sliding in over the undimmed picture.
+  static Future<void> showPanel(BuildContext context, LivePlayController controller) {
+    return showPlayerSidePanel<void>(
+      context,
+      builder: (_) => PlayerSidePanel(
+        key: const ValueKey('video-details-panel'),
+        icon: Remix.information_line,
+        title: i18n('video_details'),
+        child: CompactText(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: VideoDetailsDialog(controller: controller, embedded: true),
+          ),
+        ),
+      ),
     );
   }
 
@@ -211,38 +236,50 @@ class _VideoDetailsDialogState extends State<VideoDetailsDialog> {
     final label = theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant);
     final value = theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600);
 
+    final rows = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_rows.isEmpty)
+          const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
+        else
+          for (final row in _rows)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: 96, child: Text(i18n(row.labelKey), style: label)),
+                  const SizedBox(width: 12),
+                  Expanded(child: SelectableText(row.value, style: value)),
+                ],
+              ),
+            ),
+        if (_engineLimited) ...[
+          const SizedBox(height: 8),
+          Text(i18n('video_details_engine_limited'), style: theme.textTheme.bodySmall),
+        ],
+      ],
+    );
+
+    if (widget.embedded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          rows,
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(onPressed: _rows.isEmpty ? null : _copy, child: Text(i18n('copy'))),
+          ),
+        ],
+      );
+    }
     return AlertDialog(
       key: const ValueKey('video-details-dialog'),
       scrollable: true,
       title: Text(i18n('video_details')),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 280, maxWidth: 420),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_rows.isEmpty)
-              const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
-            else
-              for (final row in _rows)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 96, child: Text(i18n(row.labelKey), style: label)),
-                      const SizedBox(width: 12),
-                      Expanded(child: SelectableText(row.value, style: value)),
-                    ],
-                  ),
-                ),
-            if (_engineLimited) ...[
-              const SizedBox(height: 8),
-              Text(i18n('video_details_engine_limited'), style: theme.textTheme.bodySmall),
-            ],
-          ],
-        ),
-      ),
+      content: ConstrainedBox(constraints: const BoxConstraints(minWidth: 280, maxWidth: 420), child: rows),
       actions: [
         TextButton(onPressed: _rows.isEmpty ? null : _copy, child: Text(i18n('copy'))),
         FilledButton(onPressed: () => Navigator.of(context).pop(), child: Text(i18n('close'))),

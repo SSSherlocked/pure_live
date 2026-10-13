@@ -950,7 +950,7 @@ class _MultiviewCellView extends StatelessWidget {
               ],
             ),
           ),
-          if (showQualityEntry) Positioned(left: 8, bottom: 8, child: _buildQualityEntry(theme)),
+          if (showQualityEntry) Positioned(left: 8, bottom: 8, child: _buildQualityEntry(context, theme)),
         ],
       );
     }
@@ -966,7 +966,7 @@ class _MultiviewCellView extends StatelessWidget {
   bool get _qualityAvailable =>
       state.status == MultiviewCellStatus.playing && state.qualities.isNotEmpty && state.qualityLoader != null;
 
-  Widget _buildQualityEntry(ThemeData theme) {
+  Widget _buildQualityEntry(BuildContext context, ThemeData theme) {
     if (!_qualityAvailable) return const SizedBox.shrink();
     final currentName = state.qualities[state.qualityIndex.clamp(0, state.qualities.length - 1)].quality;
     return PopupMenuButton<int>(

@@ -937,16 +937,24 @@ class PlayerController extends GetxController {
     }
   }
 
-  @override
+  /// The reader this controller installed in [CurrentLiveRoom]; kept so that
+  /// close only clears its own and never a newer room's.
+  LiveRoom? Function()? _currentRoomProvider;
+
   @override
   void onInit() {
-    CurrentLiveRoom.provider = () => currentRoom;
+    LiveRoom? readCurrentRoom() => currentRoom;
+    _currentRoomProvider = readCurrentRoom;
+    CurrentLiveRoom.provider = _currentRoomProvider;
     super.onInit();
   }
 
   @override
   void onClose() {
     _closed = true;
+    // Otherwise the last room's whole object graph stays reachable after leaving.
+    if (identical(CurrentLiveRoom.provider, _currentRoomProvider)) CurrentLiveRoom.provider = null;
+    _currentRoomProvider = null;
     _streamSelectionEpoch++;
     isStreamSwitching.value = false;
     invalidateLoad();

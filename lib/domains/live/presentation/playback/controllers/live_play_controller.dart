@@ -394,7 +394,11 @@ class LivePlayController extends GetxController
 
   Future<void> _preloadEmoji() async {
     emojiCache.clear();
-    await EmojiManager().preload(site, Sites.danmakuCapability(site)?.parseDanmakuEmoji);
+    await EmojiManager().preload(
+      site,
+      Sites.danmakuCapability(site)?.parseDanmakuEmoji,
+      onAtlasChanged: emojiCache.clear,
+    );
   }
 
   Future<void> _resumeCurrentRoomSession(RoomSessionSnapshot session) async {
@@ -502,13 +506,16 @@ class LivePlayController extends GetxController
   }
 
   void addSingleSuperChat(LiveSuperChatMessage item) {
+    // The engine callbacks outlive the room during the floating-window handoff;
+    // the expiry timer is already off by then, so the list would only grow.
+    if (isClosed || _ownerClosed) return;
     final next = <LiveSuperChatMessage>{...superChats, item}.toList(growable: false);
     superChats.assignAll(next);
     _scheduleSuperChatExpiry();
   }
 
   void addBatchSuperChat(List<LiveSuperChatMessage> sc) {
-    if (sc.isEmpty) return;
+    if (sc.isEmpty || isClosed || _ownerClosed) return;
     final next = <LiveSuperChatMessage>{...superChats, ...sc}.toList(growable: false);
     superChats.assignAll(next);
     _scheduleSuperChatExpiry();
@@ -1059,6 +1066,7 @@ class LivePlayController extends GetxController
     await EmojiManager.instance.preload(
       newRoom.platform!,
       Sites.danmakuCapability(newRoom.platform)?.parseDanmakuEmoji,
+      onAtlasChanged: emojiCache.clear,
     );
 
     await onInitPlayerState(

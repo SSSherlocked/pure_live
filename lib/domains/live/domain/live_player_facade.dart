@@ -586,6 +586,22 @@ final class LivePlayerFacade {
   /// first message" and "the window is empty until it is reopened".
   final List<BarrageItem> _floatingDanmakuBacklog = <BarrageItem>[];
   Timer? _floatingDanmakuFlushTimer;
+  int _floatingDanmakuFlushTicks = 0;
+
+  /// Ten seconds of waiting for the surface to mount, after which the backlog
+  /// is dropped rather than kept polling for the rest of the floating session.
+  static const int _floatingDanmakuFlushTickLimit = 50;
+
+  /// Whether the small window's danmaku surface is hidden: the rule of the
+  /// overlay [buildFloatingDanmaku] mounts (the room's own toggle while its
+  /// controller is alive, else the master switch; the portrait rule is off
+  /// there). A hidden surface never mounts an engine, so there is nothing to
+  /// hold lines for.
+  bool get _floatingDanmakuHidden {
+    final controller = activeVideoController;
+    if (controller is room_surface.VideoController) return controller.hideDanmaku.value;
+    return SettingsService.to.danmaku.hideDanmaku.v;
+  }
 
   /// Feeds the small window's own pool.
   ///
@@ -611,9 +627,13 @@ final class LivePlayerFacade {
       fixedDuration: placement == null ? null : const Duration(seconds: 4),
     );
     if (floatingDanmaku.engine == null) {
+      if (_floatingDanmakuHidden) return;
       if (_floatingDanmakuBacklog.length >= 200) _floatingDanmakuBacklog.removeAt(0);
       _floatingDanmakuBacklog.add(item);
-      _floatingDanmakuFlushTimer ??= Timer.periodic(const Duration(milliseconds: 200), (_) => _flushFloatingDanmaku());
+      if (_floatingDanmakuFlushTimer == null) {
+        _floatingDanmakuFlushTicks = 0;
+        _floatingDanmakuFlushTimer = Timer.periodic(const Duration(milliseconds: 200), (_) => _flushFloatingDanmaku());
+      }
       return;
     }
     floatingDanmaku.send(item);
@@ -621,25 +641,28 @@ final class LivePlayerFacade {
 
   void _flushFloatingDanmaku() {
     if (floatingDanmaku.engine == null) {
-      if (!floating.isAppFloatingActive) {
-        _floatingDanmakuBacklog.clear();
-        _floatingDanmakuFlushTimer?.cancel();
-        _floatingDanmakuFlushTimer = null;
+      if (!floating.isAppFloatingActive ||
+          _floatingDanmakuHidden ||
+          ++_floatingDanmakuFlushTicks >= _floatingDanmakuFlushTickLimit) {
+        _dropFloatingDanmakuBacklog();
       }
       return;
     }
     for (final item in _floatingDanmakuBacklog) {
       floatingDanmaku.send(item);
     }
+    _dropFloatingDanmakuBacklog();
+  }
+
+  void _dropFloatingDanmakuBacklog() {
     _floatingDanmakuBacklog.clear();
     _floatingDanmakuFlushTimer?.cancel();
     _floatingDanmakuFlushTimer = null;
+    _floatingDanmakuFlushTicks = 0;
   }
 
   void clearFloatingDanmaku() {
-    _floatingDanmakuBacklog.clear();
-    _floatingDanmakuFlushTimer?.cancel();
-    _floatingDanmakuFlushTimer = null;
+    _dropFloatingDanmakuBacklog();
     floatingDanmaku.clear();
   }
 

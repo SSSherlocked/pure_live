@@ -14,6 +14,7 @@ class DanmakuPresentationRecovery {
     required this.recover,
     this.settleDelay = const Duration(milliseconds: 180),
     this.retryDelay = const Duration(milliseconds: 120),
+    this.maxBlockedAttempts = 50,
   });
 
   final bool Function() isBlocked;
@@ -22,15 +23,21 @@ class DanmakuPresentationRecovery {
   final Duration settleDelay;
   final Duration retryDelay;
 
+  /// How many blocked attempts one request may spend before it is given up
+  /// (about six seconds at the default [retryDelay]); a new request starts over.
+  final int maxBlockedAttempts;
+
   Timer? _timer;
   Future<void>? _inFlight;
   int _requestedGeneration = 0;
   int _handledGeneration = 0;
+  int _blockedAttempts = 0;
   bool _disposed = false;
 
   void request() {
     if (_disposed) return;
     _requestedGeneration++;
+    _blockedAttempts = 0;
     _schedule(settleDelay);
   }
 
@@ -45,9 +52,16 @@ class DanmakuPresentationRecovery {
     if (_disposed || _handledGeneration >= _requestedGeneration) return;
 
     if (isBlocked()) {
+      if (++_blockedAttempts >= maxBlockedAttempts) {
+        // The transition never finished; stop polling for this request.
+        _blockedAttempts = 0;
+        _handledGeneration = _requestedGeneration;
+        return;
+      }
       _schedule(retryDelay);
       return;
     }
+    _blockedAttempts = 0;
 
     if (!canRecover()) {
       _handledGeneration = _requestedGeneration;

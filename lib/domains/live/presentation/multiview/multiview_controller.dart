@@ -262,7 +262,13 @@ class MultiviewController extends GetxController {
 
   final Map<String, Future<LiveRoom>> _danmakuRoomLoads = {};
 
+  /// Rooms whose detail carried no danmaku arguments, keyed like [_danmakuRooms],
+  /// with the time of the miss; without it every selection change re-fetches.
+  final Map<String, DateTime> _danmakuRoomMisses = {};
+
   static const int _danmakuRoomCacheLimit = 16;
+
+  static const Duration _danmakuRoomMissTtl = Duration(minutes: 3);
 
   int _danmakuSyncEpoch = 0;
 
@@ -426,6 +432,11 @@ class MultiviewController extends GetxController {
     final key = room.identityKey;
     final cached = _danmakuRooms[key];
     if (cached != null) return Future<LiveRoom>.value(cached);
+    final missedAt = _danmakuRoomMisses[key];
+    if (missedAt != null) {
+      if (DateTime.now().difference(missedAt) < _danmakuRoomMissTtl) return Future<LiveRoom>.value(room);
+      _danmakuRoomMisses.remove(key);
+    }
     final pending = _danmakuRoomLoads[key];
     if (pending != null) return pending;
     final future = _loadDanmakuRoom(room, platform, key);
@@ -441,6 +452,8 @@ class MultiviewController extends GetxController {
         _danmakuRooms[key] = detail;
         return detail;
       }
+      if (_danmakuRoomMisses.length >= _danmakuRoomCacheLimit) _danmakuRoomMisses.clear();
+      _danmakuRoomMisses[key] = DateTime.now();
       return room;
     } catch (error, stackTrace) {
       developer.log(
@@ -469,16 +482,16 @@ class MultiviewController extends GetxController {
       var playing = wallCell.isPlaying;
       switch (status) {
         case MultiviewCellStatus.playing:
-          _updateCell(
+          _updateCellFromWall(
             index,
             cells[index].copyWith(status: status, clearError: true, videoController: _wallVideo(index)),
           );
         case MultiviewCellStatus.resolving:
           if (cells[index].status == MultiviewCellStatus.empty) continue;
-          _updateCell(index, cells[index].copyWith(status: status));
+          _updateCellFromWall(index, cells[index].copyWith(status: status));
         case MultiviewCellStatus.error:
           final failure = wallCell.failure;
-          _updateCell(
+          _updateCellFromWall(
             index,
             cells[index].copyWith(
               status: status,
@@ -489,15 +502,32 @@ class MultiviewController extends GetxController {
             ),
           );
         case MultiviewCellStatus.offline:
-          _updateCell(index, cells[index].copyWith(status: status));
+          _updateCellFromWall(index, cells[index].copyWith(status: status));
         case MultiviewCellStatus.empty:
           if (cells[index].status == MultiviewCellStatus.empty) continue;
-          _updateCell(index, MultiviewCellState.empty(index)..copyWith(room: cells[index].room));
+          _updateCell(index, MultiviewCellState.empty(index).copyWith(room: cells[index].room));
       }
       if (index < playingFlags.length && playingFlags[index] != playing) {
         playingFlags[index] = playing;
       }
     }
+  }
+
+  /// Writes a wall-derived state only when it differs from the current one.
+  ///
+  /// Every wall snapshot (frequent while cells play) projects onto each cell;
+  /// the state is built with `copyWith` from the current one, so the fields
+  /// compared here are the only ones a snapshot can change, and an unchanged
+  /// cell must not notify the list's listeners again.
+  void _updateCellFromWall(int cellIndex, MultiviewCellState state) {
+    final current = cells[cellIndex];
+    if (current.status == state.status &&
+        current.errorKind == state.errorKind &&
+        current.errorDetail == state.errorDetail &&
+        identical(current.videoController, state.videoController)) {
+      return;
+    }
+    _updateCell(cellIndex, state);
   }
 
   static MultiviewCellStatus _pureStatus(wall.MultiviewCell wallCell) => switch (wallCell.status) {

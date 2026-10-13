@@ -127,8 +127,10 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
     _backScopeByRoute[route] = this;
     // A page that re-mounts its scope (the recording player swaps its whole
     // layout when it enters fullscreen) must keep owning Back afterwards, and the
-    // outgoing scope must not be able to disarm it on the way out.
-    _installCallbacks();
+    // outgoing scope must not be able to disarm it on the way out. Only the route
+    // on top does this: a scope under a newer player route, rebuilt by a theme or
+    // media query change, must not take that route's callbacks away from it.
+    if (route.isCurrent) _installCallbacks();
   }
 
   Future<void> _setNativeBackEnabled(bool enabled) async {

@@ -25,17 +25,31 @@ class LiveAudioFocus {
   bool _pausedByInterruption = false;
   bool _attached = false;
 
+  /// Bumped by every attach and detach, so an attach still awaiting the session
+  /// can tell that it was detached (or superseded) in the meantime.
+  int _generation = 0;
+
   bool get _supported => Platform.isAndroid || Platform.isIOS;
+
+  bool _stale(int generation) => generation != _generation || !_attached;
 
   /// Takes audio focus and starts following interruptions.
   Future<void> attach() async {
     if (!_supported || _attached) return;
     _attached = true;
+    final generation = ++_generation;
     try {
       final session = await AudioSession.instance;
+      if (_stale(generation)) return;
       _session = session;
       await session.configure(const AudioSessionConfiguration.music());
+      if (_stale(generation)) return;
       await session.setActive(true);
+      if (_stale(generation)) {
+        // Detached while activating: nothing else will give the focus back.
+        await _deactivate(session);
+        return;
+      }
       _interruptions = session.interruptionEventStream.listen(_onInterruption);
       _noisy = session.becomingNoisyEventStream.listen((_) {
         _pausedByInterruption = false;
@@ -44,8 +58,14 @@ class LiveAudioFocus {
       });
     } catch (_) {
       // Audio focus is a courtesy; playback must not depend on it.
-      _attached = false;
+      if (generation == _generation) _attached = false;
     }
+  }
+
+  Future<void> _deactivate(AudioSession session) async {
+    try {
+      await session.setActive(false);
+    } catch (_) {}
   }
 
   void _onInterruption(AudioInterruptionEvent event) {
@@ -67,13 +87,13 @@ class LiveAudioFocus {
   Future<void> detach() async {
     if (!_attached) return;
     _attached = false;
+    _generation++;
     _pausedByInterruption = false;
     await _interruptions?.cancel();
     await _noisy?.cancel();
     _interruptions = null;
     _noisy = null;
-    try {
-      await _session?.setActive(false);
-    } catch (_) {}
+    final session = _session;
+    if (session != null) await _deactivate(session);
   }
 }

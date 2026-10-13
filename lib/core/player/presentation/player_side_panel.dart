@@ -4,6 +4,27 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
 
+/// Opens the [PlayerSidePanel] that [builder] returns: it slides in from the
+/// right edge and back out, over the undimmed picture. Like [showDialog], it
+/// keeps the caller's themes and stays inside the safe area.
+Future<T?> showPlayerSidePanel<T>(BuildContext context, {required WidgetBuilder builder}) {
+  final themes = InheritedTheme.capture(from: context, to: Navigator.of(context).context);
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.transparent,
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (context, _, _) => themes.wrap(SafeArea(child: Builder(builder: builder))),
+    transitionBuilder: (context, animation, _, child) => SlideTransition(
+      position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(
+        CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic),
+      ),
+      child: child,
+    ),
+  );
+}
+
 /// The fullscreen player's menu panel: a full-height column docked to the right
 /// edge, top and bottom flush with the screen, with a width of its own.
 ///

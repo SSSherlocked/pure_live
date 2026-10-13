@@ -168,7 +168,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                   ),
                 ),
               ),
-              const FavoriteSortButton(key: ValueKey('follow-panel-sort'), iconSize: 18),
+              const FavoriteSortButton(key: ValueKey('follow-panel-sort')),
               Obx(
                 () => IconButton(
                   key: const ValueKey('room-history-refresh'),

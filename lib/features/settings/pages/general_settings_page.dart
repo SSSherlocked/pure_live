@@ -11,7 +11,6 @@ import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
 import 'package:pure_live/features/settings/pages/room_card_settings_page.dart';
-import 'package:pure_live/features/settings/pages/navigation_settings_page.dart';
 import 'package:pure_live/features/settings/widgets/network_proxy_settings_section.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
 import 'package:pure_live/core/config/window_size_controller.dart';
@@ -75,17 +74,39 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               );
             }),
             context.buildTile(
-              icon: Remix.menu_line,
-              title: i18n("navigation_display_settings"),
-              subtitle: i18n("navigation_display_settings_desc"),
-              onTap: () => Get.to(() => NavigationSettingsPage()),
-            ),
-            context.buildTile(
               icon: Remix.chat_smile_2_line,
               title: i18n("danmaku_settings"),
               subtitle: i18n("danmaku_settings_entry_subtitle"),
               onTap: () => Get.to(() => const _DanmakuSettingsSubpage()),
             ),
+          ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("menu")),
+          context.buildModernCard([
+            for (final (menu, icon, title) in [
+              (HomeMenu.areas, Remix.apps_2_line, i18n("areas_title")),
+              (HomeMenu.popular, Remix.fire_line, i18n("popular_title")),
+            ])
+              KeyedSubtree(
+                key: ValueKey('menu-entry-${menu.id}'),
+                child: Obx(
+                  () => context.buildSwitchTile(
+                    title: title,
+                    subtitle: i18n("menu_entry_visible_subtitle"),
+                    value: SettingsService.to.app.showsMenu(menu).obs,
+                    icon: icon,
+                    autoCommit: false,
+                    onChanged: (visible) => SettingsService.to.app.toggleMenuVisibility(menu, visible),
+                  ),
+                ),
+              ),
+            if (Platform.isWindows)
+              context.buildSwitchTile(
+                title: i18n("multiview_title"),
+                subtitle: i18n("multiview_entry_subtitle"),
+                value: SettingsService.to.app.enableMultiView,
+                icon: Remix.layout_grid_line,
+              ),
           ]),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("refresh_settings")),
@@ -220,23 +241,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 },
               );
             }),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("software_update")),
-          context.buildModernCard([
-            context.buildSwitchTile(
-              title: i18n('enable_auto_check_update'),
-              subtitle: i18n('enable_auto_check_update_subtitle'),
-              value: SettingsService.to.app.enableAutoCheckUpdate,
-              icon: Remix.refresh_line,
-            ),
-            context.buildSwitchTile(
-              title: i18n('use_github_origin_for_updates'),
-              subtitle: i18n('use_github_origin_for_updates_desc'),
-              value: SettingsService.to.app.useGitHubOriginForUpdates,
-              icon: Remix.github_line,
-              isLong: true,
-            ),
           ]),
           const SizedBox(height: 32),
         ],

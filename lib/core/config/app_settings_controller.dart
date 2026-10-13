@@ -47,8 +47,6 @@ class AppSettingsController extends GetxController {
   final RxInt asmrSleepMinutes = hiveInt('asmrSleepMinutes', 60);
   final RxBool enableRotateScreen = hiveBool('enableRotateScreen', false);
   final RxBool enableScreenKeepOn = hiveBool('enableScreenKeepOn', true);
-  final RxBool enableAutoCheckUpdate = hiveBool('enableAutoCheckUpdate', true);
-  final RxBool useGitHubOriginForUpdates = hiveBool('useGitHubOriginForUpdates', false);
   final RxBool enableFullScreenDefault = hiveBool('enableFullScreenDefault', false);
   late final RxString refreshRateModeName = hiveString('refreshRateMode', _initialRefreshRateMode());
   final RxBool preferRealOnlineCounts = hiveBool('preferRealOnlineCounts', false);
@@ -58,7 +56,6 @@ class AppSettingsController extends GetxController {
   // Defaulting missing keys to true keeps upgrades feature-compatible while
   // still allowing users to hide either entry explicitly.
   final RxBool enableMultiView = hiveBool('enableMultiView', true);
-  final RxBool showRailLabels = hiveBool('showRailLabels', true);
   final RxBool enableNewWindowPlay = hiveBool('enableNewWindowPlay', true);
 
   AppRefreshRateMode get refreshRateMode => AppRefreshRateMode.parse(refreshRateModeName.v);
@@ -67,6 +64,7 @@ class AppSettingsController extends GetxController {
     refreshRateModeName.v = mode.storageValue;
   }
 
+  /// The [HomeMenu] pages the top-right menu shows (分区 / 热门).
   late final RxList<String> savedMenuIds = hiveStringList('savedMenuIds', HomeMenu.values.map((e) => e.id).toList());
 
   @override
@@ -150,7 +148,7 @@ class AppSettingsController extends GetxController {
       final id = rawId.trim().toLowerCase();
       if (supported.contains(id) && !normalized.contains(id)) normalized.add(id);
     }
-    return normalized.isEmpty ? [HomeMenu.favorites.id] : normalized;
+    return normalized;
   }
 
   @override
@@ -162,16 +160,11 @@ class AppSettingsController extends GetxController {
     super.onClose();
   }
 
+  bool showsMenu(HomeMenu menu) => savedMenuIds.v.contains(menu.id);
+
   void toggleMenuVisibility(HomeMenu menu, bool visible) {
-    final current = normalizeMenuIds(savedMenuIds.v);
-    if (visible) {
-      if (!current.contains(menu.id)) current.add(menu.id);
-    } else {
-      if (current.length <= 1 && current.contains(menu.id)) {
-        return;
-      }
-      current.removeWhere((id) => id == menu.id);
-    }
+    final current = normalizeMenuIds(savedMenuIds.v)..remove(menu.id);
+    if (visible) current.add(menu.id);
     savedMenuIds.v = current;
   }
 
@@ -200,8 +193,6 @@ class AppSettingsController extends GetxController {
       'asmrSleepMinutes': asmrSleepMinutes.v,
       'enableRotateScreen': enableRotateScreen.v,
       'enableScreenKeepOn': enableScreenKeepOn.v,
-      'enableAutoCheckUpdate': enableAutoCheckUpdate.v,
-      'useGitHubOriginForUpdates': useGitHubOriginForUpdates.v,
       'enableFullScreenDefault': enableFullScreenDefault.v,
       'refreshRateMode': refreshRateMode.storageValue,
       'enableHighRefreshRate': refreshRateMode != AppRefreshRateMode.powerSaving,
@@ -209,7 +200,6 @@ class AppSettingsController extends GetxController {
       'realOnlinePlatforms': resolvedRealOnlinePlatforms,
       'savedMenuIds': savedMenuIds.v,
       'enableMultiView': enableMultiView.v,
-      'showRailLabels': showRailLabels.v,
       'enableNewWindowPlay': enableNewWindowPlay.v,
     };
   }
@@ -228,8 +218,6 @@ class AppSettingsController extends GetxController {
       ),
       'enableRotateScreen': typed<bool>(json['enableRotateScreen'] ?? false),
       'enableScreenKeepOn': typed<bool>(json['enableScreenKeepOn'] ?? true),
-      'enableAutoCheckUpdate': typed<bool>(json['enableAutoCheckUpdate'] ?? true),
-      'useGitHubOriginForUpdates': typed<bool>(json['useGitHubOriginForUpdates'] ?? false),
       'enableFullScreenDefault': typed<bool>(json['enableFullScreenDefault'] ?? false),
       'preferRealOnlineCounts': typed<bool>(json['preferRealOnlineCounts'] ?? false),
       'realOnlinePlatforms': typed<List<String>>(
@@ -239,7 +227,6 @@ class AppSettingsController extends GetxController {
         normalizeMenuIds(List<String>.from(json['savedMenuIds'] ?? HomeMenu.values.map((e) => e.id).toList())),
       ),
       'enableMultiView': typed<bool>(json['enableMultiView'] ?? true),
-      'showRailLabels': typed<bool>(json['showRailLabels'] ?? true),
       'enableNewWindowPlay': typed<bool>(json['enableNewWindowPlay'] ?? true),
     };
   }
@@ -253,8 +240,6 @@ class AppSettingsController extends GetxController {
     asmrSleepMinutes.v = parsed['asmrSleepMinutes'];
     enableRotateScreen.v = parsed['enableRotateScreen'];
     enableScreenKeepOn.v = parsed['enableScreenKeepOn'];
-    enableAutoCheckUpdate.v = parsed['enableAutoCheckUpdate'];
-    useGitHubOriginForUpdates.v = parsed['useGitHubOriginForUpdates'];
     enableFullScreenDefault.v = parsed['enableFullScreenDefault'];
     setRefreshRateMode(parsed['refreshRateMode']);
     preferRealOnlineCounts.v = parsed['preferRealOnlineCounts'];
@@ -262,7 +247,6 @@ class AppSettingsController extends GetxController {
     _repairRealOnlinePlatforms();
     savedMenuIds.v = parsed['savedMenuIds'];
     enableMultiView.v = parsed['enableMultiView'];
-    showRailLabels.v = parsed['showRailLabels'];
     enableNewWindowPlay.v = parsed['enableNewWindowPlay'];
   }
 
@@ -276,8 +260,6 @@ class AppSettingsController extends GetxController {
       'asmrSleepMinutes': (((app['asmrSleepMinutes'] as num?)?.toInt() ?? 60).clamp(1, maxSleepMinutes)).toInt(),
       'enableRotateScreen': app['enableRotateScreen'] ?? false,
       'enableScreenKeepOn': app['enableScreenKeepOn'] ?? true,
-      'enableAutoCheckUpdate': app['enableAutoCheckUpdate'] ?? true,
-      'useGitHubOriginForUpdates': app['useGitHubOriginForUpdates'] ?? false,
       'enableFullScreenDefault': app['enableFullScreenDefault'] ?? false,
       'refreshRateMode': refreshRateModeFromConfig(app).storageValue,
       'enableHighRefreshRate': refreshRateModeFromConfig(app) != AppRefreshRateMode.powerSaving,
@@ -289,7 +271,6 @@ class AppSettingsController extends GetxController {
         List<String>.from(app['savedMenuIds'] ?? HomeMenu.values.map((menu) => menu.id).toList()),
       ),
       'enableMultiView': app['enableMultiView'] ?? true,
-      'showRailLabels': app['showRailLabels'] ?? true,
       'enableNewWindowPlay': app['enableNewWindowPlay'] ?? true,
     };
   }

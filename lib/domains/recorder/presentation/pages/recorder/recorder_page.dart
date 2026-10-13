@@ -34,9 +34,7 @@ class RecorderPage extends GetView<RecorderController> {
         appBar: AppBar(
           title: Text(i18n("recorder_title")),
           centerTitle: true,
-          leading: canGoBack
-              ? const BackButton()
-              : (HomeShellScope.showsPageActionsOf(context) ? const MenuButton() : null),
+          leading: canGoBack ? const BackButton() : null,
 
           actions: [
             IconButton(
@@ -347,8 +345,10 @@ class _TaskCard extends GetView<RecorderController> {
       textStyle: AppText.from(theme).secondary.copyWith(fontWeight: FontWeight.w700),
     );
 
+    // Red with its matching text colour, legible in light and dark themes.
     final dangerStyle = FilledButton.styleFrom(
-      backgroundColor: Colors.redAccent,
+      backgroundColor: theme.colorScheme.error,
+      foregroundColor: theme.colorScheme.onError,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
       minimumSize: const Size(0, kMinInteractiveDimension),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -356,7 +356,7 @@ class _TaskCard extends GetView<RecorderController> {
     );
 
     Widget deleteButton() {
-      return _RemoveMonitorButton(task: task, controller: controller);
+      return _RemoveMonitorButton(task: task, controller: controller, style: dangerStyle);
     }
 
     final isWorking = {RecordStatus.running, RecordStatus.reconnecting, RecordStatus.preparing};
@@ -372,6 +372,7 @@ class _TaskCard extends GetView<RecorderController> {
     if (isWorking.contains(task.status)) {
       return Wrap(
         alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 6,
         runSpacing: 4,
         children: [
@@ -388,6 +389,7 @@ class _TaskCard extends GetView<RecorderController> {
     if (task.status == RecordStatus.queued) {
       return Wrap(
         alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 6,
         runSpacing: 4,
         children: [
@@ -426,6 +428,7 @@ class _TaskCard extends GetView<RecorderController> {
 
       return Wrap(
         alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
         spacing: 6,
         runSpacing: 4,
         children: [
@@ -759,10 +762,13 @@ class _Tag extends StatelessWidget {
 }
 
 class _RemoveMonitorButton extends StatefulWidget {
-  const _RemoveMonitorButton({required this.task, required this.controller});
+  const _RemoveMonitorButton({required this.task, required this.controller, required this.style});
 
   final LiveRecordTask task;
   final RecorderController controller;
+
+  /// The row's red filled-button style, so 删除 matches its neighbours.
+  final ButtonStyle style;
 
   @override
   State<_RemoveMonitorButton> createState() => _RemoveMonitorButtonState();
@@ -819,10 +825,7 @@ class _RemoveMonitorButtonState extends State<_RemoveMonitorButton> {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: _busy ? null : _remove,
-      child: Text(i18n('remove'), style: AppText.of(context).sectionTitle.copyWith(color: _busy ? null : Colors.red)),
-    );
+    return FilledButton(style: widget.style, onPressed: _busy ? null : _remove, child: Text(i18n('remove')));
   }
 }
 

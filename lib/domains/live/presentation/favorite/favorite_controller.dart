@@ -18,7 +18,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
 
   late TabController tabController;
 
-  final tabBottomIndex = 0.obs;
   final tabSiteIndex = 0.obs;
   final tabOnlineIndex = 0.obs;
   String selectedPlatformId = Sites.allSite;

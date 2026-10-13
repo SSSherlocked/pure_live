@@ -104,17 +104,24 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
     if (openInPlace?.call() ?? false) return;
     onOpenChanged?.call(true);
     try {
-      await showDialog<void>(
-        context: context,
-        // The side panel leaves the picture undimmed.
-        barrierColor: Colors.transparent,
-        useSafeArea: true,
-        builder: (_) => DanmakuSettingsDialog(
-          controller: controller,
-          includePipSettings: includePipSettings,
-          dockedInLandscape: dockedInLandscape,
-        ),
+      Widget builder(BuildContext _) => DanmakuSettingsDialog(
+        controller: controller,
+        includePipSettings: includePipSettings,
+        dockedInLandscape: dockedInLandscape,
       );
+      final size = MediaQuery.sizeOf(context);
+      // Docked in landscape it is a [PlayerSidePanel], which slides in.
+      if (dockedInLandscape && size.width > size.height) {
+        await showPlayerSidePanel<void>(context, builder: builder);
+      } else {
+        await showDialog<void>(
+          context: context,
+          // The side panel leaves the picture undimmed.
+          barrierColor: Colors.transparent,
+          useSafeArea: true,
+          builder: builder,
+        );
+      }
     } finally {
       onOpenChanged?.call(false);
     }

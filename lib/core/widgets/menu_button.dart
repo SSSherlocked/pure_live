@@ -4,77 +4,65 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 
-/// The top-left entry of the home pages.
-///
-/// Narrow (phone) layouts: a gear that opens 设置 directly. 关于 is the last
-/// entry of 设置, 数据与备份 is inside it, and 历史记录 / 新建独立播放窗口 are in
-/// the top-right menu ([CommonAppBarActions]), so nothing else is left here.
-///
-/// Wide layouts ([railActions]): the navigation rail's menu, in the same order
-/// as the phone's top-right menu, with 设置 at the rail's bottom edge instead.
-/// 数据与备份 and 关于 are reached through 设置 there too.
-class MenuButton extends StatelessWidget {
-  const MenuButton({super.key, this.railActions = false});
+/// One entry of the home page's two menus: a primary-coloured icon and its
+/// name, shared by [MenuButton] and [CommonAppBarActions].
+PopupMenuItem<String> homeMenuItem(BuildContext context, String value, IconData icon, String text) {
+  return PopupMenuItem<String>(
+    value: value,
+    padding: const EdgeInsets.symmetric(horizontal: 14),
+    child: Row(
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Text(text, style: AppText.of(context).listPrimary),
+      ],
+    ),
+  );
+}
 
-  /// Wide-layout navigation rail mode: 全平台搜索 / 链接解析 / 多画面 /
-  /// 录制中心 / 历史记录, and no 设置, which the rail shows at its bottom edge.
-  final bool railActions;
+/// The home page's top-left menu: 链接访问, 多画面, 录制中心, 新建独立播放窗口
+/// (Windows) and, last, 设置. Searching and browsing are in the top-right
+/// menu ([CommonAppBarActions]).
+class MenuButton extends StatelessWidget {
+  const MenuButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (!railActions) {
-      return IconButton(
-        key: const ValueKey('home-settings-action'),
-        tooltip: i18n('settings_title'),
-        icon: const Icon(Remix.settings_5_line),
-        onPressed: () => Get.toNamed(RoutePath.kSettings),
-      );
-    }
     return PopupMenuButton<String>(
+      key: const ValueKey('home-menu'),
       tooltip: i18n('menu'),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      offset: const Offset(12, 0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      offset: const Offset(0, 10),
       position: PopupMenuPosition.under,
-      child: const SizedBox.square(dimension: kMinInteractiveDimension, child: Icon(Icons.menu_rounded)),
       onSelected: (String action) async {
         switch (action) {
-          case 'multiview':
-            await AppNavigator.toMultiview();
           case 'toolbox':
             Get.toNamed(RoutePath.kToolbox);
-          case 'search':
-            Get.toNamed(RoutePath.kSearch);
+          case 'multiview':
+            await AppNavigator.toMultiview();
           case 'record':
             Get.toNamed(RoutePath.kRecordPage);
-          case 'history':
-            Get.toNamed(RoutePath.kHistory);
           case 'new_window':
             try {
               await WindowsMultiInstanceLauncher.launch();
             } catch (_) {
               ToastUtil.show(i18n('open_new_window_failed'));
             }
+          case 'settings':
+            Get.toNamed(RoutePath.kSettings);
         }
       },
-      itemBuilder: (context) {
-        PopupMenuItem<String> item(String value, IconData icon, String text) => PopupMenuItem<String>(
-          value: value,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: MenuListTile(leading: Icon(icon), text: text),
-        );
-        // Same order as the phone's top-right menu ([CommonAppBarActions]);
-        // 关于 is in 设置, and 历史记录 is always last.
-        return [
-          item('search', CustomIcons.search, i18n('search_all_platforms')),
-          item('toolbox', Remix.link, i18n('toolbox_title')),
-          if (SettingsService.to.app.enableMultiView.v)
-            item('multiview', Remix.layout_grid_line, i18n('multiview_title')),
-          item('record', Remix.download_2_line, i18n('record_center')),
-          if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
-            item('new_window', Icons.add_to_photos_outlined, i18n('open_new_window')),
-          item('history', Remix.history_line, i18n('history')),
-        ];
-      },
+      itemBuilder: (context) => [
+        homeMenuItem(context, 'toolbox', Remix.link, i18n('open_link')),
+        if (SettingsService.to.app.enableMultiView.v)
+          homeMenuItem(context, 'multiview', Remix.layout_grid_line, i18n('multiview_title')),
+        homeMenuItem(context, 'record', Remix.download_2_line, i18n('record_center')),
+        if (Platform.isWindows && SettingsService.to.app.enableNewWindowPlay.v)
+          homeMenuItem(context, 'new_window', Icons.add_to_photos_outlined, i18n('open_new_window')),
+        const PopupMenuDivider(),
+        homeMenuItem(context, 'settings', Remix.settings_5_line, i18n('settings_title')),
+      ],
+      child: const SizedBox.square(dimension: kMinInteractiveDimension, child: Icon(Icons.menu_rounded, size: 24)),
     );
   }
 }

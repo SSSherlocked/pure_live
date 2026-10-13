@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/features/version/app_update_flow.dart';
+import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:pure_live/core/network/race_http.dart';
 import 'package:pure_live/core/network/http_client.dart';
 import 'package:pure_live/core/models/release_model.dart';
 
 typedef ReleaseHistoryExternalLauncher = Future<bool> Function(Uri uri);
-typedef ReleaseHistoryDownloadHandler = Future<void> Function(String url, {String? fileName});
 typedef ReleaseHistoryLoader = Future<List<ReleaseModel>> Function();
 
 class ReleaseHistoryRepository {
@@ -50,9 +49,7 @@ class ReleaseHistoryRepository {
     final raw = VersionUtil.mirror.rawUrl(releaseAssetPath);
     final mirrors = VersionUtil.mirror.mirrors(releaseAssetPath);
 
-    final sourceUrls = SettingsService.to.app.useGitHubOriginForUpdates.v
-        ? <String>[raw, ...mirrors]
-        : <String>[...mirrors, raw];
+    final sourceUrls = <String>[...mirrors, raw];
 
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final urls = sourceUrls
@@ -94,7 +91,11 @@ class ReleaseHistoryRepository {
     return List.unmodifiable(releases);
   }
 
-  Uri? webUri(String rawUrl) => updateDownloadUri(rawUrl);
+  /// An http(s) link without embedded credentials, or null.
+  Uri? webUri(String rawUrl) {
+    final uri = FileUtils.parseHttpUrl(rawUrl);
+    return uri == null || uri.userInfo.isNotEmpty ? null : uri;
+  }
 }
 
 /// Numeric comparison of dotted versions, so 3.2.10 sorts after 3.2.9 when two

@@ -27,7 +27,6 @@ import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_
 import 'package:pure_live/domains/recorder/presentation/pages/local_player/local_video_player_controller.dart';
 import 'package:pure_live/features/remote_receiver/remote_sync_service.dart';
 import 'package:pure_live/features/toolbox/toolbox_controller.dart';
-import 'package:pure_live/features/version/version_controller.dart';
 import 'package:pure_live/features/web_dav/web_dav_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 
@@ -234,13 +233,6 @@ class ToolBoxBinding extends Binding {
   @override
   List<Bind> dependencies() {
     return [Bind.lazyPut(() => ToolBoxController())];
-  }
-}
-
-class VersionBinding extends Binding {
-  @override
-  List<Bind> dependencies() {
-    return [Bind.lazyPut(() => VersionController())];
   }
 }
 

@@ -1,77 +1,30 @@
 import 'dart:io';
-import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/services.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:move_to_desktop/move_to_desktop.dart';
-import 'package:pure_live/core/consts/app_consts.dart';
-import 'package:pure_live/domains/live/presentation/areas/areas_page.dart';
-import 'package:pure_live/features/home/mobile_view.dart';
-import 'package:pure_live/features/home/tablet_view.dart';
 import 'package:pure_live/core/platform/initial_room_handoff.dart';
 import 'package:pure_live/core/player/models/player_engine.dart';
-import 'package:pure_live/domains/live/presentation/popular/popular_page.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_page.dart';
-import 'package:pure_live/features/about/widgets/version_dialog.dart';
-import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_page.dart';
-import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
-import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
-import 'package:pure_live/domains/live/presentation/areas/areas_controller.dart';
 
+/// The home page: 关注, between the top-left and top-right menus. 分区, 热门
+/// and every other page open from those menus as their own routes.
 class HomePage extends StatefulWidget {
-  const HomePage({
-    super.key,
-    this.updateCheckDelay = const Duration(seconds: 2),
-    this.initializePackageInfo,
-    this.checkForUpdate,
-    this.hasNewVersion,
-    this.updatePromptBuilder,
-  });
+  const HomePage({super.key});
 
-  @visibleForTesting
-  final Duration updateCheckDelay;
-
-  @visibleForTesting
-  final Future<void> Function()? initializePackageInfo;
-
-  @visibleForTesting
-  final Future<bool> Function()? checkForUpdate;
-
-  @visibleForTesting
-  final bool Function()? hasNewVersion;
-
-  @visibleForTesting
-  final WidgetBuilder? updatePromptBuilder;
+  /// Widest the phone layout grows: phone mode on a large screen keeps a
+  /// phone-width column instead of stretching the cards.
+  static const double maxPhoneContentWidth = 600;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
-  Timer? _resumeRefreshTimer;
-  Timer? _updateCheckTimer;
-  final FavoriteController favoriteController = Get.find<FavoriteController>();
-  late final VoidCallback _favoriteTabListener;
-  Worker? _savedMenuWorker;
-  DateTime? _backgroundedAt;
-
-  int _selectedIndex = 0;
-
-  final Map<HomeMenu, Widget> _pageMap = const {
-    HomeMenu.favorites: FavoritePage(),
-    HomeMenu.popular: PopularPage(),
-    HomeMenu.areas: AreasPage(),
-    HomeMenu.record: RecorderPage(),
-  };
-
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _syncInitialIndex();
-
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       if (Platform.isAndroid) {
         SystemChrome.setSystemUIOverlayStyle(
@@ -95,128 +48,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
         await AppNavigator.toLiveRoomDetail(liveRoom: initialRoom);
       }
     });
-
-    // Give the visible room snapshot first use of the network and build
-    // isolate. The update check is low-priority background work and previously
-    // competed with the cold-start room verification and image requests.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _updateCheckTimer = Timer(widget.updateCheckDelay, () {
-        if (mounted) unawaited(_checkForStartupUpdate());
-      });
-    });
-
-    _favoriteTabListener = () {
-      if (mounted) {
-        setState(() => _selectedIndex = favoriteController.tabBottomIndex.value);
-      }
-    };
-    favoriteController.tabBottomIndex.addListener(_favoriteTabListener);
-
-    _savedMenuWorker = ever(SettingsService.to.app.savedMenuIds, (v) {
-      if (!mounted) {
-        return;
-      }
-      // 录制中心 is a menu entry on every layout, never a home tab.
-      final value = List<String>.from(v as List).where((id) => id != HomeMenu.record.id).toList();
-      if (value.isEmpty) {
-        setState(() {
-          _selectedIndex = -1;
-        });
-        favoriteController.tabBottomIndex.value = -1;
-        return;
-      }
-      final currentMenuId = _selectedIndex >= 0 && _selectedIndex < HomeMenu.values.length
-          ? HomeMenu.values[_selectedIndex].id
-          : null;
-      if (currentMenuId == null || !value.contains(currentMenuId)) {
-        final firstMenu = HomeMenu.fromId(value.first);
-        if (firstMenu != null) {
-          onDestinationSelected(firstMenu.index);
-        }
-      }
-    });
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
-      // The desktop picture-in-picture window steals the main window's focus
-      // when it is opened or clicked; the main window then reports paused/
-      // hidden although the app never left the screen. Recording that as
-      // "backgrounded" made returning to the main window fire the resume
-      // refresh on every pip interaction.
-      if (Get.isRegistered<GlobalPlayerService>() && GlobalPlayerService.instance.player.isInPip.value) {
-        return;
-      }
-      _resumeRefreshTimer?.cancel();
-      _backgroundedAt ??= DateTime.now();
-      return;
-    }
-    if (state != AppLifecycleState.resumed) return;
-    final backgroundedAt = _backgroundedAt;
-    _backgroundedAt = null;
-    if (backgroundedAt == null || DateTime.now().difference(backgroundedAt) < const Duration(seconds: 15)) return;
-
-    if (_selectedIndex < 0 || _selectedIndex >= HomeMenu.values.length) return;
-    final menu = HomeMenu.values[_selectedIndex];
-    _resumeRefreshTimer?.cancel();
-    _updateCheckTimer?.cancel();
-    _resumeRefreshTimer = Timer(const Duration(milliseconds: 450), () {
-      if (!mounted) return;
-      if (menu == HomeMenu.popular && Get.isRegistered<PopularController>()) {
-        unawaited(Get.find<PopularController>().refreshCurrentData());
-      } else if (menu == HomeMenu.areas && Get.isRegistered<AreasController>()) {
-        unawaited(Get.find<AreasController>().refreshCurrentData());
-      }
-    });
-  }
-
-  void _syncInitialIndex() {
-    final activeIds = SettingsService.to.app.savedMenuIds.v.where((id) => id != HomeMenu.record.id).toList();
-    if (activeIds.isNotEmpty) {
-      final firstMenu = HomeMenu.fromId(activeIds.first);
-      if (firstMenu != null) {
-        _selectedIndex = firstMenu.index;
-        favoriteController.tabBottomIndex.value = firstMenu.index;
-      }
-    }
-  }
-
-  void handMoveRefresh() {
-    if (favoriteController.loadding.value) return;
-    unawaited(favoriteController.refreshData());
-  }
-
-  void onDestinationSelected(int index) {
-    if (index == _selectedIndex && index == HomeMenu.favorites.index) {
-      handMoveRefresh();
-      return;
-    }
-    if (mounted) {
-      setState(() => _selectedIndex = index);
-    }
-    favoriteController.tabBottomIndex.value = index;
-  }
-
-  Future<void> _checkForStartupUpdate() async {
-    try {
-      await (widget.initializePackageInfo ?? VersionUtil.initPackageInfo)();
-      if (!mounted) return;
-      final checkForUpdate = widget.checkForUpdate ?? VersionUtil().checkUpdate;
-      final succeeded = await checkForUpdate();
-      final hasNewVersion = widget.hasNewVersion ?? VersionUtil.hasNewVersion;
-      if (!mounted || !succeeded || !SettingsService.to.app.enableAutoCheckUpdate.v || !hasNewVersion()) {
-        return;
-      }
-      await showDialog<void>(
-        context: context,
-        useRootNavigator: true,
-        builder: widget.updatePromptBuilder ?? (_) => const NewVersionDialog(),
-      );
-    } catch (error, stackTrace) {
-      log('Startup update check skipped: $error', name: 'HomePage', error: error, stackTrace: stackTrace);
-    }
   }
 
   void onBackButtonPressed(bool didPop, _) {
@@ -228,72 +59,29 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin,
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // One widget shape at every width, so crossing the breakpoint never
+    // remounts the page; only the width limit changes.
+    final layout = AppLayout.of(context);
+    final limit = layout.phone && MediaQuery.sizeOf(context).width > AppLayout.wideBreakpoint
+        ? HomePage.maxPhoneContentWidth
+        : double.infinity;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: onBackButtonPressed,
-      child: LayoutBuilder(
-        builder: (context, constraint) {
-          // The display mode decides, not this page's own measurement.
-          final bool isTablet = AppLayout.of(context).wide;
-
-          return Obx(() {
-            final activeMenuIds = List<String>.from(SettingsService.to.app.savedMenuIds.v);
-            // 录制中心 is reached from the menu on every layout.
-            final tabletActiveMenuIds = List<String>.from(activeMenuIds)..remove(HomeMenu.record.id);
-
-            int adjustedIndex = _selectedIndex;
-            Widget currentWidget = const SizedBox.shrink();
-
-            if (tabletActiveMenuIds.isNotEmpty) {
-              if (adjustedIndex < 0 ||
-                  adjustedIndex >= HomeMenu.values.length ||
-                  HomeMenu.values[adjustedIndex] == HomeMenu.record) {
-                final fallbackMenu = HomeMenu.fromId(tabletActiveMenuIds.first);
-                if (fallbackMenu != null) {
-                  adjustedIndex = fallbackMenu.index;
-                }
-              }
-              if (adjustedIndex >= 0 && adjustedIndex < HomeMenu.values.length) {
-                final currentMenu = HomeMenu.values[adjustedIndex];
-                currentWidget = _pageMap[currentMenu] ?? const SizedBox.shrink();
-              }
-            } else {
-              adjustedIndex = -1;
-            }
-
-            // Pages read the layout from here (see HomeShellScope) rather than
-            // measuring the screen themselves.
-            return HomeShellScope(
-              wide: isTablet,
-              child: !isTablet
-                  ? HomeMobileView(
-                      body: currentWidget,
-                      index: adjustedIndex,
-                      onDestinationSelected: onDestinationSelected,
-                    )
-                  : HomeTabletView(
-                      body: currentWidget,
-                      index: adjustedIndex,
-                      activeMenuIds: tabletActiveMenuIds,
-                      onDestinationSelected: onDestinationSelected,
-                    ),
-            );
-          });
-        },
+      child: HomeShellScope(
+        child: ColoredBox(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: limit),
+              child: const FavoritePage(),
+            ),
+          ),
+        ),
       ),
     );
   }
 
   @override
   bool get wantKeepAlive => true;
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    favoriteController.tabBottomIndex.removeListener(_favoriteTabListener);
-    _savedMenuWorker?.dispose();
-    _resumeRefreshTimer?.cancel();
-    _updateCheckTimer?.cancel();
-    super.dispose();
-  }
 }

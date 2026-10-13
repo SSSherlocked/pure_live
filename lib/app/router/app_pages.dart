@@ -6,7 +6,6 @@ import 'package:pure_live/features/about/about_page.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_page.dart';
 import 'package:pure_live/domains/live/presentation/search/search_page.dart';
 import 'package:pure_live/features/settings/pages/cache_data_settings_page.dart';
-import 'package:pure_live/features/version/version_page.dart';
 import 'package:pure_live/features/web_dav/web_dav_page.dart';
 import 'package:pure_live/features/toolbox/toolbox_page.dart';
 import 'package:pure_live/domains/account/presentation/account/account_page.dart';
@@ -164,8 +163,6 @@ class AppPages {
 
     GetPage(name: RoutePath.kWebDavPage, page: _smoothPage(WebDavPage.new), bindings: [WebDavBinding()]),
 
-    // VersionPage
-    GetPage(name: RoutePath.kVersionPage, page: _smoothPage(() => const VersionPage()), bindings: [VersionBinding()]),
     GetPage(name: RoutePath.kRecordPage, page: _smoothPage(() => const RecorderPage()), bindings: [RecorderBinding()]),
     GetPage(
       name: RoutePath.kRecordSettings,

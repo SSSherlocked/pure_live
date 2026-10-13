@@ -82,23 +82,6 @@ class _AboutPageState extends State<AboutPage> {
           const SizedBox(height: 8),
           context.buildModernCard([
             context.buildTile(
-              icon: Remix.download_cloud_2_line,
-              title: i18n("online_update"),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'v${VersionUtil.version}',
-                  style: AppText.of(context).tag.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
-                ),
-              ),
-              stackTrailingOnNarrow: true,
-              onTap: () => Get.toNamed(RoutePath.kVersionPage),
-            ),
-            context.buildTile(
               icon: Remix.history_line,
               title: i18n("history"),
               subtitle: i18n("history_desc"),

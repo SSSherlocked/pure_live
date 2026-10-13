@@ -51,40 +51,37 @@ class AreasPage extends GetView<AreasController> {
               children: availableSitesList.map((e) => AreaGridView(e.id)).toList(),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-            floatingActionButton: Padding(
-              padding: EdgeInsets.only(bottom: HomeShellScope.wideOf(context) == true ? 24 : 0, right: 0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+            floatingActionButton: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15), width: 1),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15), width: 1),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => Get.toNamed(RoutePath.kFavoriteAreas),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Remix.heart_add_2_line, size: 16, color: Theme.of(context).colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Text(
-                              i18n("favorite_areas"),
-                              style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                letterSpacing: 0.5,
-                              ),
+                  onTap: () => Get.toNamed(RoutePath.kFavoriteAreas),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Remix.heart_add_2_line, size: 16, color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            i18n("favorite_areas"),
+                            style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              letterSpacing: 0.5,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

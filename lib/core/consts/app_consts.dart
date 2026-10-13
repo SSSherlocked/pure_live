@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
+/// The pages the top-right menu can offer besides 关注, the home page.
+/// [AppSettingsController.savedMenuIds] holds the ids of the shown ones.
 enum HomeMenu {
-  favorites('favorites'),
-  popular('popular'),
   areas('areas'),
-  record('record');
+  popular('popular');
 
   final String id;
   const HomeMenu(this.id);
@@ -17,7 +17,6 @@ enum HomeMenu {
 }
 
 class AppConsts {
-  static const Set<String> supportAndroidAbis = {'arm64-v8a', 'armeabi-v7a', 'x86_64'};
   static const Map<String, ThemeMode> themeModes = {
     "System": ThemeMode.system,
     "Dark": ThemeMode.dark,

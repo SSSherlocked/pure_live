@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/features/version/app_update_flow.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:markdown_widget/widget/all.dart';
 import 'package:markdown_widget/config/configs.dart';
@@ -11,10 +10,9 @@ import 'package:pure_live/core/models/release_model.dart';
 import 'package:pure_live/features/about/widgets/release_history_repository.dart';
 
 class VersionHistoryPage extends StatefulWidget {
-  const VersionHistoryPage({super.key, this.openExternalUrl, this.downloadRelease, this.releaseLoader});
+  const VersionHistoryPage({super.key, this.openExternalUrl, this.releaseLoader});
 
   final ReleaseHistoryExternalLauncher? openExternalUrl;
-  final ReleaseHistoryDownloadHandler? downloadRelease;
 
   /// Defaults to [ReleaseHistoryRepository.load]; tests supply fixed history.
   final ReleaseHistoryLoader? releaseLoader;
@@ -28,7 +26,6 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
   final RxBool historyLoading = false.obs;
   final RxBool historyError = false.obs;
   final RxInt _selectedHistoryIndex = 0.obs;
-  bool _downloadInProgress = false;
 
   ReleaseHistoryRepository get _repository => ReleaseHistoryRepository.instance;
 
@@ -217,7 +214,7 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
             isDark: Theme.of(context).brightness == Brightness.dark,
             onOpenRelease: _releaseAction(context, versions[selectedIndex].github),
             onCopy: (file) => _copyDownloadLink(context, file),
-            onDownload: (file) => _confirmDownload(context, file),
+            onOpenFile: (file) => _openFile(context, file),
           ),
         ),
       ],
@@ -337,7 +334,7 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
                       item: item,
                       isDark: Theme.of(dialogContext).brightness == Brightness.dark,
                       onCopy: (file) => _copyDownloadLink(dialogContext, file),
-                      onDownload: (file) => _confirmDownload(dialogContext, file),
+                      onOpenFile: (file) => _openFile(dialogContext, file),
                     ),
                     const SizedBox(height: 8),
                     Align(
@@ -387,61 +384,10 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
     if (context.mounted) _showMessage(context, 'copied_to_clipboard');
   }
 
-  Future<void> _confirmDownload(BuildContext context, ReleaseFileModel file) async {
-    if (_downloadInProgress || !mounted || !context.mounted) return;
+  /// Release files open in the system browser, which handles the download.
+  void _openFile(BuildContext context, ReleaseFileModel file) {
     final uri = _repository.webUri(file.url);
-    if (uri == null) return;
-    _downloadInProgress = true;
-    try {
-      final declaredName = file.name.trim();
-      final pathName = uri.pathSegments.reversed
-          .map((segment) => segment.trim())
-          .firstWhere((segment) => segment.isNotEmpty, orElse: () => '');
-      final displayName = declaredName.isNotEmpty
-          ? declaredName
-          : pathName.isNotEmpty
-          ? pathName
-          : i18n('version_history_unnamed_file');
-      final confirmed = await showDialog<bool>(
-        context: context,
-        useRootNavigator: true,
-        builder: (dialogContext) => AlertDialog(
-          scrollable: true,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          title: Text(i18n('download')),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Text(i18n('open_download_confirm_named', args: {'name': displayName})),
-          ),
-          actionsOverflowDirection: VerticalDirection.down,
-          actionsOverflowButtonSpacing: 8,
-          actions: [
-            TextButton(
-              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(i18n('cancel')),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(i18n('download'), textAlign: TextAlign.center),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true || !mounted || !context.mounted) return;
-
-      final handler = widget.downloadRelease;
-      if (handler != null) {
-        await handler(uri.toString(), fileName: file.name);
-      } else {
-        await downloadAndInstallApk(uri.toString(), fileName: file.name);
-      }
-    } catch (_) {
-      if (mounted && context.mounted) _showMessage(context, 'version_history_download_failed');
-    } finally {
-      _downloadInProgress = false;
-    }
+    if (uri != null) unawaited(_openRelease(context, uri));
   }
 
   void _showMessage(BuildContext context, String key) {
@@ -480,14 +426,14 @@ class _DesktopChangelogDetailPanel extends StatelessWidget {
     required this.isDark,
     required this.onOpenRelease,
     required this.onCopy,
-    required this.onDownload,
+    required this.onOpenFile,
   });
 
   final ReleaseModel item;
   final bool isDark;
   final VoidCallback? onOpenRelease;
   final ValueChanged<ReleaseFileModel> onCopy;
-  final ValueChanged<ReleaseFileModel> onDownload;
+  final ValueChanged<ReleaseFileModel> onOpenFile;
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +459,7 @@ class _DesktopChangelogDetailPanel extends StatelessWidget {
                   item: item,
                   isDark: isDark,
                   onCopy: onCopy,
-                  onDownload: onDownload,
+                  onOpenFile: onOpenFile,
                 ),
               ),
             ),
@@ -623,13 +569,13 @@ class _VersionChangelogAndFilesWidget extends StatelessWidget {
     required this.item,
     required this.isDark,
     required this.onCopy,
-    required this.onDownload,
+    required this.onOpenFile,
   });
 
   final ReleaseModel item;
   final bool isDark;
   final ValueChanged<ReleaseFileModel> onCopy;
-  final ValueChanged<ReleaseFileModel> onDownload;
+  final ValueChanged<ReleaseFileModel> onOpenFile;
 
   @override
   Widget build(BuildContext context) {
@@ -662,7 +608,7 @@ class _VersionChangelogAndFilesWidget extends StatelessWidget {
               key: ValueKey('release-history-file-$index'),
               file: item.files[index],
               onCopy: () => onCopy(item.files[index]),
-              onDownload: () => onDownload(item.files[index]),
+              onOpen: () => onOpenFile(item.files[index]),
             ),
         ],
       ],
@@ -671,11 +617,11 @@ class _VersionChangelogAndFilesWidget extends StatelessWidget {
 }
 
 class _ReleaseFileCard extends StatelessWidget {
-  const _ReleaseFileCard({super.key, required this.file, required this.onCopy, required this.onDownload});
+  const _ReleaseFileCard({super.key, required this.file, required this.onCopy, required this.onOpen});
 
   final ReleaseFileModel file;
   final VoidCallback onCopy;
-  final VoidCallback onDownload;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -742,9 +688,9 @@ class _ReleaseFileCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 IconButton(
-                  tooltip: i18n('download'),
+                  tooltip: i18n('open_in_system_browser'),
                   style: _fileActionStyle(theme),
-                  onPressed: hasLink ? onDownload : null,
+                  onPressed: hasLink ? onOpen : null,
                   icon: const Icon(Remix.download_2_line, size: 16),
                 ),
               ],
@@ -760,9 +706,9 @@ class _ReleaseFileCard extends StatelessWidget {
             ),
           );
           final downloadButton = Tooltip(
-            message: i18n('download'),
+            message: i18n('open_in_system_browser'),
             child: OutlinedButton.icon(
-              onPressed: hasLink ? onDownload : null,
+              onPressed: hasLink ? onOpen : null,
               icon: const Icon(Remix.download_2_line, size: 16),
               label: Text(i18n('download'), textAlign: TextAlign.center),
             ),

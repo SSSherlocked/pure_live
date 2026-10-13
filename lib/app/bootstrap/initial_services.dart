@@ -5,7 +5,6 @@ import 'dart:developer' as developer;
 import 'package:pure_live/core/index.dart';
 import 'package:path/path.dart' as p;
 import 'package:pure_live/core/platform/app_path_manager.dart';
-import 'package:pure_live/core/release/release_history_source.dart';
 import 'package:pure_live/core/platform/multi_instance_settings_source.dart';
 import 'package:pure_live/core/platform/desktop_exit_port.dart';
 import 'package:pure_live/core/navigation/official_category_policy.dart';
@@ -37,7 +36,6 @@ import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/data/history_controller.dart';
 import 'package:pure_live/shared/platforms/huya/huya_site.dart';
 import 'package:pure_live/domains/iptv/data/iptv_settings_controller.dart';
-import 'package:pure_live/features/about/widgets/release_history_repository.dart';
 import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:pure_live/features/web_dav/web_dav_settings_controller.dart';
 import 'package:pure_live/domains/recorder/data/services/cache_service.dart';
@@ -120,6 +118,8 @@ class InitialServices {
 
   static Future<void> init() async {
     await initDb();
+    // About and the desktop tray read the installed version synchronously.
+    await VersionUtil.initPackageInfo();
     initGlobalServices();
     _bindCorePorts();
     // Load and register the persisted custom font before MyApp builds its
@@ -132,8 +132,6 @@ class InitialServices {
   }
 
   static void _bindCorePorts() {
-    ReleaseHistorySource.provider = ({bool forceRefresh = false}) =>
-        ReleaseHistoryRepository.instance.load(forceRefresh: forceRefresh);
     CookieSettingsController.onRestored = () {
       BiliBiliAccountService.instance.setCookie(CookieSettingsController.to.bilibiliCookie.v);
       BiliBiliAccountService.instance.loadUserInfo();

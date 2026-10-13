@@ -5,6 +5,7 @@ import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller_panel.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
+import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 
 class NotLivingVideoWidget extends StatelessWidget {
   const NotLivingVideoWidget({super.key, required this.controller});
@@ -70,10 +71,8 @@ class NotLivingVideoWidget extends StatelessWidget {
               color: Colors.white,
               onPressed: () {
                 unawaited(
-                  showDialog<void>(
-                    context: context,
-                    // The side panel leaves the picture undimmed.
-                    barrierColor: Colors.transparent,
+                  showPlayerSidePanel<void>(
+                    context,
                     builder: (_) => CompactText(child: PlayOther(controller: controller)),
                   ),
                 );

@@ -17,16 +17,17 @@ class FavoritePage extends GetView<FavoriteController> {
         return Obx(() {
           final availableSitesList = controller.availableFavoriteSites;
           final siteKey = ValueKey(availableSitesList.map((e) => e.id).join('|'));
-          // Desktop has no pull-to-refresh: its refresh sits right of 排序.
+          // Desktop has no pull-to-refresh: its refresh ends the title.
           final showRefresh = AppLayout.of(context).pagedLists;
 
           return Scaffold(
             appBar: HomeAppBar(
-              // The buttons' width is mirrored on the left so the status tabs
+              pageAction: favoriteSortMenuAction(),
+              // Desktop's refresh is mirrored on the left so the status tabs
               // stay centred on the whole bar, not on what is left of it.
               title: Row(
                 children: [
-                  SizedBox(width: kMinInteractiveDimension * (showRefresh ? 2 : 1)),
+                  if (showRefresh) const SizedBox(width: kMinInteractiveDimension),
                   Expanded(
                     child: ScrollableTabBar(
                       key: const ValueKey('favorite-status-tabs'),
@@ -41,7 +42,6 @@ class FavoritePage extends GetView<FavoriteController> {
                       ],
                     ),
                   ),
-                  const FavoriteSortButton(key: ValueKey('favorite-sort')),
                   if (showRefresh)
                     Obx(
                       () => IconButton(

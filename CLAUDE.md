@@ -35,12 +35,12 @@
 - `.github/workflows/ci.yml` 在每次推送时运行：先检测改动（只改文档时跳过 Flutter 检查），然后并行跑 Analyze 和 Test，另有仓库审计和工具测试。
 - 查看 CI 结果：GitHub 匿名 API 每小时只有 60 次配额，容易被限流；优先打开 Actions 网页（`https://github.com/SSSherlocked/pure_live/actions/workflows/ci.yml`）读取运行状态，不要高频轮询 API。
 - 发布用手动触发的 `build_pure_live_release.yml`，输入版本号（如 `3.2.2`）。`RELEASE_NOTES.md` 里必须先写好这个版本的更新说明。发布完成后，工作流会把 `pubspec.yaml`、`assets/version.json`、`releases.json` 提交回 master。
-- 不要手工修改 `assets/version.json`：应用内的检查更新读取的就是 master 上的这个文件，提前改会让用户收到不存在的更新。
+- 应用已没有在线更新；关于 › 历史（更新日志）读取的是 master 上的 `assets/releases.json`，不要手工提前改它。
 
 ## 代码约定
 
 - 分层：`app -> core, shared, domains, features`；`core` 不依赖上层；`domains/X` 只依赖 `core`、`shared` 和自身。由 `tool/validate_architecture.py` 检查。
-- 文字：只用 `AppText` 的六个角色（pageTitle、sectionTitle、listPrimary、body、secondary、tag）或主题字号，不写死字号。密集区域（直播间侧栏、全屏面板、播放器菜单）包在 `CompactText` 里，整体小一级。
+- 文字：只用 `AppText` 的六个角色（pageTitle、sectionTitle、listPrimary、body、secondary、tag）或主题字号，不写死字号。密集区域（直播间信息页、全屏面板、播放器菜单）包在 `CompactText` 里，整体小一级。
 - 应用外壳：页面外面的所有包裹层都在 `lib/app/shell/app_shell.dart`。每一层在整个运行期间必须保持同一种结构，状态变化只能改画什么，不能增减或替换层，否则路由会被重建（曾导致全屏时多推一个直播间页面）。
 - 设置页：页面主体包在 `SettingsContentWidth` 里（固定内容宽度，两侧空白可滚动）。
 - 新增的用户设置必须进入备份：在对应控制器的 `toJson`、`parseConfig`、`fromJson`、`extractConfig` 四处同时加上，默认值与 `hiveBool`/`hiveString` 等声明一致。只与本机有关的状态（路径、任务列表、缓存、设备 ID、迁移标记）不同步。

@@ -25,6 +25,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/layout/bott
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/iptv_schedule_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/portrait_playback_picker_dialog.dart';
+import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 
 /// The full-surface gesture layer sits below the visible controller bars, but
 /// platform accessibility/input bridges can still deliver a tap to that layer
@@ -295,20 +296,20 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       // (with the menu closed) resumes the held message.
                       controller.pauseDanmakuAt(details.globalPosition);
                       final onDanmaku = controller.handleDanmakuPointer(details.globalPosition, longPress: true);
-                      // Fullscreen: a long press anywhere that is not on a
-                      // barrage opens the 关注 panel, like Simple Live.
-                      if (!onDanmaku &&
-                          !controller.danmakuHeld &&
-                          !controller.showLocked.value &&
-                          GlobalPlayerService.instance.player.fullscreenUI) {
-                        unawaited(
-                          showDialog<void>(
-                            context: context,
-                            // The side panel leaves the picture undimmed.
-                            barrierColor: Colors.transparent,
-                            builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
-                          ),
-                        );
+                      // A long press anywhere that is not on a barrage shows
+                      // 关注, like Simple Live: fullscreen opens its panel, and
+                      // otherwise the room's info page turns to its 关注 tab.
+                      if (!onDanmaku && !controller.danmakuHeld && !controller.showLocked.value) {
+                        if (GlobalPlayerService.instance.player.fullscreenUI) {
+                          unawaited(
+                            showPlayerSidePanel<void>(
+                              context,
+                              builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
+                            ),
+                          );
+                        } else {
+                          controller.livePlayController.showPanelTab(LivePanelTab.follow);
+                        }
                       }
                     },
                     onLongPressEnd: (_) => controller.resumeHeldDanmaku(),

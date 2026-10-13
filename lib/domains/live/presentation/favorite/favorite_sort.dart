@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:pinyindart/pinyindart.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
@@ -46,53 +48,70 @@ void sortFavoriteRooms(List<LiveRoom> rooms) {
   }
 }
 
-/// The 排序 button: a small, quiet icon opening the three orders, the current
-/// one bold in the primary colour.
+String _labelOf(FavoriteSortMode mode) => switch (mode) {
+  FavoriteSortMode.name => i18n('favorite_sort_name'),
+  FavoriteSortMode.platform => i18n('favorite_sort_platform'),
+  FavoriteSortMode.audience => i18n('favorite_sort_audience'),
+};
+
+/// The three orders, the current one bold in the primary colour.
+List<PopupMenuEntry<FavoriteSortMode>> _sortItems(BuildContext context) {
+  final colors = Theme.of(context).colorScheme;
+  final current = SettingsService.to.roomCard.favoriteSortMode;
+  return [
+    for (final mode in FavoriteSortMode.values)
+      PopupMenuItem<FavoriteSortMode>(
+        value: mode,
+        child: Text(
+          _labelOf(mode),
+          style: AppText.of(context).body.copyWith(
+            color: mode == current ? colors.primary : null,
+            fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+  ];
+}
+
+void _applySortMode(FavoriteSortMode? mode) {
+  if (mode != null) SettingsService.to.roomCard.favoriteSortModeName.v = mode.name;
+}
+
+/// The home 关注 page's 排序 entry in the top-right menu: its orders open
+/// under the menu button ([anchor]), where the menu was.
+HomePageMenuAction favoriteSortMenuAction() => HomePageMenuAction(
+  icon: Icons.filter_list_rounded,
+  label: i18n('favorite_sort'),
+  onSelected: (anchor) {
+    final button = anchor.findRenderObject() as RenderBox?;
+    final overlay = Overlay.of(anchor).context.findRenderObject() as RenderBox?;
+    if (button == null || overlay == null || !button.attached) return;
+    final bottomLeft = button.localToGlobal(Offset(0, button.size.height + 10), ancestor: overlay);
+    final bottomRight = button.localToGlobal(button.size.bottomRight(const Offset(0, 10)), ancestor: overlay);
+    unawaited(showMenu<FavoriteSortMode>(
+      context: anchor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: RelativeRect.fromRect(Rect.fromPoints(bottomLeft, bottomRight), Offset.zero & overlay.size),
+      items: _sortItems(anchor),
+    ).then(_applySortMode));
+  },
+);
+
+/// The 排序 button of the room's 关注 panel: a small, quiet icon opening the
+/// three orders.
 class FavoriteSortButton extends StatelessWidget {
-  const FavoriteSortButton({super.key, this.iconSize});
+  const FavoriteSortButton({super.key, this.iconSize = 18});
 
-  /// Null: the home 关注 page's app-bar button, sized like the top-right
-  /// menu button ([kMinInteractiveDimension] square, 24 px icon).
-  final double? iconSize;
-
-  static String labelOf(FavoriteSortMode mode) => switch (mode) {
-    FavoriteSortMode.name => i18n('favorite_sort_name'),
-    FavoriteSortMode.platform => i18n('favorite_sort_platform'),
-    FavoriteSortMode.audience => i18n('favorite_sort_audience'),
-  };
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final settings = SettingsService.to.roomCard;
-    return Obx(() {
-      final current = settings.favoriteSortMode;
-      return PopupMenuButton<FavoriteSortMode>(
-        tooltip: i18n('favorite_sort'),
-        icon: iconSize == null
-            ? null
-            : Icon(Icons.filter_list_rounded, size: iconSize, color: colors.onSurfaceVariant),
-        child: iconSize == null
-            ? const SizedBox.square(
-                dimension: kMinInteractiveDimension,
-                child: Icon(Icons.filter_list_rounded, size: 24),
-              )
-            : null,
-        onSelected: (mode) => settings.favoriteSortModeName.v = mode.name,
-        itemBuilder: (context) => [
-          for (final mode in FavoriteSortMode.values)
-            PopupMenuItem<FavoriteSortMode>(
-              value: mode,
-              child: Text(
-                labelOf(mode),
-                style: AppText.of(context).body.copyWith(
-                  color: mode == current ? colors.primary : null,
-                  fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ),
-        ],
-      );
-    });
+    // The items are built when the menu opens, so they show the current order.
+    return PopupMenuButton<FavoriteSortMode>(
+      tooltip: i18n('favorite_sort'),
+      icon: Icon(Icons.filter_list_rounded, size: iconSize, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      onSelected: _applySortMode,
+      itemBuilder: _sortItems,
+    );
   }
 }

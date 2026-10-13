@@ -34,6 +34,12 @@ class DanmakuSettingsController extends GetxController {
   static const double defaultChatListItemSpacing = 4.0;
   static const int defaultDanmakuMaxVisibleCount = 48;
 
+  /// Bounds of 最大同屏弹幕数. Lanes already cap how many messages fit; this
+  /// is a density and low-end-device limit, so it reaches well past a full
+  /// screen.
+  static const int minDanmakuMaxVisibleCount = 10;
+  static const int maxDanmakuMaxVisibleCount = 500;
+
   static const double pipDanmakuScaleMin = 0.4;
   static const double pipDanmakuScaleMax = 1.0;
   static const double defaultPipDanmakuScaleValue = 0.4;
@@ -291,7 +297,12 @@ class DanmakuSettingsController extends GetxController {
         _boundedDouble(json['chatListItemSpacing'], fallback: defaultChatListItemSpacing, min: 0, max: 16),
       ),
       'danmakuMaxVisibleCount': typed<int>(
-        _boundedInt(json['danmakuMaxVisibleCount'], fallback: defaultDanmakuMaxVisibleCount, min: 10, max: 120),
+        _boundedInt(
+          json['danmakuMaxVisibleCount'],
+          fallback: defaultDanmakuMaxVisibleCount,
+          min: minDanmakuMaxVisibleCount,
+          max: maxDanmakuMaxVisibleCount,
+        ),
       ),
       'chatListBubble': typed<bool>(json['chatListBubble'] ?? true),
       'chatListColorMode': ChatListColorMode.fromName(json['chatListColorMode']).name,
@@ -433,8 +444,8 @@ class DanmakuSettingsController extends GetxController {
       'danmakuMaxVisibleCount': _boundedInt(
         danmaku['danmakuMaxVisibleCount'],
         fallback: defaultDanmakuMaxVisibleCount,
-        min: 10,
-        max: 120,
+        min: minDanmakuMaxVisibleCount,
+        max: maxDanmakuMaxVisibleCount,
       ),
       'noEmojiMode': danmaku['noEmojiMode'] ?? defaultNoEmojiMode,
       'danmakuTopArea': _boundedDouble(danmaku['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),

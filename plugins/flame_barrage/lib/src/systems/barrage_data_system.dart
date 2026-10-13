@@ -119,6 +119,7 @@ class BarrageDataSystem extends Component {
       DateTime.now().millisecondsSinceEpoch,
       timed: timed,
     );
+    if (!timed) _arrivals.add(pending.enqueuedAtMs);
     final maxPendingCount = _ctx.config.maxPendingCount.clamp(1, 10000);
     while (_waiting.length + _pausedBuffer.length >= maxPendingCount) {
       if (_waiting.isNotEmpty) {
@@ -138,6 +139,7 @@ class BarrageDataSystem extends Component {
     _waiting.clear();
     _pausedBuffer.clear();
     _timeline.clear();
+    _arrivals.clear();
     _paused = false;
     _emitTimer = 0.0;
   }
@@ -186,15 +188,44 @@ class BarrageDataSystem extends Component {
   /// launches over the time a message stays on screen keeps that many in
   /// flight as a steady stream instead. A quiet room arrives slower than
   /// this anyway and is unaffected.
+  ///
+  /// Platforms also push danmaku in batches every second or two. Launched as
+  /// they come, a batch fills every lane at once and crosses the screen as one
+  /// column, with nothing behind it until the next batch. So launches follow
+  /// the arrival rate of the last [_arrivalWindowMs] instead, spreading each
+  /// batch over the gap before the next; a backlog larger than one window's
+  /// arrivals drops back to [BarrageConfig.emitInterval] to catch up.
   double _paceInterval() {
     final config = _ctx.config;
+    var interval = config.emitInterval;
     final cap = config.maxVisibleCount;
     final width = _ctx.viewport.x;
-    if (cap <= 0 || config.baseSpeed <= 0 || width <= 0) return config.emitInterval;
-    // Crossing the screen plus a typical message's own length.
-    final onScreenSeconds = width * 1.25 / config.baseSpeed;
-    return math.max(config.emitInterval, onScreenSeconds / cap);
+    if (cap > 0 && config.baseSpeed > 0 && width > 0) {
+      // Crossing the screen plus a typical message's own length.
+      final onScreenSeconds = width * 1.25 / config.baseSpeed;
+      interval = math.max(interval, onScreenSeconds / cap);
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    while (_arrivals.isNotEmpty && now - _arrivals.first > _arrivalWindowMs) {
+      _arrivals.removeFirst();
+    }
+    final arrived = _arrivals.length;
+    if (arrived > 0 && _waiting.length <= arrived) {
+      final arrivalSpacing = _arrivalWindowMs / 1000 / arrived;
+      interval = math.max(interval, math.min(arrivalSpacing, _maxArrivalSpacing));
+    }
+    return interval;
   }
+
+  /// Arrival times (wall clock, ms) of the last [_arrivalWindowMs] of live
+  /// messages, for [_paceInterval].
+  final Queue<int> _arrivals = Queue<int>();
+  static const int _arrivalWindowMs = 3000;
+
+  /// The longest a queued message waits for its turn: a quiet room is not
+  /// held back to its own trickle.
+  static const double _maxArrivalSpacing = 0.5;
 
   // The expensive part of dispatching a message is text shaping inside
   // MixedLayout._buildParagraph (and it happens twice per text fragment

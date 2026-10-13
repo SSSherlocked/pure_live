@@ -12,9 +12,18 @@ const MenuStyle homeMenuStyle = MenuStyle(
   shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14)))),
 );
 
+/// Entries of the home menus: body-size text with room on either side, so
+/// the 36 px rows do not read as crowded.
+const ButtonStyle homeMenuItemStyle = ButtonStyle(
+  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
+);
+
+/// The label style of a home menu entry.
+TextStyle homeMenuTextStyle(BuildContext context) => AppText.of(context).body.copyWith(fontWeight: FontWeight.w500);
+
 /// The icon of a home menu entry.
 Widget homeMenuIcon(BuildContext context, IconData icon) =>
-    Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary);
+    Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary);
 
 /// One entry of the home page's two menus: a primary-coloured icon and its
 /// name, shared by [MenuButton] and [CommonAppBarActions]. [arrowColumn]
@@ -31,9 +40,10 @@ Widget homeMenuItem(
   final leading = homeMenuIcon(context, icon);
   return MenuItemButton(
     key: key,
+    style: homeMenuItemStyle,
     leadingIcon: arrowColumn ? playerMenuLeading(leading) : leading,
     onPressed: onPressed,
-    child: Text(text, style: AppText.of(context).listPrimary),
+    child: Text(text, style: homeMenuTextStyle(context)),
   );
 }
 

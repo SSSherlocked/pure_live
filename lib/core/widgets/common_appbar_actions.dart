@@ -80,6 +80,7 @@ class CommonAppBarActions extends StatelessWidget {
               const Divider(height: 16),
               LeftSubmenuButton(
                 key: const ValueKey('home-page-menu-action'),
+                style: homeMenuItemStyle,
                 leadingIcon: homeMenuIcon(context, action.icon),
                 labels: action.choices,
                 menuChildren: [
@@ -94,7 +95,7 @@ class CommonAppBarActions extends StatelessWidget {
                       ),
                     ),
                 ],
-                child: Text(action.label, style: AppText.of(context).listPrimary),
+                child: Text(action.label, style: homeMenuTextStyle(context)),
               ),
             ],
           ],

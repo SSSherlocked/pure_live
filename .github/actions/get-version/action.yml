@@ -45,7 +45,10 @@ runs:
         "$py" tool/release_version.py stamp --version "$VERSION_INPUT"
         if [[ "$REQUIRE_NOTES" == "true" ]]; then
           version=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//')
-          "$py" tool/release_version.py notes --version "$version" > /dev/null
+          if ! "$py" tool/release_version.py notes --version "$version" > /dev/null; then
+            echo "::error::RELEASE_NOTES.md has no '# Pure Live v$version' section. Write the notes first."
+            exit 1
+          fi
           # A published version is never released again: its tag already
           # exists, and a second run would silently replace its assets.
           if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null 2>&1; then

@@ -32,8 +32,9 @@ class RoomGridView extends GetView<FavoriteController> {
         final width = constraint.maxWidth;
         return Obx(() {
           final dense = SettingsService.to.app.enableDenseFavorites.v;
-          final spacing = SettingsService.to.theme.crossAxisSpacing.v;
-          final mainAxisSpacing = SettingsService.to.theme.mainAxisSpacing.v;
+          final compact = SettingsService.to.roomCard.isCompactLayout;
+          final spacing = SettingsService.to.theme.cardCrossSpacing(compact: compact);
+          final mainAxisSpacing = SettingsService.to.theme.cardMainSpacing(compact: compact);
           final isVerifyingFavorites = controller.isVerifyingFavorites.value;
           final crossAxisCount = roomGridAutoColumns(width, dense: dense);
           final sizing = resolveRoomGridSizing(

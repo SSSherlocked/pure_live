@@ -394,6 +394,10 @@ class RoomCardSettingsController extends GetxController {
 
   RoomCardAppearance resolve() => config.value;
 
+  /// Whether the current profile shows the compact rows (紧凑信息行), whose
+  /// card gaps are kept apart from the cover cards'.
+  bool get isCompactLayout => resolve().layout == RoomCardLayout.compact;
+
   void updateConfig(RoomCardAppearance value) => config.value = _normalizeConfig(value);
 
   /// Puts the current profile back to its default preset.

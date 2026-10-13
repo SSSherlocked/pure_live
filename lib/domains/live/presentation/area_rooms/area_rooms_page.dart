@@ -54,8 +54,9 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
               final roomCardAppearance = SettingsService.to.roomCard.resolve();
               // Read here, not in the LayoutBuilder below: a read at layout
               // time is not tracked by this Obx.
-              final spacing = SettingsService.to.theme.crossAxisSpacing.v;
-              final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
+              final compact = SettingsService.to.roomCard.isCompactLayout;
+              final spacing = SettingsService.to.theme.cardCrossSpacing(compact: compact);
+              final rowSpacing = SettingsService.to.theme.cardMainSpacing(compact: compact);
               final fixedCardWidth = SettingsService.to.roomCard.currentCardWidth;
               final columns = SettingsService.to.roomCard.currentColumns;
               return LayoutBuilder(

@@ -236,9 +236,9 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
           final current = widget.controller.state.value.room.detail;
           // Rows are the compact room card's height, under the same settings.
           final dense = SettingsService.to.app.enableDenseFavorites.v;
-          // The gap between rows is 房间卡片设置's row spacing, as on the home
-          // 关注 page, so the two lists never disagree.
-          final spacing = SettingsService.to.theme.mainAxisSpacing.v;
+          // The gap between rows is 房间卡片设置's row spacing for the compact
+          // rows, as on the home 关注 page in that layout.
+          final spacing = SettingsService.to.theme.cardMainSpacing(compact: true);
           final rowExtent = RoomCardLayoutMetrics.compactHeight(
             appearance: SettingsService.to.roomCard.resolve().copyWith(layout: RoomCardLayout.compact),
             dense: dense,
@@ -256,7 +256,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                 crossAxisCount: 1,
                 mainAxisExtent: rowExtent,
                 mainAxisSpacing: spacing,
-                crossAxisSpacing: spacing,
               ),
               itemCount: rooms.length,
               itemBuilder: (context, index) {

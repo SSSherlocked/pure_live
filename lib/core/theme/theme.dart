@@ -24,6 +24,10 @@ const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
   borderRadius: BorderRadius.all(Radius.circular(kFloatingMenuCornerRadius)),
 );
 
+/// Radius of a slider's thumb; its drag halo is twice as wide. Touch
+/// platforms 30 % above the former 5.6 px, desktops 30 % below it.
+final double kSliderThumbRadius = PlatformUtils.isMobile ? 7.28 : 3.92;
+
 /// The colour of every floating menu panel (MenuAnchor menus, their
 /// submenus and popup menus): one tonal grey at [kFloatingMenuOpacity] in
 /// every mode. Pure-black mode keeps the grey too, so a menu over a black
@@ -216,12 +220,11 @@ class MyTheme {
 
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
-      // A smaller drag halo makes every slider about 22 px tall instead of 48;
-      // the thumb shrinks with it.
+      // A smaller drag halo makes every slider shorter than Material's 48 px;
+      // the thumb scales with it. Fingers get a larger thumb than a pointer.
       sliderTheme: baseTheme.sliderTheme.copyWith(
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 11.2),
-        // Thumb and drag halo 30 % below the previous 8 / 16 px.
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.6),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: kSliderThumbRadius * 2),
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: kSliderThumbRadius),
       ),
       pageTransitionsTheme: appPageTransitionsTheme,
       appBarTheme: AppBarTheme(

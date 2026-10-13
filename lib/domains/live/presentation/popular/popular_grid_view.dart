@@ -29,8 +29,9 @@ class PopularGridView extends StatelessWidget {
             onButtonPressed: () => controller.refreshData(),
           ),
           contentBuilder: (context, list, scrollController) => Obx(() {
-            final spacing = SettingsService.to.theme.crossAxisSpacing.v;
-            final rowSpacing = SettingsService.to.theme.mainAxisSpacing.v;
+            final compact = SettingsService.to.roomCard.isCompactLayout;
+            final spacing = SettingsService.to.theme.cardCrossSpacing(compact: compact);
+            final rowSpacing = SettingsService.to.theme.cardMainSpacing(compact: compact);
             final sizing = resolveRoomGridSizing(
               width: width,
               autoColumns: autoColumns,

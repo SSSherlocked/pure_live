@@ -33,8 +33,12 @@ class CommonAppBarActions extends StatelessWidget {
 
   final HomePageMenuAction? pageAction;
 
+  // Rebuilt when 房间卡片设置 › 菜单 shows or hides 分区 / 热门, so the menu
+  // follows the switch at once.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => Obx(() => _buildActions(context));
+
+  Widget _buildActions(BuildContext context) {
     final app = SettingsService.to.app;
     final action = pageAction;
     return Row(
@@ -55,14 +59,14 @@ class CommonAppBarActions extends StatelessWidget {
                 context,
                 icon: Remix.apps_2_line,
                 text: i18n("areas_title"),
-                  onPressed: () => Get.toNamed(RoutePath.kAreas),
+                onPressed: () => Get.toNamed(RoutePath.kAreas),
               ),
             if (app.showsMenu(HomeMenu.popular))
               homeMenuItem(
                 context,
                 icon: Remix.fire_line,
                 text: i18n("popular_title"),
-                  onPressed: () => Get.toNamed(RoutePath.kPopular),
+                onPressed: () => Get.toNamed(RoutePath.kPopular),
               ),
             homeMenuItem(
               context,

@@ -35,7 +35,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
     final sizing = resolveRoomGridSizing(
       width: width,
       autoColumns: roomGridAutoColumns(width, dense: SettingsService.to.app.enableDenseFavorites.v),
-      spacing: SettingsService.to.theme.crossAxisSpacing.v,
+      spacing: SettingsService.to.theme.cardCrossSpacing(compact: controller.isCompactLayout),
       basePadding: 12,
       fixedCardWidth: controller.currentCardWidth,
       columns: controller.currentColumns,
@@ -60,6 +60,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       ),
       body: SettingsContentWidth(child: Obx(() {
         final config = controller.config.value;
+        final compact = config.layout == RoomCardLayout.compact;
         final profile = controller.profile.value;
         return ListView(
           key: const ValueKey('room-card-settings-scroll'),
@@ -142,28 +143,32 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 displayValue: config.cornerRadius.toStringAsFixed(0),
                 onChanged: (value) => controller.updateConfig(config.copyWith(cornerRadius: value)),
               ),
-              // Gaps between cards in the grids.
+              // Gaps between cards in the grids: the same two sliders edit the
+              // compact rows' pair or the cover cards' pair, whichever layout
+              // is chosen above; each layout keeps its own.
               context.buildSliderTile(
                 context,
                 icon: Remix.arrow_left_right_line,
                 title: i18n("cross_axis_spacing"),
                 subtitle: i18n("cross_axis_spacing_subtitle"),
-                value: SettingsService.to.theme.resolvedCrossAxisSpacing,
+                value: SettingsService.to.theme.cardCrossSpacing(compact: compact),
                 min: ThemeSettingsController.minSpacing,
                 max: ThemeSettingsController.maxSpacing,
-                displayValue: SettingsService.to.theme.resolvedCrossAxisSpacing.round().toString(),
-                onChanged: (value) => SettingsService.to.theme.crossAxisSpacing.v = value.roundToDouble(),
+                displayValue: SettingsService.to.theme.cardCrossSpacing(compact: compact).round().toString(),
+                onChanged: (value) =>
+                    SettingsService.to.theme.crossSpacingSetting(compact: compact).v = value.roundToDouble(),
               ),
               context.buildSliderTile(
                 context,
                 icon: Remix.arrow_up_down_line,
                 title: i18n("main_axis_spacing"),
                 subtitle: i18n("main_axis_spacing_subtitle"),
-                value: SettingsService.to.theme.resolvedMainAxisSpacing,
+                value: SettingsService.to.theme.cardMainSpacing(compact: compact),
                 min: ThemeSettingsController.minSpacing,
                 max: ThemeSettingsController.maxSpacing,
-                displayValue: SettingsService.to.theme.resolvedMainAxisSpacing.round().toString(),
-                onChanged: (value) => SettingsService.to.theme.mainAxisSpacing.v = value.roundToDouble(),
+                displayValue: SettingsService.to.theme.cardMainSpacing(compact: compact).round().toString(),
+                onChanged: (value) =>
+                    SettingsService.to.theme.mainSpacingSetting(compact: compact).v = value.roundToDouble(),
               ),
             ]),
             const SizedBox(height: 20),

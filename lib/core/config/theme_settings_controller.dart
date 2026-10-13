@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -5,6 +8,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/profiled_settings.dart';
+import 'package:pure_live/core/storage/hive_pref_util.dart';
 
 class ThemeSettingsController extends GetxController {
   static const String defaultThemeModeName = 'System';
@@ -25,6 +29,12 @@ class ThemeSettingsController extends GetxController {
   final RxString languageName = hiveString('language', defaultLanguageName);
   final RxDouble crossAxisSpacing = hiveDouble('crossAxisSpacing', defaultSpacing);
   final RxDouble mainAxisSpacing = hiveDouble('mainAxisSpacing', defaultSpacing);
+
+  /// The same two gaps for the compact rows (紧凑信息行), kept apart from the
+  /// cover cards' so each layout keeps its own; the 房间卡片设置 sliders edit
+  /// the pair of the layout in use.
+  final RxDouble compactCrossAxisSpacing = hiveDouble('compactCrossAxisSpacing', defaultSpacing);
+  final RxDouble compactMainAxisSpacing = hiveDouble('compactMainAxisSpacing', defaultSpacing);
 
   /// Order of the live room side panel sections (comma-separated ids).
   final RxString livePanelTabOrder = hiveString('livePanelTabOrder', LivePanelTab.defaultOrderValue);
@@ -58,6 +68,16 @@ class ThemeSettingsController extends GetxController {
     fallback: defaultSpacing,
     read: ProfiledSpec.number(min: minSpacing, max: maxSpacing),
   );
+  static final _compactCrossSpacingSpec = ProfiledSpec<double>(
+    'compactCrossAxisSpacing',
+    fallback: defaultSpacing,
+    read: ProfiledSpec.number(min: minSpacing, max: maxSpacing),
+  );
+  static final _compactMainSpacingSpec = ProfiledSpec<double>(
+    'compactMainAxisSpacing',
+    fallback: defaultSpacing,
+    read: ProfiledSpec.number(min: minSpacing, max: maxSpacing),
+  );
   static final _livePanelWidthSpec = ProfiledSpec<double>(
     'livePanelWidth',
     fallback: LivePanelWidth.defaultValue,
@@ -70,12 +90,14 @@ class ThemeSettingsController extends GetxController {
   );
 
   /// What the phone, the tablet and the desktop profile keep apart: the gaps
-  /// between room cards and the widths of the room's and the fullscreen
+  /// between room cards (cover cards and compact rows each) and the widths of the room's and the fullscreen
   /// player's side panels. The theme itself, the language, the side panel's
   /// sections and the display mode stay shared.
   static List<ProfiledSpec> get profiledSpecs => [
     _crossSpacingSpec,
     _mainSpacingSpec,
+    _compactCrossSpacingSpec,
+    _compactMainSpacingSpec,
     _livePanelWidthSpec,
     _fullscreenPanelWidthSpec,
   ];
@@ -85,6 +107,8 @@ class ThemeSettingsController extends GetxController {
   late final ProfiledSettings profiles = ProfiledSettings(profilePrefix, [
     _crossSpacingSpec.bind(crossAxisSpacing),
     _mainSpacingSpec.bind(mainAxisSpacing),
+    _compactCrossSpacingSpec.bind(compactCrossAxisSpacing),
+    _compactMainSpacingSpec.bind(compactMainAxisSpacing),
     _livePanelWidthSpec.bind(livePanelWidth),
     _fullscreenPanelWidthSpec.bind(fullscreenPanelWidth),
   ]);
@@ -114,6 +138,18 @@ class ThemeSettingsController extends GetxController {
   double get resolvedCrossAxisSpacing => normalizeSpacing(crossAxisSpacing.v);
   double get resolvedMainAxisSpacing => normalizeSpacing(mainAxisSpacing.v);
 
+  /// The column gap setting of the compact rows or of the cover cards.
+  RxDouble crossSpacingSetting({required bool compact}) => compact ? compactCrossAxisSpacing : crossAxisSpacing;
+
+  /// The row gap setting of the compact rows or of the cover cards.
+  RxDouble mainSpacingSetting({required bool compact}) => compact ? compactMainAxisSpacing : mainAxisSpacing;
+
+  /// The gap between two cards of a row, for the compact rows or the cover cards.
+  double cardCrossSpacing({required bool compact}) => normalizeSpacing(crossSpacingSetting(compact: compact).v);
+
+  /// The gap between two rows of cards, for the compact rows or the cover cards.
+  double cardMainSpacing({required bool compact}) => normalizeSpacing(mainSpacingSetting(compact: compact).v);
+
   final Map<ColorSwatch<Object>, String> colorsNameMap = AppConsts.themeColors.map(
     (k, v) => MapEntry(ColorTools.createPrimarySwatch(v), k),
   );
@@ -121,13 +157,19 @@ class ThemeSettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _seedCompactSpacing();
     _normalizeStoredTheme();
     profiles.init();
     _workers.addAll([
       ever<String>(themeModeName, (value) => _repairString(themeModeName, value, normalizeThemeMode)),
       ever<String>(themeColorSwitch, (value) => _repairString(themeColorSwitch, value, normalizeThemeColor)),
       ever<String>(languageName, (value) => _repairString(languageName, value, normalizeLanguage)),
-      everAll([crossAxisSpacing, mainAxisSpacing], (_) => _repairSpacingAndRefreshTheme()),
+      everAll([
+        crossAxisSpacing,
+        mainAxisSpacing,
+        compactCrossAxisSpacing,
+        compactMainAxisSpacing,
+      ], (_) => _repairSpacingAndRefreshTheme()),
     ]);
   }
 
@@ -195,7 +237,41 @@ class ThemeSettingsController extends GetxController {
     languageName.v = resolvedLanguageName;
     crossAxisSpacing.v = resolvedCrossAxisSpacing;
     mainAxisSpacing.v = resolvedMainAxisSpacing;
+    compactCrossAxisSpacing.v = cardCrossSpacing(compact: true);
+    compactMainAxisSpacing.v = cardMainSpacing(compact: true);
   }
+
+  /// The compact gaps start as the gaps used so far, in every stored profile
+  /// and in the single values, so nothing moves on the first run with them.
+  void _seedCompactSpacing() {
+    if (!HivePrefUtil.containsKey('compactCrossAxisSpacing')) {
+      compactCrossAxisSpacing.v = resolvedCrossAxisSpacing;
+      compactMainAxisSpacing.v = resolvedMainAxisSpacing;
+    }
+    for (final profile in DisplayProfile.values) {
+      final key = '${profilePrefix}_${profile.name}';
+      final stored = HivePrefUtil.getString(key);
+      if (stored == null || stored.isEmpty) continue;
+      try {
+        final decoded = jsonDecode(stored);
+        if (decoded is! Map) continue;
+        final seeded = withCompactSpacing(Map<String, dynamic>.from(decoded));
+        if (seeded.length != decoded.length) unawaited(HivePrefUtil.setString(key, jsonEncode(seeded)));
+      } catch (_) {
+        continue;
+      }
+    }
+  }
+
+  /// [map] with the compact gaps it lacks copied from its cover-card gaps
+  /// (a profile or backup from before the compact gaps were their own).
+  static Map<String, dynamic> withCompactSpacing(Map<String, dynamic> map) => {
+    ...map,
+    if (!map.containsKey('compactCrossAxisSpacing') && map.containsKey('crossAxisSpacing'))
+      'compactCrossAxisSpacing': map['crossAxisSpacing'],
+    if (!map.containsKey('compactMainAxisSpacing') && map.containsKey('mainAxisSpacing'))
+      'compactMainAxisSpacing': map['mainAxisSpacing'],
+  };
 
   void _repairString(RxString setting, String value, String Function(String) normalize) {
     final normalized = normalize(value);
@@ -203,13 +279,15 @@ class ThemeSettingsController extends GetxController {
   }
 
   void _repairSpacingAndRefreshTheme() {
-    final cross = resolvedCrossAxisSpacing;
-    final main = resolvedMainAxisSpacing;
-    if (cross != crossAxisSpacing.v || main != mainAxisSpacing.v) {
-      if (cross != crossAxisSpacing.v) crossAxisSpacing.v = cross;
-      if (main != mainAxisSpacing.v) mainAxisSpacing.v = main;
-      return;
+    var repaired = false;
+    for (final setting in [crossAxisSpacing, mainAxisSpacing, compactCrossAxisSpacing, compactMainAxisSpacing]) {
+      final value = normalizeSpacing(setting.v);
+      if (value != setting.v) {
+        setting.v = value;
+        repaired = true;
+      }
     }
+    if (repaired) return;
     Get.find<FontSettingsController>().refreshSystemTheme();
   }
 
@@ -242,6 +320,8 @@ class ThemeSettingsController extends GetxController {
       'language': resolvedLanguageName,
       'crossAxisSpacing': resolvedCrossAxisSpacing,
       'mainAxisSpacing': resolvedMainAxisSpacing,
+      'compactCrossAxisSpacing': cardCrossSpacing(compact: true),
+      'compactMainAxisSpacing': cardMainSpacing(compact: true),
       'livePanelTabOrder': normalizeLivePanelTabOrder(livePanelTabOrder.v),
       'livePanelHiddenTabs': normalizeLivePanelHiddenTabs(livePanelHiddenTabs.v),
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
@@ -263,6 +343,9 @@ class ThemeSettingsController extends GetxController {
       'languageName': normalizeLanguage((json['language'] ?? json['languageName'] ?? defaultLanguageName) as String),
       'crossAxisSpacing': _parseSpacing(json['crossAxisSpacing']),
       'mainAxisSpacing': _parseSpacing(json['mainAxisSpacing']),
+      // A backup from before the compact gaps were their own: the gaps it has.
+      'compactCrossAxisSpacing': _parseSpacing(json['compactCrossAxisSpacing'] ?? json['crossAxisSpacing']),
+      'compactMainAxisSpacing': _parseSpacing(json['compactMainAxisSpacing'] ?? json['mainAxisSpacing']),
       'livePanelTabOrder': normalizeLivePanelTabOrder(
         (json['livePanelTabOrder'] ?? LivePanelTab.defaultOrderValue) as String,
       ),
@@ -273,7 +356,17 @@ class ThemeSettingsController extends GetxController {
     };
     // A backup from before the profiles has only the single values: every
     // profile takes them.
-    parsed[profilesKey] = ProfiledSettings.parse(profiledSpecs, json[profilesKey], legacy: (_) => parsed);
+    final rawProfiles = json[profilesKey];
+    parsed[profilesKey] = ProfiledSettings.parse(
+      profiledSpecs,
+      rawProfiles is Map
+          ? {
+              for (final entry in rawProfiles.entries)
+                entry.key: entry.value is Map ? withCompactSpacing(Map<String, dynamic>.from(entry.value)) : entry.value,
+            }
+          : rawProfiles,
+      legacy: (_) => parsed,
+    );
     return parsed;
   }
 
@@ -302,6 +395,8 @@ class ThemeSettingsController extends GetxController {
       'language': parsed['languageName'],
       'crossAxisSpacing': parsed['crossAxisSpacing'],
       'mainAxisSpacing': parsed['mainAxisSpacing'],
+      'compactCrossAxisSpacing': parsed['compactCrossAxisSpacing'],
+      'compactMainAxisSpacing': parsed['compactMainAxisSpacing'],
       'livePanelTabOrder': parsed['livePanelTabOrder'],
       'livePanelHiddenTabs': parsed['livePanelHiddenTabs'],
       'livePanelWidth': parsed['livePanelWidth'],

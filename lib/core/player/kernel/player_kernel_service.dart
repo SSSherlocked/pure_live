@@ -114,9 +114,10 @@ class PlayerKernelService {
       unawaited(MediaKitLiveProperties.engineOptions().then((options) => handle.applyEngineOptions(options)));
     };
     logRing = mlog.MediaCoreLog.attachMemorySink(capacity: 500);
-    if (!const bool.fromEnvironment('dart.vm.product')) {
-      mlog.MediaCoreLog.level = mlog.LogLevel.debug;
-    }
+    // The ring feeds the app log (LogController pumps it); a release build
+    // keeps the kernel's info lines (engine, source and candidate changes),
+    // which is what a stalled start needs to be explained.
+    mlog.MediaCoreLog.level = const bool.fromEnvironment('dart.vm.product') ? mlog.LogLevel.info : mlog.LogLevel.debug;
     await MediaSessionBootstrap.attachTo(instance.kernel, config: const MediaSessionConfig.video());
   }
 }

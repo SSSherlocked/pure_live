@@ -21,6 +21,7 @@ import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts;
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/domains/live/domain/playback_source_refresh.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 import 'package:pure_live/core/player/kernel/floating_playback.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
@@ -123,6 +124,7 @@ final class LivePlayerFacade {
   bool get hasPlaybackSource => commit != null;
   bool get isPlayingNow => _playingSubject.hasListener && _lastPlaying;
   bool _lastPlaying = false;
+  PlayerPlaybackState? _lastLoggedPlayback;
   int get currentLineIndex => commit?.currentLineIndex ?? 0;
   int get lineCount => _lastLines.length;
   List<String> get playUrls => _lastLines;
@@ -146,8 +148,14 @@ final class LivePlayerFacade {
         _lastPlaying = playing;
         _playingSubject.add(playing);
       }
+      // Transitions only: the kernel repeats its state on every tick.
+      if (state.playback != _lastLoggedPlayback) {
+        _lastLoggedPlayback = state.playback;
+        Log.i('player: ${state.playback.name}');
+      }
     });
     _errorSub = _controller.onError.listen((failure) {
+      Log.w('player failure ${failure.code}: ${failure.message}');
       _errorSubject.add(
         PlayerException(
           code: failure.code,
@@ -194,6 +202,9 @@ final class LivePlayerFacade {
     // post-open setVolume let one 100% frame of audio through first.
     OpenVolume.pending = _openVolumeFor(liveroom);
     _cancelIdleRelease();
+    // Hosts only: a signed live URL carries its token in the query.
+    Log.i('player: open ${urls.length} line(s): ${urls.map((line) => Uri.tryParse(line)?.host ?? '?').join(', ')}');
+    final openClock = Stopwatch()..start();
     await _controller.play(
       LiveSourceRequest(
         sources: await _intercept(
@@ -217,6 +228,7 @@ final class LivePlayerFacade {
       ),
       preferredBackend: backendIdOfEngine(preferredEngine),
     );
+    Log.i('player: open returned after ${openClock.elapsedMilliseconds} ms');
     PlaybackStartupTiming.instance.mark('open');
     // The commit carries the platform's line order — the list the line
     // selector, the label and the next-line cycling are all written against.

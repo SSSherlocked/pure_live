@@ -56,18 +56,20 @@ abstract final class RoomCardLayoutMetrics {
     return math.max(baseCaptionHeight, scaledCaptionHeight);
   }
 
-  /// The gap between the two lines of a compact row, on both sides: the
-  /// streamer and the room title, the platform tag and the heat.
-  static const double compactLineGap = 6;
+  /// The gap between the streamer and the room title of a compact row.
+  static const double compactLineGap = 3;
+
+  /// The gap between the platform tag and the heat at a compact row's end.
+  static const double compactMetricGap = 6;
 
   static double _textHeight({
     required RoomCardAppearance appearance,
     required bool dense,
     required TextScaler textScaler,
   }) {
-    final titleHeight = textScaler.scale(dense ? 13 : 15) * 1.2;
-    if (!appearance.showAnchorName) return titleHeight;
-    final subtitleHeight = textScaler.scale(dense ? 12 : 13) * 1.2;
-    return titleHeight + compactLineGap + subtitleHeight;
+    if (!appearance.showAnchorName) return textScaler.scale(dense ? 13 : 15) * 1.2;
+    final nickHeight = textScaler.scale(dense ? 14 : 16) * 1.2;
+    final titleHeight = textScaler.scale(dense ? 12 : 13) * 1.2;
+    return nickHeight + compactLineGap + titleHeight;
   }
 }

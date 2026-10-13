@@ -199,28 +199,37 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 onChanged: (value) => controller.showFavoritePlatformTabs.v = value,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Column(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(i18n('favorite_sort'), style: AppText.of(context).sectionTitle),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      key: const ValueKey('room-card-favorite-sort'),
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final mode in FavoriteSortMode.values)
-                          ChoiceChip(
-                            label: Text(switch (mode) {
-                              FavoriteSortMode.name => i18n('favorite_sort_name'),
-                              FavoriteSortMode.platform => i18n('favorite_sort_platform'),
-                              FavoriteSortMode.audience => i18n('favorite_sort_audience'),
-                            }),
-                            selected: controller.favoriteSortMode == mode,
-                            onSelected: (_) => controller.favoriteSortModeName.v = mode.name,
+                    const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Icons.filter_list_rounded)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(i18n('favorite_sort'), style: AppText.of(context).sectionTitle),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            key: const ValueKey('room-card-favorite-sort'),
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final mode in FavoriteSortMode.values)
+                                ChoiceChip(
+                                  label: Text(switch (mode) {
+                                    FavoriteSortMode.name => i18n('favorite_sort_name'),
+                                    FavoriteSortMode.platform => i18n('favorite_sort_platform'),
+                                    FavoriteSortMode.audience => i18n('favorite_sort_audience'),
+                                  }),
+                                  selected: controller.favoriteSortMode == mode,
+                                  onSelected: (_) => controller.favoriteSortModeName.v = mode.name,
+                                ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),

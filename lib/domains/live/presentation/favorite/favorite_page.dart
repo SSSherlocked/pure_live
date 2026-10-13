@@ -17,11 +17,16 @@ class FavoritePage extends GetView<FavoriteController> {
         return Obx(() {
           final availableSitesList = controller.availableFavoriteSites;
           final siteKey = ValueKey(availableSitesList.map((e) => e.id).join('|'));
+          // Desktop has no pull-to-refresh: its refresh sits right of 排序.
+          final showRefresh = AppLayout.of(context).pagedLists;
 
           return Scaffold(
             appBar: HomeAppBar(
+              // The buttons' width is mirrored on the left so the status tabs
+              // stay centred on the whole bar, not on what is left of it.
               title: Row(
                 children: [
+                  SizedBox(width: kMinInteractiveDimension * (showRefresh ? 2 : 1)),
                   Expanded(
                     child: ScrollableTabBar(
                       key: const ValueKey('favorite-status-tabs'),
@@ -37,6 +42,20 @@ class FavoritePage extends GetView<FavoriteController> {
                     ),
                   ),
                   const FavoriteSortButton(key: ValueKey('favorite-sort')),
+                  if (showRefresh)
+                    Obx(
+                      () => IconButton(
+                        key: const ValueKey('favorite-refresh'),
+                        tooltip: i18n('refresh'),
+                        onPressed: controller.loadding.value ? null : () => controller.refreshData(),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(
+                          width: kMinInteractiveDimension,
+                          height: kMinInteractiveDimension,
+                        ),
+                        icon: const Icon(Icons.refresh_rounded, size: 24),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -145,34 +164,13 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
               if (mounted && _tabController.index != allIndex) _tabController.index = allIndex;
             });
           }
-          final refresh = AppLayout.of(context).pagedLists;
-          if (!showTabs && !refresh) return const SizedBox.shrink();
-          return Row(
-            children: [
-              if (showTabs)
-                Expanded(
-                  child: ScrollableTabBar(
-                    key: const ValueKey('favorite-platform-tabs'),
-                    controller: _tabController,
-                    isScrollable: true,
-                    physics: const PureLiveBoundedScrollPhysics(),
-                    tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
-                  ),
-                )
-              else
-                const Spacer(),
-              // Desktop has no pull-to-refresh; the refresh that lived in the
-              // page bar sits at the end of the tab bar.
-              if (AppLayout.of(context).pagedLists)
-                Obx(
-                  () => IconButton(
-                    key: const ValueKey('favorite-refresh'),
-                    tooltip: i18n('refresh'),
-                    onPressed: controller.loadding.value ? null : () => controller.refreshData(),
-                    icon: const Icon(Icons.refresh_rounded),
-                  ),
-                ),
-            ],
+          if (!showTabs) return const SizedBox.shrink();
+          return ScrollableTabBar(
+            key: const ValueKey('favorite-platform-tabs'),
+            controller: _tabController,
+            isScrollable: true,
+            physics: const PureLiveBoundedScrollPhysics(),
+            tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
           );
         }),
         Expanded(

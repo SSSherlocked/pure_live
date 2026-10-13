@@ -221,6 +221,14 @@ class RoomCard extends StatelessWidget {
     );
   }
 
+  /// The streamer name of a compact row, one step above the room's other
+  /// names: 正文大 when dense, 中号标题 + 1 otherwise.
+  TextStyle _compactNickStyle(BuildContext context) {
+    final text = AppText.of(context);
+    if (dense) return text.listPrimary;
+    return text.sectionTitle.copyWith(fontSize: (text.sectionTitle.fontSize ?? 15) + 1);
+  }
+
   Widget _buildAudienceMetric(BuildContext context, {required bool dense, bool inline = false}) {
     return Obx(() {
       final app = SettingsService.to.app;
@@ -350,12 +358,19 @@ class RoomCard extends StatelessWidget {
           ),
         );
       } else if (statusPending) {
+        final color = Theme.of(context).colorScheme.onSurfaceVariant;
         children.add(
-          CoverMetricBadge(
-            icon: Icons.sync_rounded,
-            value: statusPendingLabel ?? i18n('favorite_status_verifying'),
-            semanticLabel: statusPendingLabel ?? i18n('favorite_status_verifying'),
-            dense: true,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.sync_rounded, size: 14, color: color),
+              const SizedBox(width: 4),
+              Text(
+                statusPendingLabel ?? i18n('favorite_status_verifying'),
+                maxLines: 1,
+                style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w600, color: color),
+              ),
+            ],
           ),
         );
       } else if (config.showAudience && room.isLiveNow) {
@@ -385,7 +400,7 @@ class RoomCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               for (var index = 0; index < metrics.length; index++) ...[
-                if (index > 0) const SizedBox(height: RoomCardLayoutMetrics.compactLineGap),
+                if (index > 0) const SizedBox(height: RoomCardLayoutMetrics.compactMetricGap),
                 metrics[index],
               ],
             ],
@@ -464,9 +479,7 @@ class RoomCard extends StatelessWidget {
                 ],
                 Expanded(
                   child: Column(
-                    mainAxisAlignment: config.showAnchorName
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Like the 关注 panel: streamer first, room title below.
@@ -476,7 +489,7 @@ class RoomCard extends StatelessWidget {
                           key: const ValueKey('room-card-anchor-name'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: (dense ? AppText.of(context).body : AppText.of(context).sectionTitle).copyWith(
+                          style: _compactNickStyle(context).copyWith(
                             height: 1.2,
                             fontWeight: FontWeight.w700,
                             color: isDark ? Colors.white : Colors.black87,

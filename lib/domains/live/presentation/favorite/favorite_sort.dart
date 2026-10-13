@@ -49,9 +49,11 @@ void sortFavoriteRooms(List<LiveRoom> rooms) {
 /// The 排序 button: a small, quiet icon opening the three orders, the current
 /// one bold in the primary colour.
 class FavoriteSortButton extends StatelessWidget {
-  const FavoriteSortButton({super.key, this.iconSize = 20});
+  const FavoriteSortButton({super.key, this.iconSize});
 
-  final double iconSize;
+  /// Null: the home 关注 page's app-bar button, sized like the top-right
+  /// menu button ([kMinInteractiveDimension] square, 24 px icon).
+  final double? iconSize;
 
   static String labelOf(FavoriteSortMode mode) => switch (mode) {
     FavoriteSortMode.name => i18n('favorite_sort_name'),
@@ -67,7 +69,15 @@ class FavoriteSortButton extends StatelessWidget {
       final current = settings.favoriteSortMode;
       return PopupMenuButton<FavoriteSortMode>(
         tooltip: i18n('favorite_sort'),
-        icon: Icon(Icons.filter_list_rounded, size: iconSize, color: colors.onSurfaceVariant),
+        icon: iconSize == null
+            ? null
+            : Icon(Icons.filter_list_rounded, size: iconSize, color: colors.onSurfaceVariant),
+        child: iconSize == null
+            ? const SizedBox.square(
+                dimension: kMinInteractiveDimension,
+                child: Icon(Icons.filter_list_rounded, size: 24),
+              )
+            : null,
         onSelected: (mode) => settings.favoriteSortModeName.v = mode.name,
         itemBuilder: (context) => [
           for (final mode in FavoriteSortMode.values)

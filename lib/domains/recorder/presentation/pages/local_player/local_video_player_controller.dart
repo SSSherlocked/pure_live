@@ -141,6 +141,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   HivePlaybackProgressStore? _progressStore;
   StreamSubscription<FeedItemState>? _stateSub;
   StreamSubscription<PlayerTransportState>? _transportSub;
+  StreamSubscription<int>? _indexSub;
   Timer? _positionSaver;
 
   FeedPlayerController? get feed => _feed;
@@ -371,7 +372,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     _danmakuPlayer = RecordingDanmakuPlayer(controller: danmakuController);
     _stateSub = _feed!.onItemStateChanged.listen(_onItemState);
     _transportSub = _feed!.onPlaybackStateChanged.listen(_onTransport);
-    _feed!.onIndexChanged.listen((i) => currentIndex.value = i);
+    _indexSub = _feed!.onIndexChanged.listen((i) => currentIndex.value = i);
 
     final initialIndex = await _resumeIndex();
     await _feed!.load(sources, initialIndex: initialIndex);
@@ -856,6 +857,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
       // saver alone, and keep the window up while the page disappears.
       _stateSub?.cancel();
       _transportSub?.cancel();
+      _indexSub?.cancel();
       _danmakuPlayer?.clear();
       super.onClose();
       return;
@@ -865,6 +867,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     unawaited(_savePosition());
     _stateSub?.cancel();
     _transportSub?.cancel();
+    _indexSub?.cancel();
     _danmakuPlayer?.clear();
     // Leave the small window before the handle goes away; an open overlay
     // pointing at a disposed player would linger showing black and never be

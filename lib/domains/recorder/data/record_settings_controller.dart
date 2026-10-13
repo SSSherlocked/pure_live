@@ -16,7 +16,13 @@ typedef RecordDirectoryPicker = Future<String?> Function();
 /// non-Android hosts, so only the Android public-directory case can deny.
 typedef RecordStoragePermissionRequest = Future<bool> Function();
 
-class RecordSettingsController extends GetxController {
+/// A service, not a page controller: the first `Get.find` happens inside a
+/// route (the live room's app bar, the recorder page), and GetX's smart
+/// management deletes a route-linked controller when that route goes.
+/// [RecorderController] holds this instance for the life of the process, so
+/// a deleted one left the recorder reading settings the settings page no
+/// longer wrote to.
+class RecordSettingsController extends GetxService {
   RecordSettingsController({
     RecordDirectoryPicker? directoryPicker,
     RecordStoragePermissionRequest? storagePermission,

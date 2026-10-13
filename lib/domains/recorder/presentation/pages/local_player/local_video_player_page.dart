@@ -1284,22 +1284,27 @@ class _FileRowState extends State<_FileRow> {
 
   Future<void> _promptRename(BuildContext context, String name) async {
     final textController = TextEditingController(text: name);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(i18n('local_player_rename')),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          decoration: InputDecoration(hintText: i18n('local_player_rename_hint')),
-          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+    final String? newName;
+    try {
+      newName = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(i18n('local_player_rename')),
+          content: TextField(
+            controller: textController,
+            autofocus: true,
+            decoration: InputDecoration(hintText: i18n('local_player_rename_hint')),
+            onSubmitted: (v) => Navigator.of(ctx).pop(v),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(i18n('cancel'))),
+            FilledButton(onPressed: () => Navigator.of(ctx).pop(textController.text), child: Text(i18n('done'))),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(i18n('cancel'))),
-          FilledButton(onPressed: () => Navigator.of(ctx).pop(textController.text), child: Text(i18n('done'))),
-        ],
-      ),
-    );
+      );
+    } finally {
+      textController.dispose();
+    }
     if (newName != null && newName.isNotEmpty && newName != name) {
       await controller.renameFile(index, newName);
     }

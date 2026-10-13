@@ -1423,7 +1423,10 @@ class RecorderController extends GetxService {
     } finally {
       if (identical(_pollInFlight[task.taskId], request)) {
         _pollInFlight.remove(task.taskId);
-        _schedulePoll(task);
+        // A start that failed (background lease, scheduler) left the task failed;
+        // it is not re-armed, or it would keep hitting the platform every interval
+        // while the card says failed. A successful start already stopped polling.
+        if (task.status == RecordStatus.waitingLive) _schedulePoll(task);
       }
       request.complete();
     }

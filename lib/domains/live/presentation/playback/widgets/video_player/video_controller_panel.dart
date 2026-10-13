@@ -371,9 +371,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       enabled: screenMode != VideoMode.portraitFullscreen,
                     ),
                   ),
-                  // The lock on both sides, so either thumb reaches it.
-                  LockButton(controller: controller, alignment: Alignment.centerLeft),
-                  LockButton(controller: controller, alignment: Alignment.centerRight),
+                  LockButton(controller: controller),
                   const PortraitStreamDiagnosticsBadge(),
                   TopActionBar(
                     controller: controller,
@@ -916,15 +914,12 @@ String _overrideLabel(PortraitOrientationOverride value) => switch (value) {
   PortraitOrientationOverride.landscape => i18n('portrait_override_landscape'),
 };
 
-/// The fullscreen controls lock, at the middle of one side of the picture:
+/// The fullscreen controls lock, at the middle of the picture's right edge:
 /// the size of the other player controls, on a translucent disc.
 class LockButton extends StatelessWidget {
-  const LockButton({super.key, required this.controller, required this.alignment});
+  const LockButton({super.key, required this.controller});
 
   final VideoController controller;
-
-  /// [Alignment.centerLeft] or [Alignment.centerRight].
-  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
@@ -933,11 +928,11 @@ class LockButton extends StatelessWidget {
         opacity: (GlobalPlayerService.instance.player.fullscreenUI && controller.showController.value) ? 0.9 : 0.0,
         duration: const Duration(milliseconds: 300),
         child: Align(
-          alignment: alignment,
+          alignment: Alignment.centerRight,
           child: AbsorbPointer(
             absorbing: !controller.showController.value,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.only(right: 20.0),
               child: IconButton(
                 tooltip: i18n(controller.showLocked.value ? 'unlock_player_controls' : 'lock_player_controls'),
                 onPressed: controller.showLocked.toggle,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/core/logging/app_log.dart';
+import 'package:pure_live/core/logging/native_log_bridge.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:media_core_logging/media_core_logging.dart' as mlog;
 import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
@@ -48,6 +49,8 @@ class LogController extends GetxService {
     // The kernel's (mpv) lines join the in-app log whether or not a file is
     // being written.
     _startKernelLogPump();
+    // So do the Android engines' own logcat lines (ijkplayer, ExoPlayer).
+    NativeLogBridge.start();
     // Nothing is running yet: a switch left on resumes logging now, and a
     // failure to do so turns the switch off again (the usual failure path).
     if (storedEnableLog.v) unawaited(_setLoggingEnabled(true));
@@ -151,6 +154,7 @@ class LogController extends GetxService {
   @override
   void onClose() {
     _stopKernelLogPump();
+    NativeLogBridge.stop();
     _logStatusWorker?.dispose();
     _logStatusWorker = null;
     _pendingTarget = null;

@@ -184,6 +184,10 @@ class MainActivity : AudioServiceActivity() {
             flutterEngine.plugins.add(NativeHttpPlugin())
         }
 
+        if (!flutterEngine.plugins.has(NativeLogPlugin::class.java)) {
+            flutterEngine.plugins.add(NativeLogPlugin())
+        }
+
         displayModeChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             DISPLAY_MODE_CHANNEL,

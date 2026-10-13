@@ -14,8 +14,8 @@ const double kFloatingMenuVerticalPadding = 6;
 const double kFloatingMenuCornerRadius = 4;
 
 /// Opacity of a floating menu panel, the same over a page and over the
-/// picture.
-const double kFloatingMenuOpacity = 0.94;
+/// picture: fully opaque, nothing behind a menu shows through.
+const double kFloatingMenuOpacity = 1;
 
 /// The shape of every floating menu panel: nearly square, no outline.
 const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(

@@ -12,37 +12,38 @@ const MenuStyle homeMenuStyle = MenuStyle(
   shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14)))),
 );
 
-/// Entries of the home menus: body-size text with room on either side, so
-/// the 36 px rows do not read as crowded.
+/// Entries of the home and room-page menus: body-size text with room on
+/// either side and 36 px rows, so they do not read as crowded.
 const ButtonStyle homeMenuItemStyle = ButtonStyle(
   padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
+  // 4 px taller than the player's menus.
+  minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight + 4)),
 );
 
 /// The label style of a home menu entry.
-TextStyle homeMenuTextStyle(BuildContext context) => AppText.of(context).body.copyWith(fontWeight: FontWeight.w500);
+TextStyle homeMenuTextStyle(BuildContext context) => AppText.of(context).body.copyWith(fontWeight: FontWeight.w600);
 
 /// The icon of a home menu entry.
 Widget homeMenuIcon(BuildContext context, IconData icon, {Color? color}) =>
     Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.primary);
 
 /// One entry of the home page's two menus: a primary-coloured icon and its
-/// name, shared by [MenuButton] and [CommonAppBarActions]. [arrowColumn]
-/// keeps an empty slot for the submenu arrow, so the icons line up with an
-/// entry that opens a submenu ([playerMenuLeading]).
+/// name, shared by [MenuButton], [CommonAppBarActions] and the room page's
+/// menu. A submenu entry's arrow hangs in the left padding, so plain entries
+/// need no slot for it.
 Widget homeMenuItem(
   BuildContext context, {
   Key? key,
   required IconData icon,
   required String text,
   required VoidCallback onPressed,
-  bool arrowColumn = false,
   Color? iconColor,
 }) {
   final leading = homeMenuIcon(context, icon, color: iconColor);
   return MenuItemButton(
     key: key,
     style: homeMenuItemStyle,
-    leadingIcon: arrowColumn ? playerMenuLeading(leading) : leading,
+    leadingIcon: leading,
     onPressed: onPressed,
     child: Text(text, style: homeMenuTextStyle(context)),
   );

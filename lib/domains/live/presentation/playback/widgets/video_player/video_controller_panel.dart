@@ -420,7 +420,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                             if (policy.roomActionsInMoreMenu)
                               MenuItemButton(
                                 key: const ValueKey('player-more-video-details'),
-                                leadingIcon: playerMenuLeading(const Icon(Remix.information_line, size: 18)),
+                                leadingIcon: const Icon(Remix.information_line, size: 18),
                                 onPressed: () => unawaited(
                                   VideoDetailsDialog.showPanel(context, controller.livePlayController),
                                 ),

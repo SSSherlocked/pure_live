@@ -21,8 +21,9 @@ double menuLabelWidth(BuildContext context, Iterable<String> labels, TextStyle s
   return widest.ceilToDouble() + 1;
 }
 
-/// Horizontal padding a [MenuItemButton] puts around its label.
-const double playerMenuItemPadding = 24;
+/// Horizontal padding a menu entry puts around its label (16 px a side, the
+/// theme's menu button padding).
+const double playerMenuItemPadding = 32;
 
 /// One choice in a player menu (quality, line, 画面比例): the label centred
 /// in the width of the menu's longest label, the current choice bold in the
@@ -67,18 +68,18 @@ class PlayerMenuChoice extends StatelessWidget {
   }
 }
 
-/// Width of a player menu whose entries carry a leading icon column
-/// (`playerMenuLeading`: arrow slot and icon) before their label: the widest
+/// Width of a player menu whose entries carry a leading icon before their
+/// label: the widest
 /// of [labels] in the menu entry style plus the entry's padding, icon column
 /// and the gap after it. [context] must be inside the menu's text scope
 /// (e.g. under `CompactText`).
 double playerMenuPanelWidth(BuildContext context, Iterable<String> labels) {
   final style = (Theme.of(context).textTheme.labelLarge ?? const TextStyle()).merge(playerMenuLabelStyle);
-  // 12 px entry padding either side, 18 + 2 + 18 px leading column, 12 px gap,
-  // and the trailing slot a SubmenuButton keeps after its label even with its
-  // arrow drawn in front (画面比例 wrapped on phones without it), plus a
-  // little slack for font rounding.
-  const chrome = 12 + 18 + 2 + 18 + 12 + 12 + 16 + 4;
+  // 16 px entry padding either side, the 18 px icon (a submenu's arrow hangs
+  // in the padding), the 12 px gap, the trailing slot a SubmenuButton keeps
+  // after its label (画面比例 wrapped on phones without it) and a little
+  // slack for font rounding.
+  const chrome = playerMenuItemPadding + 18 + 12 + 16 + 4;
   return menuLabelWidth(context, labels, style) + chrome;
 }
 

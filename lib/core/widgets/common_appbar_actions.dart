@@ -37,8 +37,6 @@ class CommonAppBarActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = SettingsService.to.app;
     final action = pageAction;
-    // With a submenu entry, every entry keeps its arrow column.
-    final arrowColumn = action != null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -50,7 +48,6 @@ class CommonAppBarActions extends StatelessWidget {
               context,
               icon: Remix.search_line,
               text: i18n("search_live"),
-              arrowColumn: arrowColumn,
               onPressed: () => Get.toNamed(RoutePath.kSearch),
             ),
             if (app.showsMenu(HomeMenu.areas))
@@ -58,22 +55,19 @@ class CommonAppBarActions extends StatelessWidget {
                 context,
                 icon: Remix.apps_2_line,
                 text: i18n("areas_title"),
-                arrowColumn: arrowColumn,
-                onPressed: () => Get.toNamed(RoutePath.kAreas),
+                  onPressed: () => Get.toNamed(RoutePath.kAreas),
               ),
             if (app.showsMenu(HomeMenu.popular))
               homeMenuItem(
                 context,
                 icon: Remix.fire_line,
                 text: i18n("popular_title"),
-                arrowColumn: arrowColumn,
-                onPressed: () => Get.toNamed(RoutePath.kPopular),
+                  onPressed: () => Get.toNamed(RoutePath.kPopular),
               ),
             homeMenuItem(
               context,
               icon: Remix.history_line,
               text: i18n("history"),
-              arrowColumn: arrowColumn,
               onPressed: () => Get.toNamed(RoutePath.kHistory),
             ),
             if (action != null) ...[

@@ -227,6 +227,8 @@ class MyTheme {
       menuButtonTheme: const MenuButtonThemeData(
         style: ButtonStyle(
           minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight)),
+          // Room for a submenu arrow hanging left of the icon.
+          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
           visualDensity: VisualDensity.standard,
           // Phones otherwise pad every entry to a 48 px tap target, which
           // undid the 32 px entries on touch platforms only.

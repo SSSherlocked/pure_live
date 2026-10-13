@@ -7,17 +7,95 @@ import 'package:url_launcher/url_launcher_string.dart';
 /// The player manual: concepts, every setting and what it does, organized in
 /// collapsible chapters. Pure documentation — nothing here mutates state.
 ///
+/// Listed at the end of the player kernel settings page with every chapter
+/// collapsed, so the manual sits next to the settings it explains without
+/// pushing them down or opening a page of its own.
+///
 /// The chapter table is a compile-time constant on purpose: it is content, not
 /// configuration, and rebuilding ~40 rows on every frame of the scroll view
 /// bought nothing. What it holds now is only the row ids and how each row
 /// renders; the wording lives in the locale bundles, so the manual can be
 /// reworded without touching Dart and can no longer show Chinese prose inside
 /// the English UI.
-class PlayerGuidePage extends StatefulWidget {
-  const PlayerGuidePage({super.key});
+class PlayerGuideSection extends StatelessWidget {
+  const PlayerGuideSection({super.key});
 
   @override
-  State<PlayerGuidePage> createState() => _PlayerGuidePageState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        context.buildGroupTitle(i18n('player_guide_title')),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Text(
+            i18n('player_guide_subtitle'),
+            style: AppText.of(context).secondary.copyWith(color: theme.hintColor),
+          ),
+        ),
+        _buildIntroCard(context, theme),
+        for (var i = 0; i < _guideChapters.length; i++)
+          Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            clipBehavior: Clip.antiAlias,
+            // ExpansionTile paints a rule above and below the open panel; the
+            // chapter cards already separate the sections, so both go.
+            child: Theme(
+              data: theme.copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                key: PageStorageKey('guide-$i'),
+                leading: Icon(_guideChapters[i].icon, color: theme.colorScheme.primary, size: 24),
+                title: Text(i18n(_guideChapters[i].titleKey)),
+                subtitle: Text(
+                  i18n('player_guide_entries', args: {'count': _guideChapters[i].entries.length.toString()}),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+                ),
+                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                children: [for (final entry in _guideChapters[i].entries) _GuideEntryView(entry: entry)],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// The manual link and the reading order in one row: two stacked cards used
+  /// to push the first chapter below the fold on a laptop window.
+  Widget _buildIntroCard(BuildContext context, ThemeData theme) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => launchUrlString('https://mpv.io/manual/', mode: LaunchMode.externalApplication),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(i18n('player_guide_manual_title'), style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      i18n('player_guide_manual_hint'),
+                      style: theme.textTheme.bodyLarge?.copyWith(height: 1.5, color: theme.hintColor),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Remix.arrow_right_s_line, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 enum _GuidePlatform {
@@ -104,82 +182,6 @@ const List<_GuideChapter> _guideChapters = [
     _GuideEntry('sym_no_video'),
   ]),
 ];
-
-class _PlayerGuidePageState extends State<PlayerGuidePage> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: Text(i18n('player_guide_title'))),
-      body: SettingsContentWidth(child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-        physics: const PureLiveScrollPhysics(),
-        children: [
-          _buildIntroCard(context, theme),
-          for (var i = 0; i < _guideChapters.length; i++)
-            Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              clipBehavior: Clip.antiAlias,
-              // ExpansionTile paints a rule above and below the open panel; the
-              // chapter cards already separate the sections, so both go.
-              child: Theme(
-                data: theme.copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  key: PageStorageKey('guide-$i'),
-                  initiallyExpanded: i == 0,
-                  leading: Icon(_guideChapters[i].icon, color: theme.colorScheme.primary, size: 24),
-                  title: Text(i18n(_guideChapters[i].titleKey)),
-                  subtitle: Text(
-                    i18n('player_guide_entries', args: {'count': _guideChapters[i].entries.length.toString()}),
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
-                  ),
-                  childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-                  children: [for (final entry in _guideChapters[i].entries) _GuideEntryView(entry: entry)],
-                ),
-              ),
-            ),
-        ],
-      )),
-    );
-  }
-
-  /// The manual link and the reading order in one row: two stacked cards used
-  /// to push the first chapter below the fold on a laptop window.
-  Widget _buildIntroCard(BuildContext context, ThemeData theme) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => launchUrlString('https://mpv.io/manual/', mode: LaunchMode.externalApplication),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(i18n('player_guide_manual_title'), style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(
-                      i18n('player_guide_manual_hint'),
-                      style: theme.textTheme.bodyLarge?.copyWith(height: 1.5, color: theme.hintColor),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Remix.arrow_right_s_line, size: 18),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// One manual row. `mono` rows render their heading inside a monospace chip;
 /// every other heading is a phrase and renders plainly — long labels inside a

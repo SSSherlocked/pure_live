@@ -10,10 +10,15 @@ import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/config/cache_controller.dart';
 import 'package:pure_live/core/models/download_state.dart';
 
-class FontFamilyManagerPage extends GetView<SettingsService> {
+/// The app or danmaku font picker: the built-in font, then every cloud font
+/// with its download, apply and delete actions.
+///
+/// A section, not a page: it lays out as a plain column so 通用 › 字体设置 and
+/// 通用 › 弹幕设置 can list it inline inside their own scroll views.
+class FontFamilyList extends StatelessWidget {
   final bool isDanmakuSettings;
 
-  const FontFamilyManagerPage({super.key, this.isDanmakuSettings = false});
+  const FontFamilyList({super.key, this.isDanmakuSettings = false});
 
   Rx<String> get currentFontRx {
     return isDanmakuSettings
@@ -92,82 +97,50 @@ class FontFamilyManagerPage extends GetView<SettingsService> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mediaQuery = MediaQuery.of(context);
-    final title = isDanmakuSettings ? i18n("change_danmaku_font_family") : i18n("font_family_settings");
     final openFolderLabel = i18n("recorder_open_folder");
     final useCompactFolderAction = mediaQuery.size.width < 520 || mediaQuery.textScaler.scale(14) > 18;
 
     SettingsService.to.font.refreshFontDiskSizes();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Tooltip(
-          message: title,
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.3),
-          ),
-        ),
-        actions: [
-          if (useCompactFolderAction)
-            IconButton(
-              key: const ValueKey('font-open-folder-action'),
-              tooltip: openFolderLabel,
-              onPressed: () => _openFontFolder(),
-              icon: const Icon(Remix.folder_open_line, size: 20),
-            )
-          else
-            TextButton.icon(
-              key: const ValueKey('font-open-folder-action'),
-              onPressed: () => _openFontFolder(),
-              icon: const Icon(Remix.folder_open_line, size: 18),
-              label: Text(openFolderLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: SettingsContentWidth(child: Obx(() {
-        final fontModels = SettingsService.to.font.fontList;
-
-        return CustomScrollView(
-          physics: const PureLiveScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  context.buildGroupTitle(i18n("factory_default_group")),
-                  _buildPresetEnvironmentCard(theme),
-                  const SizedBox(height: 28),
-                  context.buildGroupTitle(i18n("cloud_font_group")),
-                ]),
-              ),
-            ),
-            if (fontModels.isEmpty)
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 200,
-                    child: AppStatusView(type: AppStatusType.loading, title: "", subtitle: ""),
-                  ),
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        context.buildGroupTitle(i18n("factory_default_group")),
+        Obx(() => _buildPresetEnvironmentCard(theme)),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(child: context.buildGroupTitle(i18n("cloud_font_group"))),
+            if (useCompactFolderAction)
+              IconButton(
+                key: const ValueKey('font-open-folder-action'),
+                tooltip: openFolderLabel,
+                onPressed: () => _openFontFolder(),
+                icon: const Icon(Remix.folder_open_line, size: 20),
               )
             else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildFontCard(context, theme, fontModels[index]),
-                    childCount: fontModels.length,
-                  ),
-                ),
+              TextButton.icon(
+                key: const ValueKey('font-open-folder-action'),
+                onPressed: () => _openFontFolder(),
+                icon: const Icon(Remix.folder_open_line, size: 18),
+                label: Text(openFolderLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
-        );
-      })),
+        ),
+        Obx(() {
+          final fontModels = SettingsService.to.font.fontList;
+          if (fontModels.isEmpty) {
+            return SizedBox(
+              height: 200,
+              child: AppStatusView(type: AppStatusType.loading, title: "", subtitle: ""),
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [for (final fontModel in fontModels) _buildFontCard(context, theme, fontModel)],
+          );
+        }),
+      ],
     );
   }
 

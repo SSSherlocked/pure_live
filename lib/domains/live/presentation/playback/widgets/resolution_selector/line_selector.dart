@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
@@ -39,7 +40,7 @@ class LineSelector extends StatelessWidget {
         },
         position: PopupMenuPosition.under,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+          constraints: PlayerControlDensity.actionConstraints(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(

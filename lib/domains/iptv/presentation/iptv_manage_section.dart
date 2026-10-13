@@ -41,14 +41,19 @@ class ResourceGroup {
   bool get isNotEmpty => items.isNotEmpty;
 }
 
-class IptvManagePage extends StatefulWidget {
-  const IptvManagePage({super.key});
+/// Every imported playlist and EPG source with its sync, auto-sync and
+/// delete actions.
+///
+/// Listed inline in the IPTV settings page (a column, not a scroll view);
+/// that page calls [IptvManageSectionState.refresh] after each import.
+class IptvManageSection extends StatefulWidget {
+  const IptvManageSection({super.key});
 
   @override
-  State<IptvManagePage> createState() => _IptvManagePageState();
+  State<IptvManageSection> createState() => IptvManageSectionState();
 }
 
-class _IptvManagePageState extends State<IptvManagePage> {
+class IptvManageSectionState extends State<IptvManageSection> {
   final RxList<ManageItem> allItems = <ManageItem>[].obs;
   final RxBool isSyncingAll = false.obs;
   final Set<String> _busyItems = <String>{};
@@ -59,7 +64,7 @@ class _IptvManagePageState extends State<IptvManagePage> {
   @override
   void initState() {
     super.initState();
-    unawaited(_refreshData());
+    unawaited(refresh());
   }
 
   bool _isNetwork(String url) {
@@ -70,7 +75,8 @@ class _IptvManagePageState extends State<IptvManagePage> {
 
   bool _itemActionsBlocked(ManageItem item) => isSyncingAll.value || _busyItems.contains(_operationKey(item));
 
-  Future<bool> _refreshData() async {
+  /// Reloads the lists from the database.
+  Future<bool> refresh() async {
     final epoch = ++_refreshEpoch;
     if (mounted) {
       setState(() {
@@ -170,7 +176,7 @@ class _IptvManagePageState extends State<IptvManagePage> {
         allSucceeded = allSucceeded && succeeded;
       }
 
-      final refreshed = await _refreshData();
+      final refreshed = await refresh();
       if (mounted) ToastUtil.show(i18n(allSucceeded && refreshed ? 'manage_page_success' : 'manage_page_failed'));
     } catch (e) {
       debugPrint("$e");
@@ -192,7 +198,7 @@ class _IptvManagePageState extends State<IptvManagePage> {
       } else {
         succeeded = await EpgSyncEngine.instance.updateEpgCache(item.raw, forceUpdate: true);
       }
-      final refreshed = mounted ? await _refreshData() : false;
+      final refreshed = mounted ? await refresh() : false;
       if (mounted) ToastUtil.show(i18n(succeeded && refreshed ? 'manage_page_success' : 'manage_page_failed'));
     } catch (error) {
       debugPrint('$error');
@@ -222,103 +228,69 @@ class _IptvManagePageState extends State<IptvManagePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(i18n("manage_page_title")),
-        actions: [
-          Obx(
-            () => IconButton(
-              tooltip: i18n('sync'),
-              onPressed: isSyncingAll.value || _loading || _busyItems.isNotEmpty ? null : _syncAll,
-              icon: isSyncingAll.value
-                  ? AppStatusView(type: AppStatusType.loading, title: "", subtitle: "", isMini: true)
-                  : const Icon(Remix.refresh_line),
-            ),
+    return Obx(() {
+      final networkItems = allItems.where((e) => e.isNetwork).toList();
+      final localItems = allItems.where((e) => !e.isNetwork).toList();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: context.buildGroupTitle(i18n("manage_page_title"))),
+              IconButton(
+                key: const ValueKey('iptv-manage-sync-all'),
+                tooltip: i18n('sync'),
+                onPressed: isSyncingAll.value || _loading || _busyItems.isNotEmpty ? null : _syncAll,
+                icon: isSyncingAll.value
+                    ? AppStatusView(type: AppStatusType.loading, title: "", subtitle: "", isMini: true)
+                    : const Icon(Remix.refresh_line),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Obx(() {
-        final networkItems = allItems.where((e) => e.isNetwork).toList();
-        final localItems = allItems.where((e) => !e.isNetwork).toList();
-        return CustomScrollView(
-          physics: const PureLiveScrollPhysics(),
-          slivers: [
-            if (_loading) const SliverToBoxAdapter(child: LinearProgressIndicator(minHeight: 2)),
-            if (_loadErrorKey != null)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                sliver: SliverToBoxAdapter(
-                  child: _buildStateCard(
-                    theme,
-                    icon: Remix.error_warning_line,
-                    title: i18n(_loadErrorKey!),
-                    subtitle: i18n('manage_page_load_failed_subtitle'),
-                    actionLabel: i18n('retry'),
-                    onAction: _loading ? null : _refreshData,
-                  ),
-                ),
+          if (_loading) const LinearProgressIndicator(minHeight: 2),
+          if (_loadErrorKey != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _buildStateCard(
+                theme,
+                icon: Remix.error_warning_line,
+                title: i18n(_loadErrorKey!),
+                subtitle: i18n('manage_page_load_failed_subtitle'),
+                actionLabel: i18n('retry'),
+                onAction: _loading ? null : refresh,
               ),
-            if (!_loading && _loadErrorKey == null && allItems.isEmpty)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                sliver: SliverToBoxAdapter(
-                  child: _buildStateCard(
-                    theme,
-                    icon: Remix.play_list_add_line,
-                    title: i18n('manage_page_empty_title'),
-                    subtitle: i18n('manage_page_empty_subtitle'),
-                  ),
-                ),
+            ),
+          if (!_loading && _loadErrorKey == null && allItems.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _buildStateCard(
+                theme,
+                icon: Remix.play_list_add_line,
+                title: i18n('manage_page_empty_title'),
+                subtitle: i18n('manage_page_empty_subtitle'),
               ),
-            if (allItems.isNotEmpty)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                sliver: SliverToBoxAdapter(child: _buildStatsCard(theme)),
-              ),
-
-            if (networkItems.isNotEmpty) ...[
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-                sliver: SliverToBoxAdapter(
-                  child: _buildSectionTitle(theme, i18n("network_resource"), Remix.global_line),
-                ),
-              ),
-
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList.builder(
-                  itemCount: networkItems.length,
-                  itemBuilder: (_, index) {
-                    return _buildItemCard(theme, networkItems[index]);
-                  },
-                ),
-              ),
-            ],
-
-            if (localItems.isNotEmpty) ...[
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-                sliver: SliverToBoxAdapter(
-                  child: _buildSectionTitle(theme, i18n("local_resource"), Remix.folder_2_line),
-                ),
-              ),
-
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList.builder(
-                  itemCount: localItems.length,
-                  itemBuilder: (_, index) {
-                    return _buildItemCard(theme, localItems[index]);
-                  },
-                ),
-              ),
-            ],
-
-            const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+            ),
+          if (allItems.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildStatsCard(theme),
           ],
-        );
-      }),
-    );
+          if (networkItems.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
+              child: _buildSectionTitle(theme, i18n("network_resource"), Remix.global_line),
+            ),
+            for (final item in networkItems) _buildItemCard(theme, item),
+          ],
+          if (localItems.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
+              child: _buildSectionTitle(theme, i18n("local_resource"), Remix.folder_2_line),
+            ),
+            for (final item in localItems) _buildItemCard(theme, item),
+          ],
+        ],
+      );
+    });
   }
 
   Widget _buildStateCard(

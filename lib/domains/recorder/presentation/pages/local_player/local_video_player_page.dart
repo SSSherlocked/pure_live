@@ -499,10 +499,10 @@ class _RecordingCornerActions extends StatelessWidget {
             () => !controller.fullscreenActive.value
                 ? const SizedBox.shrink()
                 : SizedBox(
-                    width: 32,
+                    width: kMinInteractiveDimension,
                     child: IconButton(
                       color: Colors.white,
-                      iconSize: 20,
+                      iconSize: 24,
                       tooltip: i18n('local_player_back'),
                       icon: const Icon(Icons.arrow_back_rounded),
                       onPressed: () async {
@@ -562,11 +562,11 @@ class _RecordingMoreMenu extends StatelessWidget {
             ),
         ],
         builder: (context, menu, _) => SizedBox(
-          width: 32,
+          width: kMinInteractiveDimension,
           child: IconButton(
             key: const ValueKey('local-player-more-menu'),
             color: Colors.white,
-            iconSize: 20,
+            iconSize: 24,
             tooltip: i18n('settings_more'),
             icon: const Icon(Icons.more_horiz_rounded),
             onPressed: () => menu.isOpen ? menu.close() : menu.open(),
@@ -825,7 +825,7 @@ class _RecordingPipOverlayState extends State<_RecordingPipOverlay> {
     required Future<void> Function() onTap,
   }) {
     return IconButton(
-      iconSize: 26,
+      iconSize: 24,
       tooltip: semanticLabel,
       style: IconButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
       icon: Icon(icon),
@@ -927,7 +927,7 @@ class _RecordingControlBar extends StatelessWidget {
                   Obx(
                     () => IconButton(
                       color: Colors.white,
-                      iconSize: 26,
+                      iconSize: 24,
                       tooltip: controller.isPlaying.value ? i18n('local_player_pause') : i18n('local_player_play'),
                       icon: Icon(controller.isPlaying.value ? Icons.pause_rounded : Icons.play_arrow_rounded),
                       onPressed: controller.togglePlayPause,
@@ -935,14 +935,14 @@ class _RecordingControlBar extends StatelessWidget {
                   ),
                   IconButton(
                     color: Colors.white,
-                    iconSize: 26,
+                    iconSize: 24,
                     tooltip: i18n('local_player_seek_back'),
                     icon: const Icon(Icons.replay_10_rounded),
                     onPressed: () => unawaited(controller.seekBy(const Duration(seconds: -10))),
                   ),
                   IconButton(
                     color: Colors.white,
-                    iconSize: 26,
+                    iconSize: 24,
                     tooltip: i18n('local_player_seek_forward'),
                     icon: const Icon(Icons.forward_10_rounded),
                     onPressed: () => unawaited(controller.seekBy(const Duration(seconds: 10))),
@@ -1025,7 +1025,7 @@ class _MuteButtonState extends State<_MuteButton> {
     final muted = volume <= 0.001;
     return IconButton(
       color: Colors.white,
-      iconSize: 22,
+      iconSize: 24,
       tooltip: muted ? i18n('local_player_unmute') : i18n('local_player_mute'),
       icon: Icon(
         muted

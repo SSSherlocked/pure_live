@@ -716,7 +716,7 @@ class PortraitOrientationButton extends StatelessWidget {
         constraints: PlayerControlDensity.actionConstraints(context),
         color: selected == PortraitOrientationOverride.automatic ? Colors.white : const Color(0xFFFFD166),
         onPressed: () => _showPicker(context, selected),
-        icon: Icon(icon, size: 21),
+        icon: Icon(icon, size: PlayerControlDensity.iconSize(context, 24)),
       );
     });
   }
@@ -770,7 +770,7 @@ class PortraitFullscreenDisplayModeButton extends StatelessWidget {
         constraints: PlayerControlDensity.actionConstraints(context),
         color: selected == PortraitFullscreenDisplayMode.ambient ? Colors.white : const Color(0xFFFFD166),
         onPressed: () => _showPicker(context, selected),
-        icon: Icon(portraitFullscreenDisplayModeIcon(selected), size: 21),
+        icon: Icon(portraitFullscreenDisplayModeIcon(selected), size: PlayerControlDensity.iconSize(context, 24)),
       );
     });
   }
@@ -1255,7 +1255,7 @@ class PlayPauseButton extends StatelessWidget {
           icon: Icon(
             isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
             color: Colors.white,
-            size: PlayerControlDensity.iconSize(context, 28),
+            size: PlayerControlDensity.iconSize(context, 24),
           ),
         );
       },
@@ -1314,7 +1314,7 @@ class ExpandWindowButton extends StatelessWidget {
           child: Icon(
             expanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded,
             color: Colors.white,
-            size: PlayerControlDensity.iconSize(context, 26),
+            size: PlayerControlDensity.iconSize(context, 24),
           ),
         ),
       );
@@ -1340,7 +1340,7 @@ class ExpandButton extends StatelessWidget {
         icon: Icon(
           expanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
           color: Colors.white,
-          size: PlayerControlDensity.iconSize(context, 26),
+          size: PlayerControlDensity.iconSize(context, 24),
         ),
       );
     });
@@ -1362,7 +1362,7 @@ class MuteToggleButton extends StatelessWidget {
         key: const ValueKey('player-mute-toggle'),
         visualDensity: VisualDensity.standard,
         constraints: PlayerControlDensity.actionConstraints(context),
-        iconSize: PlayerControlDensity.iconSize(context, 21),
+        iconSize: PlayerControlDensity.iconSize(context, 24),
         color: Colors.white,
         onPressed: () {
           controller.enableController();

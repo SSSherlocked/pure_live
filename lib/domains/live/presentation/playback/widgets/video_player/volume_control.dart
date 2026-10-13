@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/utils/i18n.dart';
+import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/core/config/settings_service.dart';
@@ -159,8 +160,8 @@ class _RoomMuteButtonState extends State<RoomMuteButton> {
       child: IconButton(
         onPressed: _handleToggleMute,
         visualDensity: VisualDensity.standard,
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
-        icon: Icon(icon, color: Colors.white, size: 24),
+        constraints: PlayerControlDensity.actionConstraints(context),
+        icon: Icon(icon, color: Colors.white, size: PlayerControlDensity.iconSize(context, 24)),
         tooltip: _volume == 0 ? i18n('cancel_mute') : i18n('mute'),
       ),
     );

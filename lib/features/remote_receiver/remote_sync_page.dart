@@ -72,81 +72,117 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
     return allowed == true;
   }
 
-  bool _pairingDialogOpen = false;
+  /// The pairing-code dialogs this page opened and has not closed yet. Each one
+  /// closes through its own dialog context, so closing never pops anything else.
+  final List<_PairingDialog> _pairingDialogs = <_PairingDialog>[];
+
+  /// A send or receive is in progress on this page; taps meanwhile do nothing.
+  bool _busy = false;
+
+  /// The user cancelled the pairing dialog, so the outcome is not reported.
+  bool _cancelled = false;
 
   /// Shows the session's pairing code while the other device decides.
   void _showPairingCode(String code) {
     if (!mounted) return;
-    _pairingDialogOpen = true;
+    final dialog = _PairingDialog();
+    _pairingDialogs.add(dialog);
     unawaited(
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(i18n('remote_sync_pairing_code')),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _PairingCode(code: code),
-              const SizedBox(height: 12),
-              Text(i18n('remote_sync_pairing_code_waiting'), textAlign: TextAlign.center),
-            ],
-          ),
-        ),
-      ).whenComplete(() => _pairingDialogOpen = false),
+        builder: (dialogContext) {
+          dialog.attach(dialogContext);
+          return AlertDialog(
+            title: Text(i18n('remote_sync_pairing_code')),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _PairingCode(code: code),
+                const SizedBox(height: 12),
+                Text(i18n('remote_sync_pairing_code_waiting'), textAlign: TextAlign.center),
+              ],
+            ),
+            actions: [TextButton(onPressed: _cancelPairing, child: Text(i18n('cancel')))],
+          );
+        },
+      ).whenComplete(() => _pairingDialogs.remove(dialog)),
     );
   }
 
   void _closePairingCode() {
-    if (!_pairingDialogOpen || !mounted) return;
-    _pairingDialogOpen = false;
-    Navigator.of(context, rootNavigator: true).pop();
+    for (final dialog in _pairingDialogs.toList()) {
+      dialog.close();
+    }
+  }
+
+  /// The user gave up waiting for the other device: the dialog goes and the
+  /// request is cut, so the sync returns at once instead of at its timeout.
+  void _cancelPairing() {
+    _cancelled = true;
+    _closePairingCode();
+    service.cancelOutgoing();
   }
 
   String _failureMessage(String fallbackKey) => i18n(service.lastFailureKey ?? fallbackKey);
 
   Future<void> _sendToDevice(String ip, int port, {String? fingerprint}) async {
-    final sections = await pickBackupSections(
-      direction: BackupSectionDirection.export,
-      available: service.exportSectionNames(),
-    );
-    if (sections == null) return;
+    if (_busy) return;
+    _busy = true;
+    try {
+      final sections = await pickBackupSections(
+        direction: BackupSectionDirection.export,
+        available: service.exportSectionNames(),
+      );
+      if (sections == null) return;
 
-    final success = await service.syncToAddress(
-      ip,
-      port,
-      sections: sections,
-      fingerprint: fingerprint,
-      onPairingCode: _showPairingCode,
-    );
-    _closePairingCode();
-    if (!mounted) return;
-    ToastUtil.show(success ? i18n('remote_sync_send_success') : _failureMessage('remote_sync_send_failed'));
+      _cancelled = false;
+      final success = await service.syncToAddress(
+        ip,
+        port,
+        sections: sections,
+        fingerprint: fingerprint,
+        onPairingCode: _showPairingCode,
+      );
+      _closePairingCode();
+      if (!mounted || _cancelled) return;
+      ToastUtil.show(success ? i18n('remote_sync_send_success') : _failureMessage('remote_sync_send_failed'));
+    } finally {
+      _busy = false;
+    }
   }
 
   Future<void> _receiveFromDevice(String ip, int port, {String? fingerprint}) async {
-    final settings = await service.getRemoteSettings(
-      ip,
-      port,
-      fingerprint: fingerprint,
-      onPairingCode: _showPairingCode,
-    );
-    _closePairingCode();
-    if (settings == null) {
-      ToastUtil.show(_failureMessage('remote_sync_receive_failed'));
-      return;
-    }
+    if (_busy) return;
+    _busy = true;
+    try {
+      _cancelled = false;
+      final settings = await service.getRemoteSettings(
+        ip,
+        port,
+        fingerprint: fingerprint,
+        onPairingCode: _showPairingCode,
+      );
+      _closePairingCode();
+      if (!mounted || _cancelled) return;
+      if (settings == null) {
+        ToastUtil.show(_failureMessage('remote_sync_receive_failed'));
+        return;
+      }
 
-    final available = BackupController.presentSections(settings);
-    List<String>? sections;
-    if (available.isNotEmpty) {
-      sections = await pickBackupSections(direction: BackupSectionDirection.import, available: available);
-      if (sections == null) return;
-    }
+      final available = BackupController.presentSections(settings);
+      List<String>? sections;
+      if (available.isNotEmpty) {
+        sections = await pickBackupSections(direction: BackupSectionDirection.import, available: available);
+        if (sections == null) return;
+      }
 
-    final success = await service.applyRemoteSettings(settings, sections: sections);
-    if (!mounted) return;
-    ToastUtil.show(success ? i18n('remote_sync_receive_success') : i18n('remote_sync_receive_failed'));
+      final success = await service.applyRemoteSettings(settings, sections: sections);
+      if (!mounted) return;
+      ToastUtil.show(success ? i18n('remote_sync_receive_success') : i18n('remote_sync_receive_failed'));
+    } finally {
+      _busy = false;
+    }
   }
 
   ({String ip, int port})? _manualAddress() {
@@ -441,6 +477,33 @@ class _RemoteSyncScannerPageState extends State<_RemoteSyncScannerPage> {
         },
       ),
     );
+  }
+}
+
+/// One open pairing-code dialog, closed through the context its builder gave it.
+///
+/// A close requested before the dialog has built (the reply came back within the
+/// same frame) is carried out once the dialog is on screen; a dialog pops once.
+class _PairingDialog {
+  BuildContext? _context;
+  bool _closeRequested = false;
+  bool _popped = false;
+
+  void attach(BuildContext context) {
+    _context = context;
+    if (_closeRequested) WidgetsBinding.instance.addPostFrameCallback((_) => _pop());
+  }
+
+  void close() {
+    _closeRequested = true;
+    _pop();
+  }
+
+  void _pop() {
+    final context = _context;
+    if (_popped || context == null || !context.mounted) return;
+    _popped = true;
+    Navigator.of(context).pop();
   }
 }
 

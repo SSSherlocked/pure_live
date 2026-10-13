@@ -66,6 +66,18 @@ class RemoteSyncService extends GetxController {
   bool _disposed = false;
   bool _running = false;
 
+  /// Whether a `/settings` request is waiting for the user's answer in the
+  /// confirmation dialog. Further requests are refused until it is answered.
+  bool _confirmPending = false;
+
+  /// The client of the outgoing request in flight, so [cancelOutgoing] can cut
+  /// it while the other device is still deciding.
+  HttpClient? _outgoingClient;
+
+  /// How long an outgoing request may wait, mostly for the person at the other
+  /// device to answer the confirmation dialog.
+  static const Duration _requestTimeout = Duration(seconds: 60);
+
   // ---------------------------------------------------------------------------
   // Device information
   // ---------------------------------------------------------------------------
@@ -531,6 +543,14 @@ class RemoteSyncService extends GetxController {
       return;
     }
 
+    // One confirmation dialog at a time: a request that arrives while the user
+    // is still deciding on another is refused instead of stacking a dialog.
+    if (_confirmPending) {
+      request.response.statusCode = HttpStatus.tooManyRequests;
+      await _writeResponse(request.response, {'code': 429, 'msg': 'Awaiting another confirmation', 'data': false});
+      return;
+    }
+
     // Whoever can reach this port still has to be approved on this device, and
     // the dialog shows the pairing code to compare with the other screen.
     if (!await _confirm(action, request, SyncCipher.pairingCode(key))) {
@@ -669,10 +689,13 @@ class RemoteSyncService extends GetxController {
     final ask = confirmRequest;
     if (ask == null || _disposed) return false;
     final remote = request.connectionInfo?.remoteAddress.address ?? '';
+    _confirmPending = true;
     try {
       return await ask(action, remote, pairingCode);
     } catch (_) {
       return false;
+    } finally {
+      _confirmPending = false;
     }
   }
 
@@ -985,7 +1008,7 @@ class RemoteSyncService extends GetxController {
 
     await broadcast.initialize();
 
-    if (_disposed) {
+    if (_disposed || !identical(_broadcast, broadcast)) {
       try {
         await broadcast.stop();
       } catch (_) {}
@@ -994,6 +1017,14 @@ class RemoteSyncService extends GetxController {
     }
 
     await broadcast.start();
+
+    // stop() may have run while start() was in flight: it cleared _broadcast and
+    // stopped a broadcast that had not started yet, so this one must stop here.
+    if (_disposed || !identical(_broadcast, broadcast)) {
+      try {
+        await broadcast.stop();
+      } catch (_) {}
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1046,13 +1077,11 @@ class RemoteSyncService extends GetxController {
     String? fingerprint,
     ValueChanged<String>? onPairingCode,
   }) async {
-    final client = HttpClient();
+    final statusUri = Uri.parse('http://$ip:$port${RemoteSyncProtocol.apiStatus}');
+    final reply = await _exchange((client) => client.getUrl(statusUri));
+    if (reply == null || reply.status != HttpStatus.ok) return null;
     try {
-      final request = await client.getUrl(Uri.parse('http://$ip:$port${RemoteSyncProtocol.apiStatus}'));
-      final response = await request.close();
-      final body = await utf8.decoder.bind(response).join();
-      if (response.statusCode != HttpStatus.ok) return null;
-      final status = jsonDecode(body);
+      final status = jsonDecode(reply.body);
       final data = status is Map ? status['data'] : null;
       final encoded = data is Map ? data['publicKey'] : null;
       if (encoded is! String || encoded.isEmpty) {
@@ -1076,9 +1105,40 @@ class RemoteSyncService extends GetxController {
       return (key: key, clientPublicKey: own.publicKeyBase64);
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Sends the request built by [send] and reads the whole reply, within
+  /// [_requestTimeout] and on a client that [cancelOutgoing] can close. An
+  /// unreachable device, a cancelled client and a timeout all yield null.
+  Future<({int status, String body})?> _exchange(Future<HttpClientRequest> Function(HttpClient client) send) async {
+    final client = HttpClient();
+    _outgoingClient = client;
+    try {
+      return await _roundTrip(client, send).timeout(_requestTimeout);
+    } catch (_) {
+      return null;
     } finally {
+      if (identical(_outgoingClient, client)) _outgoingClient = null;
       client.close(force: true);
     }
+  }
+
+  static Future<({int status, String body})> _roundTrip(
+    HttpClient client,
+    Future<HttpClientRequest> Function(HttpClient client) send,
+  ) async {
+    final request = await send(client);
+    final response = await request.close();
+    return (status: response.statusCode, body: await utf8.decoder.bind(response).join());
+  }
+
+  /// Cuts the outgoing request in flight, if any; the sync it belongs to then
+  /// fails and returns. For the user who gives up waiting for the other device.
+  void cancelOutgoing() {
+    final client = _outgoingClient;
+    _outgoingClient = null;
+    client?.close(force: true);
   }
 
   Future<bool> syncToAddress(
@@ -1102,38 +1162,26 @@ class RemoteSyncService extends GetxController {
       final backup = Get.find<BackupController>();
 
       final payload = backup.exportAllSettings(sections: sections);
+      final packet = RemoteSyncProtocol.settingsPacket(settings: payload, sections: sections);
+      final body = jsonEncode(RemoteSyncProtocol.encryptedPacket(SyncCipher.sealJson(session.key, packet)));
 
-      final client = HttpClient();
-
-      try {
-        final request = await client.postUrl(
-          Uri.parse(
-            'http://$ip:$port'
-            '${RemoteSyncProtocol.apiSettings}',
-          ),
-        );
-
+      final reply = await _exchange((client) async {
+        final request = await client.postUrl(Uri.parse('http://$ip:$port${RemoteSyncProtocol.apiSettings}'));
         request.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
         request.headers.set(RemoteSyncProtocol.clientKeyHeader, session.clientPublicKey);
+        request.write(body);
+        return request;
+      });
+      if (reply == null) return false;
 
-        final packet = RemoteSyncProtocol.settingsPacket(settings: payload, sections: sections);
-        request.write(jsonEncode(RemoteSyncProtocol.encryptedPacket(SyncCipher.sealJson(session.key, packet))));
-
-        final response = await request.close();
-
-        final responseBody = await utf8.decoder.bind(response).join();
-
-        if (response.statusCode == HttpStatus.upgradeRequired) lastFailureKey = 'remote_sync_peer_outdated';
-        if (response.statusCode != HttpStatus.ok) {
-          return false;
-        }
-
-        final result = jsonDecode(responseBody);
-
-        return result is Map && result['data'] == true;
-      } finally {
-        client.close(force: true);
+      if (reply.status == HttpStatus.upgradeRequired) lastFailureKey = 'remote_sync_peer_outdated';
+      if (reply.status != HttpStatus.ok) {
+        return false;
       }
+
+      final result = jsonDecode(reply.body);
+
+      return result is Map && result['data'] == true;
     } catch (_) {
       return false;
     } finally {
@@ -1193,58 +1241,53 @@ class RemoteSyncService extends GetxController {
     String? fingerprint,
     ValueChanged<String>? onPairingCode,
   }) async {
-    if (_disposed) {
+    // The same flag as sending: one outgoing sync at a time, and the page's
+    // buttons stay disabled while this one waits for the other device.
+    if (_disposed || isSyncing.value) {
       return null;
     }
+
+    isSyncing.value = true;
     lastFailureKey = null;
 
     try {
       final session = await _openSession(ip, port, fingerprint: fingerprint, onPairingCode: onPairingCode);
       if (session == null) return null;
 
-      final client = HttpClient();
-
-      try {
-        final request = await client.getUrl(
-          Uri.parse(
-            'http://$ip:$port'
-            '${RemoteSyncProtocol.apiSettings}',
-          ),
-        );
+      final reply = await _exchange((client) async {
+        final request = await client.getUrl(Uri.parse('http://$ip:$port${RemoteSyncProtocol.apiSettings}'));
         request.headers.set(RemoteSyncProtocol.clientKeyHeader, session.clientPublicKey);
+        return request;
+      });
+      if (reply == null) return null;
 
-        final response = await request.close();
-
-        final body = await utf8.decoder.bind(response).join();
-
-        if (response.statusCode == HttpStatus.upgradeRequired) lastFailureKey = 'remote_sync_peer_outdated';
-        if (response.statusCode != HttpStatus.ok) {
-          return null;
-        }
-
-        final result = jsonDecode(body);
-
-        if (result is! Map) {
-          return null;
-        }
-
-        if (result['code'] != 200) {
-          return null;
-        }
-
-        // A wrong key or a changed byte throws here, and the sync fails.
-        final data = SyncCipher.openJson(session.key, result['enc']);
-
-        if (data is! Map) {
-          return null;
-        }
-
-        return Map<String, dynamic>.from(data);
-      } finally {
-        client.close(force: true);
+      if (reply.status == HttpStatus.upgradeRequired) lastFailureKey = 'remote_sync_peer_outdated';
+      if (reply.status != HttpStatus.ok) {
+        return null;
       }
+
+      final result = jsonDecode(reply.body);
+
+      if (result is! Map) {
+        return null;
+      }
+
+      if (result['code'] != 200) {
+        return null;
+      }
+
+      // A wrong key or a changed byte throws here, and the sync fails.
+      final data = SyncCipher.openJson(session.key, result['enc']);
+
+      if (data is! Map) {
+        return null;
+      }
+
+      return Map<String, dynamic>.from(data);
     } catch (_) {
       return null;
+    } finally {
+      isSyncing.value = false;
     }
   }
 

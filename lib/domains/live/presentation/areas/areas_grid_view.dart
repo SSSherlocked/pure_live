@@ -147,6 +147,12 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
     super.dispose();
   }
 
+  /// Keeps the scroll buttons above the page's floating buttons: the 收藏分区
+  /// pill, and on desktop the refresh button under it (16 px margin, 56 px
+  /// button, 12 px gap, 48 px pill, 16 px gap).
+  double _wideBottomPadding(BuildContext context) =>
+      AppLayout.of(context).pagedLists ? FloatingRefreshButton.clearance + 12 + 48 : 110;
+
   @override
   Widget build(BuildContext context) {
     if (_flatten) {
@@ -154,8 +160,8 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
         controller: widget.controller,
         enableRefresh: true,
         enableLoadMore: true,
-        customMobileBottomPadding: 85,
-        customDesktopBottomPadding: 110,
+        wideBottomPadding: _wideBottomPadding(context),
+        narrowBottomPadding: 85,
         emptyBuilder: (context) => EmptyView(
           icon: Remix.apps_2_line,
           title: i18n("empty_areas_title"),
@@ -207,8 +213,8 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
               preserveContentWhenEmpty: true,
               enableRefresh: true,
               enableLoadMore: true,
-              customMobileBottomPadding: 85,
-              customDesktopBottomPadding: 110,
+              wideBottomPadding: _wideBottomPadding(context),
+              narrowBottomPadding: 85,
               emptyBuilder: (context) => EmptyView(
                 icon: Remix.apps_2_line,
                 title: i18n("empty_areas_title"),
@@ -261,15 +267,9 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
   }
 
   Widget buildFlattenAreasView(List<LiveArea> childrenList, ScrollController scrollController, {Key? scrollKey}) {
-    // The spacing settings are read at layout time, so the builder has its own
-    // Obx to follow them.
     return LayoutBuilder(
-      builder: (context, constraint) => Obx(() {
+      builder: (context, constraint) {
         final width = constraint.maxWidth;
-        final crossAxisCount = width > 1280 ? 9 : (width > 960 ? 7 : (width > 640 ? 5 : 3));
-        final spacing = SettingsService.to.theme.crossAxisSpacing.v;
-        final itemWidth = (width - 12 - spacing * (crossAxisCount - 1)) / crossAxisCount;
-
         return GridView.builder(
           key: scrollKey,
           padding: const EdgeInsets.fromLTRB(6, 6, 6, 80),
@@ -277,19 +277,14 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
           scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
           addAutomaticKeepAlives: false,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: SettingsService.to.theme.mainAxisSpacing.v,
-            mainAxisExtent: areaCardGridMainAxisExtent(context, itemWidth),
-          ),
+          gridDelegate: areaCardGridDelegate(context),
           itemCount: childrenList.length,
           itemBuilder: (context, index) {
             final area = childrenList[index];
             return AreaCard(key: ValueKey('${area.platform}:${area.areaId}'), category: area);
           },
         );
-      }),
+      },
     );
   }
 }

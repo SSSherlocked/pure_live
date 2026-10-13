@@ -38,23 +38,13 @@ class FavoritePage extends GetView<FavoriteController> {
             ),
             body: _FavoriteSiteTabs(key: siteKey, controller: controller, availableSitesList: availableSitesList),
             floatingActionButton: showRefresh
-                ? Obx(() {
-                    final colors = Theme.of(context).colorScheme;
-                    final loading = controller.loadding.value;
-                    return FloatingActionButton(
+                ? Obx(
+                    () => FloatingRefreshButton(
                       key: const ValueKey('favorite-refresh'),
-                      tooltip: i18n('refresh'),
-                      backgroundColor: colors.primary,
-                      foregroundColor: colors.onPrimary,
-                      onPressed: loading ? null : () => controller.refreshData(),
-                      child: loading
-                          ? SizedBox.square(
-                              dimension: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2.5, color: colors.onPrimary),
-                            )
-                          : const Icon(Icons.refresh_rounded),
-                    );
-                  })
+                      loading: controller.loadding.value,
+                      onPressed: controller.refreshData,
+                    ),
+                  )
                 : null,
           );
         });
@@ -172,10 +162,8 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
         Expanded(
           child: BasePageView<FavoriteController, LiveRoom>(
             controller: controller,
-            // Desktop's floating refresh (56 px, 16 px from the edge) sits
-            // under the scroll buttons.
-            customDesktopBottomPadding: AppLayout.of(context).pagedLists ? 88 : null,
-            customMobileBottomPadding: AppLayout.of(context).pagedLists ? 88 : null,
+            // Desktop's floating refresh sits under the scroll buttons.
+            wideBottomPadding: AppLayout.of(context).pagedLists ? FloatingRefreshButton.clearance : null,
             enableRefresh: true,
             enableLoadMore: true,
             wrapMobileRefresh: false,

@@ -35,19 +35,23 @@ class AppLayout {
   /// Beyond this width [DisplayMode.auto] uses the wide layout.
   static const double wideBreakpoint = 680;
 
-  /// The wide layout: navigation rail, side-by-side room page, larger chrome.
-  /// False is the phone layout: bottom bar, stacked room page.
+  /// The wide layout: the live room and the recording player put the picture
+  /// beside their panels, the player keeps its full control set with a docked
+  /// danmaku panel, and room-card grids use the wide column settings.
+  /// False is the phone (narrow) layout: those pages stack the picture over
+  /// their panels with compact controls, and home keeps a phone-width column.
   final bool wide;
 
   /// Pointer (mouse) interaction: hover reveals controls, wheel scrolling,
-  /// refresh buttons on lists. False is touch interaction.
+  /// refresh buttons on lists in the wide layout. False is touch interaction.
   final bool pointer;
 
   bool get phone => !wide;
   bool get touch => !pointer;
 
   /// The wide pointer (desktop) layout, where pulling a list down is not the
-  /// natural way to refresh it: list pages carry a refresh button instead.
+  /// natural way to refresh it: list pages carry a floating refresh button
+  /// (`FloatingRefreshButton`) instead.
   bool get pagedLists => wide && pointer;
 
   /// The layout [mode] gives a screen [width] wide on a [mobilePlatform].

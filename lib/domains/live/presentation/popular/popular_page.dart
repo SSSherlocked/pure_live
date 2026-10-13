@@ -20,27 +20,12 @@ class PopularPage extends GetView<PopularController> {
 
           return Scaffold(
             appBar: HomeAppBar(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: ScrollableTabBar(
-                      key: const ValueKey('popular-platform-tabs'),
-                      controller: controller.tabController,
-                      isScrollable: true,
-                      physics: const PureLiveBoundedScrollPhysics(),
-                      tabs: sites.map((e) => PlatformTab(site: e)).toList(),
-                    ),
-                  ),
-                  // The desktop layout is not refreshed by pulling the list
-                  // down; this reloads the platform on screen.
-                  if (AppLayout.of(context).pagedLists)
-                    IconButton(
-                      key: const ValueKey('popular-refresh'),
-                      tooltip: i18n('refresh'),
-                      onPressed: controller.refreshCurrentData,
-                      icon: const Icon(Icons.refresh_rounded),
-                    ),
-                ],
+              title: ScrollableTabBar(
+                key: const ValueKey('popular-platform-tabs'),
+                controller: controller.tabController,
+                isScrollable: true,
+                physics: const PureLiveBoundedScrollPhysics(),
+                tabs: sites.map((e) => PlatformTab(site: e)).toList(),
               ),
             ),
             body: TabBarView(
@@ -48,6 +33,14 @@ class PopularPage extends GetView<PopularController> {
               physics: const PureLiveBoundedScrollPhysics(),
               children: sites.map((e) => PopularGridView(e.id)).toList(),
             ),
+            // Desktop has no pull-to-refresh: this reloads the platform on
+            // screen.
+            floatingActionButton: AppLayout.of(context).pagedLists
+                ? FloatingRefreshButton(
+                    key: const ValueKey('popular-refresh'),
+                    onPressed: controller.refreshCurrentData,
+                  )
+                : null,
           );
         });
       },

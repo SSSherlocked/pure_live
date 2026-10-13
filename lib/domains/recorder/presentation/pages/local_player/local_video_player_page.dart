@@ -269,13 +269,13 @@ class _PlayerArea extends StatefulWidget {
 }
 
 class _RecordingPlayerAreaState extends State<_PlayerArea> {
-  bool get _isTouchDevice =>
-      defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
-
   LocalVideoPlayerController get controller => widget.controller;
 
   void _onSurfaceTap() {
-    if (_isTouchDevice) {
+    // Touch interaction (the display mode, not the OS): a tap shows or hides
+    // the controls. With a pointer the controls follow the mouse, so a click
+    // plays or pauses.
+    if (AppLayout.of(context).touch) {
       controller.toggleControls();
       return;
     }
@@ -318,10 +318,10 @@ class _RecordingPlayerAreaState extends State<_PlayerArea> {
                   // fullscreen. (The control bar at the bottom only holds the
                   // transport, volume, rate, fit and fullscreen controls.)
                   //
-                  // On a phone the fullscreen shape draws its own top bar, so the
-                  // row is skipped there to avoid two copies of the same buttons
-                  // landing on top of each other.
-                  if (AppLayout.of(context).wide && !(controller.fullscreenActive.value && _isTouchDevice))
+                  // The phone layout draws its own top bars (portrait and
+                  // landscape) carrying the same buttons, so the row belongs to
+                  // the wide layout only.
+                  if (AppLayout.of(context).wide)
                     Positioned(
                       top: 8 + _edgeInsets(context).top,
                       right: 8 + _edgeInsets(context).right,
@@ -655,10 +655,13 @@ class _RecordingPipOverlay extends StatefulWidget {
 class _RecordingPipOverlayState extends State<_RecordingPipOverlay> {
   bool _hovered = false;
 
-  bool get _isTouchDevice =>
+  /// Whether the system draws the picture-in-picture window (Android, iOS).
+  /// A platform capability, not the display mode: elsewhere the app draws its
+  /// own compact window, which only this overlay can move, pause or close.
+  bool get _systemPipWindow =>
       defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
-  bool get _showControls => !_isTouchDevice && _hovered;
+  bool get _showControls => !_systemPipWindow && _hovered;
 
   Future<void> _exitPip() => widget.controller.exitPip();
 
@@ -684,16 +687,16 @@ class _RecordingPipOverlayState extends State<_RecordingPipOverlay> {
             // The desktop compact window has no such system rounding, so it
             // keeps its soft corners.
             ClipRRect(
-              borderRadius: _isTouchDevice ? BorderRadius.zero : BorderRadius.circular(12),
+              borderRadius: _systemPipWindow ? BorderRadius.zero : BorderRadius.circular(12),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // A touch device hands the window to the system: consuming a
-                  // drag or a tap here stops the native PiP window from being
-                  // dragged and from opening its own play/close menu. The
-                  // desktop compact window has no system gestures, so there the
-                  // surface is the only way to move or pause it.
-                  if (_isTouchDevice)
+                  // A system PiP window owns its gestures: consuming a drag or
+                  // a tap here stops the native window from being dragged and
+                  // from opening its own play/close menu. The desktop compact
+                  // window has no system gestures, so there the surface is the
+                  // only way to move or pause it.
+                  if (_systemPipWindow)
                     MediaPlayerView(handle: handle, fit: BoxFit.contain)
                   else
                     GestureDetector(

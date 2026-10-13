@@ -23,9 +23,9 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
   final bool preserveContentWhenEmpty;
 
   /// Bottom offset of the jump buttons, so they clear a page's own floating
-  /// action button: the phone layout's value and the wide layout's.
-  final double? customMobileBottomPadding;
-  final double? customDesktopBottomPadding;
+  /// action buttons: the wide layout's value and the narrow (phone) layout's.
+  final double? wideBottomPadding;
+  final double? narrowBottomPadding;
 
   final Widget Function(BuildContext context)? notLoginBuilder;
   final Widget Function(BuildContext context, String errorMsg)? errorBuilder;
@@ -39,8 +39,8 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
     this.enableLoadMore = true,
     this.wrapMobileRefresh = true,
     this.preserveContentWhenEmpty = false,
-    this.customMobileBottomPadding,
-    this.customDesktopBottomPadding,
+    this.wideBottomPadding,
+    this.narrowBottomPadding,
     this.notLoginBuilder,
     this.errorBuilder,
     this.emptyBuilder,
@@ -50,8 +50,8 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
   Widget build(BuildContext context) {
     // Every layout shows one continuous list that loads more as it scrolls.
     final double bottomPadding = AppLayout.of(context).wide
-        ? (customDesktopBottomPadding ?? 20)
-        : (customMobileBottomPadding ?? 20);
+        ? (wideBottomPadding ?? 20)
+        : (narrowBottomPadding ?? 20);
 
     return LayoutBuilder(
       builder: (context, pageConstraints) => Stack(

@@ -35,29 +35,19 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
   Widget build(BuildContext context) {
     final rawAreaName = widget.subCategory.areaName?.trim() ?? '';
     final areaName = rawAreaName.isEmpty ? i18n('unnamed_area') : rawAreaName;
+    final pagedLists = AppLayout.of(context).pagedLists;
     return KeepAliveWrapper(
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(areaName),
-          actions: [
-            // The desktop layout is not refreshed by pulling the list down.
-            if (AppLayout.of(context).pagedLists)
-              Obx(
-                () => IconButton(
-                  key: const ValueKey('area-rooms-refresh'),
-                  tooltip: i18n('refresh'),
-                  onPressed: controller.loadding.value ? null : () => controller.refreshData(),
-                  icon: const Icon(Icons.refresh_rounded),
-                ),
-              ),
-          ],
-        ),
+        appBar: AppBar(title: Text(areaName)),
         body: BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
           enableRefresh: true,
           enableLoadMore: true,
-          customMobileBottomPadding: 85,
-          customDesktopBottomPadding: 110,
+          // Clears the follow-area pill (48 px tall over its own 24 px bottom
+          // padding in the wide layout) and, on desktop, the refresh button
+          // under it.
+          wideBottomPadding: pagedLists ? FloatingRefreshButton.clearance + 24 + 48 : 110,
+          narrowBottomPadding: 85,
           emptyBuilder: (context) => EmptyView(icon: Icons.live_tv_rounded, title: i18n('no_data'), subtitle: ''),
           contentBuilder: (context, list, scrollController) {
             return Obx(() {
@@ -110,7 +100,24 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
             });
           },
         ),
-        floatingActionButton: FavoriteAreaFloatingButton(area: widget.subCategory),
+        floatingActionButton: pagedLists
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // The pill's own bottom padding spaces it from the refresh.
+                  FavoriteAreaFloatingButton(area: widget.subCategory),
+                  // Desktop has no pull-to-refresh.
+                  Obx(
+                    () => FloatingRefreshButton(
+                      key: const ValueKey('area-rooms-refresh'),
+                      loading: controller.loadding.value,
+                      onPressed: controller.refreshData,
+                    ),
+                  ),
+                ],
+              )
+            : FavoriteAreaFloatingButton(area: widget.subCategory),
       ),
     );
   }

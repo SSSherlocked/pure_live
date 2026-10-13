@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/areas/category_artwork.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
@@ -8,20 +6,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pure_live/shared/platforms/cc/cc_catalog.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 
-/// Keeps the fixed category grid tall enough for both one-line labels when
-/// accessibility text scaling is enabled.
-///
-/// The image remains square. Only the details section grows; otherwise a
-/// three-column 320 px layout gives [ListTile] 72 px even when its two text
-/// lines need more than 100 px at a 3x scale.
-double areaCardGridMainAxisExtent(BuildContext context, double itemWidth) {
-  final scaler = MediaQuery.textScalerOf(context);
-  final titleStyle = AppText.of(context).secondary;
-  final subtitleStyle = AppText.of(context).tag;
-  final titleHeight = scaler.scale(titleStyle.fontSize ?? 12) * (titleStyle.height ?? 1.25);
-  final subtitleHeight = scaler.scale(subtitleStyle.fontSize ?? 11) * (subtitleStyle.height ?? 1.25);
-  final detailsHeight = math.max(72.0, titleHeight + subtitleHeight + 32);
-  return itemWidth + detailsHeight;
+/// Side of a category icon, like Simple Live's directory.
+const double areaIconSize = 40;
+
+/// The category grid: as many cells as fit, each at most 84 px wide, an icon
+/// above a one-line name. The row grows with the text scale.
+SliverGridDelegate areaCardGridDelegate(BuildContext context) {
+  final style = AppText.of(context).secondary;
+  final line = MediaQuery.textScalerOf(context).scale(style.fontSize ?? 12) * (style.height ?? 1.3);
+  return SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 84,
+    mainAxisSpacing: 4,
+    crossAxisSpacing: 4,
+    mainAxisExtent: 8 + areaIconSize + 6 + line + 8,
+  );
 }
 
 class AreaCard extends StatefulWidget {
@@ -40,13 +38,15 @@ class _AreaCardState extends State<AreaCard> {
     return AreaPicMapper.getPic(widget.category.areaName);
   }
 
+  Widget _fallbackIcon(BuildContext context) =>
+      Icon(Icons.live_tv_rounded, size: 24, color: Theme.of(context).colorScheme.onSurfaceVariant);
+
   Widget _buildNetworkImage(String imageUrl) {
     return Obx(() {
       final epoch = SettingsService.to.cache.imageCacheEpoch.value;
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final logicalWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : 160.0;
-          final cacheWidth = (logicalWidth * MediaQuery.devicePixelRatioOf(context)).round().clamp(160, 512).toInt();
+      return Builder(
+        builder: (context) {
+          final cacheWidth = (areaIconSize * MediaQuery.devicePixelRatioOf(context)).round();
           return CachedNetworkImage(
             cacheKey: epoch == 0 ? imageUrl : '$imageUrl#$epoch',
             imageUrl: imageUrl,
@@ -60,16 +60,8 @@ class _AreaCardState extends State<AreaCard> {
             fadeInDuration: Duration.zero,
             fadeOutDuration: Duration.zero,
             useOldImageOnUrlChange: true,
-            placeholder: (context, url) => ColoredBox(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
-              child: Center(
-                child: Icon(Icons.live_tv_rounded, color: Theme.of(context).disabledColor.withValues(alpha: 0.3)),
-              ),
-            ),
-            errorWidget: (context, url, error) => ColoredBox(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
-              child: Center(child: Icon(Icons.broken_image_rounded, color: Theme.of(context).disabledColor)),
-            ),
+            placeholder: (context, url) => _fallbackIcon(context),
+            errorWidget: (context, url, error) => _fallbackIcon(context),
           );
         },
       );
@@ -82,64 +74,59 @@ class _AreaCardState extends State<AreaCard> {
     final officialEntry = CCCatalog.isOfficialEntry(widget.category);
     final rawName = widget.category.areaName?.trim() ?? '';
     final displayName = rawName.isEmpty ? i18n('unnamed_area') : rawName;
-    final rawTypeName = widget.category.typeName?.trim() ?? '';
-    final displayTypeName = rawTypeName.isEmpty ? i18n('no_data') : rawTypeName;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(15.0),
-        onTap: () {
-          if (widget.category.platform == Sites.iptvSite) {
-            var roomItem = LiveRoom(
-              roomId: widget.category.areaId,
-              title: widget.category.typeName,
-              cover: '',
-              nick: widget.category.areaName,
-              watching: '',
-              avatar: 'https://img95.699pic.com/xsj/0q/x6/7p.jpg%21/fw/700/watermark/url/L3hzai93YXRlcl9kZXRhaWwyLnBuZw/align/southeast',
-              area: '',
-              liveStatus: LiveStatus.live,
-              status: true,
-              platform: 'iptv',
-            );
-            AppNavigator.toLiveRoomDetail(liveRoom: roomItem);
-          } else {
-            AppNavigator.toCategoryDetail(site: Sites.of(widget.category.platform!), category: widget.category);
-          }
-        },
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () {
+        if (widget.category.platform == Sites.iptvSite) {
+          var roomItem = LiveRoom(
+            roomId: widget.category.areaId,
+            title: widget.category.typeName,
+            cover: '',
+            nick: widget.category.areaName,
+            watching: '',
+            avatar: 'https://img95.699pic.com/xsj/0q/x6/7p.jpg%21/fw/700/watermark/url/L3hzai93YXRlcl9kZXRhaWwyLnBuZw/align/southeast',
+            area: '',
+            liveStatus: LiveStatus.live,
+            status: true,
+            platform: 'iptv',
+          );
+          AppNavigator.toLiveRoomDetail(liveRoom: roomItem);
+        } else {
+          AppNavigator.toCategoryDetail(site: Sites.of(widget.category.platform!), category: widget.category);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AspectRatio(
-              aspectRatio: 1.0,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: ColoredBox(
-                  color: Colors.white,
-                  child: displayImageUrl.isNotEmpty
-                      ? _buildNetworkImage(displayImageUrl)
-                      : const Icon(Icons.live_tv_rounded, color: Colors.black, size: 38),
-                ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox.square(
+                dimension: areaIconSize,
+                child: displayImageUrl.isNotEmpty ? _buildNetworkImage(displayImageUrl) : _fallbackIcon(context),
               ),
             ),
-            ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-              title: Text(
-                displayName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(
-                officialEntry ? i18n('open_in_system_browser') : displayTypeName,
-                style: AppText.of(context).tag.copyWith(fontWeight: FontWeight.w500),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: officialEntry ? const Icon(Icons.open_in_new_rounded, size: 16) : null,
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: AppText.of(context).secondary,
+                  ),
+                ),
+                // Opens the platform's page in the browser, not a room list.
+                if (officialEntry) ...[
+                  const SizedBox(width: 2),
+                  Icon(Icons.open_in_new_rounded, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ],
+              ],
             ),
           ],
         ),

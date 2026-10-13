@@ -34,12 +34,12 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
   );
 
   /// Width a card gets in the 关注 grid: the fixed width when set, otherwise
-  /// the automatic column width for this window (or a typical phone/desktop
-  /// window when previewing the other device class).
+  /// the automatic column width for this window (or a typical narrow/wide
+  /// window when previewing the other layout).
   double _previewCardWidth(BuildContext context, RoomCardSettingsController controller) {
     final width = _viewport == controller.currentViewport
         ? MediaQuery.sizeOf(context).width
-        : (_viewport == RoomCardViewport.mobile ? 390.0 : 1280.0);
+        : (_viewport == RoomCardViewport.narrow ? 390.0 : 1280.0);
     final sizing = resolveRoomGridSizing(
       width: width,
       autoColumns: roomGridAutoColumns(width, dense: SettingsService.to.app.enableDenseFavorites.v),
@@ -81,8 +81,8 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _targetChip(RoomCardViewport.mobile, Remix.smartphone_line, i18n('room_card_mobile')),
-                  _targetChip(RoomCardViewport.desktop, Remix.computer_line, i18n('room_card_desktop')),
+                  _targetChip(RoomCardViewport.narrow, Remix.smartphone_line, i18n('room_card_narrow')),
+                  _targetChip(RoomCardViewport.wide, Remix.computer_line, i18n('room_card_wide')),
                 ],
               ),
             ),

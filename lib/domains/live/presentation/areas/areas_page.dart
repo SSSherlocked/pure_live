@@ -19,27 +19,12 @@ class AreasPage extends GetView<AreasController> {
 
           return Scaffold(
             appBar: HomeAppBar(
-              title: Row(
-                children: [
-                  Expanded(
-                    child: ScrollableTabBar(
-                      key: const ValueKey('areas-platform-tabs'),
-                      controller: controller.tabController,
-                      isScrollable: true,
-                      physics: const PureLiveBoundedScrollPhysics(),
-                      tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
-                    ),
-                  ),
-                  // The desktop layout is not refreshed by pulling the list
-                  // down; this reloads the platform's categories on screen.
-                  if (AppLayout.of(context).pagedLists)
-                    IconButton(
-                      key: const ValueKey('areas-refresh'),
-                      tooltip: i18n('refresh'),
-                      onPressed: controller.refreshCurrentData,
-                      icon: const Icon(Icons.refresh_rounded),
-                    ),
-                ],
+              title: ScrollableTabBar(
+                key: const ValueKey('areas-platform-tabs'),
+                controller: controller.tabController,
+                isScrollable: true,
+                physics: const PureLiveBoundedScrollPhysics(),
+                tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
               ),
             ),
             body: TabBarView(
@@ -51,46 +36,65 @@ class AreasPage extends GetView<AreasController> {
               children: availableSitesList.map((e) => AreaGridView(e.id)).toList(),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-            floatingActionButton: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15), width: 1),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => Get.toNamed(RoutePath.kFavoriteAreas),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Remix.heart_add_2_line, size: 16, color: Theme.of(context).colorScheme.primary),
-                          const SizedBox(width: 8),
-                          Text(
-                            i18n("favorite_areas"),
-                            style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
+            floatingActionButton: AppLayout.of(context).pagedLists
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _favoriteAreasButton(context),
+                      const SizedBox(height: 12),
+                      // Desktop has no pull-to-refresh: this reloads the
+                      // platform's categories on screen.
+                      FloatingRefreshButton(
+                        key: const ValueKey('areas-refresh'),
+                        onPressed: controller.refreshCurrentData,
                       ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+                    ],
+                  )
+                : _favoriteAreasButton(context),
           );
         });
       },
+    );
+  }
+
+  Widget _favoriteAreasButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15), width: 1),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Get.toNamed(RoutePath.kFavoriteAreas),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Remix.heart_add_2_line, size: 16, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    i18n("favorite_areas"),
+                    style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700).copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -7,9 +7,9 @@ import 'package:window_manager/window_manager.dart';
 ///
 /// The window uses a hidden title bar with full-size content, so Flutter draws
 /// under the close/minimise/zoom buttons. Treating that strip like a system
-/// inset (the way a phone's status bar is) lets every app bar, navigation rail
-/// and player bar extend its background behind the buttons while its controls
-/// start below them.
+/// inset (the way a phone's status bar is) lets every app bar and player bar
+/// extend its background behind the buttons while its controls start below
+/// them.
 const double macOSWindowButtonInset = 28;
 
 /// Reports the window-button strip to the subtree as top padding.

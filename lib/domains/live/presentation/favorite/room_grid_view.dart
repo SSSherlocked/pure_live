@@ -7,7 +7,8 @@ import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
 
 /// Pull-to-refresh belongs to every layout except paged lists (wide + pointer):
-/// a touch tablet keeps it, a desktop window keeps its page bar.
+/// a touch tablet keeps it, while the desktop layout reloads from the page's
+/// floating refresh button.
 @visibleForTesting
 bool shouldWrapFavoritePullToRefresh(AppLayout layout) => !layout.pagedLists;
 

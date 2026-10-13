@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 
-enum RoomCardViewport { mobile, desktop }
+/// Which layout a set of room-card settings applies to: the narrow (phone)
+/// layout or the wide one ([AppLayout.wide]).
+enum RoomCardViewport { narrow, wide }
 
 enum RoomCardPlatformBadgeMode { automatic, always, hidden }
 
@@ -248,16 +250,16 @@ class RoomCardAppearance {
 
 class RoomCardSettingsController extends GetxController {
   RoomCardSettingsController()
-    : mobilePreset = hiveString('room_card_mobile_preset', defaultPresetFor(RoomCardViewport.mobile).storageKey),
-      desktopPreset = hiveString('room_card_desktop_preset', RoomCardPreset.standard.storageKey),
-      mobileConfig = hiveObject<RoomCardAppearance>(
+    : narrowPreset = hiveString('room_card_mobile_preset', defaultPresetFor(RoomCardViewport.narrow).storageKey),
+      widePreset = hiveString('room_card_desktop_preset', RoomCardPreset.standard.storageKey),
+      narrowConfig = hiveObject<RoomCardAppearance>(
         'room_card_mobile_config',
         _storedPresetFallback('room_card_mobile_preset'),
         fromJson: (json) =>
             RoomCardAppearance.fromJson(json, fallback: _storedPresetFallback('room_card_mobile_preset')),
         toJson: (value) => value.toJson(),
       ),
-      desktopConfig = hiveObject<RoomCardAppearance>(
+      wideConfig = hiveObject<RoomCardAppearance>(
         'room_card_desktop_config',
         _storedPresetFallback('room_card_desktop_preset'),
         fromJson: (json) =>
@@ -267,16 +269,16 @@ class RoomCardSettingsController extends GetxController {
 
   static RoomCardSettingsController get to => Get.find<RoomCardSettingsController>();
 
-  final RxString mobilePreset;
-  final RxString desktopPreset;
-  final Rx<RoomCardAppearance> mobileConfig;
-  final Rx<RoomCardAppearance> desktopConfig;
+  final RxString narrowPreset;
+  final RxString widePreset;
+  final Rx<RoomCardAppearance> narrowConfig;
+  final Rx<RoomCardAppearance> wideConfig;
 
   /// Fixed card width for room grids, per viewport. 0 keeps the automatic
   /// layout (columns by window width, cards stretch to fill); a width keeps
   /// every card that size and fits as many columns as the window allows.
-  final RxDouble mobileCardWidth = hiveDouble('room_card_mobile_width', autoCardWidth);
-  final RxDouble desktopCardWidth = hiveDouble('room_card_desktop_width', autoCardWidth);
+  final RxDouble narrowCardWidth = hiveDouble('room_card_mobile_width', autoCardWidth);
+  final RxDouble wideCardWidth = hiveDouble('room_card_desktop_width', autoCardWidth);
 
   static const double autoCardWidth = 0;
   static const double minCardWidth = 140;
@@ -289,19 +291,19 @@ class RoomCardSettingsController extends GetxController {
   }
 
   RxDouble cardWidthRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.mobile ? mobileCardWidth : desktopCardWidth;
+    return viewport == RoomCardViewport.narrow ? narrowCardWidth : wideCardWidth;
   }
 
   double cardWidthFor(RoomCardViewport viewport) => normalizeCardWidth(cardWidthRxFor(viewport).v);
 
-  /// The fixed card width for this device, or 0 for automatic.
+  /// The fixed card width for the current layout, or 0 for automatic.
   double get currentCardWidth => cardWidthFor(currentViewport);
 
   /// Columns per row when the card width is not fixed, per viewport. 0 keeps
   /// the automatic count (by window width); a count keeps that many columns
   /// and the cards stretch to fill the row.
-  final RxInt mobileColumns = hiveInt('room_card_mobile_columns', autoColumns);
-  final RxInt desktopColumns = hiveInt('room_card_desktop_columns', autoColumns);
+  final RxInt narrowColumns = hiveInt('room_card_mobile_columns', autoColumns);
+  final RxInt wideColumns = hiveInt('room_card_desktop_columns', autoColumns);
 
   static const int autoColumns = 0;
   static const int maxColumns = 8;
@@ -310,12 +312,12 @@ class RoomCardSettingsController extends GetxController {
       value.isFinite ? value.round().clamp(autoColumns, maxColumns).toInt() : autoColumns;
 
   RxInt columnsRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.mobile ? mobileColumns : desktopColumns;
+    return viewport == RoomCardViewport.narrow ? narrowColumns : wideColumns;
   }
 
   int columnsFor(RoomCardViewport viewport) => normalizeColumns(columnsRxFor(viewport).v);
 
-  /// The chosen column count for this device, or 0 for automatic.
+  /// The chosen column count for the current layout, or 0 for automatic.
   int get currentColumns => columnsFor(currentViewport);
 
   /// Whether the home 关注 page shows its platform tab bar; without it the
@@ -336,15 +338,16 @@ class RoomCardSettingsController extends GetxController {
     );
   }
 
-  /// Phones default to the compact rows; desktops to cover cards.
+  /// The narrow layout defaults to the compact rows; the wide one to cover
+  /// cards.
   static RoomCardPreset defaultPresetFor(RoomCardViewport viewport) =>
-      viewport == RoomCardViewport.mobile ? RoomCardPreset.compact : RoomCardPreset.standard;
+      viewport == RoomCardViewport.narrow ? RoomCardPreset.compact : RoomCardPreset.standard;
 
   static RoomCardAppearance _storedPresetFallback(String key) {
     final stored = HivePrefUtil.getString(key);
     if (stored == null || stored.trim().isEmpty) {
       return RoomCardAppearance.fromPreset(
-        defaultPresetFor(key == 'room_card_mobile_preset' ? RoomCardViewport.mobile : RoomCardViewport.desktop),
+        defaultPresetFor(key == 'room_card_mobile_preset' ? RoomCardViewport.narrow : RoomCardViewport.wide),
       );
     }
     return RoomCardAppearance.fromPreset(normalizePreset(stored));
@@ -353,11 +356,11 @@ class RoomCardSettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _repairTarget(RoomCardViewport.mobile);
-    _repairTarget(RoomCardViewport.desktop);
+    _repairTarget(RoomCardViewport.narrow);
+    _repairTarget(RoomCardViewport.wide);
     _workers.addAll([
-      ever<String>(mobilePreset, (_) => _repairPreset(RoomCardViewport.mobile)),
-      ever<String>(desktopPreset, (_) => _repairPreset(RoomCardViewport.desktop)),
+      ever<String>(narrowPreset, (_) => _repairPreset(RoomCardViewport.narrow)),
+      ever<String>(widePreset, (_) => _repairPreset(RoomCardViewport.wide)),
     ]);
   }
 
@@ -370,15 +373,17 @@ class RoomCardSettingsController extends GetxController {
     super.onClose();
   }
 
-  /// The phone layout uses the phone preset, the wide layout the desktop one.
-  RoomCardViewport get currentViewport => AppLayout.current.wide ? RoomCardViewport.desktop : RoomCardViewport.mobile;
+  /// The narrow (phone) layout uses the narrow settings, the wide layout the
+  /// wide ones. Hive and backup keys keep their historical mobile/desktop
+  /// names so existing settings and backups still load.
+  RoomCardViewport get currentViewport => AppLayout.current.wide ? RoomCardViewport.wide : RoomCardViewport.narrow;
 
   Rx<RoomCardAppearance> configRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.mobile ? mobileConfig : desktopConfig;
+    return viewport == RoomCardViewport.narrow ? narrowConfig : wideConfig;
   }
 
   RxString presetRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.mobile ? mobilePreset : desktopPreset;
+    return viewport == RoomCardViewport.narrow ? narrowPreset : widePreset;
   }
 
   RoomCardAppearance configFor(RoomCardViewport viewport) => configRxFor(viewport).value;
@@ -428,14 +433,14 @@ class RoomCardSettingsController extends GetxController {
 
   Map<String, dynamic> toJson() {
     return {
-      'mobilePreset': presetFor(RoomCardViewport.mobile).storageKey,
-      'desktopPreset': presetFor(RoomCardViewport.desktop).storageKey,
-      'mobileConfig': configFor(RoomCardViewport.mobile).toJson(),
-      'desktopConfig': configFor(RoomCardViewport.desktop).toJson(),
-      'mobileCardWidth': cardWidthFor(RoomCardViewport.mobile),
-      'desktopCardWidth': cardWidthFor(RoomCardViewport.desktop),
-      'mobileColumns': columnsFor(RoomCardViewport.mobile),
-      'desktopColumns': columnsFor(RoomCardViewport.desktop),
+      'mobilePreset': presetFor(RoomCardViewport.narrow).storageKey,
+      'desktopPreset': presetFor(RoomCardViewport.wide).storageKey,
+      'mobileConfig': configFor(RoomCardViewport.narrow).toJson(),
+      'desktopConfig': configFor(RoomCardViewport.wide).toJson(),
+      'mobileCardWidth': cardWidthFor(RoomCardViewport.narrow),
+      'desktopCardWidth': cardWidthFor(RoomCardViewport.wide),
+      'mobileColumns': columnsFor(RoomCardViewport.narrow),
+      'desktopColumns': columnsFor(RoomCardViewport.wide),
       'showFavoritePlatformTabs': showFavoritePlatformTabs.v,
       'favoriteSortMode': favoriteSortMode.name,
     };
@@ -443,25 +448,25 @@ class RoomCardSettingsController extends GetxController {
 
   static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
     final source = json['roomCard'] is Map ? Map<String, dynamic>.from(json['roomCard'] as Map) : json;
-    final mobilePreset = normalizePreset(_readString(source, 'mobilePreset', legacyKey: 'room_card_mobile_preset'));
-    final desktopPreset = normalizePreset(_readString(source, 'desktopPreset', legacyKey: 'room_card_desktop_preset'));
-    final mobileJson = _readConfigMap(source, 'mobileConfig', legacyKey: 'room_card_mobile_config');
-    final desktopJson = _readConfigMap(source, 'desktopConfig', legacyKey: 'room_card_desktop_config');
-    final mobile = mobileJson == null
-        ? RoomCardAppearance.fromPreset(mobilePreset)
-        : RoomCardAppearance.fromJson(mobileJson, fallback: RoomCardAppearance.fromPreset(mobilePreset), strict: true);
-    final desktop = desktopJson == null
-        ? RoomCardAppearance.fromPreset(desktopPreset)
+    final narrowPreset = normalizePreset(_readString(source, 'mobilePreset', legacyKey: 'room_card_mobile_preset'));
+    final widePreset = normalizePreset(_readString(source, 'desktopPreset', legacyKey: 'room_card_desktop_preset'));
+    final narrowJson = _readConfigMap(source, 'mobileConfig', legacyKey: 'room_card_mobile_config');
+    final wideJson = _readConfigMap(source, 'desktopConfig', legacyKey: 'room_card_desktop_config');
+    final narrow = narrowJson == null
+        ? RoomCardAppearance.fromPreset(narrowPreset)
+        : RoomCardAppearance.fromJson(narrowJson, fallback: RoomCardAppearance.fromPreset(narrowPreset), strict: true);
+    final wide = wideJson == null
+        ? RoomCardAppearance.fromPreset(widePreset)
         : RoomCardAppearance.fromJson(
-            desktopJson,
-            fallback: RoomCardAppearance.fromPreset(desktopPreset),
+            wideJson,
+            fallback: RoomCardAppearance.fromPreset(widePreset),
             strict: true,
           );
     return {
-      'mobilePreset': _matchingPreset(mobile).storageKey,
-      'desktopPreset': _matchingPreset(desktop).storageKey,
-      'mobileConfig': mobile,
-      'desktopConfig': desktop,
+      'mobilePreset': _matchingPreset(narrow).storageKey,
+      'desktopPreset': _matchingPreset(wide).storageKey,
+      'mobileConfig': narrow,
+      'desktopConfig': wide,
       'mobileCardWidth': _readCardWidth(source, 'mobileCardWidth'),
       'desktopCardWidth': _readCardWidth(source, 'desktopCardWidth'),
       'mobileColumns': _readColumns(source, 'mobileColumns'),
@@ -508,14 +513,14 @@ class RoomCardSettingsController extends GetxController {
 
   void fromJson(Map<String, dynamic> json) {
     final parsed = parseConfig(json);
-    mobileConfig.value = parsed['mobileConfig'] as RoomCardAppearance;
-    desktopConfig.value = parsed['desktopConfig'] as RoomCardAppearance;
-    mobilePreset.v = parsed['mobilePreset'] as String;
-    desktopPreset.v = parsed['desktopPreset'] as String;
-    mobileCardWidth.v = parsed['mobileCardWidth'] as double;
-    desktopCardWidth.v = parsed['desktopCardWidth'] as double;
-    mobileColumns.v = parsed['mobileColumns'] as int;
-    desktopColumns.v = parsed['desktopColumns'] as int;
+    narrowConfig.value = parsed['mobileConfig'] as RoomCardAppearance;
+    wideConfig.value = parsed['desktopConfig'] as RoomCardAppearance;
+    narrowPreset.v = parsed['mobilePreset'] as String;
+    widePreset.v = parsed['desktopPreset'] as String;
+    narrowCardWidth.v = parsed['mobileCardWidth'] as double;
+    wideCardWidth.v = parsed['desktopCardWidth'] as double;
+    narrowColumns.v = parsed['mobileColumns'] as int;
+    wideColumns.v = parsed['desktopColumns'] as int;
     showFavoritePlatformTabs.v = parsed['showFavoritePlatformTabs'] as bool;
     favoriteSortModeName.v = parsed['favoriteSortMode'] as String;
   }

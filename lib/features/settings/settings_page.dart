@@ -44,7 +44,7 @@ class SettingsPage extends GetView<SettingsService> {
         physics: const PureLiveScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
-          // One flat list: no group headings. Theme, navigation, refresh and
+          // One flat list: no group headings. Theme, the home menu, refresh and
           // the network proxy live inside 通用; 播放器内核 inside 视频; 备份与恢复
           // inside 数据管理与备份.
           context.buildModernCard([

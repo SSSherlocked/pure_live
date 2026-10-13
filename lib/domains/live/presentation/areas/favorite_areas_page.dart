@@ -1,6 +1,5 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 import 'package:pure_live/domains/live/presentation/areas/area_card.dart';
 import 'package:pure_live/domains/live/presentation/areas/favorite_areas_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
@@ -11,23 +10,16 @@ class FavoriteAreasPage extends GetView<FavoriteAreasController> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraint) {
-        final width = constraint.maxWidth;
-        final crossAxisCount = width > 1280 ? 9 : (width > 960 ? 7 : (width > 640 ? 5 : 3));
-        return Scaffold(
-          appBar: AppBar(title: Text(i18n("favorite_areas"))),
-          body: Obx(() {
-            final sites = Sites().availableSites(containsAll: true).toList(growable: false);
-            return _FavoriteAreaSiteTabs(
-              key: ValueKey(sites.map((site) => site.id).join('|')),
-              controller: controller,
-              sites: sites,
-              crossAxisCount: crossAxisCount,
-            );
-          }),
+    return Scaffold(
+      appBar: AppBar(title: Text(i18n("favorite_areas"))),
+      body: Obx(() {
+        final sites = Sites().availableSites(containsAll: true).toList(growable: false);
+        return _FavoriteAreaSiteTabs(
+          key: ValueKey(sites.map((site) => site.id).join('|')),
+          controller: controller,
+          sites: sites,
         );
-      },
+      }),
     );
   }
 }
@@ -44,11 +36,10 @@ int resolveFavoriteAreaSiteIndex({
 }
 
 class _FavoriteAreaSiteTabs extends StatefulWidget {
-  const _FavoriteAreaSiteTabs({super.key, required this.controller, required this.sites, required this.crossAxisCount});
+  const _FavoriteAreaSiteTabs({super.key, required this.controller, required this.sites});
 
   final FavoriteAreasController controller;
   final List<Site> sites;
-  final int crossAxisCount;
 
   @override
   State<_FavoriteAreaSiteTabs> createState() => _FavoriteAreaSiteTabsState();
@@ -108,7 +99,7 @@ class _FavoriteAreaSiteTabsState extends State<_FavoriteAreaSiteTabs> with Singl
             controller: _tabController,
             physics: const PureLiveBoundedScrollPhysics(),
             children: widget.sites
-                .map((site) => _buildTabView(context, widget.controller, widget.crossAxisCount, site.id))
+                .map((site) => _buildTabView(context, widget.controller, site.id))
                 .toList(growable: false),
           ),
         ),
@@ -116,22 +107,17 @@ class _FavoriteAreaSiteTabsState extends State<_FavoriteAreaSiteTabs> with Singl
     );
   }
 
-  Widget _buildTabView(BuildContext context, FavoriteAreasController controller, int crossAxisCount, String siteId) {
+  Widget _buildTabView(BuildContext context, FavoriteAreasController controller, String siteId) {
     return Obx(() {
       final areas = siteId == Sites.allSite
           ? controller.favoriteAreas.toList(growable: false)
           : controller.favoriteAreas.where((area) => area.platform == siteId).toList(growable: false);
       return areas.isNotEmpty
-          ? WaterfallFlow.builder(
+          ? GridView.builder(
               key: PageStorageKey('favorite_areas_$siteId'),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               physics: const PureLiveScrollPhysics(),
-              gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                lastChildLayoutTypeBuilder: (index) => LastChildLayoutType.none,
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: SettingsService.to.theme.crossAxisSpacing.v,
-                mainAxisSpacing: SettingsService.to.theme.mainAxisSpacing.v,
-              ),
+              gridDelegate: areaCardGridDelegate(context),
               itemCount: areas.length,
               itemBuilder: (context, index) {
                 final area = areas[index];

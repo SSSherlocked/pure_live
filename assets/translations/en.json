@@ -924,8 +924,6 @@
   "room_card_settings": "Room Card Settings",
   "room_card_settings_subtitle": "Card layout, width, corners, content and grid spacing",
   "room_card_target": "Apply to",
-  "room_card_mobile": "Mobile",
-  "room_card_desktop": "Desktop",
   "room_card_preview": "Live preview",
   "room_card_preview_title": "Live room preview",
   "room_card_preview_anchor": "Preview anchor",
@@ -951,7 +949,7 @@
   "room_card_corner_radius": "Corner radius",
   "room_card_corner_radius_subtitle": "Adjust the card and cover corner radius",
   "room_card_reset_current": "Reset current layout",
-  "room_card_settings_scope_hint": "Mobile and desktop settings are stored independently. Status verification and history delete controls remain visible when required.",
+  "room_card_settings_scope_hint": "Narrow and wide layout settings are stored independently. Status verification and history delete controls remain visible when required.",
   "cross_axis_spacing": "Horizontal Spacing",
   "cross_axis_spacing_subtitle": "Adjust the gap between items in the same row",
   "main_axis_spacing": "Vertical Spacing",
@@ -1845,5 +1843,7 @@
   "room_text_opacity": "Room text brightness",
   "room_text_opacity_subtitle": "Applies to text inside the live room only",
   "menu_entry_visible_subtitle": "Show in the top-right menu",
-  "record_settings_desc": "Quality, storage folder, reconnect and polling"
+  "record_settings_desc": "Quality, storage folder, reconnect and polling",
+  "room_card_narrow": "Narrow",
+  "room_card_wide": "Wide"
 }

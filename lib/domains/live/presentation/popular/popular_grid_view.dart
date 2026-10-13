@@ -18,6 +18,8 @@ class PopularGridView extends StatelessWidget {
         final autoColumns = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
         return BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
+          // Desktop's floating refresh sits under the scroll buttons.
+          wideBottomPadding: AppLayout.of(context).pagedLists ? FloatingRefreshButton.clearance : null,
           emptyBuilder: (c) => AppStatusView(
             type: AppStatusType.empty,
             icon: RemixIcons.fire_fill,

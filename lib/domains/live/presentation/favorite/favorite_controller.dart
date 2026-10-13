@@ -57,7 +57,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   /// construction separate from snapshot ownership and persistence.
   LiveSite createRoomRefreshSite(String platform) => Sites.of(platform).liveSite;
 
-  /// Keeps the favourites platform rail focused on platforms that actually
+  /// Keeps the favourites platform tabs focused on platforms that actually
   /// have saved rooms. The aggregate tab remains available for an empty list
   /// and for cross-platform browsing.
   List<Site> get availableFavoriteSites => favoriteSitesForRooms(FavoriteRoomController.to.favoriteRooms.v);

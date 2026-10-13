@@ -180,6 +180,11 @@ class _MultiviewPageState extends State<MultiviewPage> {
     _advanceTarget(target);
   }
 
+  /// The wide multiview: the room picker sits in a side panel next to the
+  /// grid instead of opening as a sheet. It follows the app's layout, with a
+  /// [width] check so a forced wide layout on a narrow screen keeps the sheet.
+  bool _isWide(double width) => AppLayout.of(context).wide && width > _wideBreakpoint;
+
   void _openPickerFor(int cellIndex, {required bool isWide}) {
     setState(() => _targetCell = cellIndex);
     if (isWide) return;
@@ -200,10 +205,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
   }
 
   void _showCellActions(MultiviewCellState state) {
-    final isWide =
-        AppLayout.of(context).pointer &&
-        MediaQuery.sizeOf(context).width > _wideBreakpoint &&
-        _displayMode == _DisplayMode.normal;
+    final isWide = _displayMode == _DisplayMode.normal && _isWide(MediaQuery.sizeOf(context).width);
     final hasQuality =
         state.status == MultiviewCellStatus.playing && state.qualities.isNotEmpty && state.qualityLoader != null;
     showModalBottomSheet<void>(
@@ -271,10 +273,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
   void _retryCell(MultiviewCellState state) {
     final room = state.room;
     if (room == null) {
-      _openPickerFor(
-        state.index,
-        isWide: AppLayout.of(context).pointer && MediaQuery.sizeOf(context).width > _wideBreakpoint,
-      );
+      _openPickerFor(state.index, isWide: _isWide(MediaQuery.sizeOf(context).width));
       return;
     }
     unawaited(controller.assignRoom(state.index, room));
@@ -325,7 +324,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
           ),
           body: LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = AppLayout.of(context).pointer && constraints.maxWidth > _wideBreakpoint;
+              final isWide = _isWide(constraints.maxWidth);
               return Column(
                 children: [
                   _buildToolbar(),

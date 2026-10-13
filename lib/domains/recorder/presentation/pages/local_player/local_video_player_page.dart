@@ -1249,10 +1249,10 @@ class _FileRow extends StatelessWidget {
         Offset.zero & overlay.size,
       ),
       items: [
-        PopupMenuItem(value: 'play', child: _menuRow(Icons.play_arrow_rounded, i18n('recorder_play_video'))),
-        PopupMenuItem(value: 'open_dir', child: _menuRow(Icons.folder_open_rounded, i18n('recorder_open_task_folder'))),
-        PopupMenuItem(value: 'rename', child: _menuRow(Icons.edit_rounded, i18n('local_player_rename'))),
-        PopupMenuItem(value: 'delete', child: _menuRow(Icons.delete_outline_rounded, i18n('local_player_delete'))),
+        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'play', child: _menuRow(Icons.play_arrow_rounded, i18n('recorder_play_video'))),
+        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'open_dir', child: _menuRow(Icons.folder_open_rounded, i18n('recorder_open_task_folder'))),
+        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'rename', child: _menuRow(Icons.edit_rounded, i18n('local_player_rename'))),
+        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'delete', child: _menuRow(Icons.delete_outline_rounded, i18n('local_player_delete'))),
       ],
     );
     if (action == null || !context.mounted) return;

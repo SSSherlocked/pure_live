@@ -268,7 +268,7 @@ class _SearchOptions extends StatelessWidget {
                       onSelected: controller.setSortMode,
                       itemBuilder: (context) => [
                         for (final mode in LiveSearchSortMode.values)
-                          PopupMenuItem(value: mode, child: Text(_sortLabel(mode))),
+                          PopupMenuItem(height: kFloatingMenuItemHeight, value: mode, child: Text(_sortLabel(mode))),
                       ],
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(

@@ -8,7 +8,7 @@ import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 
 /// The panel style of the home page's two menus.
 const MenuStyle homeMenuStyle = MenuStyle(
-  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 8)),
+  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
   shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14)))),
 );
 

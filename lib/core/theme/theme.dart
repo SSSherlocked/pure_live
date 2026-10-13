@@ -1,4 +1,11 @@
 import 'package:pure_live/core/index.dart';
+
+/// Height of a floating menu entry (popup menus, the home and player menus):
+/// 75 % of the 48 px Material default, which read as too airy.
+const double kFloatingMenuItemHeight = 36;
+
+/// Top and bottom padding of a floating menu panel (75 % of the default 8).
+const double kFloatingMenuVerticalPadding = 6;
 import 'package:pure_live/core/platform/platform_utils.dart';
 
 const PageTransitionsTheme appPageTransitionsTheme = PageTransitionsTheme(
@@ -200,24 +207,29 @@ class MyTheme {
         backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainer,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       ),
-      // Black menus over a black page need an edge to read as a layer.
-      menuTheme: pureBlack
-          ? MenuThemeData(
-              style: MenuStyle(
-                backgroundColor: const WidgetStatePropertyAll(Colors.black),
-                side: WidgetStatePropertyAll(BorderSide(color: baseTheme.colorScheme.outlineVariant)),
-              ),
-            )
-          : null,
-      popupMenuTheme: pureBlack
-          ? PopupMenuThemeData(
-              color: Colors.black,
-              shape: RoundedRectangleBorder(
+      // Floating menus run at 75 % of the Material spacing (entries and
+      // panel padding). Black menus over a black page also need an edge to
+      // read as a layer.
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
+          backgroundColor: pureBlack ? const WidgetStatePropertyAll(Colors.black) : null,
+          side: pureBlack ? WidgetStatePropertyAll(BorderSide(color: baseTheme.colorScheme.outlineVariant)) : null,
+        ),
+      ),
+      menuButtonTheme: const MenuButtonThemeData(
+        style: ButtonStyle(minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight))),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        menuPadding: const EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding),
+        color: pureBlack ? Colors.black : null,
+        shape: pureBlack
+            ? RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(color: baseTheme.colorScheme.outlineVariant),
-              ),
-            )
-          : null,
+              )
+            : null,
+      ),
       dialogTheme: DialogThemeData(
         elevation: 0,
         backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainerHigh,

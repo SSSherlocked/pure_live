@@ -74,7 +74,7 @@ class LineSelector extends StatelessWidget {
           return List.generate(state.player.lineCount, (index) {
             final isSelected = index == currentIndex;
 
-            return PopupMenuItem<int>(
+            return PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
               value: index,
               // Centred in the width of the longest entry; the current one bold
               // in the primary colour.

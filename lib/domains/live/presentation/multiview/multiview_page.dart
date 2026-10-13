@@ -1005,7 +1005,7 @@ class _MultiviewCellView extends StatelessWidget {
       ),
       itemBuilder: (context) => [
         for (var i = 0; i < state.qualities.length; i++)
-          PopupMenuItem<int>(
+          PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
             value: i,
             child: Text(
               state.qualities[i].quality,

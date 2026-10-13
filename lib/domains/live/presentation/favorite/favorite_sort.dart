@@ -58,7 +58,7 @@ List<PopupMenuEntry<FavoriteSortMode>> _sortItems(BuildContext context) {
   final current = SettingsService.to.roomCard.favoriteSortMode;
   return [
     for (final mode in FavoriteSortMode.values)
-      PopupMenuItem<FavoriteSortMode>(
+      PopupMenuItem<FavoriteSortMode>(height: kFloatingMenuItemHeight, 
         value: mode,
         child: Text(
           _labelOf(mode),

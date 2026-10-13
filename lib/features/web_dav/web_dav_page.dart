@@ -295,15 +295,15 @@ class _WebDavPageState extends State<WebDavPage> {
             }
           },
           itemBuilder: (BuildContext context) => [
-            PopupMenuItem(
+            PopupMenuItem(height: kFloatingMenuItemHeight, 
               value: 1,
               child: MenuListTile(leading: const Icon(Icons.refresh), text: i18n("webdav_refresh")),
             ),
-            PopupMenuItem(
+            PopupMenuItem(height: kFloatingMenuItemHeight, 
               value: 2,
               child: MenuListTile(leading: const Icon(Icons.menu), text: i18n("webdav_open_config_list")),
             ),
-            PopupMenuItem(
+            PopupMenuItem(height: kFloatingMenuItemHeight, 
               value: 3,
               child: MenuListTile(leading: const Icon(Remix.question_line), text: i18n("webdav_help_tutorial")),
             ),
@@ -536,8 +536,8 @@ class _WebDavPageState extends State<WebDavPage> {
           ),
           itemBuilder: (context) => [
             if (file.isDir != true)
-              PopupMenuItem(value: 'RestoreAll', child: Text(i18n("webdav_restore_all_settings"))),
-            PopupMenuItem(value: 'Delete', child: Text(i18n("webdav_delete"))),
+              PopupMenuItem(height: kFloatingMenuItemHeight, value: 'RestoreAll', child: Text(i18n("webdav_restore_all_settings"))),
+            PopupMenuItem(height: kFloatingMenuItemHeight, value: 'Delete', child: Text(i18n("webdav_delete"))),
           ],
           onSelected: (value) {
             if (value == 'RestoreAll') {

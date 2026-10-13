@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pure_live/core/theme/theme.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 
 /// Width of a player submenu whose labels are not given.
@@ -61,7 +62,7 @@ class LeftSubmenuButton extends StatelessWidget {
       alignmentOffset: Offset(-width, 0),
       menuStyle: const MenuStyle(
         alignment: AlignmentDirectional.topStart,
-        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 8)),
+        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
       ),
       // The offset above assumes this exact width. MenuStyle's minimum size
       // does not reach a submenu panel, which shrank to its labels and left a

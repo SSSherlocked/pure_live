@@ -196,7 +196,7 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
   }
 
   PopupMenuItem<int> _item({required int value, required IconData icon, required String text, Color? iconColor}) {
-    return PopupMenuItem<int>(
+    return PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
       value: value,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: MenuListTile(leading: Icon(icon, size: 20, color: iconColor), text: text),

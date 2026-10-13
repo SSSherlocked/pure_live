@@ -226,13 +226,15 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     // One column of avatar rows at every width: no covers, the same list in
     // the side panel and in the fullscreen panel.
     const padding = 10.0;
-    const spacing = 8.0;
     return Builder(
       builder: (context) {
         return Obx(() {
           final current = widget.controller.state.value.room.detail;
           // Rows are the compact room card's height, under the same settings.
           final dense = SettingsService.to.app.enableDenseFavorites.v;
+          // The gap between rows is 房间卡片设置's row spacing, as on the home
+          // 关注 page, so the two lists never disagree.
+          final spacing = SettingsService.to.theme.mainAxisSpacing.v;
           final rowExtent = RoomCardLayoutMetrics.compactHeight(
             appearance: SettingsService.to.roomCard.resolve().copyWith(layout: RoomCardLayout.compact),
             dense: dense,

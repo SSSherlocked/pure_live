@@ -147,7 +147,6 @@ class DanmakuSettingsController extends GetxController {
   int get effectiveMaxVisibleCount =>
       danmakuMassMode.v || danmakuAutoMaxVisible.v ? massModeMaxVisibleCount : danmakuMaxVisibleCount.v;
 
-  final RxDouble danmakuLetterSpacing = hiveDouble('danmakuLetterSpacing', 0.0);
   final RxInt danmakuFps = hiveInt('danmakuFps', defaultDanmakuFps);
   final RxBool danmakuAutoFps = hiveBool('danmakuAutoFps', defaultDanmakuAutoFps);
   final RxBool enableDanmakuTapInteraction = hiveBool('enableDanmakuTapInteraction', true);
@@ -198,7 +197,6 @@ class DanmakuSettingsController extends GetxController {
       fallback: defaultChatListNameFontWeight,
     );
     danmakuFontBorder.v = _boundedDouble(danmakuFontBorder.v, fallback: defaultDanmakuFontBorder, min: 0, max: 4);
-    danmakuLetterSpacing.v = _boundedDouble(danmakuLetterSpacing.v, fallback: 0.0, min: -2, max: 8);
     danmakuOpacity.v = _boundedDouble(danmakuOpacity.v, fallback: defaultDanmakuOpacity, min: 0, max: 1);
     danmakuFps.v = _boundedInt(danmakuFps.v, fallback: defaultDanmakuFps, min: 30, max: 240);
     danmakuSimilarityThreshold.v = danmakuSimilarityThreshold.v.clamp(50, 100).toInt();
@@ -263,7 +261,6 @@ class DanmakuSettingsController extends GetxController {
       'danmakuFontSize': danmakuFontSize.v,
       'danmakuFontWeight': danmakuFontWeight.v,
       'danmakuFontBorder': danmakuFontBorder.v,
-      'danmakuLetterSpacing': danmakuLetterSpacing.v,
       'danmakuRealtimeMode': danmakuMassMode.v,
       'danmakuAutoMaxVisible': danmakuAutoMaxVisible.v,
       'danmakuOpacity': danmakuOpacity.v,
@@ -335,9 +332,6 @@ class DanmakuSettingsController extends GetxController {
       'danmakuFontBorder': typed<double>(
         _boundedDouble(json['danmakuFontBorder'], fallback: defaultDanmakuFontBorder, min: 0, max: 4),
       ),
-      'danmakuLetterSpacing': typed<double>(
-        _boundedDouble(json['danmakuLetterSpacing'], fallback: 0.0, min: -2, max: 8),
-      ),
       'danmakuRealtimeMode': typed<bool>(json['danmakuRealtimeMode'] ?? false),
       'danmakuAutoMaxVisible': typed<bool>(json['danmakuAutoMaxVisible'] ?? true),
       'danmakuOpacity': typed<double>(
@@ -401,7 +395,6 @@ class DanmakuSettingsController extends GetxController {
     danmakuFontSize.v = parsed['danmakuFontSize'];
     danmakuFontWeight.v = parsed['danmakuFontWeight'];
     danmakuFontBorder.v = parsed['danmakuFontBorder'];
-    danmakuLetterSpacing.v = parsed['danmakuLetterSpacing'];
     danmakuMassMode.v = parsed['danmakuRealtimeMode'];
     danmakuAutoMaxVisible.v = parsed['danmakuAutoMaxVisible'];
     danmakuOpacity.v = parsed['danmakuOpacity'];
@@ -475,7 +468,6 @@ class DanmakuSettingsController extends GetxController {
         max: 4,
       ),
       'danmakuOpacity': _boundedDouble(danmaku['danmakuOpacity'], fallback: defaultDanmakuOpacity, min: 0, max: 1),
-      'danmakuLetterSpacing': _boundedDouble(danmaku['danmakuLetterSpacing'], fallback: 0.0, min: -2, max: 8),
       'danmakuRealtimeMode': danmaku['danmakuRealtimeMode'] ?? false,
       'danmakuAutoMaxVisible': danmaku['danmakuAutoMaxVisible'] ?? true,
       'danmakuFontFamilyName': danmaku['danmakuFontFamilyName'] ?? 'Default',

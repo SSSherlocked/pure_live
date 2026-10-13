@@ -714,9 +714,6 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   RxBool get danmakuMassMode => _danmakuSettings.danmakuMassMode;
 
   @override
-  RxDouble get danmakuLetterSpacing => _danmakuSettings.danmakuLetterSpacing;
-
-  @override
   RxInt get danmakuMaxVisibleCount => _danmakuSettings.danmakuMaxVisibleCount;
 
   @override

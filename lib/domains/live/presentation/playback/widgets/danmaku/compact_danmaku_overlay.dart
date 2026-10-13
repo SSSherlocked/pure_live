@@ -104,7 +104,6 @@ class CompactDanmakuOverlay extends StatelessWidget {
                   fontSize: metrics.fontSize,
                   fontWeight: FontWeight(typography.fontWeight),
                   fontFamily: typography.fontFamily,
-                  letterSpacing: settings.danmakuLetterSpacing.value * metrics.scale,
                   area: area,
                   topAreaDistance: topAreaDistance,
                   bottomAreaDistance: bottomAreaDistance,

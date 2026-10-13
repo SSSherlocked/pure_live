@@ -1234,7 +1234,6 @@ BarrageConfig _buildBarrageConfig({required bool isVerticalVideo}) {
     baseSpeed: settings.danmakuSpeed.v,
     opacity: settings.danmakuOpacity.v,
     fontWeight: FontWeight(settings.danmakuFontWeight.v),
-    letterSpacing: settings.danmakuLetterSpacing.v,
     strokeWidth: settings.danmakuFontBorder.v,
     showStroke: settings.enableDanmakuStroke.v,
     noEmojiMode: settings.noEmojiMode.v,

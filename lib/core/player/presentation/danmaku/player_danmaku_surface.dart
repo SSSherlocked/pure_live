@@ -82,7 +82,6 @@ class PlayerDanmakuSurface extends StatelessWidget {
           baseSpeed: settings.danmakuSpeed.value * speedScale,
           opacity: settings.danmakuOpacity.value,
           fontWeight: FontWeight(settings.danmakuFontWeight.value),
-          letterSpacing: settings.danmakuLetterSpacing.value,
           strokeWidth: settings.danmakuFontBorder.value,
           showStroke: settings.enableDanmakuStroke.value,
           noEmojiMode: settings.noEmojiMode.value,

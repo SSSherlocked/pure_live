@@ -46,8 +46,6 @@ abstract interface class DanmakuSettingsSource {
 
   RxBool get danmakuMassMode;
 
-  RxDouble get danmakuLetterSpacing;
-
   RxInt get danmakuMaxVisibleCount;
 
   RxBool get danmakuAutoMaxVisible;
@@ -106,9 +104,6 @@ class SettingsDanmakuSource implements DanmakuSettingsSource {
 
   @override
   RxBool get danmakuMassMode => _settings.danmakuMassMode;
-
-  @override
-  RxDouble get danmakuLetterSpacing => _settings.danmakuLetterSpacing;
 
   @override
   RxInt get danmakuMaxVisibleCount => _settings.danmakuMaxVisibleCount;

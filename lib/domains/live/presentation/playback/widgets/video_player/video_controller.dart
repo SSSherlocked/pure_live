@@ -89,7 +89,6 @@ class DanmakuManager {
     videoController.danmakuFontWeight.value = dm.danmakuFontWeight.v;
     videoController.danmakuFontBorder.value = dm.danmakuFontBorder.v;
     videoController.danmakuMassMode.value = dm.danmakuMassMode.v;
-    videoController.danmakuLetterSpacing.value = dm.danmakuLetterSpacing.v;
     videoController.danmakuOpacity.value = dm.danmakuOpacity.v;
     videoController.enableDanmakuStroke.value = dm.enableDanmakuStroke.v;
     videoController.danmakuFps.value = dm.danmakuFps.v;
@@ -110,7 +109,6 @@ class DanmakuManager {
       videoController.danmakuFontSize,
       videoController.danmakuFontWeight,
       videoController.danmakuFontBorder,
-      videoController.danmakuLetterSpacing,
       videoController.danmakuMassMode,
       videoController.danmakuOpacity,
       videoController.enableDanmakuStroke,
@@ -179,7 +177,6 @@ class DanmakuManager {
     dm.danmakuFontSize.v = videoController.danmakuFontSize.value;
     dm.danmakuFontWeight.v = videoController.danmakuFontWeight.value;
     dm.danmakuFontBorder.v = videoController.danmakuFontBorder.value.toDouble();
-    dm.danmakuLetterSpacing.v = videoController.danmakuLetterSpacing.value;
     dm.danmakuMassMode.v = videoController.danmakuMassMode.value;
     dm.danmakuOpacity.v = videoController.danmakuOpacity.value;
     dm.enableDanmakuStroke.v = videoController.enableDanmakuStroke.value;
@@ -425,8 +422,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   final danmakuFontBorder = 1.5.obs;
   @override
   final danmakuMassMode = false.obs;
-  @override
-  final danmakuLetterSpacing = 0.0.obs;
   @override
   final danmakuOpacity = 1.0.obs;
   @override

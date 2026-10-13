@@ -377,18 +377,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),
-              _slider(
-                theme,
-                title: i18n("danmaku_letter_spacing"),
-                value: controller.danmakuLetterSpacing.value,
-                min: -2,
-                max: 8,
-                display: '${controller.danmakuLetterSpacing.value.toStringAsFixed(1)} px',
-                semanticValueBuilder: (value) => '${value.toStringAsFixed(1)} px',
-                onChanged: (v) => controller.danmakuLetterSpacing.value = v,
-                labelColor: labelColor,
-                digitColor: digitColor,
-              ),
               _switch(
                 theme,
                 title: i18n("danmaku_mass_mode"),

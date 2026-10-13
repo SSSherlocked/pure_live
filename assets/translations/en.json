@@ -496,7 +496,6 @@
   "speed": "Scroll speed (pixels/second)",
   "danmaku_mass_mode": "Mass mode",
   "danmaku_mass_mode_subtitle": "Messages appear on arrival with no queue or count cap (Max on-screen danmaku stops applying); busy rooms get very dense",
-  "danmaku_letter_spacing": "Letter spacing",
   "pip_danmaku_scale_auto": "Compact danmaku auto scale",
   "pip_danmaku_scale_auto_subtitle": "Shrink danmaku with the picture-in-picture window width, never larger than the main danmaku; turn off to use a fixed factor",
   "pip_danmaku_scale": "Compact danmaku scale",

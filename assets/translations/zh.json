@@ -498,7 +498,6 @@
   "speed": "滚动速度（像素/秒）",
   "danmaku_mass_mode": "海量模式",
   "danmaku_mass_mode_subtitle": "弹幕到达即上屏，不排队也不限条数（「同屏最大弹幕条数」不生效），繁忙房间会很密",
-  "danmaku_letter_spacing": "文字间距",
   "pip_danmaku_scale_auto": "小窗弹幕比例自动",
   "pip_danmaku_scale_auto_subtitle": "开启后按画中画窗口宽度自动缩小弹幕，最大不超过主弹幕大小；关闭后使用下方固定比例",
   "pip_danmaku_scale": "小窗弹幕比例",

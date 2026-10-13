@@ -4,7 +4,7 @@ import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 
-/// A choice a home page adds at the top of the top-right menu, such as the
+/// A choice a home page adds at the end of the top-right menu, such as the
 /// 关注 page's 排序: a submenu of [choices] opening to the left, like the
 /// player's submenus, the [selected] one bold in the primary colour.
 class HomePageMenuAction {
@@ -25,8 +25,8 @@ class HomePageMenuAction {
   final ValueChanged<int> onSelected;
 }
 
-/// The home page's top-right menu: the page's own [pageAction], then 搜索直播,
-/// 分区 and 热门 (each unless hidden in 设置 › 菜单) and 历史记录. The rest
+/// The home page's top-right menu: 搜索, 分区 and 热门 (each unless hidden in
+/// 设置 › 菜单), 历史 and, after a divider, the page's own [pageAction]. The rest
 /// is in the top-left menu ([MenuButton]).
 class CommonAppBarActions extends StatelessWidget {
   const CommonAppBarActions({super.key, this.pageAction});
@@ -46,27 +46,6 @@ class CommonAppBarActions extends StatelessWidget {
           style: homeMenuStyle,
           alignmentOffset: const Offset(0, 4),
           menuChildren: [
-            if (action != null) ...[
-              LeftSubmenuButton(
-                key: const ValueKey('home-page-menu-action'),
-                leadingIcon: homeMenuIcon(context, action.icon),
-                labels: action.choices,
-                menuChildren: [
-                  for (final (index, choice) in action.choices.indexed)
-                    Obx(
-                      () => PlayerMenuChoice(
-                        key: ValueKey('home-page-menu-choice-$index'),
-                        label: choice,
-                        labels: action.choices,
-                        selected: action.selected() == index,
-                        onPressed: () => action.onSelected(index),
-                      ),
-                    ),
-                ],
-                child: Text(action.label, style: AppText.of(context).listPrimary),
-              ),
-              const Divider(height: 16),
-            ],
             homeMenuItem(
               context,
               icon: Remix.search_line,
@@ -97,6 +76,27 @@ class CommonAppBarActions extends StatelessWidget {
               arrowColumn: arrowColumn,
               onPressed: () => Get.toNamed(RoutePath.kHistory),
             ),
+            if (action != null) ...[
+              const Divider(height: 16),
+              LeftSubmenuButton(
+                key: const ValueKey('home-page-menu-action'),
+                leadingIcon: homeMenuIcon(context, action.icon),
+                labels: action.choices,
+                menuChildren: [
+                  for (final (index, choice) in action.choices.indexed)
+                    Obx(
+                      () => PlayerMenuChoice(
+                        key: ValueKey('home-page-menu-choice-$index'),
+                        label: choice,
+                        labels: action.choices,
+                        selected: action.selected() == index,
+                        onPressed: () => action.onSelected(index),
+                      ),
+                    ),
+                ],
+                child: Text(action.label, style: AppText.of(context).listPrimary),
+              ),
+            ],
           ],
           builder: (context, menu, _) => homeMenuToggle(
             menu,

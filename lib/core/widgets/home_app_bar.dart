@@ -25,7 +25,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
   final bool centerTitle;
 
-  /// The page's own entry at the top of the top-right menu.
+  /// The page's own entry at the end of the top-right menu.
   final HomePageMenuAction? pageAction;
 
   @override

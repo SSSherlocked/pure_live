@@ -56,7 +56,7 @@ abstract final class MediaKitLiveProperties {
       'demuxer-lavf-probesize': '1048576',
       'demuxer-lavf-analyzeduration': '1',
       // A connection that hangs fails over to the next line within the
-      // 8 s source-ready window (see LivePlayerFacade), not after 15 s.
+      // 10 s source-ready window (see LivePlayerFacade), not after 15 s.
       'network-timeout': '8',
       // Drop a failing hw decoder after one bad frame.
       'hwdec-software-fallback': '1',

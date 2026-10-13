@@ -50,11 +50,11 @@ final class LivePlayerFacade {
     // resolver could act on, since a refreshed plan is rebuilt from the room.
     _controller = LivePlaybackController(
       kernel,
-      // A line that opens but never starts is dropped after 8 s instead of the
-      // package's 18 s. A fresh player (the first room after start, or after
+      // A line that opens but never starts is dropped after 10 s instead of
+      // the package's 18 s. A fresh player (the first room after start, or after
       // the 45 s idle release) verifies each line before showing it, so a dead
       // CDN node held the first room black, and silent, for the full window.
-      watchdogs: LiveWatchdogs(sourceReadyTimeout: const Duration(seconds: 8)),
+      watchdogs: LiveWatchdogs(sourceReadyTimeout: const Duration(seconds: 10)),
       onRecoverySources: _refreshSources,
       onEngineFallbackSources: (nextEngine, current) => _refreshSources(current),
     );

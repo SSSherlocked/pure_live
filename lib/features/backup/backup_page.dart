@@ -218,6 +218,13 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             );
           }),
 
+          context.buildTile(
+            icon: Remix.file_list_3_line,
+            title: i18n("view_logs_in_app"),
+            subtitle: i18n("view_logs_in_app_desc"),
+            isLong: true,
+            onTap: () => Get.toNamed(RoutePath.kLogs),
+          ),
           if (Platform.isAndroid)
             context.buildTile(
               icon: RemixIcons.share_forward_line,

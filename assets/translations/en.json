@@ -1843,5 +1843,10 @@
   "super_chat_pinned": "Keep super chats",
   "super_chat_pinned_subtitle": "The super chat list keeps every super chat until you leave the room",
   "super_chat_countdown": "Normal countdown",
-  "super_chat_countdown_subtitle": "Each super chat leaves the list when its countdown ends"
+  "super_chat_countdown_subtitle": "Each super chat leaves the list when its countdown ends",
+  "view_logs_in_app": "View log",
+  "view_logs_in_app_desc": "This run's log, to copy or share",
+  "log_page_title": "Log",
+  "log_empty": "No log entries yet",
+  "log_share_failed": "Sharing the log failed"
 }

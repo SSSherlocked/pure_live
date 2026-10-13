@@ -52,6 +52,9 @@ class LogController extends GetxService {
       }
       unawaited(_setLoggingEnabled(value));
     });
+    // The kernel's (mpv) lines join the in-app log whether or not a file is
+    // being written.
+    _startKernelLogPump();
     // Nothing is running yet: a switch left on resumes logging now, and a
     // failure to do so turns the switch off again (the usual failure path).
     if (storedEnableLog.v) unawaited(_setLoggingEnabled(true));
@@ -90,17 +93,17 @@ class LogController extends GetxService {
   Future<bool> _applyStatusTarget(bool enabled) async {
     final previous = _lastConfirmedEnabled;
     try {
-      if (!await _applyLogStatus(enabled)) return _recordFailure(previous);
-      _commitVerifiedState(enabled);
-      if (enabled) {
-        _startKernelLogPump();
-      } else {
-        _stopKernelLogPump();
-        _clearRuntimeEndpoint();
+      if (!await _applyLogStatus(enabled)) {
+        Log.addDebugLog('Local log file could not be ${enabled ? 'enabled' : 'disabled'}', Colors.red);
+        return _recordFailure(previous);
       }
+      _commitVerifiedState(enabled);
+      if (!enabled) _clearRuntimeEndpoint();
       if (!isClosed) _logStatusKey.v = '';
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      final action = enabled ? 'enabled' : 'disabled';
+      Log.addDebugLog('Local log file could not be $action: $error\n$stackTrace', Colors.red);
       return _recordFailure(previous);
     }
   }

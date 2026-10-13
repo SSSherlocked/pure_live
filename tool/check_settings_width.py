@@ -29,6 +29,7 @@ SETTINGS_FILES = (
     'lib/domains/account/presentation/account/account_page.dart',
     'lib/domains/live/presentation/hot_areas/hot_areas_page.dart',
     'lib/domains/iptv/presentation/iptv_page.dart',
+    'lib/features/backup/log_page.dart',
 )
 # Scaffolds that are not a settings body, with the reason.
 ALLOWED = {

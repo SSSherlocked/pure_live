@@ -1843,5 +1843,10 @@
   "super_chat_pinned": "留言板常驻",
   "super_chat_pinned_subtitle": "留言列表永久保留每条 SC，直到离开直播间",
   "super_chat_countdown": "正常倒计时",
-  "super_chat_countdown_subtitle": "每条 SC 倒计时结束后从留言列表移除"
+  "super_chat_countdown_subtitle": "每条 SC 倒计时结束后从留言列表移除",
+  "view_logs_in_app": "查看日志",
+  "view_logs_in_app_desc": "本次运行的日志，可复制或分享",
+  "log_page_title": "日志",
+  "log_empty": "暂无日志",
+  "log_share_failed": "分享日志失败"
 }

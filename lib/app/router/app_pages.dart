@@ -6,6 +6,7 @@ import 'package:pure_live/features/about/about_page.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_page.dart';
 import 'package:pure_live/domains/live/presentation/search/search_page.dart';
 import 'package:pure_live/features/settings/pages/cache_data_settings_page.dart';
+import 'package:pure_live/features/backup/log_page.dart';
 import 'package:pure_live/features/web_dav/web_dav_page.dart';
 import 'package:pure_live/features/toolbox/toolbox_page.dart';
 import 'package:pure_live/domains/account/presentation/account/account_page.dart';
@@ -53,6 +54,7 @@ class AppPages {
     GetPage(name: RoutePath.kHistory, page: _smoothPage(HistoryPage.new)),
     GetPage(name: RoutePath.kSearch, page: _smoothPage(SearchPage.new), bindings: [SearchBinding()]),
     GetPage(name: RoutePath.kBackup, page: _smoothPage(CacheDataSettingsPage.new)),
+    GetPage(name: RoutePath.kLogs, page: _smoothPage(LogPage.new)),
     GetPage(name: RoutePath.kIptv, page: _smoothPage(IptvPage.new)),
     GetPage(name: RoutePath.kAbout, page: _smoothPage(AboutPage.new)),
     GetPage(

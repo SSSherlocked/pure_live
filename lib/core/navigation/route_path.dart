@@ -21,6 +21,7 @@ class RoutePath {
   static const kSettings = "/settings";
 
   static const kBackup = "/backup";
+  static const kLogs = "/logs";
   static const kRemoteSync = "/remote_sync";
 
   static const kAbout = "/about";

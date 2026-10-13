@@ -7,7 +7,6 @@ import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/config/log_controller.dart';
@@ -15,7 +14,6 @@ import 'package:pure_live/core/config/log_controller.dart';
 enum LogBrowserRequestAction { page, clear, methodNotAllowed, forbidden, notFound }
 
 class Log {
-  static final DateFormat _timeFormat = DateFormat('HH:mm:ss');
   static const int maxDebugEntries = 2000;
   static const String browserClearActionHeader = 'X-PureLive-Log-Action';
   static const Map<String, String> browserSecurityHeaders = {
@@ -33,15 +31,30 @@ class Log {
   static int _statusGeneration = 0;
   static List<DebugLogModel> get allLogs => List<DebugLogModel>.unmodifiable(_allLogs);
 
+  static String _two(int value) => value.toString().padLeft(2, '0');
+
+  /// `HH:mm:ss`, formatted by hand: intl's DateFormat needs the locale data
+  /// easy_localization loads when its widget mounts, and a DateFormat built
+  /// before that (logging resumed at launch) threw and switched logging off.
+  static String formatLogTime(DateTime time) => '${_two(time.hour)}:${_two(time.minute)}:${_two(time.second)}';
+
+  /// `yyyy-MM-dd_HH-mm-ss`, for file names.
+  static String fileTimestamp(DateTime time) =>
+      '${time.year}-${_two(time.month)}-${_two(time.day)}_${_two(time.hour)}-${_two(time.minute)}-${_two(time.second)}';
+
+  /// Every buffered entry as text, one line per entry, for copying or sharing.
+  static String exportText() {
+    final buffer = StringBuffer();
+    for (final entry in _allLogs) {
+      buffer.writeln('${formatLogTime(entry.datetime)}  ${entry.content}');
+    }
+    return buffer.toString();
+  }
+
   @visibleForTesting
   static InternetAddress get logServerBindAddress => InternetAddress.loopbackIPv4;
 
   static bool get _localLoggingEnabled => Get.isRegistered<LogController>() && LogController.to.enableLog;
-
-  @visibleForTesting
-  static bool shouldBufferRuntimeLog({required bool releaseMode, required bool localLoggingEnabled}) {
-    return !releaseMode || localLoggingEnabled;
-  }
 
   @visibleForTesting
   static LogBrowserRequestAction classifyBrowserRequest({
@@ -73,7 +86,7 @@ class Log {
     final DebugPrintCallback original = debugPrint;
     debugPrint = (String? message, {int? wrapWidth}) {
       original(message, wrapWidth: wrapWidth);
-      if (message == null || !_localLoggingEnabled) return;
+      if (message == null) return;
       addDebugLog(message);
       writeLog(message, Level.debug);
     };
@@ -212,7 +225,7 @@ class Log {
         ? '<tr><td class="empty-state" colspan="2">No logs in this session.</td></tr>'
         : _allLogs
               .map((log) {
-                final timeStr = _timeFormat.format(log.datetime);
+                final timeStr = formatLogTime(log.datetime);
                 String typeClass = 'info';
                 if (log.color == Colors.red) {
                   typeClass = 'error';
@@ -472,9 +485,7 @@ class Log {
 
   static void d(String message) {
     final localLoggingEnabled = _localLoggingEnabled;
-    if (shouldBufferRuntimeLog(releaseMode: kReleaseMode, localLoggingEnabled: localLoggingEnabled)) {
-      addDebugLog(message, Colors.orange);
-    }
+    addDebugLog(message, Colors.orange);
     if (!kReleaseMode) {
       logger.d(message);
     }
@@ -483,9 +494,7 @@ class Log {
 
   static void i(String message) {
     final localLoggingEnabled = _localLoggingEnabled;
-    if (shouldBufferRuntimeLog(releaseMode: kReleaseMode, localLoggingEnabled: localLoggingEnabled)) {
-      addDebugLog(message, Colors.blue);
-    }
+    addDebugLog(message, Colors.blue);
     if (!kReleaseMode) {
       logger.i(message);
     }
@@ -494,9 +503,7 @@ class Log {
 
   static void e(String message, StackTrace stackTrace) {
     final localLoggingEnabled = _localLoggingEnabled;
-    if (shouldBufferRuntimeLog(releaseMode: kReleaseMode, localLoggingEnabled: localLoggingEnabled)) {
-      addDebugLog('$message\r\n\r\n$stackTrace', Colors.red);
-    }
+    addDebugLog('$message\r\n\r\n$stackTrace', Colors.red);
     if (!kReleaseMode) {
       logger.e(message, stackTrace: stackTrace);
     }
@@ -505,9 +512,7 @@ class Log {
 
   static void w(String message) {
     final localLoggingEnabled = _localLoggingEnabled;
-    if (shouldBufferRuntimeLog(releaseMode: kReleaseMode, localLoggingEnabled: localLoggingEnabled)) {
-      addDebugLog(message, Colors.pink);
-    }
+    addDebugLog(message, Colors.pink);
     if (!kReleaseMode) {
       logger.w(message);
     }
@@ -517,9 +522,7 @@ class Log {
   static void logPrint(dynamic obj) {
     final String content = obj.toString();
     final localLoggingEnabled = _localLoggingEnabled;
-    if (shouldBufferRuntimeLog(releaseMode: kReleaseMode, localLoggingEnabled: localLoggingEnabled)) {
-      addDebugLog(content, Colors.red);
-    }
+    addDebugLog(content, Colors.red);
     if (!kReleaseMode) {
       if (kDebugMode) {
         print(content);
@@ -528,7 +531,7 @@ class Log {
     if (localLoggingEnabled) writeLog(content, Level.info);
   }
 
-  static String get _currentTime => _timeFormat.format(DateTime.now());
+  static String get _currentTime => formatLogTime(DateTime.now());
 }
 
 class _NullOutput extends LogOutput {
@@ -537,7 +540,7 @@ class _NullOutput extends LogOutput {
 }
 
 class LogFileWriter {
-  late final String _fileName;
+  final String _fileName;
   RandomAccessFile? _file;
   bool _isInitialized = false;
   // Lines wait here and reach the disk once a second, so the file stays
@@ -546,10 +549,7 @@ class LogFileWriter {
   Timer? _drainTimer;
   bool _draining = false;
 
-  LogFileWriter() {
-    var dt = DateFormat("yyyy-MM-dd_HH-mm-ss").format(DateTime.now());
-    _fileName = "$dt.log";
-  }
+  LogFileWriter() : _fileName = '${Log.fileTimestamp(DateTime.now())}.log';
 
   Future<bool> init() async {
     if (_isInitialized) return true;

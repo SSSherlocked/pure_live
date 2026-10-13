@@ -424,7 +424,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                                 onPressed: () => unawaited(
                                   VideoDetailsDialog.showPanel(context, controller.livePlayController),
                                 ),
-                                child: Text(i18n('video_details')),
+                                child: Text(i18n('video_details'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
                               ),
                           ],
                         ),

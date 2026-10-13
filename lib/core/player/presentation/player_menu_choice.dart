@@ -74,7 +74,10 @@ class PlayerMenuChoice extends StatelessWidget {
 /// (e.g. under `CompactText`).
 double playerMenuPanelWidth(BuildContext context, Iterable<String> labels) {
   final style = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
-  // 12 px entry padding either side, 18 + 2 + 18 px leading column, 12 px gap.
-  const chrome = 12 + 18 + 2 + 18 + 12 + 12;
+  // 12 px entry padding either side, 18 + 2 + 18 px leading column, 12 px gap,
+  // and the trailing slot a SubmenuButton keeps after its label even with its
+  // arrow drawn in front (画面比例 wrapped on phones without it), plus a
+  // little slack for font rounding.
+  const chrome = 12 + 18 + 2 + 18 + 12 + 12 + 16 + 4;
   return menuLabelWidth(context, labels, style) + chrome;
 }

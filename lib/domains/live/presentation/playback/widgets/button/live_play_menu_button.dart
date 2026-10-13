@@ -252,7 +252,7 @@ class _LiveRoomRecordMenuEntryState extends State<LiveRoomRecordMenuEntry> {
               },
             ),
         ],
-        child: Text(i18n(state.labelKey)),
+        child: Text(i18n(state.labelKey), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
       );
     });
   }

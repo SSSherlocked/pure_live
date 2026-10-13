@@ -24,9 +24,10 @@ TextStyle homeMenuTextStyle(BuildContext context) => AppText.of(context).body.co
 
 /// The icon of a home menu entry.
 Widget homeMenuIcon(BuildContext context, IconData icon, {Color? color}) =>
-    Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.primary);
+    // Grey, not the theme colour: only a status (a running recording) colours one.
+    Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.onSurfaceVariant);
 
-/// One entry of the home page's two menus: a primary-coloured icon and its
+/// One entry of the home page's two menus: a grey icon and its
 /// name, shared by [MenuButton], [CommonAppBarActions] and the room page's
 /// menu. A submenu entry's arrow hangs in the left padding, so plain entries
 /// need no slot for it.

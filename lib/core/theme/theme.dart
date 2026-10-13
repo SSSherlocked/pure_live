@@ -60,6 +60,22 @@ String? resolveAppFontFamily({
   return 'MI_Sans_Regular';
 }
 
+/// The colour scheme for the chosen theme colour [seed].
+///
+/// Material's default seeding (tonal spot) keeps only the seed's hue and
+/// re-saturates it: a grey, white or light grey seed - which has almost no
+/// hue - came out as a blue scheme, and muted colours such as brown drifted
+/// too. A near-neutral seed now gives a true grey scheme (monochrome), and
+/// any other seed a scheme whose primary stays close to it (fidelity).
+ColorScheme seededColorScheme(Color seed, Brightness brightness) {
+  final neutral = HSLColor.fromColor(seed).saturation < 0.12;
+  return ColorScheme.fromSeed(
+    seedColor: seed,
+    brightness: brightness,
+    dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
+  );
+}
+
 class MyTheme {
   final Color? primaryColor;
   final ColorScheme? colorScheme;
@@ -134,8 +150,7 @@ class MyTheme {
       useMaterial3: true,
       brightness: brightness,
       fontFamily: fontFamily,
-      colorSchemeSeed: primaryColor,
-      colorScheme: scheme,
+      colorScheme: scheme ?? (primaryColor == null ? null : seededColorScheme(primaryColor!, brightness)),
       textTheme: textTheme,
       primaryTextTheme: textTheme,
     );

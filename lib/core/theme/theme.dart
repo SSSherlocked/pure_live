@@ -216,8 +216,10 @@ class MyTheme {
       // Floating menus run at 75 % of the Material spacing (entries and
       // panel padding). Black menus over a black page also need an edge to
       // read as a layer.
+      // Floating menus are square-cornered panels.
       menuTheme: MenuThemeData(
         style: MenuStyle(
+          shape: const WidgetStatePropertyAll(RoundedRectangleBorder()),
           padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
           visualDensity: VisualDensity.standard,
           backgroundColor: pureBlack ? const WidgetStatePropertyAll(Colors.black) : null,
@@ -238,12 +240,9 @@ class MyTheme {
       popupMenuTheme: PopupMenuThemeData(
         menuPadding: const EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding),
         color: pureBlack ? Colors.black : null,
-        shape: pureBlack
-            ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: baseTheme.colorScheme.outlineVariant),
-              )
-            : null,
+        shape: RoundedRectangleBorder(
+          side: pureBlack ? BorderSide(color: baseTheme.colorScheme.outlineVariant) : BorderSide.none,
+        ),
       ),
       dialogTheme: DialogThemeData(
         elevation: 0,

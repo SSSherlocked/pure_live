@@ -973,7 +973,6 @@ class _MultiviewCellView extends StatelessWidget {
       key: const ValueKey('multiview-quality-selector'),
       tooltip: i18n('select_quality'),
       color: theme.colorScheme.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       offset: const Offset(0, 5),
       position: PopupMenuPosition.under,
       onSelected: onSelectQuality,

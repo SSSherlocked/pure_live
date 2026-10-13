@@ -28,7 +28,6 @@ class ResolutionSelector extends StatelessWidget {
         enabled: !switching,
         tooltip: i18n('toolbox_select_quality'),
         color: Get.theme.colorScheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         // As wide as the entries, not the 112 px default minimum.
         constraints: const BoxConstraints(),
         offset: const Offset(0.0, 5.0),

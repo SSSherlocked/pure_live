@@ -17,49 +17,45 @@ class FavoritePage extends GetView<FavoriteController> {
         return Obx(() {
           final availableSitesList = controller.availableFavoriteSites;
           final siteKey = ValueKey(availableSitesList.map((e) => e.id).join('|'));
-          // Desktop has no pull-to-refresh: its refresh ends the title.
+          // Desktop has no pull-to-refresh: a floating refresh button instead.
           final showRefresh = AppLayout.of(context).pagedLists;
 
           return Scaffold(
             appBar: HomeAppBar(
               pageAction: favoriteSortMenuAction(),
-              // Desktop's refresh is mirrored on the left so the status tabs
-              // stay centred on the whole bar, not on what is left of it.
-              title: Row(
-                children: [
-                  if (showRefresh) const SizedBox(width: kMinInteractiveDimension),
-                  Expanded(
-                    child: ScrollableTabBar(
-                      key: const ValueKey('favorite-status-tabs'),
-                      controller: controller.tabController,
-                      isScrollable: false,
-                      tabAlignment: TabAlignment.center,
-                      physics: const PureLiveBoundedScrollPhysics(),
-                      tabs: [
-                        Tab(text: i18n("online_room_title")),
-                        Tab(text: i18n("recording_room_title")),
-                        Tab(text: i18n("offline_room_title")),
-                      ],
-                    ),
-                  ),
-                  if (showRefresh)
-                    Obx(
-                      () => IconButton(
-                        key: const ValueKey('favorite-refresh'),
-                        tooltip: i18n('refresh'),
-                        onPressed: controller.loadding.value ? null : () => controller.refreshData(),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints.tightFor(
-                          width: kMinInteractiveDimension,
-                          height: kMinInteractiveDimension,
-                        ),
-                        icon: const Icon(Icons.refresh_rounded, size: 24),
-                      ),
-                    ),
+              title: ScrollableTabBar(
+                key: const ValueKey('favorite-status-tabs'),
+                controller: controller.tabController,
+                isScrollable: false,
+                tabAlignment: TabAlignment.center,
+                physics: const PureLiveBoundedScrollPhysics(),
+                tabs: [
+                  Tab(text: i18n("online_room_title")),
+                  Tab(text: i18n("recording_room_title")),
+                  Tab(text: i18n("offline_room_title")),
                 ],
               ),
             ),
             body: _FavoriteSiteTabs(key: siteKey, controller: controller, availableSitesList: availableSitesList),
+            floatingActionButton: showRefresh
+                ? Obx(() {
+                    final colors = Theme.of(context).colorScheme;
+                    final loading = controller.loadding.value;
+                    return FloatingActionButton(
+                      key: const ValueKey('favorite-refresh'),
+                      tooltip: i18n('refresh'),
+                      backgroundColor: colors.primary,
+                      foregroundColor: colors.onPrimary,
+                      onPressed: loading ? null : () => controller.refreshData(),
+                      child: loading
+                          ? SizedBox.square(
+                              dimension: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2.5, color: colors.onPrimary),
+                            )
+                          : const Icon(Icons.refresh_rounded),
+                    );
+                  })
+                : null,
           );
         });
       },
@@ -176,6 +172,10 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
         Expanded(
           child: BasePageView<FavoriteController, LiveRoom>(
             controller: controller,
+            // Desktop's floating refresh (56 px, 16 px from the edge) sits
+            // under the scroll buttons.
+            customDesktopBottomPadding: AppLayout.of(context).pagedLists ? 88 : null,
+            customMobileBottomPadding: AppLayout.of(context).pagedLists ? 88 : null,
             enableRefresh: true,
             enableLoadMore: true,
             wrapMobileRefresh: false,

@@ -39,7 +39,7 @@ on:
         type: boolean
         default: false
       version:
-        description: Version, e.g. 3.2.2 (empty keeps the pubspec version)
+        description: Version (empty keeps the pubspec version)
         required: false
         type: string
         default: ""

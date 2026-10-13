@@ -43,6 +43,12 @@ class PlayerKernelService {
           customInputOpener: openOwnedInputOnKernelPlayer,
           beforeOpen: (player, source) async {
             attachMpvLogForwarder(player);
+            // A plain URL replaces an owned input (a local relay) on the same
+            // player; nothing else would close that relay. An owned source
+            // closes its predecessor itself in the opener.
+            if (source.metadata[kMediaKitCustomInputKey] == null) {
+              await closeOwnedInputOnKernelPlayer(player);
+            }
             final initialVolume = OpenVolume.resolve(source);
             if (initialVolume != null) {
               try {

@@ -1,12 +1,8 @@
-import 'dart:io';
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
-import 'package:pure_live/core/platform/share_command_handler.dart';
-import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/room_timer_dialog.dart';
@@ -69,14 +65,6 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
         _getDirectLink(context);
         break;
 
-      case 6:
-        _shareRoom();
-        break;
-
-      case 8:
-        _openNewWindow();
-        break;
-
       case 9:
         unawaited(VideoDetailsDialog.show(context, controller));
         break;
@@ -127,35 +115,6 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
     );
   }
 
-  void _shareRoom() {
-    final detail = controller.state.value.room.detail;
-
-    if (detail == null) {
-      return;
-    }
-
-    ShareCommandHandler.instance.onShareRoomPressed(detail);
-  }
-
-  void _openNewWindow() {
-    final detail = controller.state.value.room.detail;
-
-    if (detail == null) {
-      return;
-    }
-
-    WindowsMultiInstanceLauncher.launch(liveroom: detail).catchError((Object error, StackTrace stackTrace) {
-      developer.log(
-        'Open live room in a new Windows instance failed',
-        name: 'LivePlayPage',
-        error: error,
-        stackTrace: stackTrace,
-      );
-
-      ToastUtil.show(i18n('open_new_window_failed'));
-    });
-  }
-
   List<Widget> _buildItems(BuildContext context) {
     Widget item(int value, IconData icon, String text, {Color? iconColor}) => homeMenuItem(
       context,
@@ -186,8 +145,6 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
       item(5, Remix.link_m, i18n('toolbox_get_direct_link')),
       item(0, Icons.open_in_new_rounded, i18n('open_live_room')),
       item(3, Remix.time_line, i18n('sleep_timer')),
-      item(6, RemixIcons.share_forward_line, i18n('share')),
-      if (Platform.isWindows) item(8, Icons.open_in_new_rounded, i18n('open_room_in_new_window')),
       // Always last.
       item(9, Remix.information_line, i18n('video_details')),
     ];

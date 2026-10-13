@@ -206,6 +206,12 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
       if (geometryChanged || _configAffectsOnScreenStyle(old, newConfig)) {
         _dataSystem.relayoutActive();
       }
+      // A new speed (the player going fullscreen scales it with the width)
+      // applies to the messages already crossing the screen too, so old and
+      // new ones never run at two speeds side by side.
+      if (old.baseSpeed > 0 && newConfig.baseSpeed > 0 && old.baseSpeed != newConfig.baseSpeed) {
+        _dataSystem.rescaleActiveSpeeds(newConfig.baseSpeed / old.baseSpeed);
+      }
     }
   }
 

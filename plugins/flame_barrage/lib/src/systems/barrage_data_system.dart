@@ -378,6 +378,17 @@ class BarrageDataSystem extends Component {
   /// The previous render artifact is handed back to the cache afterwards, so
   /// artifacts shared with other entries are never disposed out from under
   /// them.
+  /// Multiplies the speed of every scrolling message on screen by [ratio].
+  /// Fixed messages and motion-effect shows (speed 0, own choreography)
+  /// are left alone.
+  void rescaleActiveSpeeds(double ratio) {
+    if (!ratio.isFinite || ratio <= 0) return;
+    for (final entry in _ctx.activeEntries) {
+      if (entry.fx != null || entry.item.type != BarrageType.scroll || entry.speed <= 0) continue;
+      entry.speed *= ratio;
+    }
+  }
+
   void relayoutActive() {
     final entries = _ctx.activeEntries;
     if (entries.isEmpty) return;

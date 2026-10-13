@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
-import 'package:pure_live/core/models/live_room.dart';
 import 'package:pure_live/core/platform/multi_instance_settings_source.dart';
 
 /// and window state are never shared concurrently. An optional compact room
@@ -13,7 +12,6 @@ import 'package:pure_live/core/platform/multi_instance_settings_source.dart';
 /// and removes the temporary file after the configuration has been restored.
 class WindowsMultiInstanceLauncher {
   static const String instancePrefix = '--instance=';
-  static const String roomPrefix = '--open-room=';
   static const String configPrefix = '--config-file=';
 
   /// Produces one safe path component and mutex suffix from an external
@@ -62,56 +60,6 @@ class WindowsMultiInstanceLauncher {
     return normalized;
   }
 
-  static LiveRoom? roomFromArgs(List<String> args) {
-    final argument = args.where((item) => item.startsWith(roomPrefix)).firstOrNull;
-
-    if (argument == null) return null;
-
-    try {
-      final encoded = argument.substring(roomPrefix.length);
-      final normalized = base64Url.normalize(encoded);
-      final decoded = jsonDecode(utf8.decode(base64Url.decode(normalized)));
-
-      if (decoded is! Map) return null;
-
-      final room = LiveRoom.fromJson(Map<String, dynamic>.from(decoded));
-
-      final roomId = room.roomId?.trim() ?? '';
-      final platform = room.platform?.trim().toLowerCase() ?? '';
-
-      if (roomId.isEmpty || platform.isEmpty) return null;
-
-      return room.copyWith(roomId: roomId, platform: platform);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  static String encodeRoomArgument(LiveRoom liveroom) {
-    final payload = <String, dynamic>{
-      'roomId': liveroom.roomId,
-      'userId': liveroom.userId,
-      'title': liveroom.title,
-      'nick': liveroom.nick,
-      'avatar': liveroom.avatar,
-      'cover': liveroom.cover,
-      'area': liveroom.area,
-      'watching': liveroom.watching,
-      'audienceMetricType': liveroom.effectiveAudienceMetricType.name,
-      'popularity': liveroom.popularity,
-      'onlineViewers': liveroom.onlineViewers,
-      'totalViewers': liveroom.totalViewers,
-      'followers': liveroom.followers,
-      'platform': liveroom.platform,
-      'liveStatus': liveroom.effectiveLiveStatus.index,
-      'isRecord': liveroom.isRecord,
-      'status': liveroom.isLiveNow,
-    };
-
-    return '$roomPrefix'
-        '${base64Url.encode(utf8.encode(jsonEncode(payload))).replaceAll('=', '')}';
-  }
-
   static Future<File> _createConfigFile(String instanceId) async {
     final data = MultiInstanceSettingsSource.export(includeSensitiveData: true);
 
@@ -125,7 +73,6 @@ class WindowsMultiInstanceLauncher {
   }
 
   static List<String> buildArguments({
-    LiveRoom? liveroom,
     String? instanceId,
     String? configFile,
     int? processId,
@@ -139,11 +86,10 @@ class WindowsMultiInstanceLauncher {
     return <String>[
       '$instancePrefix$id',
       if (configFile != null) '$configPrefix$configFile',
-      if (liveroom != null) encodeRoomArgument(liveroom),
     ];
   }
 
-  static Future<void> launch({LiveRoom? liveroom}) async {
+  static Future<void> launch() async {
     if (!Platform.isWindows) return;
 
     final timestampMicros = DateTime.now().microsecondsSinceEpoch;
@@ -159,7 +105,7 @@ class WindowsMultiInstanceLauncher {
 
       await Process.start(
         executable,
-        buildArguments(liveroom: liveroom, instanceId: id, configFile: configFile.path),
+        buildArguments(instanceId: id, configFile: configFile.path),
         workingDirectory: p.dirname(executable),
         mode: ProcessStartMode.detached,
       );

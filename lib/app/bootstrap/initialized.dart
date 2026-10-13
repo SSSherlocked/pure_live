@@ -31,7 +31,6 @@ import 'package:pure_live/domains/recorder/data/services/live_input_playback_bin
 import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
-import 'package:pure_live/core/platform/initial_room_handoff.dart';
 import 'package:pure_live/core/config/migrations/settings_upgrade_migration.dart';
 
 /// Keep decoded cover/avatar memory bounded independently from the encoded
@@ -60,7 +59,6 @@ class AppInitializer {
     WidgetsFlutterBinding.ensureInitialized();
     configureDecodedImageCache(desktop: PlatformUtils.isDesktop);
     final String instanceId = WindowsMultiInstanceLauncher.instanceIdFromArgs(args);
-    InitialRoomHandoff.offer(WindowsMultiInstanceLauncher.roomFromArgs(args));
     await _initWindowsSingleInstance(args, instanceId);
 
     await AppPathManager().initialize(instanceId: instanceId);

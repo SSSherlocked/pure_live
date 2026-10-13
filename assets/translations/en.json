@@ -1182,7 +1182,6 @@
   "windows_pip_reset_position_success": "Saved PiP position and size cleared",
   "open_new_window": "Open an independent player window",
   "open_new_window_subtitle": "Adds a menu item that opens another app window",
-  "open_room_in_new_window": "Play this room in a new window",
   "open_new_window_failed": "The new window did not start. Try again.",
   "collapse_repeated_danmaku": "Merge identical danmaku bursts",
   "collapse_repeated_danmaku_desc": "Show the first copy only and count later copies on it (×N) instead of scrolling them across the video. Local and system messages are unaffected.",

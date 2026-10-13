@@ -1182,7 +1182,6 @@
   "windows_pip_reset_position_success": "已清除保存的小窗位置和大小",
   "open_new_window": "新建独立播放窗口",
   "open_new_window_subtitle": "在菜单中加入此项，用于再打开一个应用窗口",
-  "open_room_in_new_window": "在新窗口播放此直播间",
   "open_new_window_failed": "新窗口启动失败，请重试",
   "collapse_repeated_danmaku": "合并短时间内的相同弹幕",
   "collapse_repeated_danmaku_desc": "相同内容只显示第一条，后续重复在该条右下角计数（×N），也不再飘过屏幕；本地弹幕和系统消息不受影响。",

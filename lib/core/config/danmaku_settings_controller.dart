@@ -94,9 +94,12 @@ class DanmakuSettingsController extends GetxController {
   /// Whether chat list messages show the sender's fan badge (Bilibili, Missevan, LOOK, KuGou).
   final RxBool chatListShowFansBadge = hiveBool('chatListShowFansBadge', true);
 
-  /// Chat list text at full contrast (pure white / black) instead of the
-  /// softer 70% white / 87% black.
-  final RxBool chatListBrightText = hiveBool('chatListBrightText', true);
+  /// 直播间文字亮度: how opaque text inside the live room is (50%-100%). Only
+  /// the room page applies it; the rest of the app keeps full contrast.
+  final RxDouble roomTextOpacity = hiveDouble('roomTextOpacity', 1.0);
+
+  static double normalizeRoomTextOpacity(Object? raw) =>
+      _boundedDouble(raw, fallback: 1.0, min: 0.5, max: 1.0);
 
   ChatListColorMode get resolvedChatListColorMode => ChatListColorMode.fromName(chatListColorMode.v);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
@@ -238,7 +241,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListColorName': chatListColorName.v,
       'chatListShowAvatar': chatListShowAvatar.v,
       'chatListShowFansBadge': chatListShowFansBadge.v,
-      'chatListBrightText': chatListBrightText.v,
+      'roomTextOpacity': normalizeRoomTextOpacity(roomTextOpacity.v),
       'noEmojiMode': noEmojiMode.v,
       'danmakuTopArea': danmakuTopArea.v,
       'danmakuArea': danmakuArea.v,
@@ -295,7 +298,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListColorName': typed<bool>(json['chatListColorName'] ?? false),
       'chatListShowAvatar': typed<bool>(json['chatListShowAvatar'] ?? true),
       'chatListShowFansBadge': typed<bool>(json['chatListShowFansBadge'] ?? true),
-      'chatListBrightText': typed<bool>(json['chatListBrightText'] ?? true),
+      'roomTextOpacity': typed<double>(normalizeRoomTextOpacity(json['roomTextOpacity'])),
       'noEmojiMode': typed<bool>(json['noEmojiMode'] ?? defaultNoEmojiMode),
       'danmakuTopArea': typed<double>(
         _boundedDouble(json['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
@@ -369,7 +372,7 @@ class DanmakuSettingsController extends GetxController {
     chatListColorName.v = parsed['chatListColorName'];
     chatListShowAvatar.v = parsed['chatListShowAvatar'];
     chatListShowFansBadge.v = parsed['chatListShowFansBadge'];
-    chatListBrightText.v = parsed['chatListBrightText'];
+    roomTextOpacity.v = parsed['roomTextOpacity'];
     danmakuMaxVisibleCount.v = parsed['danmakuMaxVisibleCount'];
     noEmojiMode.v = parsed['noEmojiMode'];
     danmakuTopArea.v = parsed['danmakuTopArea'];
@@ -426,7 +429,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListColorName': danmaku['chatListColorName'] ?? false,
       'chatListShowAvatar': danmaku['chatListShowAvatar'] ?? true,
       'chatListShowFansBadge': danmaku['chatListShowFansBadge'] ?? true,
-      'chatListBrightText': danmaku['chatListBrightText'] ?? true,
+      'roomTextOpacity': normalizeRoomTextOpacity(danmaku['roomTextOpacity']),
       'danmakuMaxVisibleCount': _boundedInt(
         danmaku['danmakuMaxVisibleCount'],
         fallback: defaultDanmakuMaxVisibleCount,

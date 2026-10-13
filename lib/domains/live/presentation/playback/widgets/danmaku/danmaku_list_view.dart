@@ -446,9 +446,9 @@ class DanmakuItem extends StatelessWidget {
 
     return Obx(() {
       final settings = SettingsService.to.danmaku;
-      // 文字高亮: full contrast; off keeps the softer greys.
-      final bright = settings.chatListBrightText.v;
-      final textColor = isDark ? (bright ? Colors.white : Colors.white70) : (bright ? Colors.black : Colors.black87);
+      // 直播间文字亮度 sets how far the text is from full contrast.
+      final opacity = DanmakuSettingsController.normalizeRoomTextOpacity(settings.roomTextOpacity.v);
+      final textColor = (isDark ? Colors.white : Colors.black).withValues(alpha: opacity);
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final nameFontWeight = FontWeight(settings.chatListNameFontWeight.v.clamp(100, 900).toInt());

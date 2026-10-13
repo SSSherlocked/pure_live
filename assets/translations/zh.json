@@ -1907,6 +1907,6 @@
   "favorite_sort_name": "主播名称",
   "favorite_sort_platform": "平台",
   "favorite_sort_audience": "人气",
-  "chat_list_bright_text": "文字高亮",
-  "chat_list_bright_text_subtitle": "消息和用户名使用纯白（深色）或纯黑（浅色），关闭则为柔和的灰色"
+  "room_text_opacity": "直播间文字亮度",
+  "room_text_opacity_subtitle": "只对直播间页面内的文字生效"
 }

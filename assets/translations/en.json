@@ -1907,6 +1907,6 @@
   "favorite_sort_name": "Streamer name",
   "favorite_sort_platform": "Platform",
   "favorite_sort_audience": "Popularity",
-  "chat_list_bright_text": "Bright text",
-  "chat_list_bright_text_subtitle": "Messages and names in pure white (dark) or black (light); off uses softer greys"
+  "room_text_opacity": "Room text brightness",
+  "room_text_opacity_subtitle": "Applies to text inside the live room only"
 }

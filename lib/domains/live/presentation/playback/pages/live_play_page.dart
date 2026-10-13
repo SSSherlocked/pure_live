@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/player/presentation/player_back_scope.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
@@ -22,7 +23,15 @@ class LivePlayPage extends GetView<LivePlayController> {
       final presentationActive =
           !isInPip && (mode != VideoMode.normal || player.isSystemFullscreen.value || player.isWindowFullscreen.value);
 
-      final content = LivePlayContent(controller: controller, isInPip: isInPip, mode: mode);
+      // 直播间文字亮度: the room's text, and only the room's, at the chosen
+      // opacity. Text drawn in a fixed colour over the picture is unaffected.
+      final opacity = DanmakuSettingsController.normalizeRoomTextOpacity(SettingsService.to.danmaku.roomTextOpacity.v);
+      final theme = Theme.of(context);
+      final textColor = theme.colorScheme.onSurface.withValues(alpha: opacity);
+      final content = Theme(
+        data: theme.copyWith(textTheme: theme.textTheme.apply(bodyColor: textColor, displayColor: textColor)),
+        child: LivePlayContent(controller: controller, isInPip: isInPip, mode: mode),
+      );
 
       // Keep desktop route shortcuts mounted even when metadata loading ends
       // in an offline/error placeholder before a VideoController exists.

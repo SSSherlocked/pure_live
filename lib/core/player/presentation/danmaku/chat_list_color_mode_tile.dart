@@ -46,22 +46,6 @@ class ChatListColorModeTile extends StatelessWidget {
             () => Material(
               type: MaterialType.transparency,
               child: SwitchListTile(
-                key: const ValueKey('chat-list-bright-text'),
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  i18n('chat_list_bright_text'),
-                  style: AppText.of(context).sectionTitle.copyWith(color: labelColor),
-                ),
-                subtitle: Text(i18n('chat_list_bright_text_subtitle'), style: Theme.of(context).textTheme.bodySmall),
-                value: settings.chatListBrightText.v,
-                onChanged: (value) => settings.chatListBrightText.v = value,
-              ),
-            ),
-          ),
-          Obx(
-            () => Material(
-              type: MaterialType.transparency,
-              child: SwitchListTile(
                 key: const ValueKey('chat-list-color-name'),
                 contentPadding: EdgeInsets.zero,
                 title: Text(

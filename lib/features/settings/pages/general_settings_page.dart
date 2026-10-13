@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
@@ -770,6 +771,19 @@ class _DanmakuSettingsSubpage extends StatelessWidget {
                 max: 16,
                 displayValue: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
                 onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v.roundToDouble(),
+              ),
+            ),
+            Obx(
+              () => context.buildSliderTile(
+                context,
+                icon: Icons.brightness_6_outlined,
+                title: i18n('room_text_opacity'),
+                subtitle: i18n('room_text_opacity_subtitle'),
+                value: DanmakuSettingsController.normalizeRoomTextOpacity(SettingsService.to.danmaku.roomTextOpacity.v),
+                min: 0.5,
+                max: 1,
+                displayValue: '${(SettingsService.to.danmaku.roomTextOpacity.v * 100).round()}%',
+                onChanged: (v) => SettingsService.to.danmaku.roomTextOpacity.v = (v * 20).round() / 20,
               ),
             ),
             // Caps the room and PiP danmaku frame rate (see

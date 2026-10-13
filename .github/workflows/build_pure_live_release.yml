@@ -39,11 +39,7 @@ on:
         type: boolean
         default: false
       version:
-        description: >-
-          Version, e.g. 3.2.2. Builds, installers, file names, the tag (v3.2.2)
-          and the release all use it; a release writes it back to pubspec.yaml
-          and the update feed. Empty keeps the current pubspec version.
-          A release needs a "# Pure Live v<version>" section in RELEASE_NOTES.md.
+        description: Version, e.g. 3.2.2 (empty keeps the pubspec version)
         required: false
         type: string
         default: ""

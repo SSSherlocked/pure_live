@@ -20,6 +20,10 @@ class PlatformUtils {
   static bool get isAndroid => Platform.isAndroid;
   static bool get isIOS => Platform.isIOS;
 
+  /// Picture-in-picture: the system window on Android, the app's own compact
+  /// window on Windows and macOS.
+  static bool get supportsPip => isAndroid || isWindows || isMacOS;
+
   static T select<T>({required T desktop, required T mobile}) {
     return isDesktop ? desktop : mobile;
   }

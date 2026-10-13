@@ -8,12 +8,14 @@ PlayerControlPolicy _policy({
   bool android = false,
   bool windows = false,
   bool mobilePlatform = false,
+  bool pip = false,
 }) => PlayerControlPolicy(
   layout: layout,
   fullscreen: fullscreen,
   android: android,
   windows: windows,
   mobilePlatform: mobilePlatform,
+  pip: pip,
 );
 
 void main() {
@@ -73,9 +75,9 @@ void main() {
   });
 
   test('picture-in-picture is a menu entry wherever the platform has it', () {
-    expect(_policy(layout: phone, fullscreen: false, android: true).pipInMoreMenu, isTrue);
-    expect(_policy(layout: desktop, fullscreen: false, windows: true).pipInMoreMenu, isTrue);
-    expect(_policy(layout: desktop, fullscreen: true, windows: true).pipInMoreMenu, isTrue);
+    expect(_policy(layout: phone, fullscreen: false, android: true, pip: true).pipInMoreMenu, isTrue);
+    expect(_policy(layout: desktop, fullscreen: false, windows: true, pip: true).pipInMoreMenu, isTrue);
+    expect(_policy(layout: desktop, fullscreen: true, pip: true).pipInMoreMenu, isTrue);
     expect(_policy(layout: desktop, fullscreen: false).pipInMoreMenu, isFalse);
   });
 }

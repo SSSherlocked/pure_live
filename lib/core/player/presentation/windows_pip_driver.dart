@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/painting.dart' show Offset, Rect, Size;
 import 'package:flutter/widgets.dart' show WidgetsBinding;
@@ -58,7 +59,12 @@ final PipDriver windowsPipDriver = PipDriver(
       await _logPipGeometry();
     },
     beforeExit: (_) async => CoreLog.i('pip: leaving the desktop small window'),
-    afterExit: (_) async => CoreLog.i('pip: left the desktop small window'),
+    afterExit: (_) async {
+      CoreLog.i('pip: left the desktop small window');
+      // The macOS backend restores a normal title bar; this app's window keeps
+      // it hidden (see DesktopManager), with its own chrome below the lights.
+      if (Platform.isMacOS) await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+    },
   ),
 );
 

@@ -23,6 +23,7 @@ class PlayerControlPolicy {
     required this.android,
     required this.windows,
     required this.mobilePlatform,
+    this.pip = false,
   });
 
   /// The rules for the player as it is now.
@@ -32,6 +33,7 @@ class PlayerControlPolicy {
     android: PlatformUtils.isAndroid,
     windows: PlatformUtils.isWindows,
     mobilePlatform: PlatformUtils.isMobile,
+    pip: PlatformUtils.supportsPip,
   );
 
   final AppLayout layout;
@@ -39,6 +41,9 @@ class PlayerControlPolicy {
   final bool android;
   final bool windows;
   final bool mobilePlatform;
+
+  /// The platform has picture-in-picture ([PlatformUtils.supportsPip]).
+  final bool pip;
 
   // --- Size --------------------------------------------------------------
 
@@ -66,8 +71,8 @@ class PlayerControlPolicy {
   ];
 
   /// 小窗播放 is a ⋯ menu entry wherever the platform has picture-in-picture
-  /// (Android, Windows), in every layout; never a bar button.
-  bool get pipInMoreMenu => android || windows;
+  /// (Android, Windows, macOS), in every layout; never a bar button.
+  bool get pipInMoreMenu => pip;
 
   /// 投屏 is a ⋯ menu entry wherever casting exists (Android), never a bar
   /// button. 纯音频 and 画面比例 are ⋯ entries everywhere.
@@ -82,9 +87,9 @@ class PlayerControlPolicy {
   /// Orientation and portrait display controls need a rotating device.
   bool get orientationControls => mobilePlatform;
 
-  /// The volume slider and the window-fullscreen button are Windows window
-  /// features.
-  bool get volumeSlider => windows;
+  /// The mute toggle and the window-fullscreen button are Windows window
+  /// features; volume itself follows the wheel, the keyboard and gestures.
+  bool get muteButton => windows;
   bool get windowFullscreenButton => windows;
 
   // --- Panels ------------------------------------------------------------

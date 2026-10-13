@@ -1196,7 +1196,7 @@ class BottomActionBar extends StatelessWidget {
         // off-screen after the video-fit option landed (v3.15 report).
         if (policy.orientationControls && portraitPinned) PortraitFullscreenDisplayModeButton(controller: controller),
         if (policy.orientationControls && portraitPinned) PortraitOrientationButton(controller: controller),
-        if (policy.volumeSlider) OverlayVolumeControl(controller: controller),
+        if (policy.muteButton) RoomMuteButton(controller: controller),
         if (policy.windowFullscreenButton &&
             controller.supportWindowFull &&
             !GlobalPlayerService.instance.player.isSystemFullscreen.value)

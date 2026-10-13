@@ -6,6 +6,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:media_core_ui/media_core_ui.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:media_core/media_core.dart' show MediaPlayerView;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:pure_live/core/player/presentation/player_back_scope.dart';
@@ -546,12 +547,13 @@ class _RecordingMoreMenu extends StatelessWidget {
             },
             child: Text(i18n('local_player_screenshot')),
           ),
-          MenuItemButton(
-            key: const ValueKey('local-player-more-pip'),
-            leadingIcon: const Icon(Remix.picture_in_picture_line, size: 18),
-            onPressed: () => unawaited(_enterRecordingPip(controller)),
-            child: Text(i18n('pip_window_play')),
-          ),
+          if (PlatformUtils.supportsPip)
+            MenuItemButton(
+              key: const ValueKey('local-player-more-pip'),
+              leadingIcon: const Icon(Remix.picture_in_picture_line, size: 18),
+              onPressed: () => unawaited(_enterRecordingPip(controller)),
+              child: Text(i18n('pip_window_play')),
+            ),
         ],
         builder: (context, menu, _) => SizedBox(
           width: 32,
@@ -862,9 +864,8 @@ class _RecordingControlBar extends StatelessWidget {
         ),
       ),
       padding: EdgeInsets.fromLTRB(12 + padding.left, 22, 12 + padding.right, 4 + padding.bottom),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final showVolumeSlider = constraints.maxWidth >= recordingVolumeSliderMinWidth;
+      child: Builder(
+        builder: (context) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -951,7 +952,7 @@ class _RecordingControlBar extends StatelessWidget {
                           )
                         : const SizedBox.shrink(),
                   ),
-                  if (AppLayout.of(context).wide) _VolumeControls(controller: controller, showSlider: showVolumeSlider),
+                  if (AppLayout.of(context).wide) _MuteButton(controller: controller),
                   if (AppLayout.of(context).wide) _RateButton(controller: controller),
                   const Spacer(),
                   _FitButton(),
@@ -976,21 +977,18 @@ class _RecordingControlBar extends StatelessWidget {
   }
 }
 
-/// Volume icon plus a compact slider, the live room's transport arrangement.
-class _VolumeControls extends StatefulWidget {
-  const _VolumeControls({required this.controller, this.showSlider = true});
+/// The recording's mute toggle; volume itself follows the wheel, the keyboard
+/// and gestures.
+class _MuteButton extends StatefulWidget {
+  const _MuteButton({required this.controller});
 
   final LocalVideoPlayerController controller;
 
-  /// Narrow layouts drop the slider and keep only the mute toggle; the row
-  /// cannot carry both.
-  final bool showSlider;
-
   @override
-  State<_VolumeControls> createState() => _VolumeControlsState();
+  State<_MuteButton> createState() => _MuteButtonState();
 }
 
-class _VolumeControlsState extends State<_VolumeControls> {
+class _MuteButtonState extends State<_MuteButton> {
   double? _volume;
   double _lastAudible = 1.0;
 
@@ -1013,46 +1011,25 @@ class _VolumeControlsState extends State<_VolumeControls> {
   Widget build(BuildContext context) {
     final volume = _volume ?? 1.0;
     final muted = volume <= 0.001;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          color: Colors.white,
-          iconSize: 22,
-          tooltip: muted ? i18n('local_player_unmute') : i18n('local_player_mute'),
-          icon: Icon(
-            muted
-                ? Icons.volume_off_rounded
-                : volume < 0.5
-                ? Icons.volume_down_rounded
-                : Icons.volume_up_rounded,
-          ),
-          onPressed: () {
-            if (muted) {
-              unawaited(_write(_lastAudible <= 0.001 ? 1.0 : _lastAudible));
-            } else {
-              _lastAudible = volume;
-              unawaited(_write(0.0));
-            }
-          },
-        ),
-        if (widget.showSlider)
-          SizedBox(
-            width: 100,
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 2.5,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                activeTrackColor: Theme.of(context).colorScheme.primary,
-                inactiveTrackColor: Colors.white24,
-                thumbColor: Theme.of(context).colorScheme.primary,
-                overlayColor: Colors.transparent,
-              ),
-              child: Slider(value: volume, max: 1.0, onChanged: (v) => unawaited(_write(v))),
-            ),
-          ),
-      ],
+    return IconButton(
+      color: Colors.white,
+      iconSize: 22,
+      tooltip: muted ? i18n('local_player_unmute') : i18n('local_player_mute'),
+      icon: Icon(
+        muted
+            ? Icons.volume_off_rounded
+            : volume < 0.5
+            ? Icons.volume_down_rounded
+            : Icons.volume_up_rounded,
+      ),
+      onPressed: () {
+        if (muted) {
+          unawaited(_write(_lastAudible <= 0.001 ? 1.0 : _lastAudible));
+        } else {
+          _lastAudible = volume;
+          unawaited(_write(0.0));
+        }
+      },
     );
   }
 }
@@ -1656,16 +1633,18 @@ void _showSettingsSheet(BuildContext context, LocalVideoPlayerController control
                         ToastUtil.show(name ?? i18n('path_or_permission_error'));
                       },
                     ),
-                    Divider(height: 1, thickness: 0.6, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
-                    _SheetActionRow(
-                      theme: theme,
-                      icon: Icons.picture_in_picture_rounded,
-                      title: i18n('pip_window_play'),
-                      onTap: () {
-                        Navigator.of(sheetContext).pop();
-                        unawaited(_enterRecordingPip(controller));
-                      },
-                    ),
+                    if (PlatformUtils.supportsPip) ...[
+                      Divider(height: 1, thickness: 0.6, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                      _SheetActionRow(
+                        theme: theme,
+                        icon: Icons.picture_in_picture_rounded,
+                        title: i18n('pip_window_play'),
+                        onTap: () {
+                          Navigator.of(sheetContext).pop();
+                          unawaited(_enterRecordingPip(controller));
+                        },
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -2097,12 +2076,6 @@ const double localPlayerSideBySideMinWidth = 760;
 /// Whether the desktop recording player splits picture and list side by side.
 bool localPlayerShowsSideBySide(double windowWidth) => windowWidth >= localPlayerSideBySideMinWidth;
 
-/// The narrowest control row that can still carry the 100 px volume slider.
-///
-/// At 504 px the row needed 554 px — the run log's "RenderFlex overflowed by
-/// 50 pixels on the right" — so below this width the slider is dropped and the
-/// 40 px mute toggle stays: it is the only sound control on this bar.
-const double recordingVolumeSliderMinWidth = 520;
 
 class _DesktopLayout extends StatelessWidget {
   const _DesktopLayout({required this.controller});

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:pure_live/core/theme/app_text.dart';
 
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/utils/i18n.dart';
@@ -8,29 +7,24 @@ import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/core/config/settings_service.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 
-class OverlayVolumeControl extends StatefulWidget {
+/// The room's mute toggle; it follows the room's volume as the wheel, the
+/// keyboard, gestures and the global mute change it.
+class RoomMuteButton extends StatefulWidget {
   final VideoController controller;
-  const OverlayVolumeControl({super.key, required this.controller});
+  const RoomMuteButton({super.key, required this.controller});
 
   @override
-  State<OverlayVolumeControl> createState() => _OverlayVolumeControlState();
+  State<RoomMuteButton> createState() => _RoomMuteButtonState();
 }
 
-class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
+class _RoomMuteButtonState extends State<RoomMuteButton> {
   double _volume = 0.5;
   double _lastVolume = 0.5;
-  OverlayEntry? _overlayEntry;
-  final LayerLink _layerLink = LayerLink();
-  bool _isMouseInIcon = false;
-  bool _isMouseInBar = false;
-  Timer? _hideTimer;
   StreamSubscription? _volumeListener;
   StreamSubscription? _platformVolWorker;
   int _controllerGeneration = 0;
   int _valueRevision = 0;
   StreamSubscription? _controllerVolumeSub;
-  static const double _barHeight = 150.0;
-  static const double _barWidth = 44.0;
 
   VideoController get controller => widget.controller;
 
@@ -42,12 +36,9 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
   }
 
   @override
-  void didUpdateWidget(covariant OverlayVolumeControl oldWidget) {
+  void didUpdateWidget(covariant RoomMuteButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (identical(oldWidget.controller, controller)) return;
-    _hideTimer?.cancel();
-    _removeOverlay(owner: oldWidget.controller);
-    _isMouseInIcon = false;
     _bindController();
   }
 
@@ -55,11 +46,9 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
   void dispose() {
     _controllerGeneration++;
     _valueRevision++;
-    _hideTimer?.cancel();
     _volumeListener?.cancel();
     _platformVolWorker?.cancel();
     _controllerVolumeSub?.cancel();
-    _removeOverlay();
     super.dispose();
   }
 
@@ -96,7 +85,6 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
       _volume = resolved;
       if (resolved > 0) _lastVolume = resolved;
     });
-    _overlayEntry?.markNeedsBuild();
   }
 
   void _updateVolumeFromGlobal() {
@@ -117,7 +105,6 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
     });
 
     unawaited(controller.setVolume(_volume));
-    _overlayEntry?.markNeedsBuild();
   }
 
   Future<void> initVolume(VideoController owner, int generation) async {
@@ -143,143 +130,18 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
       }
     });
     unawaited(controller.setVolume(_volume));
-    _overlayEntry?.markNeedsBuild();
   }
 
-  void _showVolumeBar() {
-    if (_overlayEntry != null || !mounted) return;
-    final owner = controller;
-    final generation = _controllerGeneration;
-
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        width: _barWidth,
-        height: _barHeight + 45,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          followerAnchor: Alignment.bottomCenter,
-          targetAnchor: Alignment.topCenter,
-          offset: const Offset(0, 5),
-          child: MouseRegion(
-            onEnter: (_) {
-              if (!_owns(owner, generation)) return;
-              _isMouseInBar = true;
-              owner.stopHideController();
-            },
-            onExit: (_) {
-              if (!_owns(owner, generation)) return;
-              _isMouseInBar = false;
-              owner.enableController();
-              _startHideTimer();
-            },
-            child: _buildVolumeBarUI(),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  void _startHideTimer() {
-    _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(milliseconds: 150), () {
-      if (!_isMouseInIcon && !_isMouseInBar) {
-        _removeOverlay();
-      }
-    });
-  }
-
-  void _removeOverlay({VideoController? owner}) {
-    _overlayEntry?.remove();
-    _overlayEntry?.dispose();
-    _overlayEntry = null;
-    if (_isMouseInBar) {
-      (owner ?? controller).enableController();
-      _isMouseInBar = false;
-    }
-  }
-
-  Widget _buildVolumeBarUI() {
-    return Material(
-      color: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withAlpha(220),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final double trackHeight = constraints.maxHeight - 65;
-              final int percentage = (_volume * 100).round();
-              return Column(
-                children: [
-                  const SizedBox(height: 12),
-                  Text(
-                    "$percentage%",
-                    style: AppText.of(context).tag.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onVerticalDragUpdate: (details) => _handleVolumeDrag(details, trackHeight),
-                      child: Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          Container(
-                            width: 4,
-                            margin: const EdgeInsets.only(top: 10, bottom: 20),
-                            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-                          ),
-                          Positioned(
-                            bottom: 20,
-                            child: Container(
-                              width: 4,
-                              height: _volume * trackHeight,
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2)),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 20 + (_volume * trackHeight) - 6,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleVolumeDrag(DragUpdateDetails details, double trackHeight) {
-    if (trackHeight <= 0) return;
-    final deltaRatio = -details.delta.dy / trackHeight;
-    _applyVolume(_volume + deltaRatio);
-  }
-
+  /// Screen readers step the volume through the button's semantics.
   void _applyVolume(double value) {
     final newVolume = value.clamp(0.0, 1.0).toDouble();
-    if (newVolume != _volume) {
-      _valueRevision++;
-      setState(() {
-        _volume = newVolume;
-        if (_volume > 0) _lastVolume = _volume;
-      });
-      _overlayEntry?.markNeedsBuild();
-      unawaited(controller.setVolume(_volume));
-    }
+    if (newVolume == _volume) return;
+    _valueRevision++;
+    setState(() {
+      _volume = newVolume;
+      if (_volume > 0) _lastVolume = _volume;
+    });
+    unawaited(controller.setVolume(_volume));
   }
 
   @override
@@ -294,25 +156,12 @@ class _OverlayVolumeControlState extends State<OverlayVolumeControl> {
       decreasedValue: _volume > 0 ? '${((_volume - 0.05).clamp(0.0, 1.0) * 100).round()}%' : null,
       onIncrease: _volume < 1 ? () => _applyVolume(_volume + 0.05) : null,
       onDecrease: _volume > 0 ? () => _applyVolume(_volume - 0.05) : null,
-      child: CompositedTransformTarget(
-        link: _layerLink,
-        child: MouseRegion(
-          onEnter: (_) {
-            _isMouseInIcon = true;
-            _showVolumeBar();
-          },
-          onExit: (_) {
-            _isMouseInIcon = false;
-            _startHideTimer();
-          },
-          child: IconButton(
-            onPressed: _handleToggleMute,
-            visualDensity: VisualDensity.standard,
-            constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
-            icon: Icon(icon, color: Colors.white, size: 24),
-            tooltip: _volume == 0 ? i18n('cancel_mute') : i18n('mute'),
-          ),
-        ),
+      child: IconButton(
+        onPressed: _handleToggleMute,
+        visualDensity: VisualDensity.standard,
+        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        icon: Icon(icon, color: Colors.white, size: 24),
+        tooltip: _volume == 0 ? i18n('cancel_mute') : i18n('mute'),
       ),
     );
   }

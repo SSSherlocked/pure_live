@@ -62,7 +62,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
   TargetPlatform get _platform => widget.platformOverride ?? defaultTargetPlatform;
   bool get _isAndroid => _platform == TargetPlatform.android;
-  bool get _isWindows => _platform == TargetPlatform.windows;
+  /// The app's own compact picture-in-picture window (Windows, macOS), whose
+  /// size and layer are set here; Android's system window has none of these.
+  bool get _hasDesktopPip => _platform == TargetPlatform.windows || _platform == TargetPlatform.macOS;
   bool get _isMobile => _platform == TargetPlatform.android || _platform == TargetPlatform.iOS;
   bool get _isDesktop => !_isMobile;
 
@@ -232,7 +234,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               value: SettingsService.to.player.floatPlay,
               icon: Remix.picture_in_picture_2_line,
             ),
-            if (_isWindows)
+            if (_hasDesktopPip)
               context.buildSwitchTile(
                 title: i18n('windows_pip_always_on_top'),
                 subtitle: _pipAlwaysOnTopErrorText ?? i18n('windows_pip_always_on_top_subtitle'),
@@ -244,7 +246,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 autoCommit: false,
                 onChanged: _changePipAlwaysOnTop,
               ),
-            if (_isWindows)
+            if (_hasDesktopPip)
               context.buildSwitchTile(
                 title: i18n('windows_pip_remember_position'),
                 subtitle: i18n('windows_pip_remember_position_subtitle'),
@@ -254,7 +256,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                   SettingsService.to.window.rememberPipPosition.v = value;
                 },
               ),
-            if (_isWindows) ...[
+            if (_hasDesktopPip) ...[
               Obx(
                 () => context.buildSliderTile(
                   context,
@@ -301,7 +303,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 ),
               ),
             ],
-            if (_isWindows)
+            if (_hasDesktopPip)
               context.buildSwitchTile(
                 title: i18n('windows_pip_free_aspect'),
                 subtitle: i18n('windows_pip_free_aspect_subtitle'),
@@ -313,7 +315,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                   _syncPipConfig();
                 },
               ),
-            if (_isWindows) const _WindowsPipResetTile(),
+            if (_hasDesktopPip) const _WindowsPipResetTile(),
 
             context.buildSwitchTile(
               title: i18n('enable_fullscreen_default'),

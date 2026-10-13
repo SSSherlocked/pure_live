@@ -231,9 +231,11 @@ abstract final class MediaKitLiveProperties {
   }
 
   /// The native player configuration; only the log level differs from media_kit's
-  /// defaults, since passing this object at all means restating them.
+  /// defaults, since passing this object at all means restating them. A release
+  /// build keeps mpv's info lines (what it opened, the tracks and outputs it
+  /// chose), which the app log needs to explain a slow or failed start.
   static mkv.PlayerConfiguration playerConfiguration() => mkv.PlayerConfiguration(
-    logLevel: const bool.fromEnvironment('dart.vm.product') ? mkv.MPVLogLevel.warn : mkv.MPVLogLevel.v,
+    logLevel: const bool.fromEnvironment('dart.vm.product') ? mkv.MPVLogLevel.info : mkv.MPVLogLevel.v,
   );
 
   static Map<String, String> sourceProperties({

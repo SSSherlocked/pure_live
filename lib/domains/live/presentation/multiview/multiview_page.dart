@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:flame_barrage/flame_barrage.dart';
 import 'package:media_core/media_core.dart' show PlayerId;
 import 'package:media_core_media_kit/media_core_media_kit.dart';
@@ -1244,7 +1245,7 @@ BarrageConfig _buildBarrageConfig({required bool isVerticalVideo}) {
     maxPendingCount: 120,
     maxPendingAge: const Duration(seconds: 5),
     fontFamily: settings.danmakuFontFamilyName.v,
-    trackHeight: (settings.danmakuFontSize.v * 1.55).clamp(24.0, 64.0).toDouble(),
+    trackHeight: DanmakuSettingsController.trackHeightFor(settings.danmakuFontSize.v, settings.danmakuLineSpacing.v),
     emojiSize: (settings.danmakuFontSize.v * 1.3).clamp(16.0, 48.0).toDouble(),
     pictureCacheMaxSize: 96,
     barragePoolMaxSize: 72,

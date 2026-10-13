@@ -17,6 +17,12 @@ class DanmakuSettingsController extends GetxController {
   static const double defaultDanmakuFontSize = 16.0;
   static const int defaultDanmakuFontWeight = 500;
   static const double defaultDanmakuFontBorder = 1.5;
+
+  /// 弹幕间距: the gap between two floating-danmaku tracks, as a share of the
+  /// font size. 0.55 is the 1.55 x font size track the app always used.
+  static const double defaultDanmakuLineSpacing = 0.55;
+  static const double minDanmakuLineSpacing = 0;
+  static const double maxDanmakuLineSpacing = 1.5;
   static const double defaultDanmakuOpacity = 1.0;
   static const int defaultDanmakuFps = 60;
   static const bool defaultDanmakuAutoFps = true;
@@ -190,6 +196,27 @@ class DanmakuSettingsController extends GetxController {
   final RxDouble danmakuFontSize = hiveDouble('danmakuFontSize', defaultDanmakuFontSize);
   final RxInt danmakuFontWeight = hiveInt('danmakuFontWeight', defaultDanmakuFontWeight);
   final RxDouble danmakuFontBorder = hiveDouble('danmakuFontBorder', defaultDanmakuFontBorder);
+  final RxDouble danmakuLineSpacing = hiveDouble('danmakuLineSpacing', defaultDanmakuLineSpacing);
+
+  /// [value] bounded to the 弹幕间距 range in 5 % steps.
+  static double normalizeLineSpacing(Object? value) {
+    final bounded = _boundedDouble(
+      value,
+      fallback: defaultDanmakuLineSpacing,
+      min: minDanmakuLineSpacing,
+      max: maxDanmakuLineSpacing,
+    );
+    return ((bounded * 20).round() / 20).clamp(minDanmakuLineSpacing, maxDanmakuLineSpacing).toDouble();
+  }
+
+  /// Height of one floating-danmaku track: the text plus the 弹幕间距 gap.
+  /// Every barrage surface (the room, the multi-view tiles) takes it from
+  /// here, so they all space their tracks alike.
+  static double trackHeightFor(double fontSize, double lineSpacing) {
+    final height = fontSize * (1 + normalizeLineSpacing(lineSpacing));
+    final minimum = fontSize + 2 > 24.0 ? fontSize + 2 : 24.0;
+    return height.clamp(minimum, 120.0).toDouble();
+  }
   final RxDouble danmakuOpacity = hiveDouble('danmakuOpacity', defaultDanmakuOpacity);
 
   /// Same-screen cap forwarded to FlameBarrageWidget.maxVisibleCount.
@@ -256,6 +283,15 @@ class DanmakuSettingsController extends GetxController {
     'danmakuFontBorder',
     fallback: defaultDanmakuFontBorder,
     read: ProfiledSpec.number(min: 0, max: 4),
+  );
+  static final _lineSpacingSpec = ProfiledSpec<double>(
+    'danmakuLineSpacing',
+    fallback: defaultDanmakuLineSpacing,
+    read: ProfiledSpec.number(
+      min: minDanmakuLineSpacing,
+      max: maxDanmakuLineSpacing,
+      normalize: normalizeLineSpacing,
+    ),
   );
   static final _opacitySpec = ProfiledSpec<double>(
     'danmakuOpacity',
@@ -340,6 +376,7 @@ class DanmakuSettingsController extends GetxController {
     _fontSizeSpec,
     _fontWeightSpec,
     _fontBorderSpec,
+    _lineSpacingSpec,
     _opacitySpec,
     _strokeSpec,
     _chatFontSizeSpec,
@@ -372,6 +409,7 @@ class DanmakuSettingsController extends GetxController {
     _fontSizeSpec.bind(danmakuFontSize),
     _fontWeightSpec.bind(danmakuFontWeight),
     _fontBorderSpec.bind(danmakuFontBorder),
+    _lineSpacingSpec.bind(danmakuLineSpacing),
     _opacitySpec.bind(danmakuOpacity),
     _strokeSpec.bind(enableDanmakuStroke),
     _chatFontSizeSpec.bind(chatListFontSize),
@@ -470,6 +508,7 @@ class DanmakuSettingsController extends GetxController {
       fallback: defaultChatListNameFontWeight,
     );
     danmakuFontBorder.v = _boundedDouble(danmakuFontBorder.v, fallback: defaultDanmakuFontBorder, min: 0, max: 4);
+    danmakuLineSpacing.v = normalizeLineSpacing(danmakuLineSpacing.v);
     danmakuOpacity.v = _boundedDouble(danmakuOpacity.v, fallback: defaultDanmakuOpacity, min: 0, max: 1);
     danmakuFps.v = _boundedInt(danmakuFps.v, fallback: defaultDanmakuFps, min: 30, max: 240);
     danmakuSimilarityThreshold.v = danmakuSimilarityThreshold.v.clamp(50, 100).toInt();
@@ -557,6 +596,7 @@ class DanmakuSettingsController extends GetxController {
       'danmakuFontSize': danmakuFontSize.v,
       'danmakuFontWeight': danmakuFontWeight.v,
       'danmakuFontBorder': danmakuFontBorder.v,
+      'danmakuLineSpacing': normalizeLineSpacing(danmakuLineSpacing.v),
       'danmakuRealtimeMode': danmakuMassMode.v,
       'danmakuAutoMaxVisible': danmakuAutoMaxVisible.v,
       'danmakuOpacity': danmakuOpacity.v,
@@ -645,6 +685,7 @@ class DanmakuSettingsController extends GetxController {
       'danmakuFontBorder': typed<double>(
         _boundedDouble(json['danmakuFontBorder'], fallback: defaultDanmakuFontBorder, min: 0, max: 4),
       ),
+      'danmakuLineSpacing': typed<double>(normalizeLineSpacing(json['danmakuLineSpacing'])),
       'danmakuRealtimeMode': typed<bool>(json['danmakuRealtimeMode'] ?? false),
       'danmakuAutoMaxVisible': typed<bool>(json['danmakuAutoMaxVisible'] ?? true),
       'danmakuOpacity': typed<double>(
@@ -782,6 +823,7 @@ class DanmakuSettingsController extends GetxController {
         min: 0,
         max: 4,
       ),
+      'danmakuLineSpacing': normalizeLineSpacing(danmaku['danmakuLineSpacing']),
       'danmakuOpacity': _boundedDouble(danmaku['danmakuOpacity'], fallback: defaultDanmakuOpacity, min: 0, max: 1),
       'danmakuRealtimeMode': danmaku['danmakuRealtimeMode'] ?? false,
       'danmakuAutoMaxVisible': danmaku['danmakuAutoMaxVisible'] ?? true,

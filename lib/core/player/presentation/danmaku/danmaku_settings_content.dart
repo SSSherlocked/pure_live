@@ -416,6 +416,24 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),
+              // 弹幕间距: the gap between two tracks, as a share of the font
+              // size. Kept per profile with the rest of the floating style.
+              _slider(
+                theme,
+                title: i18n('danmaku_line_spacing'),
+                value: DanmakuSettingsController.normalizeLineSpacing(
+                  SettingsService.to.danmaku.danmakuLineSpacing.value,
+                ),
+                min: DanmakuSettingsController.minDanmakuLineSpacing,
+                max: DanmakuSettingsController.maxDanmakuLineSpacing,
+                stepSize: 0.05,
+                display: '${(SettingsService.to.danmaku.danmakuLineSpacing.value * 100).round()}%',
+                semanticValueBuilder: (value) => '${(value * 100).round()}%',
+                onChanged: (v) =>
+                    SettingsService.to.danmaku.danmakuLineSpacing.value = DanmakuSettingsController.normalizeLineSpacing(v),
+                labelColor: labelColor,
+                digitColor: digitColor,
+              ),
               _slider(
                 theme,
                 title: i18n('font_weight'),

@@ -1848,5 +1848,6 @@
   "view_logs_in_app_desc": "本次运行的日志，可复制或分享",
   "log_page_title": "日志",
   "log_empty": "暂无日志",
-  "log_share_failed": "分享日志失败"
+  "log_share_failed": "分享日志失败",
+  "danmaku_line_spacing": "弹幕间距"
 }

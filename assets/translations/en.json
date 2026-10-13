@@ -1848,5 +1848,6 @@
   "view_logs_in_app_desc": "This run's log, to copy or share",
   "log_page_title": "Log",
   "log_empty": "No log entries yet",
-  "log_share_failed": "Sharing the log failed"
+  "log_share_failed": "Sharing the log failed",
+  "danmaku_line_spacing": "Danmaku spacing"
 }

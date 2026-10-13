@@ -6,6 +6,7 @@ import 'iptv_programme_policy.dart';
 
 import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:media_core/media_core.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flame_barrage/flame_barrage.dart';
@@ -127,6 +128,9 @@ class DanmakuManager {
     workers.add(
       debounce<int>(_visualSettingsRevision, (_) => _persistVisualSettings(), time: const Duration(milliseconds: 160)),
     );
+    // 弹幕间距 has no room copy: it is read from the settings when the
+    // config is built, so a change only needs a new config.
+    workers.add(ever(dm.danmakuLineSpacing, (_) => _scheduleConfigUpdate()));
     // The phone, tablet and desktop profiles keep their own floating-danmaku
     // style. When the profile changes with the room open (a tablet rotating
     // across the breakpoint, a window resized, the display mode changed), the
@@ -1094,7 +1098,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         barragePoolMaxSize: 72,
         pictureCacheMaxSize: 96,
         textCacheMaxSize: 320,
-        trackHeight: (danmakuFontSize.value * 1.55).clamp(24.0, 64.0).toDouble(),
+        trackHeight: DanmakuSettingsController.trackHeightFor(danmakuFontSize.value, settings.danmakuLineSpacing.v),
         emojiSize: (danmakuFontSize.value * 1.3).clamp(16.0, 48.0).toDouble(),
       ),
     );

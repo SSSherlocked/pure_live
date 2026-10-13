@@ -1,5 +1,6 @@
 import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_speed_scale.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
@@ -97,7 +98,7 @@ class PlayerDanmakuSurface extends StatelessWidget {
           maxPendingCount: 120,
           maxPendingAge: const Duration(seconds: 5),
           fontFamily: settings.danmakuFontFamilyName,
-          trackHeight: (fontSize * 1.55).clamp(24.0, 64.0).toDouble(),
+          trackHeight: DanmakuSettingsController.trackHeightFor(fontSize, danmaku.danmakuLineSpacing.v),
           emojiSize: (fontSize * 1.3).clamp(16.0, 48.0).toDouble(),
           pictureCacheMaxSize: 96,
           barragePoolMaxSize: 72,

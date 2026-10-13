@@ -72,6 +72,8 @@ class CompactDanmakuOverlay extends StatelessWidget {
       final topAreaDistance = settings.danmakuTopArea.v;
       final bottomAreaDistance = settings.danmakuBottomArea.v;
       final speed = settings.danmakuSpeed.v;
+      // Read here, inside the Obx: the LayoutBuilder below is not tracked.
+      final lineSpacing = settings.danmakuLineSpacing.v;
       final opacity = settings.danmakuOpacity.v;
       final fps = settings.resolvedDanmakuFps(pip: true, refreshRateMode: SettingsService.to.app.refreshRateMode);
       final maxVisibleCount = settings.effectiveMaxVisibleCount;
@@ -94,6 +96,7 @@ class CompactDanmakuOverlay extends StatelessWidget {
               autoScale: scaleAuto,
               configuredFontSize: configuredFontSize,
               configuredSpeed: speed,
+              lineSpacing: lineSpacing,
               fixedScale: scaleAuto ? 1.0 : fixedScale,
             );
 

@@ -62,7 +62,7 @@ Widget homeMenuToggle(MenuController menu, {required IconData icon, required Str
   );
 }
 
-/// The home page's top-left menu: 链接访问, 多画面, 录制中心, 新建独立播放窗口
+/// The home page's top-left menu: 多画面, 链接访问, 录制中心, 新建独立播放窗口
 /// (Windows) and, last, 设置. Searching and browsing are in the top-right
 /// menu ([CommonAppBarActions]).
 class MenuButton extends StatelessWidget {
@@ -82,12 +82,6 @@ class MenuButton extends StatelessWidget {
       style: homeMenuStyle,
       alignmentOffset: const Offset(0, 4),
       menuChildren: [
-        homeMenuItem(
-          context,
-          icon: Remix.link,
-          text: i18n('open_link'),
-          onPressed: () => Get.toNamed(RoutePath.kToolbox),
-        ),
         if (SettingsService.to.app.enableMultiView.v)
           homeMenuItem(
             context,
@@ -95,6 +89,12 @@ class MenuButton extends StatelessWidget {
             text: i18n('multiview_title'),
             onPressed: () => unawaited(AppNavigator.toMultiview()),
           ),
+        homeMenuItem(
+          context,
+          icon: Remix.link,
+          text: i18n('open_link'),
+          onPressed: () => Get.toNamed(RoutePath.kToolbox),
+        ),
         homeMenuItem(
           context,
           icon: Remix.download_2_line,

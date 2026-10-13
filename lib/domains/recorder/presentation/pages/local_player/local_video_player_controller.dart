@@ -735,6 +735,15 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   RxInt get danmakuFps => _danmakuSettings.danmakuFps;
 
   @override
+  RxBool get showSuperChatOnPlayer => _danmakuSettings.showSuperChatOnPlayer;
+
+  @override
+  RxDouble get superChatOpacity => _danmakuSettings.superChatOpacity;
+
+  @override
+  RxDouble get superChatFontScale => _danmakuSettings.superChatFontScale;
+
+  @override
   String? get danmakuFontFamilyName => _danmakuSettings.danmakuFontFamilyName.v;
 
   @override

@@ -1828,5 +1828,10 @@
   "room_card_narrow": "Narrow",
   "room_card_wide": "Wide",
   "max_visible_count_auto": "Automatic on-screen count",
-  "max_visible_count_auto_subtitle": "No count limit; the display area, font size and screen width decide the density. Turn off to set a limit"
+  "max_visible_count_auto_subtitle": "No count limit; the display area, font size and screen width decide the density. Turn off to set a limit",
+  "super_chat_group": "Super chats",
+  "show_super_chat_on_player": "Show super chats on the player",
+  "show_super_chat_on_player_subtitle": "Super chats show at the bottom left of the picture for 15 seconds, whether or not on-screen danmaku is on",
+  "super_chat_opacity": "Super chat opacity",
+  "super_chat_font_scale": "Super chat text size"
 }

@@ -438,6 +438,15 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   @override
   final danmakuFps = 60.obs;
 
+  /// Global, like the PiP scale: super chats on the picture are not a room
+  /// override.
+  @override
+  RxBool get showSuperChatOnPlayer => SettingsService.to.danmaku.showSuperChatOnPlayer;
+  @override
+  RxDouble get superChatOpacity => SettingsService.to.danmaku.superChatOpacity;
+  @override
+  RxDouble get superChatFontScale => SettingsService.to.danmaku.superChatFontScale;
+
   /// The room's own font override, if it has one.
   ///
   /// Named for the room rather than for the interface's `danmakuFontFamilyName`

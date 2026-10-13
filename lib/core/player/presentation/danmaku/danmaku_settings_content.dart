@@ -476,6 +476,53 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             ],
           ),
           const SizedBox(height: _sectionGap),
+          // 留言: super chats get their own cards on a live room's picture,
+          // independent of the scrolling barrage above.
+          context.buildGroupTitle(i18n('super_chat_group')),
+          const SizedBox(height: _titleGap),
+          reactiveCard(
+            () => [
+              _switch(
+                theme,
+                title: i18n('show_super_chat_on_player'),
+                subtitle: i18n('show_super_chat_on_player_subtitle'),
+                value: controller.showSuperChatOnPlayer.value,
+                onChanged: (v) => controller.showSuperChatOnPlayer.value = v,
+                labelColor: labelColor,
+              ),
+              if (controller.showSuperChatOnPlayer.value) ...[
+                _slider(
+                  theme,
+                  title: i18n('super_chat_opacity'),
+                  value: DanmakuSettingsController.normalizeSuperChatOpacity(controller.superChatOpacity.value),
+                  min: DanmakuSettingsController.minSuperChatOpacity,
+                  max: 1,
+                  stepSize: 0.05,
+                  display: '${(controller.superChatOpacity.value * 100).round()}%',
+                  semanticValueBuilder: (value) => '${(value * 100).round()}%',
+                  onChanged: (v) =>
+                      controller.superChatOpacity.value = DanmakuSettingsController.normalizeSuperChatOpacity(v),
+                  labelColor: labelColor,
+                  digitColor: digitColor,
+                ),
+                _slider(
+                  theme,
+                  title: i18n('super_chat_font_scale'),
+                  value: DanmakuSettingsController.normalizeSuperChatFontScale(controller.superChatFontScale.value),
+                  min: DanmakuSettingsController.minSuperChatFontScale,
+                  max: DanmakuSettingsController.maxSuperChatFontScale,
+                  stepSize: 0.1,
+                  display: '${(controller.superChatFontScale.value * 100).round()}%',
+                  semanticValueBuilder: (value) => '${(value * 100).round()}%',
+                  onChanged: (v) =>
+                      controller.superChatFontScale.value = DanmakuSettingsController.normalizeSuperChatFontScale(v),
+                  labelColor: labelColor,
+                  digitColor: digitColor,
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: _sectionGap),
           // The side panel's footer brings the full 弹幕过滤 group (repeated,
           // similar and keyword filtering); elsewhere only the repeat filter.
           if (widget.footer != null)

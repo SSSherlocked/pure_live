@@ -60,6 +60,17 @@ abstract interface class DanmakuSettingsSource {
 
   RxInt get danmakuFps;
 
+  /// 在播放器中显示留言: whether a live room shows super chats on its picture.
+  /// Global only; a surface without super chats (a recording) still reports
+  /// it so the shared settings page can bind the switch.
+  RxBool get showSuperChatOnPlayer;
+
+  /// 留言透明度: opacity of those super chat cards, 0.3-1.0.
+  RxDouble get superChatOpacity;
+
+  /// 留言字号: scale applied to those cards' text roles, 0.8-1.6.
+  RxDouble get superChatFontScale;
+
   /// The font a barrage is drawn in, or null to use the platform default.
   String? get danmakuFontFamilyName;
 }
@@ -125,6 +136,15 @@ class SettingsDanmakuSource implements DanmakuSettingsSource {
 
   @override
   RxInt get danmakuFps => _settings.danmakuFps;
+
+  @override
+  RxBool get showSuperChatOnPlayer => _settings.showSuperChatOnPlayer;
+
+  @override
+  RxDouble get superChatOpacity => _settings.superChatOpacity;
+
+  @override
+  RxDouble get superChatFontScale => _settings.superChatFontScale;
 
   @override
   String? get danmakuFontFamilyName => _settings.danmakuFontFamilyName.v;

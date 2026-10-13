@@ -8,6 +8,34 @@ import 'package:pure_live/core/utils/i18n.dart';
 import 'package:pure_live/core/widgets/toast_util.dart';
 import 'package:pure_live/core/models/live_message.dart';
 
+/// A platform's super chat colour (`#RRGGBB`, `RRGGBB` or `AARRGGBB`), or
+/// [fallback] when it sends something else.
+Color superChatPlatformColor(String source, Color fallback) {
+  final value = source.trim();
+  final normalized = value.startsWith('#') ? value.substring(1) : value;
+  if (!RegExp(r'^(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$').hasMatch(normalized)) return fallback;
+  final parsed = int.tryParse(normalized, radix: 16);
+  if (parsed == null) return fallback;
+  return Color(normalized.length == 6 ? 0xFF000000 | parsed : parsed);
+}
+
+/// Text colour readable on a super chat's [background].
+Color superChatContrastText(Color background) {
+  return background.computeLuminance() > 0.55 ? const Color(0xFF18181A) : Colors.white;
+}
+
+/// Secondary text colour readable on a super chat's [background].
+Color superChatSecondaryText(Color background) {
+  return background.computeLuminance() > 0.55 ? const Color(0x8A18181A) : Colors.white.withValues(alpha: 0.70);
+}
+
+/// The message as shown. The raw text can end in a line break (or an
+/// invisible zero-width character) that a web page hides but a Flutter
+/// text widget draws as one more, empty line at the bottom of the card.
+String superChatDisplayText(String raw) => raw.replaceAll(_edgeInvisibles, '');
+
+final RegExp _edgeInvisibles = RegExp(r'^[\s\u200B-\u200D\u2060\uFEFF]+|[\s\u200B-\u200D\u2060\uFEFF]+$');
+
 class SuperChatCard extends StatefulWidget {
   final LiveSuperChatMessage message;
 
@@ -77,25 +105,8 @@ class _SuperChatCardState extends State<SuperChatCard> {
         '${seconds.toString().padLeft(2, '0')}';
   }
 
-  Color _contrastText(Color background) {
-    return background.computeLuminance() > 0.55 ? const Color(0xFF18181A) : Colors.white;
-  }
-
-  Color _secondaryText(Color background) {
-    return background.computeLuminance() > 0.55 ? const Color(0x8A18181A) : Colors.white.withValues(alpha: 0.70);
-  }
-
   Color _overlay(Color background, double opacity) {
-    return _contrastText(background).withValues(alpha: opacity);
-  }
-
-  Color _platformColor(String source, Color fallback) {
-    final value = source.trim();
-    final normalized = value.startsWith('#') ? value.substring(1) : value;
-    if (!RegExp(r'^(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$').hasMatch(normalized)) return fallback;
-    final parsed = int.tryParse(normalized, radix: 16);
-    if (parsed == null) return fallback;
-    return Color(normalized.length == 6 ? 0xFF000000 | parsed : parsed);
+    return superChatContrastText(background).withValues(alpha: opacity);
   }
 
   @override
@@ -103,12 +114,15 @@ class _SuperChatCardState extends State<SuperChatCard> {
     final message = widget.message;
     final theme = Theme.of(context);
 
-    final headerColor = _platformColor(message.backgroundColor, theme.colorScheme.primaryContainer);
-    final messageColor = _platformColor(message.backgroundBottomColor, theme.colorScheme.surfaceContainerHighest);
+    final headerColor = superChatPlatformColor(message.backgroundColor, theme.colorScheme.primaryContainer);
+    final messageColor = superChatPlatformColor(
+      message.backgroundBottomColor,
+      theme.colorScheme.surfaceContainerHighest,
+    );
 
-    final headerText = _contrastText(headerColor);
-    final headerSubText = _secondaryText(headerColor);
-    final messageText = _contrastText(messageColor);
+    final headerText = superChatContrastText(headerColor);
+    final headerSubText = superChatSecondaryText(headerColor);
+    final messageText = superChatContrastText(messageColor);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -282,13 +296,6 @@ class _SuperChatCardState extends State<SuperChatCard> {
     );
   }
 
-  /// The message as shown. The raw text can end in a line break (or an
-  /// invisible zero-width character) that a web page hides but a Flutter
-  /// text widget draws as one more, empty line at the bottom of the card.
-  static String _displayText(String raw) => raw.replaceAll(_edgeInvisibles, '');
-
-  static final RegExp _edgeInvisibles = RegExp(r'^[\s\u200B-\u200D\u2060\uFEFF]+|[\s\u200B-\u200D\u2060\uFEFF]+$');
-
   Future<void> clipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     ToastUtil.show(i18n('copied_to_clipboard'));
@@ -304,9 +311,9 @@ class _SuperChatCardState extends State<SuperChatCard> {
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 9),
       decoration: BoxDecoration(color: backgroundColor),
       child: GestureDetector(
-        onDoubleTap: () => clipboard(_displayText(message.message)),
+        onDoubleTap: () => clipboard(superChatDisplayText(message.message)),
         child: SelectableText(
-          _displayText(message.message),
+          superChatDisplayText(message.message),
           style: AppText.of(context).listPrimary.copyWith(color: textColor, height: 1.5, fontWeight: FontWeight.w400),
         ),
       ),

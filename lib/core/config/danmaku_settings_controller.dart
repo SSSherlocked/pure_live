@@ -71,6 +71,40 @@ class DanmakuSettingsController extends GetxController {
 
   final RxBool hideDanmaku = hiveBool('hideDanmaku', false);
 
+  /// 在播放器中显示留言: whether active super chats sit as cards on the live
+  /// room's picture. Independent of the danmaku overlay toggle.
+  final RxBool showSuperChatOnPlayer = hiveBool('showSuperChatOnPlayer', true);
+
+  /// 留言透明度: opacity of the super chat cards on the picture, 30%-100% in
+  /// 5% steps.
+  final RxDouble superChatOpacity = hiveDouble('superChatOpacity', defaultSuperChatOpacity);
+
+  /// 留言字号: scale of the super chat cards' text roles on the picture,
+  /// 80%-160% in 10% steps.
+  final RxDouble superChatFontScale = hiveDouble('superChatFontScale', defaultSuperChatFontScale);
+
+  /// Simple Live draws its player super chats at 65% opacity.
+  static const double defaultSuperChatOpacity = 0.65;
+  static const double minSuperChatOpacity = 0.3;
+  static const double defaultSuperChatFontScale = 1.0;
+  static const double minSuperChatFontScale = 0.8;
+  static const double maxSuperChatFontScale = 1.6;
+
+  static double normalizeSuperChatOpacity(Object? raw) {
+    final value = _boundedDouble(raw, fallback: defaultSuperChatOpacity, min: minSuperChatOpacity, max: 1);
+    return ((value * 20).round() / 20).clamp(minSuperChatOpacity, 1.0).toDouble();
+  }
+
+  static double normalizeSuperChatFontScale(Object? raw) {
+    final value = _boundedDouble(
+      raw,
+      fallback: defaultSuperChatFontScale,
+      min: minSuperChatFontScale,
+      max: maxSuperChatFontScale,
+    );
+    return ((value * 10).round() / 10).clamp(minSuperChatFontScale, maxSuperChatFontScale).toDouble();
+  }
+
   /// Text size of the chat list in the room side panel; independent of the
   /// scrolling danmaku on the video.
   final RxDouble chatListFontSize = hiveDouble('chatListFontSize', defaultChatListFontSize);
@@ -187,6 +221,8 @@ class DanmakuSettingsController extends GetxController {
     super.onInit();
     danmakuTopArea.v = _boundedDouble(danmakuTopArea.v, fallback: defaultDanmakuTopArea, min: 0, max: 300);
     danmakuArea.v = normalizeDanmakuArea(danmakuArea.v);
+    superChatOpacity.v = normalizeSuperChatOpacity(superChatOpacity.v);
+    superChatFontScale.v = normalizeSuperChatFontScale(superChatFontScale.v);
     danmakuBottomArea.v = _boundedDouble(danmakuBottomArea.v, fallback: defaultDanmakuBottomArea, min: 0, max: 300);
     danmakuSpeed.v = _boundedDouble(danmakuSpeed.v, fallback: defaultDanmakuSpeed, min: 20, max: 400);
     danmakuFontSize.v = _boundedDouble(danmakuFontSize.v, fallback: defaultDanmakuFontSize, min: 10, max: 30);
@@ -242,6 +278,9 @@ class DanmakuSettingsController extends GetxController {
   Map<String, dynamic> toJson() {
     return {
       'hideDanmaku': hideDanmaku.v,
+      'showSuperChatOnPlayer': showSuperChatOnPlayer.v,
+      'superChatOpacity': normalizeSuperChatOpacity(superChatOpacity.v),
+      'superChatFontScale': normalizeSuperChatFontScale(superChatFontScale.v),
       'chatListFontSize': chatListFontSize.v,
       'chatListFontWeight': chatListFontWeight.v,
       'chatListNameFontWeight': chatListNameFontWeight.v,
@@ -288,6 +327,9 @@ class DanmakuSettingsController extends GetxController {
     T typed<T>(dynamic value) => value as T;
     return {
       'hideDanmaku': typed<bool>(json['hideDanmaku'] ?? false),
+      'showSuperChatOnPlayer': typed<bool>(json['showSuperChatOnPlayer'] ?? true),
+      'superChatOpacity': typed<double>(normalizeSuperChatOpacity(json['superChatOpacity'])),
+      'superChatFontScale': typed<double>(normalizeSuperChatFontScale(json['superChatFontScale'])),
       'chatListFontSize': typed<double>(
         _boundedDouble(json['chatListFontSize'], fallback: defaultChatListFontSize, min: 10, max: 28),
       ),
@@ -376,6 +418,9 @@ class DanmakuSettingsController extends GetxController {
   void fromJson(Map<String, dynamic> json) {
     final parsed = parseConfig(json);
     hideDanmaku.v = parsed['hideDanmaku'];
+    showSuperChatOnPlayer.v = parsed['showSuperChatOnPlayer'];
+    superChatOpacity.v = parsed['superChatOpacity'];
+    superChatFontScale.v = parsed['superChatFontScale'];
     chatListFontSize.v = parsed['chatListFontSize'];
     chatListFontWeight.v = parsed['chatListFontWeight'];
     chatListNameFontWeight.v = parsed['chatListNameFontWeight'];
@@ -420,6 +465,9 @@ class DanmakuSettingsController extends GetxController {
     final danmaku = rootConfig?['danmaku'] as Map<String, dynamic>? ?? {};
     return {
       'hideDanmaku': danmaku['hideDanmaku'] ?? false,
+      'showSuperChatOnPlayer': danmaku['showSuperChatOnPlayer'] ?? true,
+      'superChatOpacity': normalizeSuperChatOpacity(danmaku['superChatOpacity']),
+      'superChatFontScale': normalizeSuperChatFontScale(danmaku['superChatFontScale']),
       'chatListFontSize': _boundedDouble(
         danmaku['chatListFontSize'],
         fallback: defaultChatListFontSize,

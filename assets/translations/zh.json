@@ -1828,5 +1828,10 @@
   "room_card_narrow": "窄屏",
   "room_card_wide": "宽屏",
   "max_visible_count_auto": "同屏数量自动",
-  "max_visible_count_auto_subtitle": "不限条数，密度由显示区域、字号和屏幕宽度决定；关闭后可手动设置上限"
+  "max_visible_count_auto_subtitle": "不限条数，密度由显示区域、字号和屏幕宽度决定；关闭后可手动设置上限",
+  "super_chat_group": "留言",
+  "show_super_chat_on_player": "在播放器中显示留言",
+  "show_super_chat_on_player_subtitle": "醒目留言在画面左下角显示 15 秒，不受画面弹幕开关影响",
+  "super_chat_opacity": "留言透明度",
+  "super_chat_font_scale": "留言字号"
 }

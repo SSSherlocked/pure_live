@@ -21,6 +21,7 @@ import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/volume_control.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/control_hover_region.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
+import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/player_super_chat_overlay.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/bottom_control_surface.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/iptv_schedule_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
@@ -245,6 +246,28 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       ),
                     );
                   }),
+                  // 在播放器中显示留言: bottom left, above the bottom bar and
+                  // below the top bar, in every layout. It takes no pointer.
+                  Builder(
+                    builder: (context) {
+                      final insets = playerBarInsets(
+                        context,
+                        portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                      );
+                      return Positioned.fill(
+                        child: PlayerSuperChatOverlay(
+                          controller: controller,
+                          compact: compactControls,
+                          padding: EdgeInsets.fromLTRB(
+                            insets.left + (compactControls ? 8 : 12),
+                            insets.top + topBarHeight,
+                            insets.right,
+                            insets.bottom + bottomBarHeight + 4,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                   GestureDetector(
                     // Opaque on purpose: this detector is what reveals and hides
                     // the bars, and its only child is the shared gesture layer,

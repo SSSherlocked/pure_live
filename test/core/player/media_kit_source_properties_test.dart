@@ -27,7 +27,9 @@ void main() {
       expect(_properties('https://cdn.example.com/live/room.flv'), {
         'http-proxy': _proxy,
         'demuxer-lavf-format': '',
-        'force-seekable': 'no',
+        // Seekable on purpose: Android's surface-attach seek must not be
+        // refused, or the kernel drops the line (see sourceProperties).
+        'force-seekable': 'yes',
         'cache-pause': 'no',
       });
     });

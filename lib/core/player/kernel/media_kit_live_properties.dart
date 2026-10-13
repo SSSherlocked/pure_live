@@ -253,7 +253,14 @@ abstract final class MediaKitLiveProperties {
     return <String, String>{
       'http-proxy': privateInput || playsDirectBehindProxy(uri) ? '' : proxy,
       'demuxer-lavf-format': playlist && !privateInput ? 'hls' : '',
-      'force-seekable': playlist || liveProgressive ? 'no' : 'yes',
+      // Progressive live stays force-seekable (as before 2026-10-07): on
+      // Android, media_kit seeks to the current position when the video
+      // surface attaches (AndroidVideoController.widListener). On a stream
+      // mpv may not seek, that seek is refused with an error-level line,
+      // which the kernel's sweep counts as the line failing: the first room
+      // after a cold start burned every line and engine before one played
+      // (28-44 s black). With the seek allowed, the picture appears at once.
+      'force-seekable': playlist ? 'no' : 'yes',
       'cache-pause': playlist || liveProgressive ? 'no' : 'yes',
     };
   }

@@ -16,7 +16,6 @@ import 'package:pure_live/domains/live/presentation/search/web_search_page.dart'
 import 'package:pure_live/domains/live/presentation/favorite/favorite_page.dart';
 import 'package:pure_live/features/settings/settings_page.dart';
 import 'package:pure_live/domains/live/presentation/hot_areas/hot_areas_page.dart';
-import 'package:pure_live/domains/live/presentation/shield/danmu_shield_page.dart';
 import 'package:pure_live/domains/live/presentation/multiview/multiview_page.dart';
 import 'package:pure_live/domains/account/presentation/account/yy/yy_cookie_page.dart';
 import 'package:pure_live/domains/account/presentation/account/bigo/bigo_cookie_page.dart';
@@ -87,11 +86,6 @@ class AppPages {
       name: RoutePath.kBiliBiliQRLogin,
       page: _smoothPage(() => const BiliBiliQRLoginPage()),
       bindings: [BilibiliQrLoginBinding()],
-    ),
-    GetPage(
-      name: RoutePath.kSettingsDanmuShield,
-      page: _smoothPage(() => const DanmuShieldPage()),
-      bindings: [DanmuShieldBinding()],
     ),
     GetPage(
       name: RoutePath.kSettingsHotAreas,

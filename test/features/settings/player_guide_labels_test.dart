@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 Map<String, dynamic> _bundle(String path) =>
     Map<String, dynamic>.from(jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>);
 
-const String _pagePath = 'lib/features/settings/pages/player_guide_page.dart';
+const String _pagePath = 'lib/features/settings/widgets/player_guide_section.dart';
 
 void main() {
   final source = File(_pagePath).readAsStringSync();

@@ -33,15 +33,25 @@ class DanmakuSettingsContent extends StatefulWidget {
     required this.controller,
     this.embedded = false,
     this.includePipSettings = true,
+    this.header,
     this.footer,
+    this.trailing,
   });
 
   final DanmakuSettingsSource controller;
   final bool embedded;
   final bool includePipSettings;
 
+  /// Extra section placed before the settings (the settings page's global
+  /// show switch and frame-rate cap).
+  final Widget? header;
+
   /// Extra section appended after the settings.
   final Widget? footer;
+
+  /// Extra section placed after everything else (the settings page's danmaku
+  /// font list).
+  final Widget? trailing;
 
   @override
   State<DanmakuSettingsContent> createState() => _DanmakuSettingsContentState();
@@ -168,6 +178,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          ?widget.header,
           // The side panel chat list has its own text size and spacing,
           // separate from the danmaku scrolling over the video below.
           context.buildGroupTitle(i18n('chat_list_display')),
@@ -519,6 +530,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             ],
           ),
           const SizedBox(height: 12),
+          ?widget.trailing,
         ],
       ),
     );

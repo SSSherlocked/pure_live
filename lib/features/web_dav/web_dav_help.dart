@@ -11,8 +11,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 typedef WebDavExternalLauncher = Future<bool> Function(Uri uri);
 
-class WebDavHelpPage extends StatelessWidget {
-  const WebDavHelpPage({super.key, this.openExternalUrl});
+/// Opens the WebDAV (坚果云) setup guide over the WebDAV page.
+Future<void> showWebDavHelpDialog(BuildContext context) {
+  return showDialog<void>(context: context, builder: (_) => const WebDavHelpDialog());
+}
+
+/// The WebDAV setup guide: parameters, step-by-step screenshots and common
+/// problems. A dialog rather than a page, so 数据管理与备份 › WebDAV stays the
+/// deepest settings level.
+class WebDavHelpDialog extends StatelessWidget {
+  const WebDavHelpDialog({super.key, this.openExternalUrl});
 
   final WebDavExternalLauncher? openExternalUrl;
 
@@ -32,65 +40,94 @@ class WebDavHelpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final toolbarHeight = textScale <= 1.5 ? kToolbarHeight : math.min(152.0, 44 + 36 * textScale);
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: toolbarHeight,
-        titleSpacing: 0,
-        title: Text(context.tr('webdav_help_title'), maxLines: 2, overflow: TextOverflow.ellipsis),
-        elevation: 0,
-      ),
-      body: ListView(
-        key: const ValueKey('webdav-help-scroll'),
-        physics: const PureLiveScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        children: [
-          _buildSectionTitle(context, 'webdav_help_intro_section'),
-          _buildTextCard(context, 'webdav_help_intro_body'),
-          const SizedBox(height: 22),
-          _buildSectionTitle(context, 'webdav_help_params_section'),
-          _buildParamCard(context, theme),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_register_section'),
-          _buildStepCard(context, stepKey: 'webdav_help_register_steps', imgUrl: imgUrls[0], imageIndex: 1),
-          const SizedBox(height: 16),
-          _buildStepCard(context, stepKey: 'webdav_help_register_form', imgUrl: imgUrls[1], imageIndex: 2),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_login_section'),
-          _buildStepCard(context, stepKey: 'webdav_help_login_steps', imgUrl: imgUrls[2], imageIndex: 3),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_password_section'),
-          _buildStepCard(context, stepKey: 'webdav_help_account_steps', imgUrl: imgUrls[3], imageIndex: 4),
-          const SizedBox(height: 16),
-          _buildStepCard(context, stepKey: 'webdav_help_security_steps', imgUrl: imgUrls[4], imageIndex: 5),
-          const SizedBox(height: 16),
-          _buildStepCard(context, stepKey: 'webdav_help_generate_steps', imgUrl: imgUrls[5], imageIndex: 6),
-          const SizedBox(height: 16),
-          _buildStepCard(context, stepKey: 'webdav_help_password_once', imgUrl: imgUrls[6], imageIndex: 7),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_generic_section'),
-          _buildTextCard(context, 'webdav_help_generic_body'),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_issues_section'),
-          _buildTroubleshootCard(context, theme),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_limits_section'),
-          _buildTextCard(context, 'webdav_help_limits_body'),
-          const SizedBox(height: 24),
-          _buildSectionTitle(context, 'webdav_help_summary_section'),
-          _buildTextCard(context, 'webdav_help_summary_body'),
-          const SizedBox(height: 20),
-          OutlinedButton(
-            key: const ValueKey('webdav-help-official-link'),
-            onPressed: () => _openOfficialHelp(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(context.tr('webdav_help_open_official'), textAlign: TextAlign.center),
+    final mediaQuery = MediaQuery.of(context);
+    final compact = mediaQuery.size.width < 420;
+    return Dialog(
+      insetPadding: EdgeInsets.symmetric(horizontal: compact ? 12 : 40, vertical: 24),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 640, maxHeight: mediaQuery.size.height - 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 8, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.tr('webdav_help_title'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.of(context).pageTitle,
+                    ),
+                  ),
+                  IconButton(
+                    key: const ValueKey('webdav-help-close'),
+                    tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 40),
-        ],
+            Flexible(
+              child: ListView(
+                key: const ValueKey('webdav-help-scroll'),
+                physics: const PureLiveScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                children: [
+                  _buildSectionTitle(context, 'webdav_help_intro_section'),
+                  _buildTextCard(context, 'webdav_help_intro_body'),
+                  const SizedBox(height: 22),
+                  _buildSectionTitle(context, 'webdav_help_params_section'),
+                  _buildParamCard(context, theme),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_register_section'),
+                  _buildStepCard(context, stepKey: 'webdav_help_register_steps', imgUrl: imgUrls[0], imageIndex: 1),
+                  const SizedBox(height: 16),
+                  _buildStepCard(context, stepKey: 'webdav_help_register_form', imgUrl: imgUrls[1], imageIndex: 2),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_login_section'),
+                  _buildStepCard(context, stepKey: 'webdav_help_login_steps', imgUrl: imgUrls[2], imageIndex: 3),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_password_section'),
+                  _buildStepCard(context, stepKey: 'webdav_help_account_steps', imgUrl: imgUrls[3], imageIndex: 4),
+                  const SizedBox(height: 16),
+                  _buildStepCard(context, stepKey: 'webdav_help_security_steps', imgUrl: imgUrls[4], imageIndex: 5),
+                  const SizedBox(height: 16),
+                  _buildStepCard(context, stepKey: 'webdav_help_generate_steps', imgUrl: imgUrls[5], imageIndex: 6),
+                  const SizedBox(height: 16),
+                  _buildStepCard(context, stepKey: 'webdav_help_password_once', imgUrl: imgUrls[6], imageIndex: 7),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_generic_section'),
+                  _buildTextCard(context, 'webdav_help_generic_body'),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_issues_section'),
+                  _buildTroubleshootCard(context, theme),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_limits_section'),
+                  _buildTextCard(context, 'webdav_help_limits_body'),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(context, 'webdav_help_summary_section'),
+                  _buildTextCard(context, 'webdav_help_summary_body'),
+                  const SizedBox(height: 20),
+                  OutlinedButton(
+                    key: const ValueKey('webdav-help-official-link'),
+                    onPressed: () => _openOfficialHelp(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(context.tr('webdav_help_open_official'), textAlign: TextAlign.center),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

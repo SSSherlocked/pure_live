@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
@@ -274,6 +277,36 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
               key: const ValueKey('room-card-settings-scope-hint'),
               style: AppText.of(context).secondary.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
+            const SizedBox(height: 20),
+            // The home page menus. Global: unlike everything above they do not
+            // change with the 窄屏/宽屏 target.
+            context.buildGroupTitle(i18n("menu")),
+            context.buildModernCard([
+              for (final (menu, icon, title) in [
+                (HomeMenu.areas, Remix.apps_2_line, i18n("areas_title")),
+                (HomeMenu.popular, Remix.fire_line, i18n("popular_title")),
+              ])
+                KeyedSubtree(
+                  key: ValueKey('menu-entry-${menu.id}'),
+                  child: Obx(
+                    () => context.buildSwitchTile(
+                      title: title,
+                      subtitle: i18n("menu_entry_visible_subtitle"),
+                      value: SettingsService.to.app.showsMenu(menu).obs,
+                      icon: icon,
+                      autoCommit: false,
+                      onChanged: (visible) => SettingsService.to.app.toggleMenuVisibility(menu, visible),
+                    ),
+                  ),
+                ),
+              if (Platform.isWindows)
+                context.buildSwitchTile(
+                  title: i18n("multiview_title"),
+                  subtitle: i18n("multiview_entry_subtitle"),
+                  value: SettingsService.to.app.enableMultiView,
+                  icon: Remix.layout_grid_line,
+                ),
+            ]),
           ],
         );
       })),

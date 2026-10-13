@@ -29,8 +29,6 @@ class RoutePath {
 
   static const kHistory = "/history";
 
-  static const kSettingsDanmuShield = "/shield";
-
   static const kSettingsHotAreas = "/hot_areas";
 
   /// kBiliBiliQRLogin

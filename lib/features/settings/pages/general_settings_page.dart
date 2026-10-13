@@ -4,10 +4,11 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/config/danmaku_settings_controller.dart';
-import 'package:pure_live/core/consts/app_consts.dart';
-import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
-import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
+import 'package:pure_live/core/player/presentation/danmaku/danmaku_settings_content.dart';
+import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
+import 'package:pure_live/features/settings/widgets/font_family_list.dart';
+import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
 import 'package:pure_live/features/settings/pages/room_card_settings_page.dart';
@@ -56,6 +57,12 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               subtitle: i18n("live_panel_settings_subtitle"),
               onTap: () => Get.to(() => const ThemeSettingsPage(section: ThemeSettingsSection.livePanel)),
             ),
+            context.buildTile(
+              icon: Remix.chat_smile_2_line,
+              title: i18n("danmaku_settings"),
+              subtitle: i18n("danmaku_settings_entry_subtitle"),
+              onTap: () => Get.to(() => const _DanmakuSettingsSubpage()),
+            ),
             Obx(() {
               final mode = SettingsService.to.theme.displayMode;
               // A wide layout on a phone-sized screen works, but cramped.
@@ -65,48 +72,11 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               return context.buildTile(
                 icon: Icons.devices_rounded,
                 title: i18n('display_mode'),
-                subtitle:
-                    '${i18n('display_mode_${mode.name}')} · '
-                    '${i18n(cramped ? 'display_mode_narrow_warning' : 'display_mode_${mode.name}_desc')}',
+                subtitle: i18n(cramped ? 'display_mode_narrow_warning' : 'display_mode_${mode.name}_desc'),
                 isLong: true,
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _showDisplayModeDialog(context),
+                trailing: _DisplayModeMenu(current: mode),
               );
             }),
-            context.buildTile(
-              icon: Remix.chat_smile_2_line,
-              title: i18n("danmaku_settings"),
-              subtitle: i18n("danmaku_settings_entry_subtitle"),
-              onTap: () => Get.to(() => const _DanmakuSettingsSubpage()),
-            ),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("menu")),
-          context.buildModernCard([
-            for (final (menu, icon, title) in [
-              (HomeMenu.areas, Remix.apps_2_line, i18n("areas_title")),
-              (HomeMenu.popular, Remix.fire_line, i18n("popular_title")),
-            ])
-              KeyedSubtree(
-                key: ValueKey('menu-entry-${menu.id}'),
-                child: Obx(
-                  () => context.buildSwitchTile(
-                    title: title,
-                    subtitle: i18n("menu_entry_visible_subtitle"),
-                    value: SettingsService.to.app.showsMenu(menu).obs,
-                    icon: icon,
-                    autoCommit: false,
-                    onChanged: (visible) => SettingsService.to.app.toggleMenuVisibility(menu, visible),
-                  ),
-                ),
-              ),
-            if (Platform.isWindows)
-              context.buildSwitchTile(
-                title: i18n("multiview_title"),
-                subtitle: i18n("multiview_entry_subtitle"),
-                value: SettingsService.to.app.enableMultiView,
-                icon: Remix.layout_grid_line,
-              ),
           ]),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("refresh_settings")),
@@ -339,23 +309,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
     );
   }
 
-  /// Picks 显示模式 and rebuilds the whole app once, so controllers that cached
-  /// the previous layout (refresh buttons, room card presets) follow at once.
-  Future<void> _showDisplayModeDialog(BuildContext context) async {
-    final theme = SettingsService.to.theme;
-    final value = await showDialog<String>(
-      context: context,
-      builder: (_) => ThemeChoiceDialog<String>(
-        title: i18n('display_mode'),
-        value: theme.displayMode.name,
-        items: {for (final mode in DisplayMode.values) mode.name: i18n('display_mode_${mode.name}')},
-      ),
-    );
-    if (value == null || value == theme.displayMode.name) return;
-    theme.displayModeName.v = value;
-    await Get.forceAppUpdate();
-  }
-
   void _showWindowSizeDialog(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -365,6 +318,75 @@ class GeneralSettingsPage extends GetView<SettingsService> {
 
   void _showCountdownDurationDialog(BuildContext context) {
     showDialog<void>(context: context, builder: (context) => const _CountdownDurationDialog());
+  }
+}
+
+/// 显示模式 as the tile's trailing text; tapping it opens a floating menu
+/// styled like the player's quality switcher. A new mode rebuilds the whole
+/// app once, so controllers that cached the previous layout (refresh buttons,
+/// room card presets) follow at once.
+class _DisplayModeMenu extends StatelessWidget {
+  const _DisplayModeMenu({required this.current});
+
+  final DisplayMode current;
+
+  Future<void> _apply(DisplayMode mode) async {
+    final theme = SettingsService.to.theme;
+    if (mode.name == theme.displayMode.name) return;
+    theme.displayModeName.v = mode.name;
+    await Get.forceAppUpdate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final labels = [for (final mode in DisplayMode.values) i18n('display_mode_${mode.name}')];
+    return PopupMenuButton<DisplayMode>(
+      key: const ValueKey('display-mode-menu'),
+      tooltip: i18n('display_mode'),
+      color: colors.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      // As wide as the entries, not the 112 px default minimum.
+      constraints: const BoxConstraints(),
+      offset: const Offset(0.0, 5.0),
+      position: PopupMenuPosition.under,
+      onSelected: (mode) => unawaited(_apply(mode)),
+      itemBuilder: (context) => [
+        for (final mode in DisplayMode.values)
+          PopupMenuItem<DisplayMode>(
+            height: kFloatingMenuItemHeight,
+            value: mode,
+            // Centred in the width of the longest entry; the current one bold
+            // in the primary colour.
+            child: SizedBox(
+              width: menuLabelWidth(context, labels, AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700)),
+              child: Text(
+                i18n('display_mode_${mode.name}'),
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: AppText.of(context).secondary.copyWith(
+                  color: mode == current ? colors.primary : null,
+                  fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+      ],
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Align(
+            widthFactor: 1,
+            child: Text(
+              i18n('display_mode_${current.name}'),
+              maxLines: 1,
+              style: AppText.of(context).secondary.copyWith(color: colors.primary, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -681,7 +703,10 @@ class AnimatedTimerIcon extends StatelessWidget {
   }
 }
 
-/// 通用 › 主题设置 › 弹幕设置: what the 通用 page used to list inline.
+/// 通用 › 弹幕设置: the room panel's own 弹幕设置 tab (chat list, floating
+/// danmaku, filters and keyword blocking), bound to the global settings,
+/// plus what only the settings page offers: the global show switch, the
+/// danmaku frame-rate cap and the danmaku font.
 class _DanmakuSettingsSubpage extends StatelessWidget {
   const _DanmakuSettingsSubpage();
 
@@ -693,131 +718,57 @@ class _DanmakuSettingsSubpage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(i18n("danmaku_settings"))),
       body: SettingsContentWidth(
-        child: ListView(
-          physics: const PureLiveScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          children: [
-          context.buildModernCard([
-            Obx(
-              () => context.buildSwitchTile(
-                title: i18n('show_danmaku'),
-                subtitle: i18n('show_danmaku_subtitle'),
-                // The stored flag is "hide"; the switch shows the opposite.
-                value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
-                autoCommit: false,
-                icon: Remix.chat_smile_2_line,
-                onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
-              ),
-            ),
-            Obx(
-              () => context.buildTile(
-                icon: Remix.font_size,
-                title: i18n("change_danmaku_font_family"),
-                subtitle: "${i18n("current_font_prefix")}: ${SettingsService.to.danmaku.danmakuFontFamilyName.v}",
-                onTap: () => Get.to(() => const FontFamilyManagerPage(isDanmakuSettings: true)),
-              ),
-            ),
-
-            context.buildTile(
-              icon: Remix.filter_2_line,
-              title: i18n("danmaku_filter"),
-              subtitle: i18n("danmaku_filter_subtitle"),
-              onTap: () => Get.toNamed(RoutePath.kSettingsDanmuShield),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Remix.text,
-                title: i18n('chat_list_font_size'),
-                value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
-                min: 10,
-                max: 28,
-                displayValue: SettingsService.to.danmaku.chatListFontSize.v.round().toString(),
-                onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = v.roundToDouble(),
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Icons.format_bold_rounded,
-                title: i18n('chat_list_font_weight'),
-                value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                displayValue: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListFontWeight.v] ?? 'font_weight_normal',
+        child: DanmakuSettingsContent(
+          controller: const SettingsDanmakuSource(),
+          header: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              context.buildModernCard([
+                Obx(
+                  () => context.buildSwitchTile(
+                    title: i18n('show_danmaku'),
+                    subtitle: i18n('show_danmaku_subtitle'),
+                    // The stored flag is "hide"; the switch shows the opposite.
+                    value: (!SettingsService.to.danmaku.hideDanmaku.v).obs,
+                    autoCommit: false,
+                    icon: Remix.chat_smile_2_line,
+                    onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
+                  ),
                 ),
-                onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Icons.person_outline_rounded,
-                title: i18n('chat_list_name_font_weight'),
-                value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                displayValue: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
-                      'font_weight_normal',
-                ),
-                onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Remix.text_spacing,
-                title: i18n('chat_list_item_spacing'),
-                value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
-                min: 0,
-                max: 16,
-                displayValue: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
-                onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v.roundToDouble(),
-              ),
-            ),
-            Obx(
-              () => context.buildSliderTile(
-                context,
-                icon: Icons.brightness_6_outlined,
-                title: i18n('room_text_opacity'),
-                subtitle: i18n('room_text_opacity_subtitle'),
-                value: DanmakuSettingsController.normalizeRoomTextOpacity(SettingsService.to.danmaku.roomTextOpacity.v),
-                min: 0.5,
-                max: 1,
-                displayValue: '${(SettingsService.to.danmaku.roomTextOpacity.v * 100).round()}%',
-                onChanged: (v) => SettingsService.to.danmaku.roomTextOpacity.v = (v * 20).round() / 20,
-              ),
-            ),
-            // Caps the room and PiP danmaku frame rate (see
-            // DanmakuSettingsController.resolveAdaptiveDanmakuFps).
-            Obx(() {
-              final info = DisplayModeService.info.value;
-              final mode = SettingsService.to.app.refreshRateMode;
-              final suffix = info == null
-                  ? ''
-                  : ' · ${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
-              return context.buildTile(
-                title: i18n('danmaku_max_refresh_rate'),
-                subtitle:
-                    '${_general._refreshRateModeLabel(mode)} · '
-                    '${_general._refreshRateModeDescription(mode)}$suffix',
-                icon: Remix.speed_up_line,
-                isLong: true,
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _general._showRefreshRateModeDialog(context),
-              );
-            }),
-            context.buildSwitchTile(
-              title: i18n('chat_list_bubble'),
-              subtitle: i18n('chat_list_bubble_subtitle'),
-              value: SettingsService.to.danmaku.chatListBubble,
-              icon: Remix.chat_3_line,
-            ),
-            const ChatListColorModeTile(),
-          ]),
-          ],
+                // Caps the room and PiP danmaku frame rate (see
+                // DanmakuSettingsController.resolveAdaptiveDanmakuFps).
+                Obx(() {
+                  final info = DisplayModeService.info.value;
+                  final mode = SettingsService.to.app.refreshRateMode;
+                  final suffix = info == null
+                      ? ''
+                      : ' · ${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
+                  return context.buildTile(
+                    title: i18n('danmaku_max_refresh_rate'),
+                    subtitle:
+                        '${_general._refreshRateModeLabel(mode)} · '
+                        '${_general._refreshRateModeDescription(mode)}$suffix',
+                    icon: Remix.speed_up_line,
+                    isLong: true,
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () => _general._showRefreshRateModeDialog(context),
+                  );
+                }),
+              ]),
+              const SizedBox(height: 14),
+            ],
+          ),
+          // The room panel ends its tab with the same 屏蔽管理 section.
+          footer: const KeywordBlockPage(asSection: true),
+          trailing: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 14),
+              context.buildGroupTitle(i18n("change_danmaku_font_family")),
+              const FontFamilyList(isDanmakuSettings: true),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

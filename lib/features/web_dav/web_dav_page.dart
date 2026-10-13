@@ -291,7 +291,7 @@ class _WebDavPageState extends State<WebDavPage> {
             } else if (value == 2) {
               _scaffoldKey.currentState?.openEndDrawer();
             } else if (value == 3) {
-              Get.to(() => const WebDavHelpPage());
+              showWebDavHelpDialog(context);
             }
           },
           itemBuilder: (BuildContext context) => [

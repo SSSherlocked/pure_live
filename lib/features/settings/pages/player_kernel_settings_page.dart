@@ -12,10 +12,8 @@ import 'package:pure_live/core/player/kernel/player_preset.dart';
 import 'package:pure_live/core/player/models/player_engine.dart';
 import 'package:pure_live/core/player/kernel/mpv_option_labels.dart';
 import 'package:pure_live/core/player/kernel/player_consts.dart';
-import 'package:pure_live/features/settings/pages/mpv_option_page.dart';
-import 'package:pure_live/features/settings/pages/player_guide_page.dart';
-import 'package:pure_live/features/settings/pages/player_preset_page.dart';
-import 'package:pure_live/features/settings/pages/player_super_resolution_page.dart';
+import 'package:pure_live/core/player/super_resolution.dart';
+import 'package:pure_live/features/settings/widgets/player_guide_section.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 
 class PlayerKernelSettingsPage extends GetView<SettingsService> {
@@ -58,23 +56,10 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 subtitle: i18n("gpu_decode"),
                 value: SettingsService.to.player.enableCodec,
               ),
-              // The presets and the manual are mpv features on every platform;
-              // RTX VSR is the one that needs a Windows NVIDIA driver.
+              // The presets and the manual are mpv features on every platform
+              // (listed below this card); RTX VSR is the one that needs a
+              // Windows NVIDIA driver.
               if (engine == PlayerEngine.mediaKit) ...[
-                context.buildTile(
-                  icon: Remix.magic_line,
-                  title: i18n('player_preset_section'),
-                  subtitle: i18n('player_preset_entry_subtitle'),
-                  trailing: const Icon(Remix.arrow_right_s_line),
-                  onTap: () => Get.to(() => const PlayerPresetPage()),
-                ),
-                context.buildTile(
-                  icon: Remix.guide_line,
-                  title: i18n('player_guide_title'),
-                  subtitle: i18n('player_guide_subtitle'),
-                  trailing: const Icon(Remix.arrow_right_s_line),
-                  onTap: () => Get.to(() => const PlayerGuidePage()),
-                ),
                 // The two one-tap actions the guide only describes: a viewer
                 // whose picture is broken should not have to open a manual,
                 // find the recipe, then hunt which of the six presets it is.
@@ -93,14 +78,6 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                     trailing: const Icon(Remix.arrow_right_s_line),
                     onTap: () => _applyPresetWithConfirm(context, PlayerPresetId.compat),
                   ),
-                if (Platform.isWindows)
-                  context.buildTile(
-                    icon: Remix.rhythm_line,
-                    title: i18n('super_resolution_section'),
-                    subtitle: i18n('super_resolution_hint'),
-                    trailing: const Icon(Remix.arrow_right_s_line),
-                    onTap: () => Get.to(() => const PlayerSuperResolutionPage()),
-                  ),
               ],
               context.buildSwitchTile(
                 icon: Remix.shut_down_line,
@@ -114,7 +91,21 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
             if (PlayerConsts.engines[_activePlayerKey()] != PlayerEngine.mediaKit) {
               return const SizedBox.shrink();
             }
-            return _buildMpvSettings(context);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                _buildPresetSection(context, theme),
+                if (Platform.isWindows) ...[
+                  const SizedBox(height: 20),
+                  _buildSuperResolutionSection(context, theme),
+                ],
+                _buildMpvSettings(context),
+                const SizedBox(height: 20),
+                // The manual, every chapter collapsed.
+                const PlayerGuideSection(),
+              ],
+            );
           }),
           const SizedBox(height: 32),
         ],
@@ -146,6 +137,77 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
     if (confirmed != true) return;
     SettingsService.to.player.applyPreset(preset);
     ToastUtil.show(i18n('player_one_click_applied', args: {'preset': i18n(preset.nameKey)}));
+  }
+
+  /// One-click playback presets, one row per recipe.
+  ///
+  /// A preset is stored per engine and per platform group: applying one
+  /// here changes the segment for the engine and platform this device is
+  /// currently on, and nothing else.
+  Widget _buildPresetSection(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        context.buildGroupTitle(i18n('player_preset_section')),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Text(i18n('player_preset_hint'), style: AppText.of(context).secondary.copyWith(color: theme.hintColor)),
+        ),
+        context.buildModernCard([
+          for (final preset in PlayerPresetId.values)
+            if (preset.availableOnCurrentPlatform)
+              ListTile(
+                key: ValueKey('player-preset-${preset.name}'),
+                title: Text(i18n(preset.nameKey), style: AppText.of(context).sectionTitle),
+                subtitle: Text(i18n(preset.descriptionKey), style: AppText.of(context).secondary),
+                trailing: Obx(() {
+                  final _ = SettingsService.to.player.outputSegmentRevision.value;
+                  final active = SettingsService.to.player.currentPreset == preset;
+                  return active
+                      ? Icon(Remix.checkbox_circle_fill, color: theme.colorScheme.primary)
+                      : const Icon(Remix.checkbox_blank_circle_line);
+                }),
+                onTap: () => SettingsService.to.player.applyPreset(preset),
+              ),
+        ]),
+      ],
+    );
+  }
+
+  /// Anime4K super-resolution: off / efficiency / quality, one row each.
+  ///
+  /// Only desktop GPUs can hold the CNN chain in realtime; the property
+  /// itself only mounts on Windows (see
+  /// MediaKitLiveProperties.superResolutionAvailable).
+  Widget _buildSuperResolutionSection(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        context.buildGroupTitle(i18n('super_resolution_section')),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+          child: Text(
+            i18n('super_resolution_hint'),
+            style: AppText.of(context).secondary.copyWith(color: theme.hintColor),
+          ),
+        ),
+        context.buildModernCard([
+          for (final mode in SuperResolutionMode.values)
+            ListTile(
+              key: ValueKey('super-resolution-${mode.name}'),
+              title: Text(i18n(mode.labelKey), style: AppText.of(context).sectionTitle),
+              subtitle: Text(i18n(mode.descriptionKey), style: AppText.of(context).secondary),
+              trailing: Obx(() {
+                final active = SuperResolutionMode.fromName(SettingsService.to.player.superResolutionMode.v) == mode;
+                return active
+                    ? Icon(Remix.checkbox_circle_fill, color: theme.colorScheme.primary)
+                    : const Icon(Remix.checkbox_blank_circle_line);
+              }),
+              onTap: () => SettingsService.to.player.superResolutionMode.v = mode.name,
+            ),
+        ]),
+      ],
+    );
   }
 
   /// The proxy state is read inside its own Obx so toggling it does not rebuild
@@ -370,7 +432,47 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
             (locked ? '${i18n('player_output_locked_by_preset')} · ' : '') +
             mpvOptionLabel(kind, normalizedMpvOption(kind, value.value, defaultTargetPlatform)),
         trailing: const Icon(Remix.arrow_right_s_line),
-        onTap: () => Get.to(() => MpvOptionPage(kind: kind, title: title, value: value)),
+        onTap: () => _showMpvOptionDialog(context, kind: kind, title: title, value: value),
+      ),
+    );
+  }
+
+  /// Picks one mpv output/decoder option; choosing closes the dialog.
+  void _showMpvOptionDialog(
+    BuildContext context, {
+    required MpvOptionKind kind,
+    required String title,
+    required RxString value,
+  }) {
+    final platform = defaultTargetPlatform;
+    final options = mpvOptionsForPlatform(kind, platform);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(title),
+        children: [
+          Obx(
+            () => RadioGroup<String>(
+              groupValue: normalizedMpvOption(kind, value.value, platform),
+              onChanged: (key) {
+                if (key == null) return;
+                value.value = key;
+                Navigator.of(dialogContext).pop();
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final option in options)
+                    RadioListTile<String>(
+                      value: option.key,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      title: Text(option.label, style: AppText.of(dialogContext).listPrimary),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

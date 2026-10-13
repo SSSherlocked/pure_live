@@ -21,7 +21,6 @@ import 'package:pure_live/domains/live/presentation/multiview/multiview_controll
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/search/search_controller.dart';
 import 'package:pure_live/domains/live/presentation/search/web_search_controller.dart';
-import 'package:pure_live/domains/live/presentation/shield/danmu_shield_controller.dart';
 import 'package:pure_live/domains/recorder/data/record_settings_controller.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_controller.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/local_player/local_video_player_controller.dart';
@@ -175,13 +174,6 @@ class WebSearchBinding extends Binding {
   @override
   List<Bind> dependencies() {
     return [Bind.lazyPut(() => WebSearchController())];
-  }
-}
-
-class DanmuShieldBinding extends Binding {
-  @override
-  List<Bind> dependencies() {
-    return [Bind.lazyPut(() => DanmuShieldController())];
   }
 }
 

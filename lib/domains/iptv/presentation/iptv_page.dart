@@ -4,7 +4,7 @@ import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
-import 'package:pure_live/domains/iptv/presentation/iptv_manage.dart';
+import 'package:pure_live/domains/iptv/presentation/iptv_manage_section.dart';
 import 'package:pure_live/domains/iptv/data/local/database.dart' as database;
 import 'package:pure_live/domains/iptv/data/services/epg_import_manager.dart';
 import 'package:pure_live/domains/iptv/data/services/iptv_import_manager.dart';
@@ -34,6 +34,8 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
   final RxList<database.Provider> playlists = <database.Provider>[].obs;
   final RxList<database.EpgSource> epgSources = <database.EpgSource>[].obs;
 
+  final GlobalKey<IptvManageSectionState> _manageKey = GlobalKey<IptvManageSectionState>();
+
   final RxBool isGlobalSyncing = false.obs;
   final RxBool isSyncingEpg = false.obs;
 
@@ -58,6 +60,8 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
     if (!mounted) return;
     epgSources.value = sources;
     playlists.value = providers;
+    // The inline list of every playlist and EPG source follows each import.
+    unawaited(_manageKey.currentState?.refresh());
     if (_initializationErrorKey != null &&
         (_initializationErrorKey == 'iptv_initial_load_failed' || sources.isNotEmpty)) {
       setState(() => _initializationErrorKey = null);
@@ -141,16 +145,6 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
             ),
             const SizedBox(height: 12),
           ],
-          context.buildGroupTitle(i18n("iptv_manage")),
-          context.buildModernCard([
-            context.buildTile(
-              icon: Remix.cloud_line,
-              title: i18n("iptv_list_manage"),
-              subtitle: i18n("download_guide_sub"),
-              onTap: () => Get.to(() => const IptvManagePage()),
-            ),
-          ]),
-          const SizedBox(height: 20),
           context.buildGroupTitle(i18n("auto_sync_settings")),
           context.buildModernCard([
             context.buildSwitchTile(
@@ -222,6 +216,8 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
               ),
             ),
           ]),
+          const SizedBox(height: 20),
+          IptvManageSection(key: _manageKey),
           const SizedBox(height: 32),
         ],
       )),

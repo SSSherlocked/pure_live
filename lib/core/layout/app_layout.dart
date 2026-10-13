@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-/// The display mode the viewer picked in 设置 › 通用 › 主题.
+/// The display mode the viewer picked in 设置 › 通用 › 显示模式.
 enum DisplayMode {
   /// Follow the screen: phone layout up to [AppLayout.wideBreakpoint], wide
   /// beyond it; touch interaction on phones, pointer interaction elsewhere.

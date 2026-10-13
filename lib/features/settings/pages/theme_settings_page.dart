@@ -3,10 +3,10 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
-import 'package:pure_live/features/settings/pages/live_panel_tab_order_page.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:pure_live/features/settings/pages/font_settings_page.dart';
-import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
+import 'package:pure_live/features/settings/widgets/font_family_list.dart';
+import 'package:pure_live/features/settings/widgets/font_typography_section.dart';
+import 'package:pure_live/features/settings/widgets/live_panel_tab_order_section.dart';
 import 'package:pure_live/features/settings/widgets/app_color_picker_dialog.dart';
 import 'package:pure_live/features/settings/widgets/download_directory_tiles.dart';
 
@@ -17,11 +17,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
   const ThemeSettingsPage({super.key, this.section = ThemeSettingsSection.theme});
 
   final ThemeSettingsSection section;
-
-  static String _currentFontName() {
-    final font = SettingsService.to.font;
-    return font.fontFamilyFileName.v.isNotEmpty ? font.fontFamilyFileName.v : font.fontFamilyName.v;
-  }
 
   String get _title => switch (section) {
     ThemeSettingsSection.theme => i18n('theme_customization'),
@@ -81,22 +76,11 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                 ),
               ]),
             ],
+            // Everything a font needs on this one page: the text scale, the
+            // five typography sizes, the font family list and where fonts are
+            // downloaded to.
             ThemeSettingsSection.fonts => [
               context.buildModernCard([
-                Obx(
-                  () => context.buildTile(
-                    icon: Remix.font_color,
-                    title: i18n("change_font_family"),
-                    subtitle: "${i18n("current_font_prefix")}: ${_currentFontName()}",
-                    onTap: () => Get.to(() => const FontFamilyManagerPage()),
-                  ),
-                ),
-                context.buildTile(
-                  icon: Remix.font_size,
-                  title: i18n("font_settings_title"),
-                  subtitle: i18n("font_settings_desc"),
-                  onTap: () => Get.to(() => const FontSettingsPage()),
-                ),
                 Obx(
                   () => context.buildSliderTile(
                     context,
@@ -119,17 +103,15 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                   ),
                 ),
               ]),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              const FontTypographySection(),
+              const SizedBox(height: 20),
               context.buildModernCard([const DownloadDirectoryTiles()]),
+              const SizedBox(height: 20),
+              const FontFamilyList(),
             ],
             ThemeSettingsSection.livePanel => [
               context.buildModernCard([
-                context.buildTile(
-                  icon: Remix.drag_move_2_line,
-                  title: i18n("live_panel_tab_order"),
-                  subtitle: i18n("live_panel_tab_order_subtitle"),
-                  onTap: () => Get.to(() => const LivePanelTabOrderPage()),
-                ),
                 Obx(
                   () => context.buildSliderTile(
                     context,
@@ -144,6 +126,8 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                   ),
                 ),
               ]),
+              const SizedBox(height: 20),
+              const LivePanelTabOrderSection(),
             ],
           },
           const SizedBox(height: 32),

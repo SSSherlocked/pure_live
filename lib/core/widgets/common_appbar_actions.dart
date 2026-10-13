@@ -26,8 +26,8 @@ class HomePageMenuAction {
 }
 
 /// The home page's top-right menu: 搜索, 分区 and 热门 (each unless hidden in
-/// 设置 › 菜单), 历史 and, after a divider, the page's own [pageAction]. The rest
-/// is in the top-left menu ([MenuButton]).
+/// 设置 › 通用 › 房间卡片设置 › 菜单), 历史 and, after a divider, the page's own
+/// [pageAction]. The rest is in the top-left menu ([MenuButton]).
 class CommonAppBarActions extends StatelessWidget {
   const CommonAppBarActions({super.key, this.pageAction});
 

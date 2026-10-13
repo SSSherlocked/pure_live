@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:logger/logger.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -238,7 +238,7 @@ class LogFileWriter {
       if (dir == null) {
         throw const FileSystemException('Downloads directory is unavailable');
       }
-      return Directory(AppPathManager.logFilesDirectoryPath(path.join(dir.path, AppPathManager.dirLogs)));
+      return Directory(AppPathManager.logFilesDirectoryPath(p.join(dir.path, AppPathManager.dirLogs)));
     }
     return AppPathManager().logFilesDir;
   }

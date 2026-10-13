@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Hit-target extent of a player action in the compact layout.
-const double compactPlayerActionExtent = 36;
+/// Hit-target extent of a player action in the compact layout: the 20 px
+/// icon keeps 6 px either side, so neighbouring icons sit 12 px apart.
+const double compactPlayerActionExtent = 32;
 
 /// How much the compact layout shrinks icons (24 → 20, 28 → 23).
 const double compactPlayerIconScale = 0.82;

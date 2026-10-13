@@ -115,7 +115,8 @@ class RoomGridView extends GetView<FavoriteController> {
           // pull animation never armed.
           return buildFavoritePullToRefresh(
             siteId: siteId,
-            header: appRefreshIndicators(context).header,
+            // A floating ball over the list rather than pulling the list down.
+            header: floatingRefreshHeader(),
             onRefresh: controller.pullToRefresh,
             childBuilder: (_, physics) => buildScrollable(physics),
           );
@@ -134,7 +135,6 @@ Widget buildFavoritePullToRefresh({
 }) {
   return EasyRefresh.builder(
     key: ValueKey('favorite_pull_to_refresh_$siteId'),
-    // The app's own pull header and spinner, as on every other list.
     header: header,
     triggerAxis: Axis.vertical,
     onRefresh: onRefresh,

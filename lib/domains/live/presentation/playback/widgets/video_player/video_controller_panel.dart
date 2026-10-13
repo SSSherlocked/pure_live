@@ -435,7 +435,8 @@ class TopActionBar extends StatelessWidget {
     // The inset is the raw system one, so this works whether the bar is over a
     // windowed video or a portrait fullscreen that owns the whole screen.
     final padding = playerBarInsets(context, portraitFullscreen: portraitFullscreen);
-    final edge = PlayerControlDensity.compactOf(context) ? 4.0 : 8.0;
+    // The compact bar adds no edge of its own: the buttons' padding is enough.
+    final edge = PlayerControlDensity.compactOf(context) ? 0.0 : 8.0;
     return Obx(
       () => AnimatedPositioned(
         top: controller.showController.value && !controller.showLocked.value ? 0 : -(barHeight + padding.top),
@@ -469,7 +470,10 @@ class TopActionBar extends StatelessWidget {
 
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: PlayerControlDensity.compactOf(context) ? 6 : 12,
+                          vertical: 4,
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1067,7 +1071,7 @@ class BottomActionBar extends StatelessWidget {
     // (and a sideways cutout) instead of sitting under them.
     final padding = playerBarInsets(context);
     final compactControls = PlayerControlDensity.compactOf(context);
-    final edge = compactControls ? 4.0 : 8.0;
+    final edge = compactControls ? 0.0 : 8.0;
     return Obx(() {
       bool shouldShow =
           (controller.showController.value || controller.isMenuOpen.value) && !controller.showLocked.value;

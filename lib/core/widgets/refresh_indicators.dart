@@ -15,6 +15,58 @@ void initRefresh() {
   return (header: _buildHeader(layout), footer: _buildFooter(layout));
 }
 
+/// The floating pull-to-refresh: the list stays put and a small ball drops
+/// in from the top, the app's three arcs (三重连环) turning with the pull and
+/// spinning while it refreshes - the older Material look, with the app's icon
+/// in place of the arrow.
+Header floatingRefreshHeader() => BuilderHeader(
+  triggerOffset: 72,
+  clamping: true,
+  position: IndicatorPosition.above,
+  processedDuration: const Duration(milliseconds: 200),
+  builder: (context, state) {
+    const ballSize = 40.0;
+    final colors = Theme.of(context).colorScheme;
+    final busy = state.mode == IndicatorMode.ready || state.mode == IndicatorMode.processing;
+    final finishing = state.mode == IndicatorMode.processed || state.mode == IndicatorMode.done;
+    final gap = ((state.offset - ballSize) / 2).clamp(0.0, double.infinity).toDouble();
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SizedBox(width: double.infinity, height: state.offset),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: gap,
+          child: Center(
+            child: AnimatedScale(
+              scale: finishing ? 0 : 1,
+              duration: const Duration(milliseconds: 150),
+              child: Material(
+                key: const ValueKey('floating-refresh-ball'),
+                type: MaterialType.circle,
+                elevation: 3,
+                color: colors.surfaceContainerHigh,
+                child: SizedBox.square(
+                  dimension: ballSize,
+                  child: Center(
+                    child: busy
+                        ? const SizedBox.square(
+                            dimension: 24,
+                            child: AppStatusView(type: AppStatusType.loading, isMini: true),
+                          )
+                        : PullArcsIndicator(progress: _pullProgress(state)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  },
+);
+
 ClassicHeader _buildHeader(_RefreshLayout layout) => ClassicHeader(
   triggerOffset: layout.height,
   textDimension: layout.width,

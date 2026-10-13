@@ -313,12 +313,15 @@ class _TaskCard extends GetView<RecorderController> {
       decoration: BoxDecoration(color: c.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(10)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 14, color: c),
           const SizedBox(width: 5),
           Flexible(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppText.from(theme).secondary.copyWith(fontWeight: FontWeight.w600, color: c),
             ),
           ),
@@ -562,6 +565,8 @@ class _TaskCard extends GetView<RecorderController> {
                       Wrap(
                         spacing: 14,
                         runSpacing: 6,
+                        // The platform tag is taller than the text items beside it.
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           _Tag(text: task.platform.toUpperCase(), icon: Remix.plant_fill, color: _platformColor()),
                           _miniInfo(
@@ -608,15 +613,31 @@ class _TaskCard extends GetView<RecorderController> {
                   ),
                   child: Column(
                     children: [
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 10,
-                        children: [
-                          _statItem(theme, Icons.timer_outlined, _formatDuration(task.recordedSeconds)),
-                          _statItem(theme, Icons.storage_rounded, _formatFileSize(task.fileSize)),
-                          _statItem(theme, Icons.speed_rounded, "${task.recordSpeed.toStringAsFixed(1)}x"),
-                          _statItem(theme, Icons.graphic_eq_rounded, _formatBitrate(task.bitrate)),
-                        ],
+                      // Four equal cells in one row; two rows of two when the
+                      // card is too narrow for four readable cells.
+                      LayoutBuilder(
+                        builder: (context, box) {
+                          final stats = [
+                            _statItem(theme, Icons.timer_outlined, _formatDuration(task.recordedSeconds)),
+                            _statItem(theme, Icons.storage_rounded, _formatFileSize(task.fileSize)),
+                            _statItem(theme, Icons.speed_rounded, "${task.recordSpeed.toStringAsFixed(1)}x"),
+                            _statItem(theme, Icons.graphic_eq_rounded, _formatBitrate(task.bitrate)),
+                          ];
+                          const gap = 8.0;
+                          final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+                          Widget row(List<Widget> cells) => Row(
+                            children: [
+                              for (var i = 0; i < cells.length; i++) ...[
+                                if (i > 0) const SizedBox(width: gap),
+                                Expanded(child: cells[i]),
+                              ],
+                            ],
+                          );
+                          if (box.maxWidth >= 340 * textScale) return row(stats);
+                          return Column(
+                            children: [row(stats.sublist(0, 2)), const SizedBox(height: gap), row(stats.sublist(2))],
+                          );
+                        },
                       ),
                       const SizedBox(height: 8),
                       Container(

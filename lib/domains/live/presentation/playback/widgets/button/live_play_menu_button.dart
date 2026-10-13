@@ -33,22 +33,16 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<int>(
-      tooltip: i18n('menu'),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      offset: const Offset(12, 0),
-      position: PopupMenuPosition.under,
-      onOpened: () {
-        controller.updateUI(isMenuOpen: true);
-      },
-      onCanceled: () {
-        controller.updateUI(isMenuOpen: false);
-      },
-      onSelected: (index) {
-        _handleSelected(context, index);
-      },
-      itemBuilder: _buildItems,
-      child: const SizedBox.square(dimension: kMinInteractiveDimension, child: Icon(Icons.menu_rounded)),
+    // The same menu as the home page's: MenuAnchor entries sized to their
+    // content (a popup menu rounds its width up to 56 px steps, which left a
+    // wide empty band on the right).
+    return MenuAnchor(
+      style: homeMenuStyle,
+      alignmentOffset: const Offset(0, 4),
+      onOpen: () => controller.updateUI(isMenuOpen: true),
+      onClose: () => controller.updateUI(isMenuOpen: false),
+      menuChildren: _buildItems(context),
+      builder: (context, menu, _) => homeMenuToggle(menu, icon: Icons.menu_rounded, tooltip: i18n('menu')),
     );
   }
 
@@ -161,46 +155,28 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
     });
   }
 
-  List<PopupMenuEntry<int>> _buildItems(BuildContext context) {
-    return [
-      _item(value: 0, icon: Icons.open_in_new_rounded, text: i18n('open_live_room')),
-
-      ?_recordItem(),
-
-      _item(value: 2, icon: Remix.tv_2_line, text: i18n('cast_screen')),
-
-      _item(value: 3, icon: Remix.time_line, text: i18n('sleep_timer')),
-
-      _item(value: 5, icon: Remix.link_m, text: i18n('toolbox_get_direct_link')),
-
-      _item(value: 6, icon: RemixIcons.share_forward_line, text: i18n('share')),
-
-      if (Platform.isWindows) _item(value: 8, icon: Icons.open_in_new_rounded, text: i18n('open_room_in_new_window')),
-
-      // Always last.
-      _item(value: 9, icon: Remix.information_line, text: i18n('video_details')),
-    ];
-  }
-
-  /// 录制, labelled with the room's current recording state.
-  PopupMenuItem<int>? _recordItem() {
+  List<Widget> _buildItems(BuildContext context) {
+    Widget item(int value, IconData icon, String text, {Color? iconColor}) => homeMenuItem(
+      context,
+      icon: icon,
+      text: text,
+      iconColor: iconColor,
+      onPressed: () => _handleSelected(context, value),
+    );
     final detail = controller.state.value.room.detail;
-    if (detail == null) return null;
-    final state = _recordState(_recordActions, detail);
-    return _item(
-      value: 1,
-      icon: state.icon,
-      iconColor: state.running ? Colors.redAccent : null,
-      text: i18n(state.labelKey),
-    );
-  }
-
-  PopupMenuItem<int> _item({required int value, required IconData icon, required String text, Color? iconColor}) {
-    return PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
-      value: value,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: MenuListTile(leading: Icon(icon, size: 20, color: iconColor), text: text),
-    );
+    final record = detail == null ? null : _recordState(_recordActions, detail);
+    return [
+      item(0, Icons.open_in_new_rounded, i18n('open_live_room')),
+      if (record != null)
+        item(1, record.icon, i18n(record.labelKey), iconColor: record.running ? Colors.redAccent : null),
+      item(2, Remix.tv_2_line, i18n('cast_screen')),
+      item(3, Remix.time_line, i18n('sleep_timer')),
+      item(5, Remix.link_m, i18n('toolbox_get_direct_link')),
+      item(6, RemixIcons.share_forward_line, i18n('share')),
+      if (Platform.isWindows) item(8, Icons.open_in_new_rounded, i18n('open_room_in_new_window')),
+      // Always last.
+      item(9, Remix.information_line, i18n('video_details')),
+    ];
   }
 }
 

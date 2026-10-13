@@ -22,8 +22,8 @@ const ButtonStyle homeMenuItemStyle = ButtonStyle(
 TextStyle homeMenuTextStyle(BuildContext context) => AppText.of(context).body.copyWith(fontWeight: FontWeight.w500);
 
 /// The icon of a home menu entry.
-Widget homeMenuIcon(BuildContext context, IconData icon) =>
-    Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary);
+Widget homeMenuIcon(BuildContext context, IconData icon, {Color? color}) =>
+    Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.primary);
 
 /// One entry of the home page's two menus: a primary-coloured icon and its
 /// name, shared by [MenuButton] and [CommonAppBarActions]. [arrowColumn]
@@ -36,8 +36,9 @@ Widget homeMenuItem(
   required String text,
   required VoidCallback onPressed,
   bool arrowColumn = false,
+  Color? iconColor,
 }) {
-  final leading = homeMenuIcon(context, icon);
+  final leading = homeMenuIcon(context, icon, color: iconColor);
   return MenuItemButton(
     key: key,
     style: homeMenuItemStyle,

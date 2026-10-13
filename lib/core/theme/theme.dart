@@ -224,6 +224,9 @@ class MyTheme {
         style: ButtonStyle(
           minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight)),
           visualDensity: VisualDensity.standard,
+          // Phones otherwise pad every entry to a 48 px tap target, which
+          // undid the 32 px entries on touch platforms only.
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
       popupMenuTheme: PopupMenuThemeData(

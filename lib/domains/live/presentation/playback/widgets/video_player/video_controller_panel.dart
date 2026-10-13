@@ -695,7 +695,18 @@ class _BatteryInfoState extends State<BatteryInfo> {
           child: Obx(
             () => Text(
               '${widget.controller.batteryLevel.value}',
-              style: AppText.of(context).tag.copyWith(color: Colors.white, decoration: TextDecoration.none),
+              // A 15 px box: the theme's line height made the text box taller
+              // than the battery and sat the digits low. One line, even leading.
+              textHeightBehavior: const TextHeightBehavior(
+                applyHeightToFirstAscent: false,
+                applyHeightToLastDescent: false,
+              ),
+              style: AppText.of(context).tag.copyWith(
+                color: Colors.white,
+                decoration: TextDecoration.none,
+                height: 1,
+                leadingDistribution: TextLeadingDistribution.even,
+              ),
             ),
           ),
         ),

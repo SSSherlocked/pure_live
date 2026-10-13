@@ -15,13 +15,22 @@ class PlayerControlDensity extends InheritedWidget {
 
   /// The density scope plus, when [compact], a smaller default icon for every
   /// [IconButton] below that does not set its own size.
+  ///
+  /// Compact buttons also drop Material's padded 48 px tap target and their
+  /// own 8 px padding: either one alone kept every button at least 36-48 px
+  /// wide, so [compactPlayerActionExtent] never took effect and the narrow
+  /// inline bar stayed as spread out as the fullscreen one.
   static Widget scope({required bool compact, required Widget child}) {
     return PlayerControlDensity(
       compact: compact,
       child: compact
           ? IconButtonTheme(
               data: IconButtonThemeData(
-                style: ButtonStyle(iconSize: WidgetStatePropertyAll<double>(24 * compactPlayerIconScale)),
+                style: ButtonStyle(
+                  iconSize: WidgetStatePropertyAll<double>(24 * compactPlayerIconScale),
+                  padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.zero),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
               child: child,
             )

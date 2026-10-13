@@ -112,7 +112,11 @@ class BaiduLiveDanmaku extends LiveDanmaku {
       final segment = base.resolve(value).toString();
       if (_seen.contains(segment)) continue;
       _seen.add(segment);
-      if (_seen.length > 512) _seen.remove(_seen.first);
+      if (_seen.length > 512) {
+        final oldest = _seen.first;
+        _seen.remove(oldest);
+        _failures.remove(oldest);
+      }
       await _fetchSegment(segment, generation);
       if (!_running || generation != _generation) return true;
     }
@@ -127,8 +131,14 @@ class BaiduLiveDanmaku extends LiveDanmaku {
       _decodeSegment(_gunzip(bytes));
     } catch (error) {
       final attempts = (_failures[segment] ?? 0) + 1;
-      _failures[segment] = attempts;
-      if (attempts >= 3) _seen.remove(segment);
+      if (attempts >= 3) {
+        // Give the segment up: forget its failure count together with it so
+        // the map does not keep an entry for every segment that ever failed.
+        _seen.remove(segment);
+        _failures.remove(segment);
+      } else {
+        _failures[segment] = attempts;
+      }
       CoreLog.error('Baidu Live chat segment failed: $error');
     }
   }

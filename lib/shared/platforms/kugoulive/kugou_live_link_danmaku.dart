@@ -44,6 +44,7 @@ class KugouLiveLinkDanmaku extends LiveDanmaku {
 
   KugouLiveDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   var _joined = false;
@@ -84,9 +85,12 @@ class KugouLiveLinkDanmaku extends LiveDanmaku {
     _heartbeatTimer?.cancel();
     _joinWatch?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -197,6 +201,7 @@ class KugouLiveLinkDanmaku extends LiveDanmaku {
 
   Future<void> _runSocket(Uri endpoint, int generation) async {
     final ended = Completer<void>();
+    _ended = ended;
     _joined = false;
     _answered = false;
     final socket = WebScoketUtils(
@@ -229,10 +234,22 @@ class KugouLiveLinkDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _heartbeatTimer?.cancel();
-    _joinWatch?.cancel();
+    try {
+      await socket.connect();
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by the join watch or a login rejection
+      // while the socket is still open; close it here so the next round does
+      // not run alongside an orphaned connection. `stop()` has already
+      // cancelled the timers when the generation moved on.
+      if (generation == _generation) {
+        _heartbeatTimer?.cancel();
+        _joinWatch?.cancel();
+      }
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   Uint8List _loginFrame() {
@@ -315,7 +332,11 @@ class KugouLiveLinkDanmaku extends LiveDanmaku {
           if (_refusals > _maxRefusals) {
             onClose?.call('酷狗直播：登录被拒（errorno $errorNo ${_text(map['msg'])}）');
           }
-          _socket?.close();
+          // A manual `_socket?.close()` here would never report back through
+          // `onClose`; end this round so `_runSocket` closes the socket and
+          // `_loop` reconnects with a fresh token.
+          final ended = _ended;
+          if (ended != null && !ended.isCompleted) ended.complete();
         }
         break;
       case _chatCommand:

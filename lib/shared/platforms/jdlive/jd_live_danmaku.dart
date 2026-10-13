@@ -30,6 +30,7 @@ class JdLiveDanmaku extends LiveDanmaku {
 
   JdLiveDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   Timer? _silenceWatch;
@@ -53,9 +54,12 @@ class JdLiveDanmaku extends LiveDanmaku {
     _generation++;
     _silenceWatch?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -144,6 +148,7 @@ class JdLiveDanmaku extends LiveDanmaku {
 
   Future<void> _runSocket(({Uri socket, String? maskKey}) auth, int generation) async {
     final ended = Completer<void>();
+    _ended = ended;
     final socket = WebScoketUtils(
       url: auth.socket.toString(),
       heartBeatTime: 0,
@@ -170,9 +175,19 @@ class JdLiveDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _silenceWatch?.cancel();
+    try {
+      await socket.connect();
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by the silence watch or a protocol
+      // frame while the socket is still open; close it here so the next round
+      // does not run alongside an orphaned connection. `stop()` has already
+      // cancelled the timer when the generation moved on.
+      if (generation == _generation) _silenceWatch?.cancel();
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _armSilenceWatch(int generation, Completer<void> ended) {

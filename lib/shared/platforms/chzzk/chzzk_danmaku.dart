@@ -20,12 +20,17 @@ class ChzzkDanmaku extends LiveDanmaku {
   static const String _tokenUrl = 'https://comm-api.game.naver.com/nng_main/v1/chats/access-token';
   static const String _routingUrl = 'https://routing.chat.naver.com/routing/getRouting';
   static const Duration _pingInterval = Duration(seconds: 20);
+  static const int _maxRefusals = 3;
 
   ChzzkDanmakuArgs? _args;
   WebScoketUtils? _socket;
+
+  /// Completes with `true` when the server refused the join.
+  Completer<bool>? _ended;
   var _generation = 0;
   var _running = false;
   var _joined = false;
+  var _refusals = 0;
   var _tid = 1;
   Timer? _pingTimer;
 
@@ -39,6 +44,7 @@ class ChzzkDanmaku extends LiveDanmaku {
     _generation++;
     final generation = _generation;
     _running = true;
+    _refusals = 0;
     unawaited(_loop(generation));
   }
 
@@ -48,9 +54,12 @@ class ChzzkDanmaku extends LiveDanmaku {
     _generation++;
     _pingTimer?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete(false);
   }
 
   Future<void> _loop(int generation) async {
@@ -67,8 +76,18 @@ class ChzzkDanmaku extends LiveDanmaku {
         if (!_running || generation != _generation) return;
         if (servers.isEmpty) throw StateError('CHZZK：没有可用的会话服务器');
         final server = servers[attempt % servers.length];
-        await _runSocket(server, token, generation);
-        attempt = 0;
+        final refused = await _runSocket(server, token, generation);
+        if (!_running || generation != _generation) return;
+        if (!refused) {
+          attempt = 0;
+        } else if (++_refusals > _maxRefusals) {
+          onClose?.call('CHZZK：加入被拒');
+          return;
+        } else {
+          markDisconnected();
+          onReconnect?.call('CHZZK 加入被拒，正在重试');
+          attempt++;
+        }
       } catch (error) {
         if (generation != _generation) return;
         CoreLog.error('CHZZK chat failed: $error');
@@ -126,8 +145,9 @@ class ChzzkDanmaku extends LiveDanmaku {
     return servers;
   }
 
-  Future<void> _runSocket(String server, String token, int generation) async {
-    final ended = Completer<void>();
+  Future<bool> _runSocket(String server, String token, int generation) async {
+    final ended = Completer<bool>();
+    _ended = ended;
     _joined = false;
     _tid = 1;
     final socket = WebScoketUtils(
@@ -166,13 +186,23 @@ class ChzzkDanmaku extends LiveDanmaku {
       onClose: (error) {
         if (generation != _generation) return;
         markDisconnected();
-        if (!ended.isCompleted) ended.complete();
+        if (!ended.isCompleted) ended.complete(false);
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _pingTimer?.cancel();
+    try {
+      await socket.connect();
+      return await ended.future;
+    } finally {
+      // `ended` may have been completed by a protocol frame while the socket
+      // is still open; close it here so the next round does not run alongside
+      // an orphaned connection. `stop()` has already cancelled the timer when
+      // the generation moved on.
+      if (generation == _generation) _pingTimer?.cancel();
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _handleFrame(String data) {
@@ -188,15 +218,23 @@ class ChzzkDanmaku extends LiveDanmaku {
     final cmd = int.tryParse(decoded['cmd']?.toString() ?? '') ?? 0;
     if (cmd == 100 && !_joined) {
       _joined = true;
+      _refusals = 0;
       markConnected();
       onReady?.call();
       return;
     }
+    // `onMessage` runs inside the socket's stream listener: a throw here would
+    // never reach `_loop`, so rejections end the round through `_ended`.
+    final ended = _ended;
     if (cmd >= 302 && cmd <= 304) {
-      throw StateError('CHZZK：加入被拒（$cmd）');
+      CoreLog.error('CHZZK join refused: cmd $cmd');
+      if (ended != null && !ended.isCompleted) ended.complete(true);
+      return;
     }
     if (cmd == 90102) {
-      _socket?.close();
+      // The server asks us to reconnect; a manual `_socket?.close()` would
+      // never report back through `onClose`, so end the round instead.
+      if (ended != null && !ended.isCompleted) ended.complete(false);
       return;
     }
     if (cmd == 93101 || cmd == 93102) {

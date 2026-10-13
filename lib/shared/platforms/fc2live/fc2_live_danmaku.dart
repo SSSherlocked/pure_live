@@ -21,6 +21,7 @@ class Fc2LiveDanmaku extends LiveDanmaku {
 
   Fc2LiveDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   var _joined = false;
@@ -64,9 +65,12 @@ class Fc2LiveDanmaku extends LiveDanmaku {
     _generation++;
     _heartbeat?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -90,6 +94,7 @@ class Fc2LiveDanmaku extends LiveDanmaku {
 
   Future<void> _runSocket(Fc2ControlGrant grant, int generation) async {
     final ended = Completer<void>();
+    _ended = ended;
     _joined = false;
     final endpoint = grant.webSocket.replace(queryParameters: <String, String>{
       ...grant.webSocket.queryParameters,
@@ -123,9 +128,19 @@ class Fc2LiveDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _heartbeat?.cancel();
+    try {
+      await socket.connect();
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by a control disconnection while the
+      // socket is still open; close it here so the next round does not run
+      // alongside an orphaned connection. `stop()` has already cancelled the
+      // timer when the generation moved on.
+      if (generation == _generation) _heartbeat?.cancel();
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _sendHeartbeat() {
@@ -169,7 +184,10 @@ class Fc2LiveDanmaku extends LiveDanmaku {
       case 'control_disconnection':
         final code = args['code']?.toString() ?? '';
         CoreLog.error('FC2 LIVE control disconnection: $code');
-        _socket?.close();
+        // Closing the socket by hand never reports back through `onClose`; end
+        // the round so `_runSocket` closes it and `_loop` asks for a new grant.
+        final ended = _ended;
+        if (ended != null && !ended.isCompleted) ended.complete();
         break;
       default:
         break;

@@ -56,6 +56,7 @@ class SoopDanmaku implements LiveDanmaku {
 
   WebScoketUtils? webScoketUtils;
   late SoopDanmakuArgs danmakuArgs;
+  int _generation = 0;
 
   @override
   Future<void> start(dynamic args) async {
@@ -64,6 +65,13 @@ class SoopDanmaku implements LiveDanmaku {
       onClose?.call("服务器连接失败");
       return;
     }
+    // Close a previous socket before opening a new one; harmless when nothing
+    // is open. A `stop()` or another `start()` during the close wins.
+    final generation = ++_generation;
+    final previous = webScoketUtils;
+    webScoketUtils = null;
+    await previous?.close();
+    if (generation != _generation) return;
     danmakuArgs = args as SoopDanmakuArgs;
     final mHeaders = SoopSite.getHeaders();
     mHeaders.addAll({
@@ -133,6 +141,7 @@ class SoopDanmaku implements LiveDanmaku {
 
   @override
   Future<void> stop() async {
+    _generation++;
     markDisconnected();
     onMessage = null;
     onReconnect = null;

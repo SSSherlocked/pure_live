@@ -24,6 +24,7 @@ class PandaLiveDanmaku extends LiveDanmaku {
 
   PandaLiveDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   var _nextId = 2;
@@ -50,9 +51,12 @@ class PandaLiveDanmaku extends LiveDanmaku {
     _pingTimer.cancel();
     _refreshTimer?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -77,6 +81,7 @@ class PandaLiveDanmaku extends LiveDanmaku {
 
   Future<void> _runSocket(int generation) async {
     final ended = Completer<void>();
+    _ended = ended;
     final socket = WebScoketUtils(
       url: _server,
       heartBeatTime: 0,
@@ -100,10 +105,22 @@ class PandaLiveDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _pingTimer.cancel();
-    _refreshTimer?.cancel();
+    try {
+      await socket.connect();
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by the token refresh while the socket
+      // is still open; close it here so the next round does not run alongside
+      // an orphaned connection. `stop()` has already cancelled the timers when
+      // the generation moved on.
+      if (generation == _generation) {
+        _pingTimer.cancel();
+        _refreshTimer?.cancel();
+      }
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _connectCommand() {
@@ -180,12 +197,15 @@ class PandaLiveDanmaku extends LiveDanmaku {
   }
 
   Future<void> _refreshSocket(int generation) async {
+    // Capture the round that armed the refresh timer; the socket may have been
+    // replaced while the token request was in flight.
+    final ended = _ended;
     final refreshed = await _refreshArgs(generation);
     if (!_running || generation != _generation || refreshed == null) return;
     _args = refreshed;
-    final socket = _socket;
-    _socket = null;
-    await socket?.close();
+    // Closing the socket by hand never reports back through `onClose`; end the
+    // round instead so `_runSocket` closes it and `_loop` reconnects.
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<PandaLiveDanmakuArgs?> _refreshArgs(int generation) async {

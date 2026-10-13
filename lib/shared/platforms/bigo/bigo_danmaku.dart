@@ -23,14 +23,19 @@ class BigoDanmaku extends LiveDanmaku {
   static const String _socketUrl = 'wss://wss.bigolive.tv/live/official/web';
   static const String _accountUrl = 'https://ta.bigo.tv/official_website/studio/getWebSocketLink';
   static const Duration _pingInterval = Duration(seconds: 10);
+  static const int _maxRefusals = 3;
 
   BigoDanmakuArgs? _args;
   WebScoketUtils? _socket;
+
+  /// Completes with `true` when the server refused the guest login.
+  Completer<bool>? _ended;
   var _generation = 0;
   var _running = false;
   var _loggedIn = false;
   var _joined = false;
   var _answeredChallenge = false;
+  var _refusals = 0;
   Timer? _pingTimer;
   String _uid = '';
   String _uidToken = '';
@@ -48,6 +53,7 @@ class BigoDanmaku extends LiveDanmaku {
     _running = true;
     _uid = '';
     _uidToken = '';
+    _refusals = 0;
     _deviceId = _newDeviceId();
     unawaited(_loop(generation));
   }
@@ -58,9 +64,12 @@ class BigoDanmaku extends LiveDanmaku {
     _generation++;
     _pingTimer?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete(false);
   }
 
   Future<void> _loop(int generation) async {
@@ -69,8 +78,22 @@ class BigoDanmaku extends LiveDanmaku {
       try {
         if (_uid.isEmpty) await _requestAccount(generation);
         if (!_running || generation != _generation) return;
-        await _runSocket(generation);
-        attempt = 0;
+        final refused = await _runSocket(generation);
+        if (!_running || generation != _generation) return;
+        if (!refused) {
+          attempt = 0;
+        } else {
+          // Ask for a fresh guest account before trying again.
+          _uid = '';
+          _uidToken = '';
+          if (++_refusals > _maxRefusals) {
+            onClose?.call('BIGO：登录被拒');
+            return;
+          }
+          markDisconnected();
+          onReconnect?.call('BIGO 登录被拒，正在重试');
+          attempt++;
+        }
       } catch (error) {
         if (generation != _generation) return;
         CoreLog.error('BIGO chat failed: $error');
@@ -99,8 +122,9 @@ class BigoDanmaku extends LiveDanmaku {
     if (_uid.isEmpty || _uidToken.isEmpty) throw StateError('BIGO：游客账号不完整');
   }
 
-  Future<void> _runSocket(int generation) async {
-    final ended = Completer<void>();
+  Future<bool> _runSocket(int generation) async {
+    final ended = Completer<bool>();
+    _ended = ended;
     _loggedIn = false;
     _joined = false;
     _answeredChallenge = false;
@@ -120,13 +144,23 @@ class BigoDanmaku extends LiveDanmaku {
       onClose: (error) {
         if (generation != _generation) return;
         markDisconnected();
-        if (!ended.isCompleted) ended.complete();
+        if (!ended.isCompleted) ended.complete(false);
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _pingTimer?.cancel();
+    try {
+      await socket.connect();
+      return await ended.future;
+    } finally {
+      // `ended` may have been completed by a login rejection while the socket
+      // is still open; close it here so the next round does not run alongside
+      // an orphaned connection. `stop()` has already cancelled the timer when
+      // the generation moved on.
+      if (generation == _generation) _pingTimer?.cancel();
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _handleFrame(String data) {
@@ -144,9 +178,15 @@ class BigoDanmaku extends LiveDanmaku {
         break;
       case 512535:
         if (payload['res']?.toString() != '200') {
-          throw StateError('BIGO：登录被拒');
+          // `onMessage` runs inside the socket's stream listener: a throw here
+          // would never reach `_loop`, so end the round through `_ended`.
+          CoreLog.error('BIGO login refused: res ${payload['res']}');
+          final ended = _ended;
+          if (ended != null && !ended.isCompleted) ended.complete(true);
+          return;
         }
         _loggedIn = true;
+        _refusals = 0;
         _enterRoom();
         break;
       case 11032:

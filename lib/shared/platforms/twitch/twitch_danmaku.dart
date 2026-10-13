@@ -10,6 +10,7 @@ import 'package:pure_live/core/config/cookie_settings_controller.dart';
 class TwitchDanmaku implements LiveDanmaku {
   WebScoketUtils? webScoketUtils;
   bool _connected = false;
+  int _generation = 0;
 
   bool _loginRefused = false;
   bool _loginRefusedReported = false;
@@ -51,6 +52,13 @@ class TwitchDanmaku implements LiveDanmaku {
 
   @override
   Future start(args) async {
+    // Close a previous socket before opening a new one; harmless when nothing
+    // is open. A `stop()` or another `start()` during the close wins.
+    final generation = ++_generation;
+    final previous = webScoketUtils;
+    webScoketUtils = null;
+    await previous?.close();
+    if (generation != _generation) return;
     _loginRefused = false;
     _loginRefusedReported = false;
     webScoketUtils = WebScoketUtils(
@@ -105,11 +113,13 @@ class TwitchDanmaku implements LiveDanmaku {
 
   @override
   Future stop() async {
+    _generation++;
     onMessage = null;
     onReconnect = null;
     onClose = null;
-    await webScoketUtils?.close();
+    final socket = webScoketUtils;
     webScoketUtils = null;
+    await socket?.close();
     markDisconnected();
   }
 

@@ -23,6 +23,7 @@ class KilakilaDanmaku extends LiveDanmaku {
 
   KilakilaDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   var _joined = false;
@@ -51,9 +52,12 @@ class KilakilaDanmaku extends LiveDanmaku {
     _pingTimer?.cancel();
     _joinTimer?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -75,6 +79,7 @@ class KilakilaDanmaku extends LiveDanmaku {
 
   Future<void> _runSocket(int generation) async {
     final ended = Completer<void>();
+    _ended = ended;
     final roomId = _args?.roomId ?? '';
     _joined = false;
     final socket = WebScoketUtils(
@@ -110,10 +115,22 @@ class KilakilaDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _pingTimer?.cancel();
-    _joinTimer?.cancel();
+    try {
+      await socket.connect();
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by the join timer or a protocol frame
+      // while the socket is still open; close it here so the next round does
+      // not run alongside an orphaned connection. `stop()` has already
+      // cancelled the timers when the generation moved on.
+      if (generation == _generation) {
+        _pingTimer?.cancel();
+        _joinTimer?.cancel();
+      }
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   bool _handleFrame(String data) {

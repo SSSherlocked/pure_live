@@ -115,9 +115,16 @@ class WebScoketUtils {
     List<String>? serverUrls,
   }) : serverUrls = _uniqueEndpoints(url, backupUrl, serverUrls);
 
+  /// How long a connection has to stay up before earlier failed attempts are
+  /// forgotten. A server that completes the handshake, answers one frame (for
+  /// example an auth rejection) and drops the connection must still count
+  /// towards [maxReconnectTime] instead of retrying forever.
+  static const Duration stableConnectionWindow = Duration(seconds: 5);
+
   WebSocketChannel? webSocket;
   Timer? heartBeatTimer;
   Timer? reconnectTimer;
+  Timer? _stableTimer;
   StreamSubscription<dynamic>? streamSubscription;
 
   int reconnectTime = 0;
@@ -210,6 +217,11 @@ class WebScoketUtils {
     reconnectTimer?.cancel();
     reconnectTimer = null;
     _lastMessageAt = DateTime.now();
+    _stableTimer?.cancel();
+    _stableTimer = Timer(stableConnectionWindow, () {
+      _stableTimer = null;
+      if (!_manualClose && generation == _generation && status == SocketStatus.connected) reconnectTime = 0;
+    });
 
     streamSubscription = channel.stream.listen(
       (data) {
@@ -259,7 +271,8 @@ class WebScoketUtils {
   }
 
   void receiveMessage(dynamic data) {
-    reconnectTime = 0;
+    // The reconnect counter is reset by `_stableTimer` once the connection has
+    // stayed up for `stableConnectionWindow`, not by the first frame.
     _lastMessageAt = DateTime.now();
     onMessage?.call(data);
   }
@@ -271,6 +284,8 @@ class WebScoketUtils {
     status = SocketStatus.failed;
     heartBeatTimer?.cancel();
     heartBeatTimer = null;
+    _stableTimer?.cancel();
+    _stableTimer = null;
     if (reconnectTime == 0) onReconnect?.call();
 
     if (reconnectTime >= maxReconnectTime) {
@@ -308,6 +323,8 @@ class WebScoketUtils {
     } catch (_) {}
     heartBeatTimer?.cancel();
     heartBeatTimer = null;
+    _stableTimer?.cancel();
+    _stableTimer = null;
     final socket = webSocket;
     webSocket = null;
     _lastMessageAt = null;

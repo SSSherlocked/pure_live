@@ -39,6 +39,7 @@ class LookLiveDanmaku extends LiveDanmaku {
 
   LookLiveDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   var _opened = false;
@@ -79,9 +80,12 @@ class LookLiveDanmaku extends LiveDanmaku {
     _tickTimer?.cancel();
     _joinWatch?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -138,6 +142,7 @@ class LookLiveDanmaku extends LiveDanmaku {
     }
     final sid = parts.first.trim();
     final ended = Completer<void>();
+    _ended = ended;
     _opened = false;
     _loggedIn = false;
     _joined = false;
@@ -162,10 +167,22 @@ class LookLiveDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    await ended.future;
-    _tickTimer?.cancel();
-    _joinWatch?.cancel();
+    try {
+      await socket.connect();
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by the join watch or a protocol frame
+      // while the socket is still open; close it here so the next round does
+      // not run alongside an orphaned connection. `stop()` has already
+      // cancelled the timers when the generation moved on.
+      if (generation == _generation) {
+        _tickTimer?.cancel();
+        _joinWatch?.cancel();
+      }
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _handleFrame(Object? data, Completer<void> ended) {

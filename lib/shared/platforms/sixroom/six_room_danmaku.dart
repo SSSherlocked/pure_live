@@ -40,6 +40,7 @@ class SixRoomDanmaku extends LiveDanmaku {
 
   SixRoomDanmakuArgs? _args;
   WebScoketUtils? _socket;
+  Completer<void>? _ended;
   var _generation = 0;
   var _running = false;
   var _guestId = 0;
@@ -69,9 +70,12 @@ class SixRoomDanmaku extends LiveDanmaku {
     _heartbeat?.cancel();
     _loginDeadline?.cancel();
     final socket = _socket;
+    final ended = _ended;
     _socket = null;
+    _ended = null;
     markDisconnected();
     await socket?.close();
+    if (ended != null && !ended.isCompleted) ended.complete();
   }
 
   Future<void> _loop(int generation) async {
@@ -132,6 +136,7 @@ class SixRoomDanmaku extends LiveDanmaku {
 
   Future<void> _joinServer(String server, int generation) async {
     final ended = Completer<void>();
+    _ended = ended;
     _loggedIn = false;
     final socket = WebScoketUtils(
       url: 'wss://$server',
@@ -157,14 +162,26 @@ class SixRoomDanmaku extends LiveDanmaku {
       },
     );
     _socket = socket;
-    await socket.connect();
-    _loginDeadline = Timer(const Duration(seconds: 6), () {
-      if (generation != _generation || _loggedIn) return;
-      if (!ended.isCompleted) ended.complete();
-    });
-    await ended.future;
-    _heartbeat?.cancel();
-    _loginDeadline?.cancel();
+    try {
+      await socket.connect();
+      _loginDeadline = Timer(const Duration(seconds: 6), () {
+        if (generation != _generation || _loggedIn) return;
+        if (!ended.isCompleted) ended.complete();
+      });
+      await ended.future;
+    } finally {
+      // `ended` may have been completed by the login deadline or a protocol
+      // frame while the socket is still open; close it here so the next round
+      // does not run alongside an orphaned connection. `stop()` has already
+      // cancelled the timers when the generation moved on.
+      if (generation == _generation) {
+        _heartbeat?.cancel();
+        _loginDeadline?.cancel();
+      }
+      if (identical(_ended, ended)) _ended = null;
+      if (identical(_socket, socket)) _socket = null;
+      await socket.close();
+    }
   }
 
   void _sendLogin() {

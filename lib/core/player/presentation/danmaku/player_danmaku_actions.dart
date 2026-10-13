@@ -110,9 +110,12 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
         dockedInLandscape: dockedInLandscape,
       );
       final size = MediaQuery.sizeOf(context);
-      // Docked in landscape it is a [PlayerSidePanel], which slides in.
+      // Docked in landscape it is a [PlayerSidePanel], which slides in; on
+      // the narrow inline player the same panel rises from the bottom.
       if (dockedInLandscape && size.width > size.height) {
         await showPlayerSidePanel<void>(context, builder: builder);
+      } else if (!dockedInLandscape && AppLayout.of(context).phone) {
+        await showPlayerBottomPanel<void>(context, builder: builder);
       } else {
         await showDialog<void>(
           context: context,
@@ -171,7 +174,7 @@ class DanmakuSettingsDialog extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final size = MediaQuery.sizeOf(context);
     final isLandscape = size.width > size.height;
-    if (dockedInLandscape && isLandscape) {
+    if ((dockedInLandscape && isLandscape) || PlayerSidePanel.inBottomSheet(context)) {
       return PlayerSidePanel(
         key: const ValueKey('fullscreen-danmaku-settings-panel'),
         icon: Icons.subtitles_outlined,

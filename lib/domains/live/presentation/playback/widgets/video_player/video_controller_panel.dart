@@ -331,16 +331,18 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       final onDanmaku = controller.handleDanmakuPointer(details.globalPosition, longPress: true);
                       // A long press anywhere that is not on a barrage shows
                       // 关注, like Simple Live: outside fullscreen the room's
-                      // info page turns to its 关注 tab; in fullscreen, or when
+                      // info page turns to its 关注 tab. In fullscreen, or when
                       // that tab is turned off (or the room has no info page,
-                      // IPTV), the 关注 panel slides in instead.
+                      // IPTV), the 关注 panel opens instead: from the bottom on
+                      // the narrow inline player, from the right elsewhere.
                       if (!onDanmaku && !controller.danmakuHeld && !controller.showLocked.value) {
-                        final inPage = !GlobalPlayerService.instance.player.fullscreenUI &&
-                            controller.livePlayController.showPanelTab(LivePanelTab.follow);
+                        final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
+                        final inPage = !fullscreen && controller.livePlayController.showPanelTab(LivePanelTab.follow);
                         if (!inPage) {
                           unawaited(
-                            showPlayerSidePanel<void>(
+                            showPlayerPanel<void>(
                               context,
+                              asBottomSheet: AppLayout.of(context).phone && !fullscreen,
                               builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
                             ),
                           );

@@ -25,6 +25,41 @@ Future<T?> showPlayerSidePanel<T>(BuildContext context, {required WidgetBuilder 
   );
 }
 
+/// Opens the [PlayerSidePanel] that [builder] returns as a bottom sheet: the
+/// narrow inline player has no room for a right-edge panel, so there the same
+/// panel (header, close button, content) rises from the bottom instead.
+Future<T?> showPlayerBottomPanel<T>(BuildContext context, {required WidgetBuilder builder}) {
+  final height = MediaQuery.sizeOf(context).height * 0.7;
+  return showModalBottomSheet<T>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: false,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    clipBehavior: Clip.antiAlias,
+    builder: (context) => _PlayerPanelInSheet(height: height, child: Builder(builder: builder)),
+  );
+}
+
+/// Opens a player panel the way the layout wants it: from the bottom on the
+/// narrow inline player ([asBottomSheet]), sliding in from the right
+/// everywhere else.
+Future<T?> showPlayerPanel<T>(BuildContext context, {required WidgetBuilder builder, required bool asBottomSheet}) {
+  return asBottomSheet
+      ? showPlayerBottomPanel<T>(context, builder: builder)
+      : showPlayerSidePanel<T>(context, builder: builder);
+}
+
+/// Marks a [PlayerSidePanel] shown by [showPlayerBottomPanel].
+class _PlayerPanelInSheet extends InheritedWidget {
+  const _PlayerPanelInSheet({required this.height, required super.child});
+
+  final double height;
+
+  @override
+  bool updateShouldNotify(_PlayerPanelInSheet oldWidget) => oldWidget.height != height;
+}
+
 /// The fullscreen player's menu panel: a full-height column docked to the right
 /// edge, top and bottom flush with the screen, with a width of its own.
 ///
@@ -43,6 +78,10 @@ class PlayerSidePanel extends StatefulWidget {
   final IconData icon;
   final String title;
   final Widget child;
+
+  /// Whether [context] is inside a panel opened by [showPlayerBottomPanel].
+  static bool inBottomSheet(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_PlayerPanelInSheet>() != null;
 
   /// Overrides the header height a caller has already measured.
   final double? headerHeight;
@@ -100,6 +139,39 @@ class _PlayerSidePanelState extends State<PlayerSidePanel> {
     );
     final resolvedHeaderHeight = headerHeight ?? math.max(kMinInteractiveDimension, titleLine + 16);
 
+    final header = SizedBox(
+      height: resolvedHeaderHeight,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, right: 2),
+        child: Row(
+          children: [
+            Icon(icon, size: 17, color: theme.colorScheme.primary),
+            const SizedBox(width: 6),
+            Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle)),
+            IconButton(
+              key: closeKey,
+              tooltip: i18n('close'),
+              visualDensity: VisualDensity.standard,
+              constraints: const BoxConstraints.tightFor(width: kMinInteractiveDimension, height: kMinInteractiveDimension),
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.close_rounded, size: 18),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // From the bottom (narrow inline player): the same header and content,
+    // full width, no resize edge.
+    final sheet = context.dependOnInheritedWidgetOfExactType<_PlayerPanelInSheet>();
+    if (sheet != null) {
+      return SizedBox(
+        height: sheet.height,
+        child: Column(children: [header, Expanded(child: child)]),
+      );
+    }
+
     return Dialog(
       alignment: Alignment.centerRight,
       insetPadding: EdgeInsets.zero,
@@ -113,38 +185,7 @@ class _PlayerSidePanelState extends State<PlayerSidePanel> {
             Positioned.fill(
               child: SafeArea(
                 left: false,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: resolvedHeaderHeight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 10, right: 2),
-                        child: Row(
-                          children: [
-                            Icon(icon, size: 17, color: theme.colorScheme.primary),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle),
-                            ),
-                            IconButton(
-                              key: closeKey,
-                              tooltip: i18n('close'),
-                              visualDensity: VisualDensity.standard,
-                              constraints: const BoxConstraints.tightFor(
-                                width: kMinInteractiveDimension,
-                                height: kMinInteractiveDimension,
-                              ),
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(Icons.close_rounded, size: 18),
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(child: child),
-                  ],
-                ),
+                child: Column(children: [header, Expanded(child: child)]),
               ),
             ),
             Positioned(

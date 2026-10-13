@@ -799,7 +799,7 @@
   "display_mode_narrow_warning": "当前屏幕较窄，可能显示不全",
   "video_desc": "播放器内核、音量、清晰度、小窗与播放行为",
   "player_kernel_desc": "内核切换、硬件解码、播放方案与 MPV 参数",
-  "general_desc": "主题、导航、弹幕、语言、网络代理、定时退出与更新",
+  "general_desc": "主题、菜单、弹幕、语言、网络代理、定时退出",
   "cache_and_data": "缓存与数据管理",
   "refresh_thumbnails": "刷新直播缩略图",
   "refresh_thumbnails_desc": "清除图片缓存并重新加载当前页面封面",
@@ -1844,5 +1844,6 @@
   "favorite_sort_audience": "人气",
   "room_text_opacity": "直播间文字亮度",
   "room_text_opacity_subtitle": "只对直播间页面内的文字生效",
-  "menu_entry_visible_subtitle": "在右上角菜单中显示"
+  "menu_entry_visible_subtitle": "在右上角菜单中显示",
+  "record_settings_desc": "录像画质、存储目录、重连与轮询"
 }

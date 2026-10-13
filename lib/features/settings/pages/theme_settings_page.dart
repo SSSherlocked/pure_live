@@ -8,6 +8,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/features/settings/pages/font_settings_page.dart';
 import 'package:pure_live/features/settings/pages/font_family_manager_page.dart';
 import 'package:pure_live/features/settings/widgets/app_color_picker_dialog.dart';
+import 'package:pure_live/features/settings/widgets/download_directory_tiles.dart';
 
 /// The entries of 通用 › 主题设置 that this page serves, one card each.
 enum ThemeSettingsSection { theme, fonts, livePanel }
@@ -118,6 +119,8 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                   ),
                 ),
               ]),
+              const SizedBox(height: 16),
+              context.buildModernCard([const DownloadDirectoryTiles()]),
             ],
             ThemeSettingsSection.livePanel => [
               context.buildModernCard([

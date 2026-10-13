@@ -798,7 +798,7 @@
   "display_mode_narrow_warning": "This screen is narrow; some content may not fit",
   "video_desc": "Player engine, volume, quality, PiP and playback behavior",
   "player_kernel_desc": "Engine, hardware decoding, presets and MPV options",
-  "general_desc": "Theme, navigation, danmaku, language, network proxy, timer and updates",
+  "general_desc": "Theme, menus, danmaku, language, network proxy, sleep timer",
   "cache_and_data": "Storage & Cache",
   "refresh_thumbnails": "Refresh live thumbnails",
   "refresh_thumbnails_desc": "Clear the image cache and reload visible covers",
@@ -1844,5 +1844,6 @@
   "favorite_sort_audience": "Popularity",
   "room_text_opacity": "Room text brightness",
   "room_text_opacity_subtitle": "Applies to text inside the live room only",
-  "menu_entry_visible_subtitle": "Show in the top-right menu"
+  "menu_entry_visible_subtitle": "Show in the top-right menu",
+  "record_settings_desc": "Quality, storage folder, reconnect and polling"
 }

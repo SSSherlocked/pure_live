@@ -66,6 +66,13 @@ class SettingsPage extends GetView<SettingsService> {
               subtitle: i18n("platform_settings_desc"),
               onTap: () => Get.to(() => const PlatformSettingsPage()),
             ),
+            // The 录制中心 page's own settings page and controller.
+            context.buildTile(
+              icon: Remix.record_circle_line,
+              title: i18n("record_settings"),
+              subtitle: i18n("record_settings_desc"),
+              onTap: () => Get.toNamed(RoutePath.kRecordSettings),
+            ),
             context.buildTile(
               icon: Remix.database_2_line,
               title: i18n("data_and_backup"),

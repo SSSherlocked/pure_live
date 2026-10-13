@@ -1,9 +1,11 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 
-/// Height of a floating menu entry (popup menus, the home and player menus):
-/// 75 % of the 48 px Material default, which read as too airy.
-const double kFloatingMenuItemHeight = 36;
+/// Height of a floating menu entry (popup menus, the home and player menus),
+/// the same on every platform: Material's adaptive density otherwise took
+/// 8 px off on desktop only, leaving desktop menus cramped and phone menus
+/// airy with one setting.
+const double kFloatingMenuItemHeight = 32;
 
 /// Top and bottom padding of a floating menu panel (75 % of the default 8).
 const double kFloatingMenuVerticalPadding = 6;
@@ -213,12 +215,16 @@ class MyTheme {
       menuTheme: MenuThemeData(
         style: MenuStyle(
           padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
+          visualDensity: VisualDensity.standard,
           backgroundColor: pureBlack ? const WidgetStatePropertyAll(Colors.black) : null,
           side: pureBlack ? WidgetStatePropertyAll(BorderSide(color: baseTheme.colorScheme.outlineVariant)) : null,
         ),
       ),
       menuButtonTheme: const MenuButtonThemeData(
-        style: ButtonStyle(minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight))),
+        style: ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight)),
+          visualDensity: VisualDensity.standard,
+        ),
       ),
       popupMenuTheme: PopupMenuThemeData(
         menuPadding: const EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding),

@@ -97,10 +97,6 @@ class PopularController extends GetxController with GetTickerProviderStateMixin 
             return PopularServerFixedController(site, fixedSize: 100);
           }
 
-          if (site.id == Sites.douyinSite) {
-            return PopularServerFixedController(site, fixedSize: 20);
-          }
-
           return PopularServerRemoteController(site);
         },
         tag: tag,

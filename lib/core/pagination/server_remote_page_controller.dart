@@ -106,36 +106,38 @@ abstract class ServerRemotePageController<T> extends BasePageScrollAndStateBone<
         pageLoadding.value = true;
       }
 
-      final combinedResult = <T>[];
+      final fresh = <T>[];
 
       final seen = replaceSnapshot ? <T>{} : <T>{...list};
 
-      final int sizeToFetch = pageSize.value;
+      final int target = pageSize.value;
 
+      var exhausted = false;
       var requestCount = 0;
       var noProgressCount = 0;
 
-      while (combinedResult.length < sizeToFetch && requestCount < 20 && noProgressCount < 2) {
-        final int neededCount = sizeToFetch - combinedResult.length;
-
+      // Every new item of each server page is kept: taking part of a page and
+      // then moving past its tail dropped rooms. The list ends only when the
+      // source does - an empty page, or two pages in a row with nothing new
+      // (an API that ignores the page number or wraps around) - not when a
+      // page is shorter than the requested size.
+      while (fresh.length < target && requestCount < 20) {
         late final List<T> result;
 
         try {
-          result = await fetchNetworkData(_virtualNetworkPage, neededCount);
+          // Always the full page size, so page N covers the same rooms
+          // however many this load still needs.
+          result = await fetchNetworkData(_virtualNetworkPage, target);
 
           if (isClosed) return;
         } catch (_) {
           if (isClosed) return;
 
-          // A later cursor/page is allowed to fail without erasing items that
-          // the same transaction has already fetched successfully. This is
-          // common with APIs that protect deeper pagination more aggressively
-          // than their first page and with transient mobile network changes.
-          // The partial page is committed below with canLoadMore=false; an
-          // initial request failure still follows the normal error path.
-          if (combinedResult.isEmpty) {
-            rethrow;
-          }
+          // A later page may fail without erasing what this load already
+          // fetched; that page is retried on the next scroll, since
+          // _virtualNetworkPage has not advanced. A first failure still
+          // takes the normal error path.
+          if (fresh.isEmpty) rethrow;
 
           break;
         }
@@ -143,40 +145,32 @@ abstract class ServerRemotePageController<T> extends BasePageScrollAndStateBone<
         requestCount++;
 
         if (result.isEmpty) {
+          exhausted = true;
           break;
         }
 
-        final previousLength = combinedResult.length;
+        _virtualNetworkPage++;
+
+        final before = fresh.length;
 
         for (final item in result) {
-          if (seen.add(item)) {
-            combinedResult.add(item);
-          }
-
-          if (combinedResult.length >= sizeToFetch) {
-            break;
-          }
+          if (seen.add(item)) fresh.add(item);
         }
 
-        noProgressCount = combinedResult.length == previousLength ? noProgressCount + 1 : 0;
-
-        _virtualNetworkPage++;
+        if (fresh.length > before) {
+          noProgressCount = 0;
+        } else if (++noProgressCount >= 2) {
+          exhausted = true;
+          break;
+        }
       }
 
-      if (combinedResult.isEmpty && currentPage > 1) {
-        canLoadMore.value = false;
-
-        finishRefreshControllers(IndicatorResult.noMore);
-
-        return;
-      }
-
-      canLoadMore.value = combinedResult.length >= pageSize.value;
+      canLoadMore.value = !exhausted;
 
       if (replaceSnapshot) {
-        list.assignAll(combinedResult);
-      } else {
-        list.addAll(combinedResult);
+        list.assignAll(fresh);
+      } else if (fresh.isNotEmpty) {
+        list.addAll(fresh);
       }
 
       pageEmpty.value = list.isEmpty;

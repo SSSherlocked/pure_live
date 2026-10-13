@@ -116,9 +116,6 @@ class AreaRoomsBinding extends Binding {
         category: subCategory,
       );
     }
-    if (site.id == Sites.kuaishouSite) {
-      return AreaServerAllController(site, subCategory);
-    }
     if (site.id == Sites.douyuSite) {
       return AreaServerFixedController(site, subCategory, fixedSize: 40);
     }

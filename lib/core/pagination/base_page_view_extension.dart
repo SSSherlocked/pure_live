@@ -15,11 +15,11 @@ extension BasePageViewContentExtension<C extends BasePageScrollAndStateBone<T>, 
             footer: indicators.footer,
             controller: controller.easyRefreshController,
             onRefresh: enableRefresh ? controller.pullToRefresh : null,
-            onLoad: (enableLoadMore && controller.canLoadMore.value)
-                ? () async {
-                    await controller.loadMoreData();
-                  }
-                : null,
+            // Always wired: the controller ends the list with
+            // finishLoad(IndicatorResult.noMore). canLoadMore read here, at
+            // layout time, is tracked by no Obx and went stale, leaving the
+            // footer without a load callback after the first page.
+            onLoad: enableLoadMore ? controller.loadMoreData : null,
             child: contentBuilder(context, controller.list, controller.scrollController),
           );
         },

@@ -88,7 +88,10 @@ class LiveDirectoryController extends BasePageScrollAndStateBone<LiveRoom> {
       await retryData();
       return;
     }
-    if (!canLoadMore.value) return;
+    if (!canLoadMore.value) {
+      easyRefreshController.finishLoad(IndicatorResult.noMore);
+      return;
+    }
     final partialPage = _buffer.rooms.length < _visiblePage * pageSize.value && _buffer.hasMore;
     await _startLoad(partialPage ? _visiblePage : _visiblePage + 1);
   }

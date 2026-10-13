@@ -25,8 +25,9 @@ const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
 );
 
 /// Radius of a slider's thumb; its drag halo is twice as wide. Touch
-/// platforms 30 % above the former 5.6 px, desktops 30 % below it.
-final double kSliderThumbRadius = PlatformUtils.isMobile ? 7.28 : 3.92;
+/// platforms 30 % above the former 5.6 px; desktops 6 px, clearly wider
+/// than the track (3.92 px sat no wider than the track itself).
+final double kSliderThumbRadius = PlatformUtils.isMobile ? 7.28 : 6;
 
 /// The colour of every floating menu panel (MenuAnchor menus, their
 /// submenus and popup menus): one tonal grey at [kFloatingMenuOpacity] in

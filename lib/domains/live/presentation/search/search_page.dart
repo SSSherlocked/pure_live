@@ -265,6 +265,9 @@ class _SearchOptions extends StatelessWidget {
                       key: const ValueKey('search-sort-selector'),
                       tooltip: _sortLabel(controller.sortMode.v),
                       onSelected: controller.setSortMode,
+                      constraints: choiceMenuConstraints(context, [
+                        for (final mode in LiveSearchSortMode.values) _sortLabel(mode),
+                      ]),
                       itemBuilder: (context) => [
                         for (final mode in LiveSearchSortMode.values)
                           choiceMenuItem<LiveSearchSortMode>(

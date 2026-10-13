@@ -9,6 +9,21 @@ import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 /// the longest one and centred in the entry (a popup menu rounds its width
 /// up in 56 px steps and starts entries at the left, which pushed fixed-width
 /// labels off centre), the current choice bold in the primary colour.
+/// Side padding of a choice entry.
+const double _choicePadding = 16;
+
+/// The width every choice list should be: its longest label plus the
+/// entries' padding. Pass it as the PopupMenuButton's `constraints`; without
+/// the cap the popup rounds its width up in 56 px steps and leaves wide empty
+/// margins.
+BoxConstraints choiceMenuConstraints(BuildContext context, List<String> labels) {
+  final width = _labelWidth(context, labels) + _choicePadding * 2;
+  return BoxConstraints(minWidth: width, maxWidth: width);
+}
+
+double _labelWidth(BuildContext context, List<String> labels) =>
+    menuLabelWidth(context, labels, AppText.of(context).body.copyWith(fontWeight: FontWeight.w800));
+
 PopupMenuItem<T> choiceMenuItem<T>(
   BuildContext context, {
   required T value,
@@ -22,10 +37,11 @@ PopupMenuItem<T> choiceMenuItem<T>(
   return PopupMenuItem<T>(
     key: key,
     height: kFloatingMenuItemHeight,
+    padding: const EdgeInsets.symmetric(horizontal: _choicePadding),
     value: value,
     child: Center(
       child: SizedBox(
-        width: menuLabelWidth(context, labels, base.copyWith(fontWeight: FontWeight.w800)),
+        width: _labelWidth(context, labels),
         child: Text(
           label,
           maxLines: 1,

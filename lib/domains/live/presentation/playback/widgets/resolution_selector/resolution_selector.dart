@@ -26,8 +26,8 @@ class ResolutionSelector extends StatelessWidget {
         key: const ValueKey('room-quality-selector'),
         enabled: !switching,
         tooltip: i18n('toolbox_select_quality'),
-        // As wide as the entries, not the 112 px default minimum.
-        constraints: const BoxConstraints(),
+        // Exactly as wide as the entries (see choiceMenuConstraints).
+        constraints: choiceMenuConstraints(context, [for (final quality in state.player.qualites) quality.quality]),
         offset: const Offset(0.0, 5.0),
         onOpened: () {
           controller.updateUI(isMenuOpen: true);

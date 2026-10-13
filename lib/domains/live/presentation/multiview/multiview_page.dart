@@ -971,6 +971,7 @@ class _MultiviewCellView extends StatelessWidget {
     final currentName = state.qualities[state.qualityIndex.clamp(0, state.qualities.length - 1)].quality;
     return PopupMenuButton<int>(
       key: const ValueKey('multiview-quality-selector'),
+      constraints: choiceMenuConstraints(context, [for (final quality in state.qualities) quality.quality]),
       tooltip: i18n('select_quality'),
       offset: const Offset(0, 5),
       position: PopupMenuPosition.under,

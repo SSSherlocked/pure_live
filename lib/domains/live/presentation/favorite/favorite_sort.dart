@@ -96,6 +96,7 @@ class FavoriteSortButton extends StatelessWidget {
       tooltip: i18n('favorite_sort'),
       icon: Icon(Icons.filter_list_rounded, size: iconSize, color: Theme.of(context).colorScheme.onSurfaceVariant),
       onSelected: _applySortMode,
+      constraints: choiceMenuConstraints(context, [for (final mode in FavoriteSortMode.values) _labelOf(mode)]),
       itemBuilder: _sortItems,
     );
   }

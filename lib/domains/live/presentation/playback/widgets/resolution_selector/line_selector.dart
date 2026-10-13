@@ -26,8 +26,11 @@ class LineSelector extends StatelessWidget {
         key: const ValueKey('room-line-selector'),
         enabled: !switching,
         tooltip: i18n("select_play_line"),
-        // As wide as the entries, not the 112 px default minimum.
-        constraints: const BoxConstraints(),
+        // Exactly as wide as the entries (see choiceMenuConstraints).
+        constraints: choiceMenuConstraints(context, [
+          for (var line = 0; line < state.player.lineCount; line++)
+            i18n("toolbox_line", args: {"index": (line + 1).toString()}),
+        ]),
         offset: const Offset(0.0, 5.0),
         onOpened: () {
           controller.updateUI(isMenuOpen: true);

@@ -168,12 +168,32 @@ class BarrageDataSystem extends Component {
       }
     } else {
       _emitTimer += dt;
-      if (_emitTimer >= _ctx.config.emitInterval) {
+      if (_emitTimer >= _paceInterval()) {
         _emitTimer = 0.0;
         _dispatchOne(_ctx.clock.nowPrecise());
       }
     }
     _prepareAheadItems();
+  }
+
+  /// Pure Live: the time between two launches.
+  ///
+  /// [BarrageConfig.emitInterval] alone lets a busy room fill
+  /// [BarrageConfig.maxVisibleCount] within a second or two; the queue then
+  /// waits (dropping what grows older than [BarrageConfig.maxPendingAge]),
+  /// the whole batch leaves the screen together, and the next batch rushes
+  /// in - waves of danmaku with empty stretches between them. Spreading the
+  /// launches over the time a message stays on screen keeps that many in
+  /// flight as a steady stream instead. A quiet room arrives slower than
+  /// this anyway and is unaffected.
+  double _paceInterval() {
+    final config = _ctx.config;
+    final cap = config.maxVisibleCount;
+    final width = _ctx.viewport.x;
+    if (cap <= 0 || config.baseSpeed <= 0 || width <= 0) return config.emitInterval;
+    // Crossing the screen plus a typical message's own length.
+    final onScreenSeconds = width * 1.25 / config.baseSpeed;
+    return math.max(config.emitInterval, onScreenSeconds / cap);
   }
 
   // The expensive part of dispatching a message is text shaping inside

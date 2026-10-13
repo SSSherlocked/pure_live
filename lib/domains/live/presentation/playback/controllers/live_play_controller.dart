@@ -94,7 +94,7 @@ class LivePlayController extends GetxController
   // Automatic reconnect after a network-class playback failure: retried at
   // 5/10/20/30/60 s (the last repeats) for up to 30 minutes, and at once when
   // the device reports a network again (wzgrx/pure_live G02.3 / O01.3).
-  static const List<int> _reconnectDelaysSeconds = [5, 10, 20, 30, 60];
+  static const List<int> _reconnectDelaysSeconds = [2, 10, 20, 30, 60];
   static const Duration _reconnectWindow = Duration(minutes: 30);
   Timer? _reconnectTimer;
   StreamSubscription<List<ConnectivityResult>>? _reconnectConnectivity;

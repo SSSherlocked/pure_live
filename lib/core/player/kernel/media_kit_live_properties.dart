@@ -55,7 +55,9 @@ abstract final class MediaKitLiveProperties {
       // CDNs that burst several seconds up front are unaffected.
       'demuxer-lavf-probesize': '1048576',
       'demuxer-lavf-analyzeduration': '1',
-      'network-timeout': '15',
+      // A connection that hangs fails over to the next line within the
+      // 8 s source-ready window (see LivePlayerFacade), not after 15 s.
+      'network-timeout': '8',
       // Drop a failing hw decoder after one bad frame.
       'hwdec-software-fallback': '1',
       // Network cache-secs takes precedence over the smaller base readahead.

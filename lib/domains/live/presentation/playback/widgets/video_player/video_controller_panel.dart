@@ -121,6 +121,10 @@ class VideoControllerPanel extends StatefulWidget {
 
 class _VideoControllerPanelState extends State<VideoControllerPanel> {
   static const barHeight = 56.0;
+
+  /// The narrow inline player's bars: its 32 px buttons need no 56 px band,
+  /// and a 56 px top bar left the title 18 px below the picture's edge.
+  static const compactBarHeight = 40.0;
   final MenuController _moreMenu = MenuController();
   Offset? _lastTapGlobalPosition;
   Offset? _lastTapLocalPosition;
@@ -165,11 +169,12 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final double currentVolume = controller.currentVolume.value;
           final int percentage = (currentVolume * 100).round();
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
-          final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: barHeight);
           // Phones tighten the inline player's floating controls.
           // Which controls show where: one table (PlayerControlPolicy).
           final policy = PlayerControlPolicy.of(context);
           final compactControls = policy.compactControls;
+          final topBarHeight = compactControls ? compactBarHeight : barHeight;
+          final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: topBarHeight);
 
           final IconData iconData = currentVolume <= 0
               ? Icons.volume_mute
@@ -337,7 +342,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                   const PortraitStreamDiagnosticsBadge(),
                   TopActionBar(
                     controller: controller,
-                    barHeight: barHeight,
+                    barHeight: topBarHeight,
                     moreMenu: _moreMenu,
                     // A portrait fullscreen owns the whole screen, so its top bar is
                     // the one that has to clear the notch on its own.
@@ -359,7 +364,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                           menu: _moreMenu,
                           size: Size(
                             compactControls ? compactPlayerActionExtent : kMinInteractiveDimension,
-                            barHeight,
+                            topBarHeight,
                           ),
                           isAudioOnly: () => controller.isAudioOnly,
                           onToggleAudioOnly: () {

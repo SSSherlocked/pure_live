@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -342,7 +341,7 @@ class WebSearchController extends GetxController {
       if (_dismissedTarget == target.key) continue;
 
       roomId.value = target.roomId;
-      developer.log('[WebSearch] Detected a supported ${target.platform} room link.');
+      Log.dev('[WebSearch] Detected a supported ${target.platform} room link.');
       bool? confirmed;
       try {
         confirmed = await _confirmRoom(target);

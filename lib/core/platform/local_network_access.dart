@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/network/proxy_routing.dart' as proxy_routing;
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// Android 17 (API 37) blocks sockets to local-network addresses unless the
 /// app holds ACCESS_LOCAL_NETWORK. A proxy on the PC or router is exactly such
@@ -35,7 +35,7 @@ class LocalNetworkAccess {
       ToastUtil.show(i18n('local_network_permission_denied'));
       return false;
     } catch (error) {
-      log('Local network permission request failed: $error');
+      Log.dev('Local network permission request failed: $error');
       return true;
     }
   }

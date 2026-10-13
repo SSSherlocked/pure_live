@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:developer' as developer;
 
 import 'package:media_core/media_core.dart';
 import 'package:media_core_ingest/media_core_ingest.dart' show isHlsManifestUri;
@@ -10,6 +9,7 @@ import 'package:pure_live/core/player/core/playback_source_hints.dart';
 import 'package:pure_live/core/player/super_resolution.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart' as mkv;
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// mpv properties for live rooms, owned by the app.
 ///
@@ -264,7 +264,7 @@ abstract final class MediaKitLiveProperties {
       declaredFormat: declaredStreamFormatOf(source),
       proxy: PlaybackProxyPolicy.currentNativeUrl(privateInput: false),
     );
-    developer.log('${source.uri.host} -> $properties', name: 'PlaybackProxy');
+    Log.dev('${source.uri.host} -> $properties', name: 'PlaybackProxy');
     for (final entry in properties.entries) {
       await platform.setProperty(entry.key, entry.value);
     }

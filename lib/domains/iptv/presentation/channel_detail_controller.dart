@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:developer';
 
 import '../../../domains/iptv/domain/channel.dart';
 import '../../../domains/iptv/domain/epg.dart' as epg;
@@ -8,6 +7,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
 import 'package:pure_live/domains/iptv/domain/fuzzy_match.dart';
 import 'package:pure_live/domains/iptv/data/local/database.dart' as database;
+import 'package:pure_live/core/logging/app_log.dart';
 
 class EpgChannelMatchCache {
   EpgChannelMatchCache({this.maxEntries = 1024}) : assert(maxEntries > 0);
@@ -85,7 +85,7 @@ class ChannelDetailController extends GetxController {
         await _loadProgrammes(matchedEpgChannelId);
       }
     } catch (e) {
-      log("根据频道名和 EPG 频道名进行模糊匹配时发生异常: $e");
+      Log.dev("根据频道名和 EPG 频道名进行模糊匹配时发生异常: $e");
     } finally {
       isLoadingEpg.value = false;
     }

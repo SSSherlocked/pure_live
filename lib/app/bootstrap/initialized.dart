@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:pure_live/core/storage/secure_credential_store.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
@@ -32,6 +31,7 @@ import 'package:pure_live/features/backup/backup_controller.dart';
 import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:pure_live/core/config/migrations/settings_upgrade_migration.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// Keep decoded cover/avatar memory bounded independently from the encoded
 /// HTTP/disk cache. A 960x540 RGBA cover is roughly 2 MiB after decoding, so
@@ -73,7 +73,7 @@ class AppInitializer {
       workingDirectory: await AppPathManager().migrationWorkingDir,
     );
     if (migrationReport.changed) {
-      log(
+      Log.dev(
         'Settings upgrade imported ${migrationReport.importedSources} source(s); '
         'favorites=${migrationReport.favoriteCount}, '
         'history=${migrationReport.historyCount}.',
@@ -95,7 +95,7 @@ class AppInitializer {
     final configFilePath = WindowsMultiInstanceLauncher.configFileFromArgs(args);
     if (configFilePath != null) {
       final restored = await Get.find<BackupController>().recoverAndDelete(File(configFilePath));
-      log('Windows multi-instance settings ${restored ? 'restored' : 'restore failed'}: $configFilePath');
+      Log.dev('Windows multi-instance settings ${restored ? 'restored' : 'restore failed'}: $configFilePath');
     }
     configureUpstreamProxyRouting((uri) {
       if (playsDirectBehindProxy(uri)) return 'DIRECT';
@@ -158,7 +158,7 @@ class AppInitializer {
   void _startFFmpegPrewarm() {
     unawaited(
       FFmpegManager.to.initialize().catchError((Object error, StackTrace stackTrace) {
-        log('FFmpeg prewarm failed: $error', stackTrace: stackTrace);
+        Log.dev('FFmpeg prewarm failed: $error', stackTrace: stackTrace);
       }),
     );
   }
@@ -172,7 +172,7 @@ class AppInitializer {
       final safeId = instanceId.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
       await WindowsSingleInstance.ensureSingleInstance(args, "PureLive_InstanceID_$safeId", bringWindowToFront: true);
     } catch (e) {
-      log('WindowsSingleInstance initialization failed: $e');
+      Log.dev('WindowsSingleInstance initialization failed: $e');
     }
   }
 
@@ -180,7 +180,7 @@ class AppInitializer {
     try {
       await SettingsService.to.startup.setupLaunchAtStartup();
     } catch (e) {
-      log('Setup launch at startup failed: $e');
+      Log.dev('Setup launch at startup failed: $e');
     }
   }
 

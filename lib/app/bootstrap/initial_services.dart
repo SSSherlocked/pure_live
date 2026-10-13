@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
 import 'package:path/path.dart' as p;
@@ -48,6 +47,7 @@ import 'package:pure_live/domains/recorder/data/record_settings_controller.dart'
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_controller.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class InitialServices {
   static void initGlobalServices() {
@@ -172,7 +172,7 @@ class InitialServices {
       final dir = Directory(p.join(AppPathManager().basePath, AppPathManager.dirRetiredWallpaper));
       if (await dir.exists()) await dir.delete(recursive: true);
     } catch (error) {
-      developer.log('Removing retired appearance settings failed: $error', name: 'InitialServices');
+      Log.dev('Removing retired appearance settings failed: $error', name: 'InitialServices');
     }
   }
 
@@ -204,7 +204,7 @@ class InitialServices {
     try {
       initialize();
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         '$name initialization failed (${error.runtimeType})',
         name: 'InitialServices',
         stackTrace: stackTrace,

@@ -1,10 +1,10 @@
-import 'dart:developer';
 
 import 'package:pure_live/get/get.dart' hide Value;
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
 import 'package:pure_live/domains/iptv/domain/channel.dart' as models;
 import 'package:pure_live/domains/iptv/data/local/database.dart' as database;
 import 'package:pure_live/core/network/http_header_policy.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class IptvRepository extends GetxService {
   Future<IptvRepository> init() async {
@@ -33,7 +33,7 @@ class IptvRepository extends GetxService {
         );
       }).toList();
     } catch (e) {
-      log("Repository getChannels Execution Error: $e");
+      Log.dev("Repository getChannels Execution Error: $e");
       return [];
     }
   }

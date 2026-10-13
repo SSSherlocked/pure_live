@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
@@ -95,6 +96,22 @@ class Log {
   static void writeLog(Object content, [Level level = Level.info]) {
     if (!_localLoggingEnabled || _logFileWriter == null) return;
     _logFileWriter?.write("[${level.name.toUpperCase()}] $_currentTime：$content");
+  }
+
+  /// `dart:developer`'s `log`, also kept in the app log (the in-app page and,
+  /// while the switch is on, the file). `developer.log` alone reaches only an
+  /// attached debugger, so a release build lost every one of these lines.
+  /// An entry with an error, a stack or `level >= 1000` counts as an error,
+  /// `level >= 900` as a warning.
+  static void dev(String message, {String name = '', int level = 0, Object? error, StackTrace? stackTrace}) {
+    developer.log(message, name: name, level: level, error: error, stackTrace: stackTrace);
+    final line = StringBuffer(name.isEmpty ? message : '[$name] $message');
+    if (error != null && !message.contains('$error')) line.write(': $error');
+    if (stackTrace != null) line.write('\n$stackTrace');
+    final failed = level >= 1000 || error != null || stackTrace != null;
+    final warning = !failed && level >= 900;
+    addDebugLog(line.toString(), failed ? Colors.red : (warning ? Colors.pink : null));
+    writeLog(line.toString(), failed ? Level.error : (warning ? Level.warning : Level.info));
   }
 
   static void addDebugLog(String content, [Color? color]) {

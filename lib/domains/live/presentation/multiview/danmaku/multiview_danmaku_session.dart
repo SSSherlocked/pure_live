@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
 import 'package:media_core_danmaku/media_core_danmaku.dart';
@@ -8,6 +7,7 @@ import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/core/player/core/live_message_normalization.dart';
 import 'package:pure_live/shared/platforms/huya/huya_danmaku.dart' show HuyaDanmakuArgs;
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef MultiviewDanmakuEngineFactory = LiveDanmaku Function(LiveRoom liveroom);
 
@@ -70,7 +70,7 @@ class MultiviewDanmakuSession {
       try {
         await engine.start(liveroom.danmakuData).timeout(startTimeout);
       } catch (error, stackTrace) {
-        developer.log(
+        Log.dev(
           'MultiviewDanmakuSession: connect failed for $key',
           name: 'MultiviewDanmakuSession',
           error: error,
@@ -126,7 +126,7 @@ class MultiviewDanmakuSession {
       try {
         _handleChatMessage(msg);
       } catch (error, stackTrace) {
-        developer.log(
+        Log.dev(
           'MultiviewDanmakuSession: message handling failed',
           name: 'MultiviewDanmakuSession',
           error: error,
@@ -136,7 +136,7 @@ class MultiviewDanmakuSession {
     };
 
     engine.onReconnect = (reason) {
-      developer.log(
+      Log.dev(
         'MultiviewDanmakuSession: transport reconnecting for $key '
         '(${token == _epoch ? 'current' : 'stale'} session): $reason',
         name: 'MultiviewDanmakuSession',
@@ -144,7 +144,7 @@ class MultiviewDanmakuSession {
     };
 
     engine.onClose = (reason) {
-      developer.log(
+      Log.dev(
         'MultiviewDanmakuSession: transport closed for $key '
         '(${token == _epoch ? 'current' : 'stale'} session): $reason',
         name: 'MultiviewDanmakuSession',
@@ -194,7 +194,7 @@ class MultiviewDanmakuSession {
     try {
       await engine.stop().timeout(stopTimeout);
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewDanmakuSession: engine stop failed',
         name: 'MultiviewDanmakuSession',
         error: error,
@@ -206,7 +206,7 @@ class MultiviewDanmakuSession {
   Future<void> _serialize(Future<void> Function() operation) {
     final next = _tail.then((_) => operation());
     _tail = next.catchError((Object error, StackTrace stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewDanmakuSession: serialized operation failed',
         name: 'MultiviewDanmakuSession',
         error: error,

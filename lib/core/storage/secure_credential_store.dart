@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// Where credentials are kept: the platform's secure store.
 abstract interface class SecureKeyValueBackend {
@@ -157,5 +157,5 @@ abstract final class SecureCredentialStore {
     _tail = Future<void>.value();
   }
 
-  static void _log(String message) => developer.log(message, name: 'SecureCredentialStore');
+  static void _log(String message) => Log.dev(message, name: 'SecureCredentialStore');
 }

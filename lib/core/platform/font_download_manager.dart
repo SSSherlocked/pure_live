@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io' hide HttpClient;
 
 import 'package:flutter/services.dart';
@@ -9,6 +8,7 @@ import 'package:pure_live/core/release/github_mirror.dart';
 import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/config/cache_controller.dart';
 import 'package:pure_live/core/models/download_state.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class FontDownloadManager {
   FontDownloadManager._();
@@ -32,7 +32,7 @@ class FontDownloadManager {
     try {
       callback(state);
     } catch (error) {
-      log('Font download state callback failed: $error');
+      Log.dev('Font download state callback failed: $error');
     }
   }
 
@@ -47,7 +47,7 @@ class FontDownloadManager {
         try {
           await previousDir.delete(recursive: true);
         } catch (error) {
-          log('Failed to remove stale font rollback directory: $error');
+          Log.dev('Failed to remove stale font rollback directory: $error');
         }
       } else {
         await previousDir.rename(fontDir.path);
@@ -109,12 +109,12 @@ class FontDownloadManager {
 
       if (containsValidFonts) {
         await loader.load();
-        log('FontLoader registered family: $fontId');
+        Log.dev('FontLoader registered family: $fontId');
         return true;
       }
       return false;
     } catch (e) {
-      log("Font registration sequence failed: $e");
+      Log.dev("Font registration sequence failed: $e");
       return false;
     }
   }
@@ -130,7 +130,7 @@ class FontDownloadManager {
     final previousDir = Directory("$root/.$fontId.previous");
 
     _notifyState(onStateChanged, DownloadState.downloading);
-    log("Starting block download pipeline for font family: $fontId");
+    Log.dev("Starting block download pipeline for font family: $fontId");
 
     try {
       if (!_isSafeFontId(fontId) || fontModel.files.isEmpty) {
@@ -233,7 +233,7 @@ class FontDownloadManager {
       _notifyState(onStateChanged, DownloadState.downloaded);
       return true;
     } catch (e, s) {
-      log("Font bundle sync sequence aborted: $e, retry count exceeded $s");
+      Log.dev("Font bundle sync sequence aborted: $e, retry count exceeded $s");
       if (await stagedDir.exists()) {
         try {
           await stagedDir.delete(recursive: true);
@@ -282,7 +282,7 @@ class FontDownloadManager {
       _notifyState(onStateChanged, DownloadState.notDownloaded);
       return true;
     } catch (e) {
-      log("Failed to delete font family: $e");
+      Log.dev("Failed to delete font family: $e");
       return false;
     }
   }

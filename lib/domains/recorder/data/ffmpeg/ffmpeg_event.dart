@@ -1,5 +1,5 @@
-import 'dart:developer' as developer;
 import 'package:pure_live/domains/recorder/data/ffmpeg/ffmpeg_types.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class FFmpegEvent {
   final String taskId;
@@ -11,7 +11,7 @@ class FFmpegEvent {
   Map<String, dynamic> toMap() => {"taskId": taskId, "type": type.index, "data": data};
 
   static FFmpegEvent fromMap(Map map) {
-    developer.log(map.toString(), name: 'FFmpegEvent');
+    Log.dev(map.toString(), name: 'FFmpegEvent');
     return FFmpegEvent(
       taskId: map["taskId"],
       type: FFmpegEventType.values[map["type"]],

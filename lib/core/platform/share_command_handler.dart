@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +8,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/platform/share_command_codec.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef ShareClipboardReader = Future<String?> Function();
 typedef ShareClipboardWriter = Future<void> Function(String text);
@@ -115,7 +115,7 @@ class ShareCommandHandler {
       currentText = (await _readClipboard())?.trim() ?? '';
       if (currentText.isEmpty) return;
     } catch (error, stackTrace) {
-      log(
+      Log.dev(
         'Clipboard share command could not be read',
         name: 'ShareCommandHandler',
         error: error,
@@ -149,7 +149,7 @@ class ShareCommandHandler {
       _lastProcessedHashInLifecycle = currentHash;
       return true;
     } catch (error, stackTrace) {
-      log('Share command was not accepted', name: 'ShareCommandHandler', error: error, stackTrace: stackTrace);
+      Log.dev('Share command was not accepted', name: 'ShareCommandHandler', error: error, stackTrace: stackTrace);
       return false;
     }
   }
@@ -167,7 +167,7 @@ class ShareCommandHandler {
     try {
       callback(localizationKey);
     } catch (error, stackTrace) {
-      log('Share command feedback failed', name: 'ShareCommandHandler', error: error, stackTrace: stackTrace);
+      Log.dev('Share command feedback failed', name: 'ShareCommandHandler', error: error, stackTrace: stackTrace);
     }
   }
 
@@ -205,7 +205,7 @@ class ShareCommandHandler {
             _rememberText(postShareText);
           }
         } catch (error, stackTrace) {
-          log(
+          Log.dev(
             'Post-share clipboard inspection failed',
             name: 'ShareCommandHandler',
             error: error,
@@ -215,7 +215,7 @@ class ShareCommandHandler {
       }
       return true;
     } catch (error, stackTrace) {
-      log('Room share failed', name: 'ShareCommandHandler', error: error, stackTrace: stackTrace);
+      Log.dev('Room share failed', name: 'ShareCommandHandler', error: error, stackTrace: stackTrace);
       _notifySafely(_notifyFailure, 'share_failed');
       return false;
     }

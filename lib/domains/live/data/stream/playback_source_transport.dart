@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:dio/dio.dart';
 import 'package:media_core_ingest/media_core_ingest.dart';
@@ -13,6 +12,7 @@ import 'flv_legacy_hevc_relay.dart';
 import 'live_stream_ingest.dart';
 import 'playback_ingest_needs.dart';
 import 'playback_manifest_probe.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class _PlaybackInputCreation {
   _PlaybackInputCreation(this.joinOnCancel) {
@@ -173,7 +173,7 @@ class PlaybackSourceTransport {
         _pending.remove(input);
         await _retire(input);
       }
-      developer.log('playback input relay unavailable: $error', name: 'PlaybackIngest');
+      Log.dev('playback input relay unavailable: $error', name: 'PlaybackIngest');
       return null;
     }
   }
@@ -228,7 +228,7 @@ class PlaybackSourceTransport {
     final IngestPlan plan = resolveIngestPlan(needs: decision.needs, sourceIsManifest: manifest);
     if (plan.isDirect) return null;
     // Host only: a signed live URL carries its token in the query.
-    developer.log('${source.host} -> $plan', name: 'PlaybackIngest');
+    Log.dev('${source.host} -> $plan', name: 'PlaybackIngest');
     if (plan.strategy == IngestStrategy.manifestRelay) {
       final String? rootManifest = decision.rootManifest;
       return (_) => _createIngestRelay(url, frozen, rootManifest: rootManifest);
@@ -266,7 +266,7 @@ class PlaybackSourceTransport {
         final Set<IngestNeed> needs = probe.kind.requiresRewrite
             ? const <IngestNeed>{IngestNeed.relativeChildren}
             : const <IngestNeed>{};
-        developer.log(
+        Log.dev(
           'manifest ${source.host}: ${probe.kind.describe()} -> '
           '${needs.isEmpty ? 'direct' : 'loopback rewrite'}',
           name: 'PlaybackIngest',

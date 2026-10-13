@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
@@ -11,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:win32_registry/win32_registry.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class AppPathManager {
   static final AppPathManager _instance = AppPathManager._internal();
@@ -106,7 +106,7 @@ class AppPathManager {
     // a deterministic fallback so startup still succeeds.
     final fallback = p.join(supportDir.path, softNameDir);
     await Directory(fallback).create(recursive: true);
-    log('Windows 安装目录只读，数据目录回退至 $fallback');
+    Log.dev('Windows 安装目录只读，数据目录回退至 $fallback');
     return fallback;
   }
 
@@ -170,7 +170,7 @@ class AppPathManager {
           if (roots.add(previousRoot)) pending.add(previousRoot);
         }
       } catch (error) {
-        log('旧安装位置记录读取失败 ($root): $error');
+        Log.dev('旧安装位置记录读取失败 ($root): $error');
       }
     }
   }
@@ -341,7 +341,7 @@ class AppPathManager {
         }
       }
     } catch (error) {
-      log('旧数据目录读取失败 (${source.path}): $error');
+      Log.dev('旧数据目录读取失败 (${source.path}): $error');
     }
   }
 

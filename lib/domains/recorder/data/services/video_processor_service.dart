@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -10,6 +9,7 @@ import 'package:pure_live/domains/recorder/data/ffmpeg/ffmpeg_types.dart';
 import 'package:pure_live/domains/recorder/domain/models/live_record_task.dart';
 import 'package:pure_live/domains/recorder/data/services/cache_service.dart';
 import 'package:pure_live/domains/recorder/data/services/recording_segment_clock.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class VideoProcessorService extends GetxService {
   VideoProcessorService._internal() : _ffmpeg = FFmpegManager.to, _completionTimeoutOverride = null;
@@ -50,7 +50,7 @@ class VideoProcessorService extends GetxService {
     try {
       await _ffmpeg.stop(id);
     } catch (error, stackTrace) {
-      log('Video merge stop request failed', error: error, stackTrace: stackTrace);
+      Log.dev('Video merge stop request failed', error: error, stackTrace: stackTrace);
     } finally {
       stopped.complete();
     }
@@ -175,7 +175,7 @@ class VideoProcessorService extends GetxService {
       }
 
       if (validSegments.isEmpty) {
-        log('Merge skipped for $taskId: every segment is empty');
+        Log.dev('Merge skipped for $taskId: every segment is empty');
         _emitFailed(taskId, i18n('recorder_no_valid_segments'));
         return false;
       }
@@ -194,7 +194,7 @@ class VideoProcessorService extends GetxService {
           _emitFailed(taskId, i18n('recorder_segment_clock_failed'));
           return false;
         } on FormatException catch (error) {
-          log('Recording clock validation failed for $taskId: ${error.message}');
+          Log.dev('Recording clock validation failed for $taskId: ${error.message}');
           _emitFailed(taskId, i18n('recorder_segment_clock_failed'));
           return false;
         }
@@ -214,7 +214,7 @@ class VideoProcessorService extends GetxService {
       }
       if (operation.cancelled) return false;
 
-      log('$taskId: ${i18n("video_ts_total", args: {"count": validSegments.length.toString()})}');
+      Log.dev('$taskId: ${i18n("video_ts_total", args: {"count": validSegments.length.toString()})}');
       _emit(VideoProcessEvent(taskId: taskId, type: VideoProcessEventType.started));
 
       listFile = File(p.join(tsDirectory.path, '.$resolvedFilePrefix.ffconcat'));
@@ -334,7 +334,7 @@ class VideoProcessorService extends GetxService {
       _emitFailed(taskId, i18n('video_ffmpeg_failed'));
       return false;
     } catch (error, stackTrace) {
-      log('Video merge failed for $taskId: $error', stackTrace: stackTrace);
+      Log.dev('Video merge failed for $taskId: $error', stackTrace: stackTrace);
       _emitFailed(taskId, error.toString());
       return false;
     } finally {
@@ -351,7 +351,7 @@ class VideoProcessorService extends GetxService {
               .then<void>(
                 (_) {},
                 onError: (Object error, StackTrace stack) {
-                  log('Cancelled video merge settled with an error', error: error, stackTrace: stack);
+                  Log.dev('Cancelled video merge settled with an error', error: error, stackTrace: stack);
                 },
               )
               .whenComplete(cleanup),
@@ -440,7 +440,7 @@ class VideoProcessorService extends GetxService {
   }
 
   Future<bool> _deleteFiles(List<File> files, String taskId) async {
-    log('$taskId: ${i18n("video_delete_temp_files")}');
+    Log.dev('$taskId: ${i18n("video_delete_temp_files")}');
     var removedAll = true;
     for (final file in files) {
       try {

@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,6 +7,7 @@ import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:pure_live/domains/recorder/data/consts/recorder_keys.dart';
 import 'package:pure_live/domains/recorder/data/consts/recorder_config.dart';
 import 'package:pure_live/domains/recorder/data/services/cache_service.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef RecordDirectoryPicker = Future<String?> Function();
 
@@ -89,7 +89,7 @@ class RecordSettingsController extends GetxService {
       await initRecordPath();
       await refreshStorageInfo();
     } catch (error, stackTrace) {
-      developer.log('Recorder storage initialization failed', error: error, stackTrace: stackTrace);
+      Log.dev('Recorder storage initialization failed', error: error, stackTrace: stackTrace);
       if (!isClosed) {
         managedRecordPath.value = '';
         cacheSizeMB.value = 0;
@@ -247,7 +247,7 @@ class RecordSettingsController extends GetxService {
       managedRecordPath.value = directory.path;
       await refreshCacheSize();
     } catch (error, stackTrace) {
-      developer.log('Recorder directory selection failed', error: error, stackTrace: stackTrace);
+      Log.dev('Recorder directory selection failed', error: error, stackTrace: stackTrace);
       if (!isClosed) ToastUtil.show(i18n('path_or_permission_error'));
     } finally {
       if (!isClosed) selectingRecordDirectory.value = false;

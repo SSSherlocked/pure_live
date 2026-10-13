@@ -35,8 +35,6 @@ class LogController extends GetxService {
   Timer? _kernelLogTimer;
   int _kernelLogCursor = 0;
 
-  static Function(Level, String)? onPrintLog;
-
   @override
   void onInit() {
     super.onInit();

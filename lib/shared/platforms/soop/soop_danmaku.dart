@@ -188,7 +188,6 @@ class SoopDanmaku implements LiveDanmaku {
     const separatorByte = 0x0c;
     final parts = ListUtil.splitList(body, separatorByte);
     final fields = parts.map((part) => utf8.decode(part, allowMalformed: true)).toList(growable: false);
-    CoreLog.d("SOOP chat fields: $fields");
 
     if (fields.length <= 6) return;
     final comment = fields[1].trim();

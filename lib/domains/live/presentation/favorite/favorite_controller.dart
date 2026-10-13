@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
 import 'package:synchronized/synchronized.dart';
@@ -11,6 +10,7 @@ import 'package:pure_live/core/config/refresh_config_controller.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class FavoriteController extends LocalReactivePageController<LiveRoom>
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
@@ -573,7 +573,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
             return merged.rooms;
           });
         } catch (error, stackTrace) {
-          developer.log(
+          Log.dev(
             'Persist favorite room refresh failed',
             name: 'FavoriteController',
             error: error,
@@ -650,7 +650,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     );
     if (refreshEpoch != _refreshEpoch || isClosed) return const <String, LiveRoom>{};
     if (failedRooms.isNotEmpty) {
-      developer.log(
+      Log.dev(
         'Favorite refresh failed for ${failedRooms.length} room(s): ${summarizeFavoriteRefreshFailures(failedRooms)}',
         name: 'FavoriteController',
       );
@@ -694,7 +694,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
           : error.runtimeType.toString();
       if (error is! Exception) {
         // Not an Exception: a programming error. Keep the full report.
-        developer.log(
+        Log.dev(
           'Favorite room refresh error: ${_refreshFailureLabel(liveroom, reason)}',
           name: 'FavoriteController',
           error: error,

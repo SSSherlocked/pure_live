@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
@@ -18,6 +17,7 @@ import 'package:pure_live/domains/iptv/data/iptv_settings_controller.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
 import 'package:pure_live/shared/platforms/live_danmaku_capability.dart';
 import 'package:pure_live/domains/iptv/data/platforms/iptv_danmaku_capability.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class IptvSite
     with LiveDanmakuCapabilityDefaults, IptvDanmakuCapability
@@ -186,7 +186,7 @@ class IptvSite
     }
     final dbChannels = await db.getEpgChannelsForSource(currentEpgSourceId);
 
-    log(dbChannels.length.toString());
+    Log.dev("IPTV channels in the database: ${dbChannels.length}", name: "IptvSite");
     if (dbChannels.isNotEmpty) {
       final cleanTvgId = channel.tvgId?.trim().toLowerCase();
       if (cleanTvgId != null && cleanTvgId.isNotEmpty) {

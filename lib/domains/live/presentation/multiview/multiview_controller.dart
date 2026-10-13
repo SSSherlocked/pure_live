@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:pure_live/core/index.dart';
@@ -22,6 +21,7 @@ import 'package:pure_live/domains/live/presentation/playback/controllers/player_
 import 'package:pure_live/domains/live/presentation/multiview/danmaku/multiview_danmaku_session.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef MultiviewStreamResolver = Future<MultiviewStreamSource> Function(
   LiveRoom liveroom, {
@@ -322,7 +322,7 @@ class MultiviewController extends GetxController {
     super.onInit();
     unawaited(
       _pauseGlobalPlayback().catchError((Object error, StackTrace stackTrace) {
-        developer.log(
+        Log.dev(
           'MultiviewController: pause global playback failed',
           name: 'MultiviewController',
           error: error,
@@ -394,7 +394,7 @@ class MultiviewController extends GetxController {
       }
       _danmakuResyncAttempts = 0;
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewController: danmaku session sync failed',
         name: 'MultiviewController',
         error: error,
@@ -456,7 +456,7 @@ class MultiviewController extends GetxController {
       _danmakuRoomMisses[key] = DateTime.now();
       return room;
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewController: danmaku room detail failed for $key',
         name: 'MultiviewController',
         error: error,
@@ -736,7 +736,7 @@ class MultiviewController extends GetxController {
       );
       return;
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewController: resolve stream failed for ${targetRoom.platform}/${targetRoom.roomId}',
         name: 'MultiviewController',
         error: error,
@@ -764,7 +764,7 @@ class MultiviewController extends GetxController {
     try {
       await _wallController.assign(cellIndex, _wallSource(cellIndex, source));
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewController: start playback failed for ${targetRoom.platform}/${targetRoom.roomId}',
         name: 'MultiviewController',
         error: error,
@@ -779,7 +779,7 @@ class MultiviewController extends GetxController {
     try {
       await _wallController.setCellVolume(cellIndex, roomVolume);
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewController: restore room volume failed',
         name: 'MultiviewController',
         error: error,
@@ -947,7 +947,7 @@ class MultiviewController extends GetxController {
     try {
       await _roomVolumeSaver(room, resolved);
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewController: persist room volume failed',
         name: 'MultiviewController',
         error: error,

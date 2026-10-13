@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:path/path.dart' as p;
 import 'package:share_handler/share_handler.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 enum SharedMediaIntakeKind { roomCommand, liveLink, files, unsupported, failed }
 
@@ -58,7 +58,7 @@ class SharedMediaIntake {
   Future<void> _queue = Future<void>.value();
 
   static void _logError(Object error, StackTrace stackTrace) {
-    log('Shared media intake failed', name: 'SharedMediaIntake', error: error, stackTrace: stackTrace);
+    Log.dev('Shared media intake failed', name: 'SharedMediaIntake', error: error, stackTrace: stackTrace);
   }
 
   Future<SharedMediaIntakeResult> ingest(SharedMedia media) {

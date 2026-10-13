@@ -1,7 +1,7 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:win32_registry/win32_registry.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 (String, int)? parseWindowsProxyServer(String raw) {
   final value = raw.trim();
@@ -74,7 +74,7 @@ class WindowsSystemProxy {
         key.close();
       }
     } catch (error) {
-      log('Failed to read the Windows system proxy: $error', name: 'SystemProxy');
+      Log.dev('Failed to read the Windows system proxy: $error', name: 'SystemProxy');
       return null;
     }
   }

@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:developer';
 
 import 'iptv_programme_policy.dart';
 
@@ -31,6 +30,7 @@ import 'package:pure_live/domains/live/presentation/playback/controllers/live_pl
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_message_actions.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_settings_source.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef AudioOnlyCallback = Future<void> Function(bool value);
 
@@ -644,7 +644,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       currentVolume.value = observed.clamp(0.0, 1.0).toDouble();
     } catch (error, stack) {
       // An optional volume plugin must not prevent the room from opening.
-      log('Initialize system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
+      Log.dev('Initialize system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
     }
   }
 
@@ -758,7 +758,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     final sourceCommit = _playerManager.currentSourceCommit;
     if (reuseCurrentSession && sourceCommit != null) _handleSourceCommit(sourceCommit);
     final errorSub = _playerManager.onError.listen((error) {
-      log('error: ${error.toString()}', name: 'initPlayerListener');
+      Log.dev('error: ${error.toString()}', name: 'initPlayerListener');
       _handlePlayerError(error);
     });
     _addSubscription(errorSub);
@@ -802,7 +802,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     } catch (error, stackTrace) {
       // Presentation callbacks must not roll a successfully opened native
       // source back or leave a broadcast subscription with an unhandled error.
-      log('Source commit presentation failed', name: 'VideoController', error: error, stackTrace: stackTrace);
+      Log.dev('Source commit presentation failed', name: 'VideoController', error: error, stackTrace: stackTrace);
     }
   }
 
@@ -900,7 +900,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       unawaited(room.saveCurrentVolume(resolved));
     }, fetchInitialVolume: false);
     volumeSub.onError((Object error, StackTrace stack) {
-      log('Observe system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
+      Log.dev('Observe system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
     });
     _addSubscription(volumeSub);
   }
@@ -925,7 +925,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       if (revision != _volumeRevision || !observed.isFinite) return currentVolume.value;
       return observed.clamp(0.0, 1.0).toDouble();
     } catch (error, stack) {
-      log('Read system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
+      Log.dev('Read system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
       return _ownsVolume ? currentVolume.value : null;
     }
   }
@@ -972,7 +972,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       await room.saveCurrentVolume(resolved);
       return true;
     } catch (error, stack) {
-      log('Set volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
+      Log.dev('Set volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
       return false;
     }
   }
@@ -989,7 +989,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     try {
       await brightnessController!.setApplicationScreenBrightness(value.clamp(0.0, 1.0).toDouble());
     } catch (error, stackTrace) {
-      log('Set brightness failed', name: 'VideoController.Brightness', error: error, stackTrace: stackTrace);
+      Log.dev('Set brightness failed', name: 'VideoController.Brightness', error: error, stackTrace: stackTrace);
     }
   }
 
@@ -1243,7 +1243,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   void _logEpgLoadError(Object error, StackTrace stackTrace) {
     debugPrint("❌ EPG Schedule Loading Failure: $error");
-    log('EPG load error', error: error, stackTrace: stackTrace);
+    Log.dev('EPG load error', error: error, stackTrace: stackTrace);
   }
 
   String generateCatchupUrl({
@@ -1337,7 +1337,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       notify('${i18n('playing_catchup')}: ${programme.title}');
       return IptvProgrammeSelectionResult.catchupStarted;
     } catch (error, stackTrace) {
-      log('IPTV catch-up switch failed', name: 'VideoController', error: error, stackTrace: stackTrace);
+      Log.dev('IPTV catch-up switch failed', name: 'VideoController', error: error, stackTrace: stackTrace);
       notify(i18n('play_video_failed'));
       return IptvProgrammeSelectionResult.failed;
     } finally {
@@ -1374,7 +1374,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       notify(i18n('returned_to_live'));
       return IptvProgrammeSelectionResult.live;
     } catch (error, stackTrace) {
-      log('IPTV return-to-live switch failed', name: 'VideoController', error: error, stackTrace: stackTrace);
+      Log.dev('IPTV return-to-live switch failed', name: 'VideoController', error: error, stackTrace: stackTrace);
       notify(i18n('play_video_failed'));
       return IptvProgrammeSelectionResult.failed;
     } finally {
@@ -1425,7 +1425,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       if (_isDisposed) return;
       await onAudioOnlyChanged?.call(!isAudioOnly);
     } catch (error, stackTrace) {
-      log('Audio mode action failed: $error', name: 'VideoController', error: error, stackTrace: stackTrace);
+      Log.dev('Audio mode action failed: $error', name: 'VideoController', error: error, stackTrace: stackTrace);
       if (!_isDisposed) {
         ToastUtil.show(i18n('error_lifecycle'));
       }

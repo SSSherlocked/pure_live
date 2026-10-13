@@ -1,7 +1,7 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:win32_registry/win32_registry.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class WindowsAutoStart {
   static const _subKey = r'Software\Microsoft\Windows\CurrentVersion\Run';
@@ -41,7 +41,7 @@ class WindowsAutoStart {
         key.close();
       }
     } catch (error) {
-      log('Error reading auto-start command: $error');
+      Log.dev('Error reading auto-start command: $error');
       return null;
     }
   }
@@ -58,7 +58,7 @@ class WindowsAutoStart {
         key.close();
       }
     } catch (error) {
-      log('Failed to enable auto-start: $error');
+      Log.dev('Failed to enable auto-start: $error');
       return false;
     }
   }
@@ -77,7 +77,7 @@ class WindowsAutoStart {
         key.close();
       }
     } catch (error) {
-      log('Failed to disable auto-start: $error');
+      Log.dev('Failed to disable auto-start: $error');
       return false;
     }
   }

@@ -333,7 +333,6 @@ class SoopSite extends LiveSite
       header: getHeaders(),
     );
     var items = <LiveRoom>[];
-    CoreLog.d("$result");
     result = decode(result);
     for (var item in result["broad"]) {
       var roomId = item["user_id"] ?? '';

@@ -4,7 +4,6 @@ import 'package:pure_live/domains/recorder/data/services/live_input_recording_bi
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -33,6 +32,7 @@ import 'package:pure_live/domains/recorder/data/services/recording_output_metric
 import 'package:pure_live/domains/recorder/data/services/stream_resolver_service.dart';
 import 'package:pure_live/domains/recorder/data/services/video_processor_service.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class RecorderController extends GetxService {
   RecorderController([this._outputMetrics = const RecordingOutputMetrics()])
@@ -438,7 +438,7 @@ class RecorderController extends GetxService {
         persist: _shouldPersistOutput(task.taskId, now: now, force: forcePersist),
       );
     } catch (error, stackTrace) {
-      developer.log('Recorder output monitor failed: $error', name: 'RecorderController', stackTrace: stackTrace);
+      Log.dev('Recorder output monitor failed: $error', name: 'RecorderController', stackTrace: stackTrace);
     } finally {
       // This owner can be detached while its IO completes. Never release a
       // lock by task ID here: that ID may already belong to another attempt.
@@ -549,7 +549,7 @@ class RecorderController extends GetxService {
         updateTask(task);
       }
     } catch (error, stackTrace) {
-      developer.log('Recorder finalization failed: $error', name: 'RecorderController', stackTrace: stackTrace);
+      Log.dev('Recorder finalization failed: $error', name: 'RecorderController', stackTrace: stackTrace);
       if (_isClosing) return;
       task.markFailure(stage: 'merge', error: error);
       task.status = RecordStatus.failed;
@@ -848,7 +848,7 @@ class RecorderController extends GetxService {
         updateTask(task);
       }
     } catch (error, stackTrace) {
-      developer.log('Start recorder task failed: $error', name: 'RecorderController', stackTrace: stackTrace);
+      Log.dev('Start recorder task failed: $error', name: 'RecorderController', stackTrace: stackTrace);
       task.markFailure(stage: 'scheduler', error: error);
       task.status = RecordStatus.failed;
       updateTask(task);
@@ -1001,7 +1001,7 @@ class RecorderController extends GetxService {
       }
       await lifecycle.future;
     } on StreamException catch (error) {
-      developer.log('Stream resolution failed: ${error.message}', name: 'RecorderController');
+      Log.dev('Stream resolution failed: ${error.message}', name: 'RecorderController');
       if (token.isCancelled) return;
       task.markFailure(stage: _streamFailureStage(error.type), error: error.message);
       if (error.type == StreamErrorType.notLive) {
@@ -1019,7 +1019,7 @@ class RecorderController extends GetxService {
       }
       _completeLifecycle(task.taskId);
     } catch (error, stackTrace) {
-      developer.log('Recorder task failed: $error', name: 'RecorderController', stackTrace: stackTrace);
+      Log.dev('Recorder task failed: $error', name: 'RecorderController', stackTrace: stackTrace);
       if (!token.isCancelled) {
         task.markFailure(stage: 'recorder', error: error);
         if (task.autoReconnect) {
@@ -1107,7 +1107,7 @@ class RecorderController extends GetxService {
     if (refreshAt == null || task.currentUrl?.isNotEmpty != true) return;
     final sourceUrl = task.currentUrl!;
     final now = DateTime.now().toUtc();
-    developer.log(
+    Log.dev(
       'Signed transport scheduled: platform=${task.platform}; '
       'refreshInMs=${math.max(0, refreshAt.difference(now).inMilliseconds)}; '
       'invalidInMs=${stream.invalidAt == null ? -1 : math.max(0, stream.invalidAt!.toUtc().difference(now).inMilliseconds)}',
@@ -1180,7 +1180,7 @@ class RecorderController extends GetxService {
     } catch (error, stackTrace) {
       // Prefetch is opportunistic; its failure never cancels healthy native
       // FLV. Genuine EOF recovery still resolves a URL when no valid cache exists.
-      developer.log(
+      Log.dev(
         'Recorder signed-stream prefetch failed: $error',
         name: 'RecorderController',
         stackTrace: stackTrace,
@@ -1419,7 +1419,7 @@ class RecorderController extends GetxService {
       _pollFailures[task.taskId] = (_pollFailures[task.taskId] ?? 0) + 1;
       task.markFailure(stage: 'status', error: error);
       updateTask(task);
-      developer.log('Recorder status poll failed: $error', name: 'RecorderController');
+      Log.dev('Recorder status poll failed: $error', name: 'RecorderController');
     } finally {
       if (identical(_pollInFlight[task.taskId], request)) {
         _pollInFlight.remove(task.taskId);
@@ -1475,7 +1475,7 @@ class RecorderController extends GetxService {
         await settings.refreshCacheSize();
       }
     } catch (error) {
-      developer.log('Recorder cache check failed: $error', name: 'RecorderController');
+      Log.dev('Recorder cache check failed: $error', name: 'RecorderController');
     } finally {
       _resourceCheckRunning = false;
     }
@@ -1500,7 +1500,7 @@ class RecorderController extends GetxService {
     try {
       await _persistTasks(jsonEncode(tasks.map((task) => task.toJson()).toList()));
     } catch (error) {
-      developer.log('Persist recorder tasks failed: $error', name: 'RecorderController');
+      Log.dev('Persist recorder tasks failed: $error', name: 'RecorderController');
     }
   }
 
@@ -1553,12 +1553,12 @@ class RecorderController extends GetxService {
             if (!task.status.isFinished) task.status = RecordStatus.stopped;
             restored.add(task);
           } catch (error) {
-            developer.log('Skipped malformed recorder task: $error', name: 'RecorderController');
+            Log.dev('Skipped malformed recorder task: $error', name: 'RecorderController');
           }
         }
       }
     } catch (error) {
-      developer.log('Restore recorder task list failed: $error', name: 'RecorderController');
+      Log.dev('Restore recorder task list failed: $error', name: 'RecorderController');
     }
 
     restored.sort((left, right) => left.status.order.compareTo(right.status.order));
@@ -1582,7 +1582,7 @@ class RecorderController extends GetxService {
       try {
         if (!_isClosing && _ownsTask(task)) await _recoverInterruptedRecording(task);
       } catch (error, stack) {
-        developer.log('Interrupted recording recovery failed', error: error, stackTrace: stack);
+        Log.dev('Interrupted recording recovery failed', error: error, stackTrace: stack);
         if (!_isClosing && _ownsTask(task)) {
           task.markFailure(stage: 'merge', error: error);
           task.status = RecordStatus.failed;
@@ -1723,7 +1723,7 @@ class RecorderController extends GetxService {
           await _releaseBackgroundLease(lease);
         }
       } catch (error, stack) {
-        developer.log('Recorder background shutdown failed', error: error, stackTrace: stack);
+        Log.dev('Recorder background shutdown failed', error: error, stackTrace: stack);
       } finally {
         _background.removeInterruptionListener(_backgroundInterruptionListener);
       }
@@ -1748,7 +1748,7 @@ class RecorderController extends GetxService {
           finalization.then<void>(
             (_) => complete(),
             onError: (Object error, StackTrace stack) {
-              developer.log('Recorder shutdown finalization failed', error: error, stackTrace: stack);
+              Log.dev('Recorder shutdown finalization failed', error: error, stackTrace: stack);
               complete();
             },
           ),

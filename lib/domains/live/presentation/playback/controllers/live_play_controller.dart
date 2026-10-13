@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:pure_live/domains/live/domain/playback_startup_timing.dart';
 import 'package:pure_live/core/index.dart';
@@ -35,6 +34,7 @@ import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/data/history_controller.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 // live_play_controller.dart
 
@@ -349,7 +349,7 @@ class LivePlayController extends GetxController
     try {
       await danmakuController.recoverRoomConnection(detail);
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'Danmaku recovery after PiP/foreground failed',
         name: 'LivePlayController',
         error: error,
@@ -401,7 +401,7 @@ class LivePlayController extends GetxController
   void _preloadEmojiInBackground() {
     unawaited(
       _preloadEmoji().catchError((Object error, StackTrace stackTrace) {
-        developer.log('Emoji preload failed', name: 'LivePlayController', error: error, stackTrace: stackTrace);
+        Log.dev('Emoji preload failed', name: 'LivePlayController', error: error, stackTrace: stackTrace);
       }),
     );
   }
@@ -446,7 +446,7 @@ class LivePlayController extends GetxController
       updateRoom(liveroom: refreshed, isLiving: isLiving, success: true, isLoading: false);
     } catch (error, stackTrace) {
       // The already-playing session stays usable when a metadata refresh fails.
-      developer.log(
+      Log.dev(
         'Re-entered room metadata refresh failed',
         name: 'LivePlayController',
         error: error,
@@ -767,7 +767,7 @@ class LivePlayController extends GetxController
           enabled: false,
           minutes: SettingsService.to.app.asmrSleepMinutes.v,
         ).catchError((Object error, StackTrace stackTrace) {
-          developer.log(
+          Log.dev(
             'Sleep timer cleanup failed during video restore',
             name: 'LivePlayController',
             error: error,
@@ -883,7 +883,7 @@ class LivePlayController extends GetxController
       return liveRoom;
     } catch (e) {
       if (!_isRoomLoadCurrent(loadEpoch, requestedRoom)) return LiveRoom();
-      developer.log('Room load failed: $e', name: 'LivePlayController');
+      Log.dev('Room load failed: $e', name: 'LivePlayController');
       updateRoom(isLoading: false, loadError: e.toString());
       ToastUtil.show(i18n('get_room_info_failed_retry'));
       return LiveRoom();
@@ -913,7 +913,7 @@ class LivePlayController extends GetxController
 
       await _syncDanmakuConnection(liveRoom);
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'Live room initialization failed (${error.runtimeType})',
         name: 'LivePlayController',
         stackTrace: stackTrace,
@@ -956,7 +956,7 @@ class LivePlayController extends GetxController
         EventBus.instance.emit('refresh_room_changed', true);
       }
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'Persist favorite room refresh failed',
         name: 'LivePlayController',
         error: error,
@@ -969,7 +969,7 @@ class LivePlayController extends GetxController
     try {
       await HistoryController.to.addRoomToHistoryDurably(liveroom);
     } catch (error, stackTrace) {
-      developer.log('Persist room history failed', name: 'LivePlayController', error: error, stackTrace: stackTrace);
+      Log.dev('Persist room history failed', name: 'LivePlayController', error: error, stackTrace: stackTrace);
     }
   }
 
@@ -1027,7 +1027,7 @@ class LivePlayController extends GetxController
     try {
       await danmakuController.stopDanmaku();
     } catch (error, stackTrace) {
-      developer.log('IPTV danmaku cleanup failed', name: 'LivePlayController', error: error, stackTrace: stackTrace);
+      Log.dev('IPTV danmaku cleanup failed', name: 'LivePlayController', error: error, stackTrace: stackTrace);
     }
     return started;
   }
@@ -1181,7 +1181,7 @@ class LivePlayController extends GetxController
       updateRoom(success: true, isLoading: false, loadError: null);
       return IptvPlaybackSwitchResult.started;
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'IPTV direct player start failed',
         name: 'LivePlayController',
         error: error,

@@ -1,5 +1,4 @@
 ﻿import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
@@ -23,6 +22,7 @@ import 'package:pure_live/domains/live/presentation/multiview/widgets/multiview_
 import 'package:pure_live/domains/live/presentation/multiview/danmaku/multiview_danmaku_settings_source.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 enum _DisplayMode { normal, immersive, fullscreen }
 
@@ -139,7 +139,7 @@ class _MultiviewPageState extends State<MultiviewPage> {
         await _restoreSystemFullscreen();
       }
     } catch (error, stackTrace) {
-      developer.log(
+      Log.dev(
         'MultiviewPage: system fullscreen transition failed',
         name: 'MultiviewPage',
         error: error,

@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:collection';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/recorder/data/record_settings_controller.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class FFmpegScheduler {
   FFmpegScheduler._internal() : _capacityOverride = null, minimumStartGap = const Duration(seconds: 5);
@@ -25,7 +25,7 @@ class FFmpegScheduler {
     if (Get.isRegistered<RecordSettingsController>()) {
       return Get.find<RecordSettingsController>().maxTaskCount.value;
     }
-    log('Warning: RecordSettingsController not found, using fallback 1', name: 'FFmpegScheduler');
+    Log.dev('Warning: RecordSettingsController not found, using fallback 1', name: 'FFmpegScheduler');
     return 1;
   }
 
@@ -38,18 +38,18 @@ class FFmpegScheduler {
 
   void enqueue({required String taskId, required Future<void> Function(TaskCancelToken token) taskRunner}) {
     if (_runningTasks.containsKey(taskId)) {
-      log('Task already running: $taskId', name: 'FFmpegScheduler');
+      Log.dev('Task already running: $taskId', name: 'FFmpegScheduler');
       return;
     }
 
     if (_taskQueue.any((e) => e.taskId == taskId)) {
-      log('Task already queued: $taskId', name: 'FFmpegScheduler');
+      Log.dev('Task already queued: $taskId', name: 'FFmpegScheduler');
       return;
     }
 
     _taskQueue.add(_SchedulerTask(taskId: taskId, taskRunner: taskRunner));
 
-    log('Task enqueued: $taskId', name: 'FFmpegScheduler');
+    Log.dev('Task enqueued: $taskId', name: 'FFmpegScheduler');
 
     _scheduleNext();
   }
@@ -65,22 +65,22 @@ class FFmpegScheduler {
 
     if (runningTask != null) {
       if (runningTask.cancelToken.isCancelled) {
-        log('Task $taskId is already being cancelled; waiting for its lifecycle fence.', name: 'FFmpegScheduler');
+        Log.dev('Task $taskId is already being cancelled; waiting for its lifecycle fence.', name: 'FFmpegScheduler');
         try {
           await runningTask.future.timeout(const Duration(seconds: 20));
         } catch (e) {
-          log('Wait for cancelled task error: $e', name: 'FFmpegScheduler');
+          Log.dev('Wait for cancelled task error: $e', name: 'FFmpegScheduler');
         }
         return;
       }
 
-      log('Signalling cancel to task: $taskId', name: 'FFmpegScheduler');
+      Log.dev('Signalling cancel to task: $taskId', name: 'FFmpegScheduler');
 
       try {
         await runningTask.cancelToken.cancel();
         await runningTask.future.timeout(const Duration(seconds: 20));
       } catch (e) {
-        log('Cancel task error: $e', name: 'FFmpegScheduler');
+        Log.dev('Cancel task error: $e', name: 'FFmpegScheduler');
       }
     }
 
@@ -105,7 +105,7 @@ class FFmpegScheduler {
         await task.cancelToken.cancel();
         await task.future.timeout(const Duration(seconds: 20));
       } catch (e) {
-        log('Clear task error: $e', name: 'FFmpegScheduler');
+        Log.dev('Clear task error: $e', name: 'FFmpegScheduler');
       }
     }
   }
@@ -151,7 +151,7 @@ class FFmpegScheduler {
         try {
           if (!cancelToken.isCancelled) await task.taskRunner(cancelToken);
         } catch (error, stackTrace) {
-          log('Uncaught scheduled task error: $error\n$stackTrace', name: 'FFmpegScheduler');
+          Log.dev('Uncaught scheduled task error: $error\n$stackTrace', name: 'FFmpegScheduler');
         } finally {
           if (identical(_runningTasks[task.taskId], running)) _runningTasks.remove(task.taskId);
           if (!completion.isCompleted) completion.complete();
@@ -234,7 +234,7 @@ class TaskCancelToken {
         await callback.call();
       }
     } catch (e) {
-      log('Cancel token error: $e', name: 'FFmpegScheduler');
+      Log.dev('Cancel token error: $e', name: 'FFmpegScheduler');
     }
   }
 
@@ -242,7 +242,7 @@ class TaskCancelToken {
     try {
       await callback();
     } catch (e) {
-      log('Late cancel token callback error: $e', name: 'FFmpegScheduler');
+      Log.dev('Late cancel token callback error: $e', name: 'FFmpegScheduler');
     }
   }
 }

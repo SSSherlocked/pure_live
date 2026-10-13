@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:pure_live/core/player/kernel/floating_playback.dart';
 import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
@@ -6,6 +5,7 @@ import 'package:pure_live/core/player/core/live_audio_service.dart';
 import 'package:pure_live/domains/live/domain/live_player_facade.dart';
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/core/player/models/player_engine.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class GlobalPlayerService {
   GlobalPlayerService._();
@@ -56,7 +56,7 @@ class GlobalPlayerService {
       prepareAudioOnlyVideoRestore: () => playerManager.setAudioOnly(false),
     )..start();
     _initialized = true;
-    log("GlobalPlayerService: kernel facade ready.", name: "GlobalPlayerService");
+    Log.dev("GlobalPlayerService: kernel facade ready.", name: "GlobalPlayerService");
   }
 
   Future<void> dispose() async {
@@ -65,6 +65,6 @@ class GlobalPlayerService {
     await floating.closeAppFloating();
     await playerManager.dispose();
     _initialized = false;
-    log("GlobalPlayerService: Disposed.", name: "GlobalPlayerService");
+    Log.dev("GlobalPlayerService: Disposed.", name: "GlobalPlayerService");
   }
 }

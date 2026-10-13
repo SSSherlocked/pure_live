@@ -33,6 +33,12 @@ void main(List<String> args) async {
   FlutterError.onError = (details) {
     FlutterError.dumpErrorToConsole(details, forceReport: true);
   };
+  // Uncaught asynchronous errors reach only the console otherwise; returning
+  // false keeps the platform's default report.
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    Log.e('Uncaught error: $error', stackTrace);
+    return false;
+  };
 
   Log.captureDebugPrint();
   await AppInitializer().initialize(args);

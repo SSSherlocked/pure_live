@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import 'dart:developer' as developer;
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/models/live_play_quality.dart';
@@ -27,6 +26,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/shared/platforms/current_live_room.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef StreamSourceOpener = Future<void> Function(
   String url,
@@ -627,7 +627,7 @@ class PlayerController extends GetxController {
       await _getPlayUrl(loadEpoch: loadEpoch, liveroom: room, site: site);
     } catch (error, stackTrace) {
       if (!_isLoadCurrent(loadEpoch, room, site)) return;
-      developer.log(
+      Log.dev(
         'Play quality loading failed (${error.runtimeType})',
         name: 'PlayerController',
         stackTrace: stackTrace,
@@ -872,7 +872,7 @@ class PlayerController extends GetxController {
           );
         }
         if (error is! _StreamSelectionCancelled) {
-          developer.log(
+          Log.dev(
             'Stream selection failed (${error.runtimeType})',
             name: 'PlayerController',
             error: error,
@@ -911,7 +911,7 @@ class PlayerController extends GetxController {
       _main.updatePlayer(isCurrentRoomAudioOnly: controller.isAudioOnly);
       _main.updateRoom(success: true, isLoading: false);
     } catch (error, stackTrace) {
-      developer.log('Audio mode switch failed', name: 'PlayerController', error: error, stackTrace: stackTrace);
+      Log.dev('Audio mode switch failed', name: 'PlayerController', error: error, stackTrace: stackTrace);
       if (!_main.isClosed && identical(_state.player.videoController, controller) && currentRoom == room) {
         _main.updatePlayer(isCurrentRoomAudioOnly: previous);
         _main.updateRoom(success: true, isLoading: false);

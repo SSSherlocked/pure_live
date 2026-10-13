@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'owned_record_input.dart';
 
 import 'dart:async';
-import 'dart:developer';
+import 'dart:developer' as developer;
 import 'dart:math' as math;
 
 import 'package:ffmpeg_kit_extended_flutter/ffmpeg_kit_extended_flutter.dart' hide Log;
@@ -595,7 +595,7 @@ class FFmpegService {
         // `dart:developer` reaches Android logcat in debug builds, while the
         // app logger may be disabled by the user's diagnostics preference.
         // The text is already URL/token/cookie-sanitized above.
-        log(
+        developer.log(
           'terminal task=$taskId session=${session.sessionId} code=$code '
           'live=${session.liveRecording} media=${session.mediaStarted} '
           'leaseRefresh=$leaseRefresh ageMs=$sessionAgeMilliseconds '
@@ -720,7 +720,7 @@ class FFmpegService {
     final session = _sessions[taskId];
     if (session != null) {
       session.manualStop = true;
-      log('FFmpeg stop => $taskId (${session.sessionId})');
+      Log.dev('FFmpeg stop => $taskId (${session.sessionId})');
       await _requestSessionStop(session);
     } else if (request != null && !request.nativeStarted) {
       request.cancel.cancel('Recording stopped during input creation');
@@ -737,7 +737,7 @@ class FFmpegService {
     final session = _sessions[taskId];
     if (session == null || session.manualStop || session.leaseRefresh) return;
     session.leaseRefresh = true;
-    log('FFmpeg lease refresh => $taskId (${session.sessionId})');
+    Log.dev('FFmpeg lease refresh => $taskId (${session.sessionId})');
     await _requestSessionStop(session);
   }
 

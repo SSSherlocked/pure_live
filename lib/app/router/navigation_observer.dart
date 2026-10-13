@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
@@ -11,6 +10,7 @@ import 'package:pure_live/core/player/presentation/fullscreen_window.dart' show 
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/live_play_video.dart' show shouldFloatAfterLivePlayExit;
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
@@ -174,7 +174,7 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
       if (!Get.isRegistered<LivePlayController>()) return null;
       return Get.find<LivePlayController>();
     } catch (e, stackTrace) {
-      log('Failed to find LivePlayController', error: e, stackTrace: stackTrace);
+      Log.dev('Failed to find LivePlayController', error: e, stackTrace: stackTrace);
       return null;
     }
   }

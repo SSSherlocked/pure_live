@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class ToastUtil {
   static DateTime? _lastShowTime;
@@ -21,14 +21,14 @@ class ToastUtil {
     try {
       unawaited(
         SmartDialog.showToast(msg).catchError((Object error, StackTrace stackTrace) {
-          developer.log('Toast skipped because no dialog host is active', error: error, stackTrace: stackTrace);
+          Log.dev('Toast skipped because no dialog host is active', error: error, stackTrace: stackTrace);
         }),
       );
     } catch (error, stackTrace) {
       // Async playback/network callbacks can finish while the root overlay is
       // being replaced or already disposed. A missing toast host must never
       // turn a handled stream failure into an uncaught UI exception.
-      developer.log('Toast skipped because no dialog host is active', error: error, stackTrace: stackTrace);
+      Log.dev('Toast skipped because no dialog host is active', error: error, stackTrace: stackTrace);
     }
   }
 }

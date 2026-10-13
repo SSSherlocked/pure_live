@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/iptv/data/local/db_service.dart';
@@ -9,6 +8,7 @@ import 'package:pure_live/domains/iptv/data/services/iptv_sync_engine.dart';
 import 'package:pure_live/domains/iptv/data/services/epg_import_manager.dart';
 import 'package:pure_live/domains/iptv/data/services/iptv_import_manager.dart';
 import 'package:pure_live/domains/iptv/data/iptv_settings_controller.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 class AutoSyncScheduler {
   static final AutoSyncScheduler instance = AutoSyncScheduler._internal();
@@ -34,7 +34,7 @@ class AutoSyncScheduler {
         await EpgSyncEngine.instance.updateEpgCache(epg, forceUpdate: true, showTips: false);
       }
     } catch (e) {
-      log("Auto sync background task working failed: $e");
+      Log.dev("Auto sync background task working failed: $e");
     }
   }
 

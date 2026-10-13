@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:developer' as dev;
 
 import 'package:pure_live/core/platform/win_auto_start.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/get/get.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 typedef StartupStateReader = FutureOr<bool> Function();
 typedef StartupStateWriter = FutureOr<bool> Function();
@@ -90,7 +90,7 @@ class StartupController extends GetxController {
       if (!isClosed) startupStatusKey.v = '';
       return true;
     } catch (error, stackTrace) {
-      dev.log('Auto-start transaction failed: $error', error: error, stackTrace: stackTrace);
+      Log.dev('Auto-start transaction failed: $error', error: error, stackTrace: stackTrace);
       try {
         observed = await Future<bool>.sync(_readStartupState);
       } catch (_) {

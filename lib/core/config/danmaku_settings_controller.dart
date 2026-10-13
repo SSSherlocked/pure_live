@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show immutable;
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
+import 'package:pure_live/core/layout/app_layout.dart';
+import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/core/config/display_mode_service.dart';
 import 'package:pure_live/core/models/app_refresh_rate_mode.dart';
 
@@ -191,6 +197,26 @@ class DanmakuSettingsController extends GetxController {
   final RxString savedDanmakuTemplate = hiveString('savedDanmakuTemplate', '');
   final RxString danmakuFontFamilyName = hiveString('danmakuFontFamilyName', 'Default');
 
+  /// Hive and backup keys of the per-layout floating-danmaku style sets.
+  static const String narrowStyleKey = 'danmakuStyleNarrow';
+  static const String wideStyleKey = 'danmakuStyleWide';
+
+  /// The floating-danmaku style of the narrow (phone) layout and of the wide
+  /// one ([AppLayout.wide]), each kept as one JSON object in Hive.
+  ///
+  /// The public style fields ([danmakuSpeed], [danmakuFontSize], ...) always
+  /// hold the set of the layout in [styleViewportWide]: every reader keeps
+  /// reading them, every edit lands in that layout's set, and [useViewport]
+  /// loads the other set when the layout changes. Their legacy Hive keys keep
+  /// being written and so mirror the last active layout's style, which an
+  /// older build reads unchanged. A missing set (first run of this version)
+  /// starts from those legacy values, so nothing changes for the viewer.
+  late final Rx<DanmakuOverlayStyle> narrowStyle = _styleStore(narrowStyleKey);
+  late final Rx<DanmakuOverlayStyle> wideStyle = _styleStore(wideStyleKey);
+
+  /// Whether the public style fields currently hold the wide layout's set.
+  final RxBool styleViewportWide = false.obs;
+
   /// Scale factor applied on top of the main danmaku config when rendering
   /// the compact (picture-in-picture / small-window) surface. `null` means
   /// auto: the factor follows the compact window's width against the 350px
@@ -243,6 +269,87 @@ class DanmakuSettingsController extends GetxController {
       enableDanmakuLongPressInteraction.v = true;
       danmakuInteractionMigration.v = 1;
     }
+    // Seed both per-layout sets (from the legacy values on first run), then
+    // load the set of the layout known so far; AppShell switches it once the
+    // real layout is resolved.
+    _styleStoreFor(false);
+    _styleStoreFor(true);
+    styleViewportWide.value = AppLayout.current.wide;
+    _applyStyle(_styleStoreFor(styleViewportWide.value).value);
+    everAll(_styleFields, (_) => _captureActiveStyle());
+  }
+
+  List<Rx> get _styleFields => [
+    danmakuTopArea,
+    danmakuArea,
+    danmakuBottomArea,
+    danmakuSpeed,
+    danmakuFontSize,
+    danmakuFontWeight,
+    danmakuFontBorder,
+    danmakuOpacity,
+    enableDanmakuStroke,
+  ];
+
+  Rx<DanmakuOverlayStyle> _styleStore(String key) {
+    final legacy = _currentStyle();
+    final stored = HivePrefUtil.getString(key);
+    final store = hiveObject<DanmakuOverlayStyle>(
+      key,
+      legacy,
+      fromJson: (json) => DanmakuOverlayStyle.parse(json, fallback: legacy),
+      toJson: (style) => style.toJson(),
+    );
+    // Persist a seeded set right away: otherwise the next launch would seed
+    // it again from legacy keys that by then mirror the other layout.
+    if (stored == null || stored.isEmpty) {
+      unawaited(HivePrefUtil.setString(key, jsonEncode(store.value.toJson())));
+    }
+    return store;
+  }
+
+  Rx<DanmakuOverlayStyle> _styleStoreFor(bool wide) => wide ? wideStyle : narrowStyle;
+
+  /// The style the public fields hold right now.
+  DanmakuOverlayStyle _currentStyle() => DanmakuOverlayStyle(
+    topArea: danmakuTopArea.v,
+    area: danmakuArea.v,
+    bottomArea: danmakuBottomArea.v,
+    speed: danmakuSpeed.v,
+    fontSize: danmakuFontSize.v,
+    fontWeight: danmakuFontWeight.v,
+    fontBorder: danmakuFontBorder.v,
+    opacity: danmakuOpacity.v,
+    stroke: enableDanmakuStroke.v,
+  );
+
+  /// Writes the public fields into the active layout's set. Reads the fields
+  /// themselves rather than a worker's event value, so a notification that
+  /// arrives after a layout switch never carries one set into the other.
+  void _captureActiveStyle() {
+    _styleStoreFor(styleViewportWide.value).v = _currentStyle();
+  }
+
+  void _applyStyle(DanmakuOverlayStyle style) {
+    danmakuTopArea.v = style.topArea;
+    danmakuArea.v = style.area;
+    danmakuBottomArea.v = style.bottomArea;
+    danmakuSpeed.v = style.speed;
+    danmakuFontSize.v = style.fontSize;
+    danmakuFontWeight.v = style.fontWeight;
+    danmakuFontBorder.v = style.fontBorder;
+    danmakuOpacity.v = style.opacity;
+    enableDanmakuStroke.v = style.stroke;
+  }
+
+  /// Makes the public style fields hold the narrow or the [wide] layout's
+  /// set. Edits still pending for the previous layout are saved into its set
+  /// first; the set being left is otherwise untouched.
+  void useViewport(bool wide) {
+    if (styleViewportWide.value == wide) return;
+    _captureActiveStyle();
+    styleViewportWide.value = wide;
+    _applyStyle(_styleStoreFor(wide).value);
   }
 
   int resolvedDanmakuFps({bool pip = false, AppRefreshRateMode refreshRateMode = AppRefreshRateMode.powerSaving}) {
@@ -319,13 +426,18 @@ class DanmakuSettingsController extends GetxController {
       'danmakuSimilarityThreshold': danmakuSimilarityThreshold.v,
       'danmakuSimilarityCacheDuration': danmakuSimilarityCacheDuration.v,
       'danmakuSimilarityMaxCacheSize': danmakuSimilarityMaxCacheSize.v,
+      // The legacy single style keys above carry the active layout's set (what
+      // an older build restores); these carry both sets. The active set is read
+      // from the public fields so an edit not yet captured is not missed.
+      narrowStyleKey: (styleViewportWide.value ? narrowStyle.value : _currentStyle()).toJson(),
+      wideStyleKey: (styleViewportWide.value ? _currentStyle() : wideStyle.value).toJson(),
     };
   }
 
   /// Parse the complete section without notifying observers or persisting values.
   static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
     T typed<T>(dynamic value) => value as T;
-    return {
+    final parsed = <String, dynamic>{
       'hideDanmaku': typed<bool>(json['hideDanmaku'] ?? false),
       'showSuperChatOnPlayer': typed<bool>(json['showSuperChatOnPlayer'] ?? true),
       'superChatOpacity': typed<double>(normalizeSuperChatOpacity(json['superChatOpacity'])),
@@ -413,6 +525,12 @@ class DanmakuSettingsController extends GetxController {
         (json['danmakuSimilarityMaxCacheSize'] ?? 100).toInt().clamp(20, 1000).toInt(),
       ),
     };
+    // A backup from before the per-layout sets has only the single style
+    // values: both layouts take them.
+    final legacyStyle = DanmakuOverlayStyle.fromConfig(parsed);
+    parsed[narrowStyleKey] = DanmakuOverlayStyle.parse(json[narrowStyleKey], fallback: legacyStyle);
+    parsed[wideStyleKey] = DanmakuOverlayStyle.parse(json[wideStyleKey], fallback: legacyStyle);
+    return parsed;
   }
 
   void fromJson(Map<String, dynamic> json) {
@@ -433,18 +551,10 @@ class DanmakuSettingsController extends GetxController {
     roomTextOpacity.v = parsed['roomTextOpacity'];
     danmakuMaxVisibleCount.v = parsed['danmakuMaxVisibleCount'];
     noEmojiMode.v = parsed['noEmojiMode'];
-    danmakuTopArea.v = parsed['danmakuTopArea'];
-    danmakuArea.v = parsed['danmakuArea'];
-    danmakuBottomArea.v = parsed['danmakuBottomArea'];
-    danmakuSpeed.v = parsed['danmakuSpeed'];
-    danmakuFontSize.v = parsed['danmakuFontSize'];
-    danmakuFontWeight.v = parsed['danmakuFontWeight'];
-    danmakuFontBorder.v = parsed['danmakuFontBorder'];
+    // The style fields come from the restored set of the active layout below.
     danmakuMassMode.v = parsed['danmakuRealtimeMode'];
     danmakuAutoMaxVisible.v = parsed['danmakuAutoMaxVisible'];
-    danmakuOpacity.v = parsed['danmakuOpacity'];
     danmakuFontFamilyName.v = parsed['danmakuFontFamilyName'];
-    enableDanmakuStroke.v = parsed['enableDanmakuStroke'];
     danmakuFps.v = parsed['danmakuFps'];
     danmakuAutoFps.v = parsed['danmakuAutoFps'];
     enableDanmakuTapInteraction.v = parsed['enableDanmakuTapInteraction'];
@@ -459,11 +569,14 @@ class DanmakuSettingsController extends GetxController {
     danmakuSimilarityThreshold.v = parsed['danmakuSimilarityThreshold'];
     danmakuSimilarityCacheDuration.v = parsed['danmakuSimilarityCacheDuration'];
     danmakuSimilarityMaxCacheSize.v = parsed['danmakuSimilarityMaxCacheSize'];
+    narrowStyle.v = parsed[narrowStyleKey] as DanmakuOverlayStyle;
+    wideStyle.v = parsed[wideStyleKey] as DanmakuOverlayStyle;
+    _applyStyle(_styleStoreFor(styleViewportWide.value).value);
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
     final danmaku = rootConfig?['danmaku'] as Map<String, dynamic>? ?? {};
-    return {
+    final extracted = <String, dynamic>{
       'hideDanmaku': danmaku['hideDanmaku'] ?? false,
       'showSuperChatOnPlayer': danmaku['showSuperChatOnPlayer'] ?? true,
       'superChatOpacity': normalizeSuperChatOpacity(danmaku['superChatOpacity']),
@@ -573,6 +686,10 @@ class DanmakuSettingsController extends GetxController {
           .clamp(20, 1000)
           .toInt(),
     };
+    final legacyStyle = DanmakuOverlayStyle.fromConfig(extracted);
+    extracted[narrowStyleKey] = DanmakuOverlayStyle.parse(danmaku[narrowStyleKey], fallback: legacyStyle).toJson();
+    extracted[wideStyleKey] = DanmakuOverlayStyle.parse(danmaku[wideStyleKey], fallback: legacyStyle).toJson();
+    return extracted;
   }
 
   static Map<String, dynamic> mergeConfig(Map<String, dynamic> rootConfig, Map<String, dynamic> updateFields) {
@@ -596,4 +713,116 @@ enum ChatListColorMode {
 
   static ChatListColorMode fromName(Object? name) =>
       values.firstWhere((mode) => mode.name == name, orElse: () => ChatListColorMode.none);
+}
+
+/// One layout's floating-danmaku style: what the narrow and the wide layout
+/// keep separately (see [DanmakuSettingsController.narrowStyle]).
+@immutable
+class DanmakuOverlayStyle {
+  const DanmakuOverlayStyle({
+    required this.topArea,
+    required this.area,
+    required this.bottomArea,
+    required this.speed,
+    required this.fontSize,
+    required this.fontWeight,
+    required this.fontBorder,
+    required this.opacity,
+    required this.stroke,
+  });
+
+  final double topArea;
+  final double area;
+  final double bottomArea;
+  final double speed;
+  final double fontSize;
+  final int fontWeight;
+  final double fontBorder;
+  final double opacity;
+  final bool stroke;
+
+  static double _double(Object? raw, double fallback, double min, double max) {
+    if (raw is! num || !raw.isFinite) return fallback.clamp(min, max).toDouble();
+    return raw.toDouble().clamp(min, max).toDouble();
+  }
+
+  static const DanmakuOverlayStyle defaults = DanmakuOverlayStyle(
+    topArea: DanmakuSettingsController.defaultDanmakuTopArea,
+    area: DanmakuSettingsController.defaultDanmakuArea,
+    bottomArea: DanmakuSettingsController.defaultDanmakuBottomArea,
+    speed: DanmakuSettingsController.defaultDanmakuSpeed,
+    fontSize: DanmakuSettingsController.defaultDanmakuFontSize,
+    fontWeight: DanmakuSettingsController.defaultDanmakuFontWeight,
+    fontBorder: DanmakuSettingsController.defaultDanmakuFontBorder,
+    opacity: DanmakuSettingsController.defaultDanmakuOpacity,
+    stroke: true,
+  );
+
+  /// Reads a set stored by [toJson]. Each value is bounded like its single
+  /// setting; a missing or malformed one (or a [raw] that is not a map at all)
+  /// takes [fallback]'s value.
+  static DanmakuOverlayStyle parse(Object? raw, {DanmakuOverlayStyle fallback = defaults}) {
+    final json = raw is Map ? raw : const <String, dynamic>{};
+    final weight = json['fontWeight'];
+    final stroke = json['stroke'];
+    final area = json['area'];
+    return DanmakuOverlayStyle(
+      topArea: _double(json['topArea'], fallback.topArea, 0, 300),
+      area: DanmakuSettingsController.normalizeDanmakuArea(area is num && area.isFinite ? area : fallback.area),
+      bottomArea: _double(json['bottomArea'], fallback.bottomArea, 0, 300),
+      speed: _double(json['speed'], fallback.speed, 20, 400),
+      fontSize: _double(json['fontSize'], fallback.fontSize, 10, 30),
+      fontWeight: DanmakuSettingsController.normalizeFontWeight(
+        weight is num && weight.isFinite ? weight : fallback.fontWeight,
+      ),
+      fontBorder: _double(json['fontBorder'], fallback.fontBorder, 0, 4),
+      opacity: _double(json['opacity'], fallback.opacity, 0, 1),
+      stroke: stroke is bool ? stroke : fallback.stroke,
+    );
+  }
+
+  /// The single (legacy) style values of a parsed or extracted danmaku
+  /// section, bounded the same way.
+  static DanmakuOverlayStyle fromConfig(Map<String, dynamic> config) {
+    return parse({
+      'topArea': config['danmakuTopArea'],
+      'area': config['danmakuArea'],
+      'bottomArea': config['danmakuBottomArea'],
+      'speed': config['danmakuSpeed'],
+      'fontSize': config['danmakuFontSize'],
+      'fontWeight': config['danmakuFontWeight'],
+      'fontBorder': config['danmakuFontBorder'],
+      'opacity': config['danmakuOpacity'],
+      'stroke': config['enableDanmakuStroke'],
+    });
+  }
+
+  Map<String, dynamic> toJson() => {
+    'topArea': topArea,
+    'area': area,
+    'bottomArea': bottomArea,
+    'speed': speed,
+    'fontSize': fontSize,
+    'fontWeight': fontWeight,
+    'fontBorder': fontBorder,
+    'opacity': opacity,
+    'stroke': stroke,
+  };
+
+  @override
+  bool operator ==(Object other) =>
+      other is DanmakuOverlayStyle &&
+      other.topArea == topArea &&
+      other.area == area &&
+      other.bottomArea == bottomArea &&
+      other.speed == speed &&
+      other.fontSize == fontSize &&
+      other.fontWeight == fontWeight &&
+      other.fontBorder == fontBorder &&
+      other.opacity == opacity &&
+      other.stroke == stroke;
+
+  @override
+  int get hashCode =>
+      Object.hash(topArea, area, bottomArea, speed, fontSize, fontWeight, fontBorder, opacity, stroke);
 }

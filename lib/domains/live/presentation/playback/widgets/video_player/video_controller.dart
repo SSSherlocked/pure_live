@@ -127,6 +127,12 @@ class DanmakuManager {
     workers.add(
       debounce<int>(_visualSettingsRevision, (_) => _persistVisualSettings(), time: const Duration(milliseconds: 160)),
     );
+    // The narrow and the wide layout keep their own floating-danmaku style.
+    // When the layout changes with the room open (a tablet rotating across
+    // the breakpoint, a window resized), the global fields already hold the
+    // other layout's set: take it over, so the room shows that set and its
+    // next write-back lands in it unchanged instead of copying this set over.
+    workers.add(ever<bool>(dm.styleViewportWide, (_) => _loadLayoutStyle()));
     var resolvedAutoFps = dm.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode);
     workers.add(
       everAll([dm.danmakuAutoFps, DisplayModeService.info, SettingsService.to.app.refreshRateModeName], (_) {
@@ -165,6 +171,20 @@ class DanmakuManager {
       if (!_disposed) videoController.updateDanmaku();
     });
     SchedulerBinding.instance.scheduleFrame();
+  }
+
+  void _loadLayoutStyle() {
+    if (_disposed) return;
+    final dm = settingsService.danmaku;
+    videoController.danmakuArea.value = dm.danmakuArea.v;
+    videoController.danmakuTopArea.value = dm.danmakuTopArea.v;
+    videoController.danmakuBottomArea.value = dm.danmakuBottomArea.v;
+    videoController.danmakuSpeed.value = dm.danmakuSpeed.v;
+    videoController.danmakuFontSize.value = dm.danmakuFontSize.v;
+    videoController.danmakuFontWeight.value = dm.danmakuFontWeight.v;
+    videoController.danmakuFontBorder.value = dm.danmakuFontBorder.v;
+    videoController.danmakuOpacity.value = dm.danmakuOpacity.v;
+    videoController.enableDanmakuStroke.value = dm.enableDanmakuStroke.v;
   }
 
   void _persistVisualSettings() {

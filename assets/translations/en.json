@@ -1833,5 +1833,7 @@
   "show_super_chat_on_player": "Show super chats on the player",
   "show_super_chat_on_player_subtitle": "Super chats show at the bottom left of the picture for 15 seconds, whether or not on-screen danmaku is on",
   "super_chat_opacity": "Super chat opacity",
-  "super_chat_font_scale": "Super chat text size"
+  "super_chat_font_scale": "Super chat text size",
+  "danmaku_style_editing_narrow": "Editing the narrow-layout style (narrow and wide are saved separately)",
+  "danmaku_style_editing_wide": "Editing the wide-layout style (narrow and wide are saved separately)"
 }

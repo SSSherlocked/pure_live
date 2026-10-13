@@ -53,6 +53,13 @@ class AppShell extends StatelessWidget {
           mobilePlatform: PlatformUtils.isMobile,
         );
         AppLayout.current = layout;
+        // The floating-danmaku style is kept per layout. Switch the set once
+        // this frame is built: its fields are observed by widgets below, which
+        // must not be marked dirty in the middle of this build. A no-op while
+        // the layout stays the same.
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => SettingsService.to.danmaku.useViewport(AppLayout.current.wide),
+        );
         return AppLayoutScope(layout: layout, child: layoutChild);
       }),
     );

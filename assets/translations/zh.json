@@ -1833,5 +1833,7 @@
   "show_super_chat_on_player": "在播放器中显示留言",
   "show_super_chat_on_player_subtitle": "醒目留言在画面左下角显示 15 秒，不受画面弹幕开关影响",
   "super_chat_opacity": "留言透明度",
-  "super_chat_font_scale": "留言字号"
+  "super_chat_font_scale": "留言字号",
+  "danmaku_style_editing_narrow": "当前编辑：窄屏样式（窄屏和宽屏分别保存）",
+  "danmaku_style_editing_wide": "当前编辑：宽屏样式（窄屏和宽屏分别保存）"
 }

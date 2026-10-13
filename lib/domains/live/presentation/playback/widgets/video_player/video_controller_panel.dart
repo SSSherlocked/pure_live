@@ -371,7 +371,9 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       enabled: screenMode != VideoMode.portraitFullscreen,
                     ),
                   ),
-                  LockButton(controller: controller),
+                  // The lock on both sides, so either thumb reaches it.
+                  LockButton(controller: controller, alignment: Alignment.centerLeft),
+                  LockButton(controller: controller, alignment: Alignment.centerRight),
                   const PortraitStreamDiagnosticsBadge(),
                   TopActionBar(
                     controller: controller,
@@ -914,10 +916,15 @@ String _overrideLabel(PortraitOrientationOverride value) => switch (value) {
   PortraitOrientationOverride.landscape => i18n('portrait_override_landscape'),
 };
 
+/// The fullscreen controls lock, at the middle of one side of the picture:
+/// the size of the other player controls, on a translucent disc.
 class LockButton extends StatelessWidget {
-  const LockButton({super.key, required this.controller});
+  const LockButton({super.key, required this.controller, required this.alignment});
 
   final VideoController controller;
+
+  /// [Alignment.centerLeft] or [Alignment.centerRight].
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
@@ -926,21 +933,21 @@ class LockButton extends StatelessWidget {
         opacity: (GlobalPlayerService.instance.player.fullscreenUI && controller.showController.value) ? 0.9 : 0.0,
         duration: const Duration(milliseconds: 300),
         child: Align(
-          alignment: Alignment.centerRight,
+          alignment: alignment,
           child: AbsorbPointer(
             absorbing: !controller.showController.value,
-            child: Container(
-              margin: const EdgeInsets.only(right: 20.0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: IconButton(
                 tooltip: i18n(controller.showLocked.value ? 'unlock_player_controls' : 'lock_player_controls'),
                 onPressed: controller.showLocked.toggle,
-                icon: Icon(controller.showLocked.value ? Icons.lock_rounded : Icons.lock_open_rounded, size: 28),
-                color: Colors.white,
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.black38,
-                  shape: const StadiumBorder(),
-                  minimumSize: const Size(50, 50),
+                constraints: PlayerControlDensity.actionConstraints(context),
+                icon: Icon(
+                  controller.showLocked.value ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  size: PlayerControlDensity.iconSize(context, 24),
                 ),
+                color: Colors.white,
+                style: IconButton.styleFrom(backgroundColor: Colors.black38, shape: const CircleBorder()),
               ),
             ),
           ),

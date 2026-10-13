@@ -8,7 +8,8 @@ import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 /// they all look and behave the same: the body role, the labels as wide as
 /// the longest one and centred in the entry (a popup menu rounds its width
 /// up in 56 px steps and starts entries at the left, which pushed fixed-width
-/// labels off centre), the current choice bold in the primary colour.
+/// labels off centre), the current choice bold in the primary colour on a
+/// faint band of it ([floatingMenuSelectedColor]).
 /// Side padding of a choice entry.
 const double _choicePadding = 16;
 
@@ -37,9 +38,14 @@ PopupMenuItem<T> choiceMenuItem<T>(
   return PopupMenuItem<T>(
     key: key,
     height: kFloatingMenuItemHeight,
-    padding: const EdgeInsets.symmetric(horizontal: _choicePadding),
+    // The band fills the whole row, so the entry's padding is inside it.
+    padding: EdgeInsets.zero,
     value: value,
-    child: Center(
+    child: Container(
+      height: kFloatingMenuItemHeight,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: _choicePadding),
+      color: selected ? floatingMenuSelectedColor(colors) : null,
       child: SizedBox(
         width: _labelWidth(context, labels),
         child: Text(

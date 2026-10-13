@@ -131,61 +131,66 @@ class FontFamilyList extends StatelessWidget {
       builder: (dialogContext) {
         final theme = Theme.of(dialogContext);
         final screen = MediaQuery.sizeOf(dialogContext);
-        return Dialog(
-          key: const ValueKey('cloud-fonts-dialog'),
-          insetPadding: const EdgeInsets.all(16),
-          clipBehavior: Clip.antiAlias,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 560, maxHeight: screen.height * 0.8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          i18n("cloud_font_group"),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppText.of(dialogContext).sectionTitle.copyWith(fontWeight: FontWeight.w600),
+        // A dialog is its own route, outside the page's smooth-wheel scope:
+        // without this the Windows wheel jumped notch by notch, no glide.
+        return PureLiveRouteScrollScope(
+          child: Dialog(
+            key: const ValueKey('cloud-fonts-dialog'),
+            insetPadding: const EdgeInsets.all(16),
+            clipBehavior: Clip.antiAlias,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 560, maxHeight: screen.height * 0.8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            i18n("cloud_font_group"),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.of(dialogContext).sectionTitle.copyWith(fontWeight: FontWeight.w600),
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        key: const ValueKey('font-open-folder-action'),
-                        tooltip: i18n("recorder_open_folder"),
-                        onPressed: () => _openFontFolder(),
-                        icon: const Icon(Remix.folder_open_line, size: 20),
-                      ),
-                      IconButton(
-                        tooltip: i18n('close'),
-                        onPressed: () => Navigator.of(dialogContext).pop(),
-                        icon: const Icon(Icons.close_rounded, size: 20),
-                      ),
-                    ],
+                        IconButton(
+                          key: const ValueKey('font-open-folder-action'),
+                          tooltip: i18n("recorder_open_folder"),
+                          onPressed: () => _openFontFolder(),
+                          icon: const Icon(Remix.folder_open_line, size: 20),
+                        ),
+                        IconButton(
+                          tooltip: i18n('close'),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          icon: const Icon(Icons.close_rounded, size: 20),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                    child: Obx(() {
-                      final fontModels = SettingsService.to.font.fontList;
-                      if (fontModels.isEmpty) {
-                        return SizedBox(
-                          height: 200,
-                          child: AppStatusView(type: AppStatusType.loading, title: "", subtitle: ""),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      physics: const PureLiveScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                      child: Obx(() {
+                        final fontModels = SettingsService.to.font.fontList;
+                        if (fontModels.isEmpty) {
+                          return SizedBox(
+                            height: 200,
+                            child: AppStatusView(type: AppStatusType.loading, title: "", subtitle: ""),
+                          );
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [for (final fontModel in fontModels) _buildFontCard(dialogContext, theme, fontModel)],
                         );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [for (final fontModel in fontModels) _buildFontCard(dialogContext, theme, fontModel)],
-                      );
-                    }),
+                      }),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

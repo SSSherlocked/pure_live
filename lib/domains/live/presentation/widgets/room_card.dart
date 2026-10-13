@@ -299,6 +299,36 @@ class RoomCard extends StatelessWidget {
     );
   }
 
+  /// The 录播 tag: the platform tag's padding, text and height (on the cover
+  /// or in the compact row), filled with the theme colour.
+  Widget _buildReplayBadge(BuildContext context, {required bool cover}) {
+    final style = (cover && !dense ? AppText.of(context).secondary : AppText.of(context).tag).copyWith(
+      color: Colors.white,
+      fontWeight: FontWeight.w600,
+    );
+    // The icon no taller than the text line, so it adds no height.
+    final iconSize = MediaQuery.textScalerOf(context).scale(style.fontSize ?? 12);
+    return Container(
+      padding: cover
+          ? EdgeInsets.symmetric(horizontal: dense ? 7 : 8, vertical: dense ? 3 : 4)
+          : const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(999),
+        // The compact platform tag's hairline outline, so both are as tall.
+        border: cover ? null : Border.all(color: Colors.transparent, width: .5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.videocam_rounded, color: Colors.white, size: iconSize),
+          const SizedBox(width: 3),
+          Text(i18n('replay'), maxLines: 1, style: style),
+        ],
+      ),
+    );
+  }
+
   /// The platform tag of the compact row, styled like the 关注 panel's tag.
   Widget _buildCompactPlatformBadge(BuildContext context, bool isDark) {
     final colors = Get.theme.colorScheme;
@@ -375,7 +405,7 @@ class RoomCard extends StatelessWidget {
         children.add(_buildAudienceMetric(context, dense: true, inline: true));
       } else if (config.showReplayBadge && room.isRecord == true) {
         children.add(
-          CountChip(icon: Icons.videocam_rounded, count: i18n('replay'), dense: true, color: Get.theme.primaryColor),
+          _buildReplayBadge(context, cover: false),
         );
       }
     } else if (statusPending) {
@@ -610,12 +640,7 @@ class RoomCard extends StatelessWidget {
                                 key: const ValueKey('room-card-replay-badge'),
                                 right: showDelete ? (dense ? 44 : 48) : 8,
                                 top: 8,
-                                child: CountChip(
-                                  icon: Icons.videocam_rounded,
-                                  count: i18n("replay"),
-                                  dense: dense,
-                                  color: Get.theme.primaryColor,
-                                ),
+                                child: _buildReplayBadge(context, cover: true),
                               ),
                             // Title overlaid on the cover over a translucent black band.
                             Positioned(
@@ -797,42 +822,6 @@ class _FollowButtonState extends State<FollowButton> {
         ),
       );
     });
-  }
-}
-
-class CountChip extends StatelessWidget {
-  const CountChip({super.key, required this.icon, required this.count, this.dense = false, required this.color});
-
-  final IconData icon;
-  final String count;
-  final bool dense;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      shape: const StadiumBorder(),
-      color: color,
-      shadowColor: Colors.transparent,
-
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: dense ? 10 : 12, vertical: dense ? 4 : 6),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: dense ? 16 : 18),
-            const SizedBox(width: 4),
-            Text(
-              count,
-              style: (dense ? AppText.of(context).secondary : AppText.of(context).body).copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

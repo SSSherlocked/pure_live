@@ -695,12 +695,15 @@ class _BatteryInfoState extends State<BatteryInfo> {
           border: Border.all(color: Colors.white),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Center(
+        // A 15 px box: on a phone the tag role with the text scale is taller
+        // than the box, and the overflowing text box sat the digits low.
+        // Scaled down to fit, the line box is centred whatever the font.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: Obx(
             () => Text(
               '${widget.controller.batteryLevel.value}',
-              // A 15 px box: the theme's line height made the text box taller
-              // than the battery and sat the digits low. One line, even leading.
+              // One line, even leading: no extra space above or below.
               textHeightBehavior: const TextHeightBehavior(
                 applyHeightToFirstAscent: false,
                 applyHeightToLastDescent: false,

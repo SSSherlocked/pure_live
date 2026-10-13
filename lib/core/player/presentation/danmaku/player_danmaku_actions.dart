@@ -271,9 +271,10 @@ class DanmakuSettingsDialog extends StatelessWidget {
   }
 }
 
-/// The player's ⋯ menu: 画面比例 (a submenu of every video-fit mode, the
-/// current one checked) and, when the host supplies them, 纯音频, 投屏, 小窗播放
-/// and the host's own [leadingEntries] / [trailingEntries].
+/// The player's ⋯ menu, in this order: the host's [leadingEntries], then
+/// 投屏, 纯音频 and 小窗播放 when the host supplies them, 画面比例 (a submenu
+/// of every video-fit mode, the current one checked) and the host's
+/// [trailingEntries].
 ///
 /// The menu is attached to this invisible anchor, which the host places at a
 /// fixed spot on the player rather than inside the auto-hiding top bar: the
@@ -296,8 +297,8 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
   final MenuController menu;
   final Size size;
 
-  /// The host's own entries before 画面比例 and after the built-in ones
-  /// (the live room's fullscreen 录制 submenu and 视频详情).
+  /// The host's own entries before and after the built-in ones (the live
+  /// room's fullscreen 录制 submenu and 视频详情).
   final List<Widget> leadingEntries;
   final List<Widget> trailingEntries;
 
@@ -333,6 +334,29 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
           ]);
           final entries = <Widget>[
             ...leadingEntries,
+            if (onCast != null)
+              MenuItemButton(
+                key: const ValueKey('player-more-cast'),
+                leadingIcon: const Icon(Remix.tv_2_line, size: 18),
+                onPressed: onCast,
+                child: Text(i18n('cast_screen'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
+              ),
+            if (isAudioOnly != null && onToggleAudioOnly != null)
+              Obx(
+                () => MenuItemButton(
+                  key: const ValueKey('player-more-audio-only'),
+                  leadingIcon: Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
+                  onPressed: onToggleAudioOnly,
+                  child: Text(i18n('audio_only_mode'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
+                ),
+              ),
+            if (onPip != null)
+              MenuItemButton(
+                key: const ValueKey('player-more-pip'),
+                leadingIcon: const Icon(CustomIcons.float_window, size: 18),
+                onPressed: onPip,
+                child: Text(i18n('float_window_play'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
+              ),
             LeftSubmenuButton(
               key: const ValueKey('player-more-video-fit'),
               leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
@@ -351,30 +375,6 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
               ],
               child: Text(i18n('video_fit'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
             ),
-            if (isAudioOnly != null && onToggleAudioOnly != null)
-              Obx(
-                () => MenuItemButton(
-                  key: const ValueKey('player-more-audio-only'),
-                  // The arrow column of 画面比例 stays empty here, so the icons align.
-                  leadingIcon: Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
-                  onPressed: onToggleAudioOnly,
-                  child: Text(i18n('audio_only_mode'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
-                ),
-              ),
-            if (onCast != null)
-              MenuItemButton(
-                key: const ValueKey('player-more-cast'),
-                leadingIcon: const Icon(Remix.tv_2_line, size: 18),
-                onPressed: onCast,
-                child: Text(i18n('cast_screen'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
-              ),
-            if (onPip != null)
-              MenuItemButton(
-                key: const ValueKey('player-more-pip'),
-                leadingIcon: const Icon(CustomIcons.float_window, size: 18),
-                onPressed: onPip,
-                child: Text(i18n('float_window_play'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
-              ),
             ...trailingEntries,
           ];
           return MenuAnchor(

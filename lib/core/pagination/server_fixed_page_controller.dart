@@ -19,7 +19,15 @@ abstract class ServerFixedPageController<T> extends BasePageScrollAndStateBone<T
     while (_activeLoad != null && !isClosed) {
       await _activeLoad;
     }
-    if (!_refreshPending || isClosed) return;
+    if (!_refreshPending || isClosed) {
+      // Another caller already took this refresh request and started the load:
+      // wait for that load instead of returning while it runs, so a pull's
+      // header spins until the page is fresh and the page's own reload
+      // spinner never shows beside it.
+      final joined = _activeLoad;
+      if (joined != null && !isClosed) await joined;
+      return;
+    }
     _refreshPending = false;
     _bigPageCache.clear();
     currentPage = 1;

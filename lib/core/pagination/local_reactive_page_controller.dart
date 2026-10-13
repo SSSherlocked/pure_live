@@ -44,7 +44,15 @@ abstract class LocalReactivePageController<T> extends BasePageScrollAndStateBone
     while (_activeExternalRefresh != null && !isClosed) {
       await _activeExternalRefresh;
     }
-    if (!_refreshPending || isClosed) return;
+    if (!_refreshPending || isClosed) {
+      // Another caller already took this refresh request and started the load:
+      // wait for that load instead of returning while it runs, so a pull's
+      // header spins until the page is fresh and the page's own reload
+      // spinner never shows beside it.
+      final joined = _activeExternalRefresh;
+      if (joined != null && !isClosed) await joined;
+      return;
+    }
     _refreshPending = false;
     await loadExternalSnapshot();
   }

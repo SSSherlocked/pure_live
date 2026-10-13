@@ -167,12 +167,25 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
     final detail = controller.state.value.room.detail;
     final record = detail == null ? null : _recordState(_recordActions, detail);
     return [
-      item(0, Icons.open_in_new_rounded, i18n('open_live_room')),
       if (record != null)
         item(1, record.icon, i18n(record.labelKey), iconColor: record.running ? Colors.redAccent : null),
       item(2, Remix.tv_2_line, i18n('cast_screen')),
-      item(3, Remix.time_line, i18n('sleep_timer')),
+      Obx(() {
+        final videoController = controller.state.value.player.videoController;
+        if (videoController == null) return const SizedBox.shrink();
+        return homeMenuItem(
+          context,
+          icon: videoController.isAudioOnly ? Icons.check_rounded : Icons.headphones_rounded,
+          text: i18n('audio_only_mode'),
+          onPressed: () {
+            unawaited(videoController.toggleAudioOnly());
+            controller.updateUI(isMenuOpen: false);
+          },
+        );
+      }),
       item(5, Remix.link_m, i18n('toolbox_get_direct_link')),
+      item(0, Icons.open_in_new_rounded, i18n('open_live_room')),
+      item(3, Remix.time_line, i18n('sleep_timer')),
       item(6, RemixIcons.share_forward_line, i18n('share')),
       if (Platform.isWindows) item(8, Icons.open_in_new_rounded, i18n('open_room_in_new_window')),
       // Always last.

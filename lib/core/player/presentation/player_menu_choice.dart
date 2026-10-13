@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:pure_live/core/theme/theme.dart';
 
 /// The widest of [labels] in [style], so every entry of a menu can take that
 /// width and centre its label.
@@ -27,7 +28,8 @@ const double playerMenuItemPadding = 32;
 
 /// One choice in a player menu (quality, line, 画面比例): the label centred
 /// in the width of the menu's longest label, the current choice bold in the
-/// primary colour. Measured with the bold style, so selecting never reflows.
+/// primary colour on a faint band of it. Measured with the bold style, so
+/// selecting never reflows.
 class PlayerMenuChoice extends StatelessWidget {
   const PlayerMenuChoice({
     super.key,
@@ -55,6 +57,9 @@ class PlayerMenuChoice extends StatelessWidget {
       // The current choice stays enabled (it only closes the menu); selecting
       // it again must not reload the stream.
       onPressed: selected ? () {} : onPressed,
+      style: selected
+          ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(floatingMenuSelectedColor(colors)))
+          : null,
       child: SizedBox(
         width: menuLabelWidth(context, labels, bold),
         child: Text(

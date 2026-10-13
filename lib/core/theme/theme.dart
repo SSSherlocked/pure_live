@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 
@@ -62,19 +64,65 @@ String? resolveAppFontFamily({
 
 /// The colour scheme for the chosen theme colour [seed].
 ///
-/// Material's default seeding (tonal spot) keeps only the seed's hue and
-/// re-saturates it: a grey, white or light grey seed - which has almost no
-/// hue - came out as a blue scheme, and muted colours such as brown drifted
-/// too. A near-neutral seed now gives a true grey scheme (monochrome), and
-/// any other seed a scheme whose primary stays close to it (fidelity).
+/// Material's seeding only takes the seed's hue and picks its own tones:
+/// tonal spot turned a grey or white seed blue, and monochrome made every
+/// grey white in dark mode (black in light mode). The surfaces still come
+/// from Material - a true grey set for a near-neutral seed (monochrome),
+/// otherwise one close to the seed (fidelity) - but the primary colour is
+/// the chosen colour itself, so each shade looks as picked. It is only
+/// lightened or darkened as far as it must be to stay readable on the page
+/// ([kMinPrimaryContrast]).
 ColorScheme seededColorScheme(Color seed, Brightness brightness) {
   final neutral = HSLColor.fromColor(seed).saturation < 0.12;
-  return ColorScheme.fromSeed(
+  final base = ColorScheme.fromSeed(
     seedColor: seed,
     brightness: brightness,
     dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
   );
+  final primary = readablePrimary(seed.withValues(alpha: 1), base.surface);
+  final onPrimary = _contrast(Colors.white, primary) >= _contrast(Colors.black, primary) ? Colors.white : Colors.black;
+  final container = Color.alphaBlend(primary.withValues(alpha: 0.3), base.surface);
+  return base.copyWith(
+    primary: primary,
+    onPrimary: onPrimary,
+    primaryContainer: container,
+    onPrimaryContainer: base.onSurface,
+    inversePrimary: Color.alphaBlend(primary.withValues(alpha: 0.6), base.inverseSurface),
+    surfaceTint: primary,
+  );
 }
+
+/// The least contrast the primary colour keeps against the page (WCAG's
+/// minimum for large text and icons).
+const double kMinPrimaryContrast = 3;
+
+/// [color] moved toward black or white in small lightness steps until it
+/// reaches [kMinPrimaryContrast] against [surface]; unchanged when it
+/// already does.
+Color readablePrimary(Color color, Color surface) {
+  if (_contrast(color, surface) >= kMinPrimaryContrast) return color;
+  final darkPage = surface.computeLuminance() < 0.5;
+  var hsl = HSLColor.fromColor(color);
+  for (var i = 0; i < 100 && _contrast(hsl.toColor(), surface) < kMinPrimaryContrast; i++) {
+    final lightness = (hsl.lightness + (darkPage ? 0.01 : -0.01)).clamp(0.0, 1.0);
+    if (lightness == hsl.lightness) break;
+    hsl = hsl.withLightness(lightness);
+  }
+  return hsl.toColor();
+}
+
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+}
+
+/// Background of the current choice in a floating menu: the primary colour,
+/// faint. With a pale theme colour (grey, white) the primary-coloured label
+/// alone barely stands out; the band marks the row.
+const double kFloatingMenuSelectedOpacity = 0.16;
+
+Color floatingMenuSelectedColor(ColorScheme colors) => colors.primary.withValues(alpha: kFloatingMenuSelectedOpacity);
 
 class MyTheme {
   final Color? primaryColor;

@@ -28,11 +28,11 @@ class SpeedStrategy {
       return config.baseSpeed;
     }
 
+    // Pure Live: [TrackAllocator] already skips lanes the new message would
+    // catch up in, so this is a guard, not the norm. It caps the speed at
+    // what the lane allows instead of taking 95 % of the one ahead, which
+    // compounded message after message in a lane that never empties.
     final double maxAllowedSpeed = last.speed + (catchUpDistance / lastRemainingTime);
-    if (config.baseSpeed > maxAllowedSpeed) {
-      return last.speed * 0.95;
-    }
-
-    return config.baseSpeed;
+    return config.baseSpeed > maxAllowedSpeed ? maxAllowedSpeed : config.baseSpeed;
   }
 }

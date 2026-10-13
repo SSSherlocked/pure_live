@@ -10,8 +10,8 @@ import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/config/cache_controller.dart';
 import 'package:pure_live/core/models/download_state.dart';
 
-/// The app or danmaku font picker: the built-in font, then every cloud font
-/// with its download, apply and delete actions.
+/// The app or danmaku font picker: the built-in font, then an entry that opens
+/// every cloud font, with its download, apply and delete actions, in a window.
 ///
 /// A section, not a page: it lays out as a plain column so 通用 › 字体设置 and
 /// 通用 › 弹幕设置 can list it inline inside their own scroll views.
@@ -96,9 +96,6 @@ class FontFamilyList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mediaQuery = MediaQuery.of(context);
-    final openFolderLabel = i18n("recorder_open_folder");
-    final useCompactFolderAction = mediaQuery.size.width < 520 || mediaQuery.textScaler.scale(14) > 18;
 
     SettingsService.to.font.refreshFontDiskSizes();
 
@@ -108,39 +105,91 @@ class FontFamilyList extends StatelessWidget {
         context.buildGroupTitle(i18n("factory_default_group")),
         Obx(() => _buildPresetEnvironmentCard(theme)),
         const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(child: context.buildGroupTitle(i18n("cloud_font_group"))),
-            if (useCompactFolderAction)
-              IconButton(
-                key: const ValueKey('font-open-folder-action'),
-                tooltip: openFolderLabel,
-                onPressed: () => _openFontFolder(),
-                icon: const Icon(Remix.folder_open_line, size: 20),
-              )
-            else
-              TextButton.icon(
-                key: const ValueKey('font-open-folder-action'),
-                onPressed: () => _openFontFolder(),
-                icon: const Icon(Remix.folder_open_line, size: 18),
-                label: Text(openFolderLabel, maxLines: 1, overflow: TextOverflow.ellipsis),
-              ),
-          ],
-        ),
-        Obx(() {
-          final fontModels = SettingsService.to.font.fontList;
-          if (fontModels.isEmpty) {
-            return SizedBox(
-              height: 200,
-              child: AppStatusView(type: AppStatusType.loading, title: "", subtitle: ""),
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [for (final fontModel in fontModels) _buildFontCard(context, theme, fontModel)],
-          );
-        }),
+        // The downloadable fonts open in a window rather than filling the
+        // settings page with one card per font.
+        context.buildModernCard([
+          KeyedSubtree(
+            key: const ValueKey('cloud-fonts-entry'),
+            child: context.buildTile(
+              icon: Remix.download_cloud_2_line,
+              title: i18n("cloud_font_group"),
+              subtitle: i18n("cloud_font_group_subtitle"),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => _showCloudFonts(context),
+            ),
+          ),
+        ]),
       ],
+    );
+  }
+
+  /// The downloadable fonts in a window: download, apply and delete as on
+  /// the page before, with the font folder and close in the title bar.
+  Future<void> _showCloudFonts(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        final screen = MediaQuery.sizeOf(dialogContext);
+        return Dialog(
+          key: const ValueKey('cloud-fonts-dialog'),
+          insetPadding: const EdgeInsets.all(16),
+          clipBehavior: Clip.antiAlias,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 560, maxHeight: screen.height * 0.8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          i18n("cloud_font_group"),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.of(dialogContext).sectionTitle.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('font-open-folder-action'),
+                        tooltip: i18n("recorder_open_folder"),
+                        onPressed: () => _openFontFolder(),
+                        icon: const Icon(Remix.folder_open_line, size: 20),
+                      ),
+                      IconButton(
+                        tooltip: i18n('close'),
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                    child: Obx(() {
+                      final fontModels = SettingsService.to.font.fontList;
+                      if (fontModels.isEmpty) {
+                        return SizedBox(
+                          height: 200,
+                          child: AppStatusView(type: AppStatusType.loading, title: "", subtitle: ""),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [for (final fontModel in fontModels) _buildFontCard(dialogContext, theme, fontModel)],
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

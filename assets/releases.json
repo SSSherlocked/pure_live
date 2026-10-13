@@ -1,5 +1,67 @@
 [
   {
+    "version": "3.2.5",
+    "title": "v3.2.5",
+    "date": "2026-10-13",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.2.5",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 💬 留言（SC）\n\n- **留言计数**：侧栏「留言」标签显示当前房间的 SC 数量，如「留言(3)」；没有 SC 时只显示「留言」。\n- **留言板常驻 / 正常倒计时**：「弹幕设置 › 留言」新增这两个开关（参考 Simple Live），二者互斥。常驻时每条 SC 一直保留在留言列表中，直到离开直播间；正常倒计时（默认）时，每条 SC 倒计时结束后自动移除。直播间设置标签页与设置页中的选项同步。\n- **手机非全屏**：播放器画面上不再显示 SC，留言在下方的「留言」标签中查看；全屏时照常显示。\n\n#### 🎬 播放器\n\n- **加载提示**：刷新、切换线路、进入直播间或缓冲时，画面正中显示加载图标，开始播放后自动消失，不再黑屏无提示。\n- **全屏锁定按钮**：缩小到与其他控件一致，并在左侧增加一个，左右对称。\n\n#### 🧹 其他\n\n- **日志**：日志开关会被记住，重启应用后继续记录，离开页面也不会中断；安卓上「打开日志目录」改为分享最新的日志文件。",
+    "files": [
+      {
+        "name": "PureLive-3.2.5-4114-android-arm64-v8a",
+        "size": "118.58mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-android-arm64-v8a-release.apk"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-linux-x64.deb",
+        "size": "41.89mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-linux-x64.tar.gz",
+        "size": "50.25mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-linux-x64.zip",
+        "size": "50.28mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-macos-arm64.zip",
+        "size": "42.23mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-macos-arm64.zip"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-macos-x64.zip",
+        "size": "44.96mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-macos-x64.zip"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-windows-x64-portable.zip",
+        "size": "60.7mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-windows-x64-portable.zip"
+      },
+      {
+        "name": "PureLive-3.2.5-4114-windows-x64-setup.exe",
+        "size": "45.96mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.5/PureLive-3.2.5-4114-windows-x64-setup.exe"
+      }
+    ]
+  },
+  {
     "version": "3.2.4",
     "title": "v3.2.4",
     "date": "2026-10-13",
@@ -14,7 +76,7 @@
       {
         "name": "PureLive-3.2.4-4113-android-arm64-v8a",
         "size": "118.58mb",
-        "downloads": 0,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.4/PureLive-3.2.4-4113-android-arm64-v8a-release.apk"
       },
       {
@@ -50,7 +112,7 @@
       {
         "name": "PureLive-3.2.4-4113-macos-arm64.zip",
         "size": "42.23mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.4/PureLive-3.2.4-4113-macos-arm64.zip"
       },
       {
@@ -88,7 +150,7 @@
       {
         "name": "PureLive-3.2.3-4112-android-arm64-v8a",
         "size": "118.51mb",
-        "downloads": 3,
+        "downloads": 4,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.2.3/PureLive-3.2.3-4112-android-arm64-v8a-release.apk"
       },
       {

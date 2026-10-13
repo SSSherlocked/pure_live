@@ -10,10 +10,10 @@ void main() {
     final tablet = AppLayout.resolve(mode: DisplayMode.auto, width: 900, mobilePlatform: true);
     expect(tablet.wide, isTrue);
     expect(tablet.touch, isTrue);
-    expect(tablet.pagedLists, isFalse);
+    expect(tablet.refreshByButton, isFalse);
 
     final desktop = AppLayout.resolve(mode: DisplayMode.auto, width: 1280, mobilePlatform: false);
-    expect(desktop.pagedLists, isTrue);
+    expect(desktop.refreshByButton, isTrue);
 
     final narrowWindow = AppLayout.resolve(mode: DisplayMode.auto, width: 500, mobilePlatform: false);
     expect(narrowWindow.wide, isFalse);

@@ -19,7 +19,7 @@ class PopularGridView extends StatelessWidget {
         return BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
           // Desktop's floating refresh sits under the scroll buttons.
-          wideBottomPadding: AppLayout.of(context).pagedLists ? FloatingRefreshButton.clearance : null,
+          wideBottomPadding: AppLayout.of(context).refreshByButton ? FloatingRefreshButton.clearance : null,
           emptyBuilder: (c) => AppStatusView(
             type: AppStatusType.empty,
             icon: RemixIcons.fire_fill,

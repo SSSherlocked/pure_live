@@ -52,7 +52,7 @@ class AppLayout {
   /// The wide pointer (desktop) layout, where pulling a list down is not the
   /// natural way to refresh it: list pages carry a floating refresh button
   /// (`FloatingRefreshButton`) instead.
-  bool get pagedLists => wide && pointer;
+  bool get refreshByButton => wide && pointer;
 
   /// The layout [mode] gives a screen [width] wide on a [mobilePlatform].
   static AppLayout resolve({required DisplayMode mode, required double width, required bool mobilePlatform}) {

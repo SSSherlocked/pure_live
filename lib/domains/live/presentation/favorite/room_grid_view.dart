@@ -6,11 +6,11 @@ import 'package:pure_live/domains/live/presentation/favorite/favorite_controller
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
 
-/// Pull-to-refresh belongs to every layout except paged lists (wide + pointer):
+/// Pull-to-refresh belongs to every layout except the desktop one (wide + pointer):
 /// a touch tablet keeps it, while the desktop layout reloads from the page's
 /// floating refresh button.
 @visibleForTesting
-bool shouldWrapFavoritePullToRefresh(AppLayout layout) => !layout.pagedLists;
+bool shouldWrapFavoritePullToRefresh(AppLayout layout) => !layout.refreshByButton;
 
 class RoomGridView extends GetView<FavoriteController> {
   const RoomGridView({

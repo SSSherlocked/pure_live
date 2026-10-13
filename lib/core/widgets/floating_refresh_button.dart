@@ -1,7 +1,7 @@
 import 'package:pure_live/core/index.dart';
 
 /// The refresh button of a list page in the desktop layout
-/// ([AppLayout.pagedLists]), where pulling the list down is not the natural
+/// ([AppLayout.refreshByButton]), where pulling the list down is not the natural
 /// way to reload it. It sits in the page's floating action button slot.
 class FloatingRefreshButton extends StatelessWidget {
   const FloatingRefreshButton({super.key, required this.onPressed, this.loading = false});

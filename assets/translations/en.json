@@ -794,7 +794,7 @@
   "display_mode_auto_desc": "Layout follows the screen width, interaction follows the device",
   "display_mode_phone_desc": "Phone layout, touch interaction",
   "display_mode_tablet_desc": "Wide layout, touch interaction",
-  "display_mode_desktop_desc": "Wide layout, mouse interaction and paged lists",
+  "display_mode_desktop_desc": "Wide layout, mouse interaction and refresh buttons",
   "display_mode_narrow_warning": "This screen is narrow; some content may not fit",
   "video_desc": "Player engine, volume, quality, PiP and playback behavior",
   "player_kernel_desc": "Engine, hardware decoding, presets and MPV options",

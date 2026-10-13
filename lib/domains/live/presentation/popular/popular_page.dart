@@ -35,7 +35,7 @@ class PopularPage extends GetView<PopularController> {
             ),
             // Desktop has no pull-to-refresh: this reloads the platform on
             // screen.
-            floatingActionButton: AppLayout.of(context).pagedLists
+            floatingActionButton: AppLayout.of(context).refreshByButton
                 ? FloatingRefreshButton(
                     key: const ValueKey('popular-refresh'),
                     onPressed: controller.refreshCurrentData,

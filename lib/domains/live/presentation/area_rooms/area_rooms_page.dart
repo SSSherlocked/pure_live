@@ -35,7 +35,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
   Widget build(BuildContext context) {
     final rawAreaName = widget.subCategory.areaName?.trim() ?? '';
     final areaName = rawAreaName.isEmpty ? i18n('unnamed_area') : rawAreaName;
-    final pagedLists = AppLayout.of(context).pagedLists;
+    final refreshByButton = AppLayout.of(context).refreshByButton;
     return KeepAliveWrapper(
       child: Scaffold(
         appBar: AppBar(title: Text(areaName)),
@@ -46,7 +46,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
           // Clears the follow-area pill (48 px tall over its own 24 px bottom
           // padding in the wide layout) and, on desktop, the refresh button
           // under it.
-          wideBottomPadding: pagedLists ? FloatingRefreshButton.clearance + 24 + 48 : 110,
+          wideBottomPadding: refreshByButton ? FloatingRefreshButton.clearance + 24 + 48 : 110,
           narrowBottomPadding: 85,
           emptyBuilder: (context) => EmptyView(icon: Icons.live_tv_rounded, title: i18n('no_data'), subtitle: ''),
           contentBuilder: (context, list, scrollController) {
@@ -100,7 +100,7 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
             });
           },
         ),
-        floatingActionButton: pagedLists
+        floatingActionButton: refreshByButton
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,

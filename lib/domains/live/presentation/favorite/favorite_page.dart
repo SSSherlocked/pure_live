@@ -18,7 +18,7 @@ class FavoritePage extends GetView<FavoriteController> {
           final availableSitesList = controller.availableFavoriteSites;
           final siteKey = ValueKey(availableSitesList.map((e) => e.id).join('|'));
           // Desktop has no pull-to-refresh: a floating refresh button instead.
-          final showRefresh = AppLayout.of(context).pagedLists;
+          final showRefresh = AppLayout.of(context).refreshByButton;
 
           return Scaffold(
             appBar: HomeAppBar(
@@ -163,7 +163,7 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
           child: BasePageView<FavoriteController, LiveRoom>(
             controller: controller,
             // Desktop's floating refresh sits under the scroll buttons.
-            wideBottomPadding: AppLayout.of(context).pagedLists ? FloatingRefreshButton.clearance : null,
+            wideBottomPadding: AppLayout.of(context).refreshByButton ? FloatingRefreshButton.clearance : null,
             enableRefresh: true,
             enableLoadMore: true,
             wrapMobileRefresh: false,

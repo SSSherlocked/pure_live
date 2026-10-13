@@ -795,7 +795,7 @@
   "display_mode_auto_desc": "按屏幕宽度选择布局，按设备选择操作方式",
   "display_mode_phone_desc": "手机布局，触控操作",
   "display_mode_tablet_desc": "宽屏布局，触控操作",
-  "display_mode_desktop_desc": "宽屏布局，鼠标操作与分页列表",
+  "display_mode_desktop_desc": "宽屏布局，鼠标操作与刷新按钮",
   "display_mode_narrow_warning": "当前屏幕较窄，可能显示不全",
   "video_desc": "播放器内核、音量、清晰度、小窗与播放行为",
   "player_kernel_desc": "内核切换、硬件解码、播放方案与 MPV 参数",

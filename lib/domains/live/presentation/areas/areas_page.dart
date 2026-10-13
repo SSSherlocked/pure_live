@@ -36,7 +36,7 @@ class AreasPage extends GetView<AreasController> {
               children: availableSitesList.map((e) => AreaGridView(e.id)).toList(),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-            floatingActionButton: AppLayout.of(context).pagedLists
+            floatingActionButton: AppLayout.of(context).refreshByButton
                 ? Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.end,

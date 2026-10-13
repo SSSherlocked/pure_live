@@ -318,10 +318,11 @@ class _RecordingPlayerAreaState extends State<_PlayerArea> {
                   // fullscreen. (The control bar at the bottom only holds the
                   // transport, volume, rate, fit and fullscreen controls.)
                   //
-                  // The phone layout draws its own top bars (portrait and
-                  // landscape) carrying the same buttons, so the row belongs to
-                  // the wide layout only.
-                  if (AppLayout.of(context).wide)
+                  // Wide layout only: the phone layout draws its own top bars.
+                  // Touch fullscreen skips it too: those actions sit in the
+                  // fullscreen bar's menu there, so the picture stays clear.
+                  if (AppLayout.of(context).wide &&
+                      !(controller.fullscreenActive.value && AppLayout.of(context).touch))
                     Positioned(
                       top: 8 + _edgeInsets(context).top,
                       right: 8 + _edgeInsets(context).right,

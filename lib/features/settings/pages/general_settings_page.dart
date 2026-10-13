@@ -340,7 +340,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
   }
 
   /// Picks 显示模式 and rebuilds the whole app once, so controllers that cached
-  /// the previous layout (paged lists, room card presets) follow at once.
+  /// the previous layout (refresh buttons, room card presets) follow at once.
   Future<void> _showDisplayModeDialog(BuildContext context) async {
     final theme = SettingsService.to.theme;
     final value = await showDialog<String>(

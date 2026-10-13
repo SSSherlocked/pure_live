@@ -151,7 +151,7 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
   /// pill, and on desktop the refresh button under it (16 px margin, 56 px
   /// button, 12 px gap, 48 px pill, 16 px gap).
   double _wideBottomPadding(BuildContext context) =>
-      AppLayout.of(context).pagedLists ? FloatingRefreshButton.clearance + 12 + 48 : 110;
+      AppLayout.of(context).refreshByButton ? FloatingRefreshButton.clearance + 12 + 48 : 110;
 
   @override
   Widget build(BuildContext context) {

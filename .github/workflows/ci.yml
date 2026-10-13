@@ -36,7 +36,11 @@ jobs:
             exit 0
           fi
           docs_only='(\.md$|^docs/|^LICENSE$|^\.github/(ISSUE_TEMPLATE/|dependabot\.yml$))'
-          if git diff --name-only "$BASE" HEAD | grep -qvE "$docs_only"; then
+          # Not piped into `grep -q`: with pipefail, grep exiting on its first
+          # match left git diff writing a long file list into a closed pipe
+          # (SIGPIPE), which failed the pipeline and skipped the Flutter jobs.
+          changed=$(git diff --name-only "$BASE" HEAD)
+          if grep -qvE "$docs_only" <<< "$changed"; then
             echo "flutter=true" >> "$GITHUB_OUTPUT"
           else
             echo "Only documentation changed; skipping the Flutter jobs."

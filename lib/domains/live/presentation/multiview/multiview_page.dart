@@ -1006,12 +1006,14 @@ class _MultiviewCellView extends StatelessWidget {
         for (var i = 0; i < state.qualities.length; i++)
           PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
             value: i,
-            child: Text(
+            child: Center(
+              child: Text(
               state.qualities[i].quality,
               style: AppText.of(context).body.copyWith(
                 color: i == state.qualityIndex ? theme.colorScheme.primary : null,
                 fontWeight: i == state.qualityIndex ? FontWeight.w700 : null,
               ),
+            ),
             ),
           ),
       ],

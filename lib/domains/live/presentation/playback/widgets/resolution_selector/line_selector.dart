@@ -78,7 +78,10 @@ class LineSelector extends StatelessWidget {
               value: index,
               // Centred in the width of the longest entry; the current one bold
               // in the primary colour.
-              child: SizedBox(
+              // The popup menu rounds its width up in 56 px steps and lays entries
+              // out from the start: Center keeps the label centred in the panel.
+              child: Center(
+                child: SizedBox(
                 width: menuLabelWidth(
                   context,
                   [
@@ -96,6 +99,7 @@ class LineSelector extends StatelessWidget {
                     fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   ),
                 ),
+              ),
               ),
             );
           });

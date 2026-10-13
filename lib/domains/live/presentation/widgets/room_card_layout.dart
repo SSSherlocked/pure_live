@@ -56,8 +56,9 @@ abstract final class RoomCardLayoutMetrics {
     return math.max(baseCaptionHeight, scaledCaptionHeight);
   }
 
-  /// The gap between the streamer and the room title of a compact row.
-  static const double compactLineGap = 3;
+  /// The gap between the streamer and the room title of a compact row: with
+  /// the lines' own leading it reads as about 7.5 px.
+  static const double compactLineGap = 4.5;
 
   /// The gap between the platform tag and the heat at a compact row's end.
   static const double compactMetricGap = 6;

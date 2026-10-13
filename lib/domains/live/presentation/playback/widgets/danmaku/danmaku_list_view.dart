@@ -444,10 +444,11 @@ class DanmakuItem extends StatelessWidget {
         ? (isDark ? Colors.white : Colors.black)
         : HSLColor.fromColor(baseColor).withLightness(isDark ? 0.75 : 0.52).withSaturation(1).toColor();
 
-    final textColor = isDark ? Colors.white70 : Colors.black87;
-
     return Obx(() {
       final settings = SettingsService.to.danmaku;
+      // 文字高亮: full contrast; off keeps the softer greys.
+      final bright = settings.chatListBrightText.v;
+      final textColor = isDark ? (bright ? Colors.white : Colors.white70) : (bright ? Colors.black : Colors.black87);
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final nameFontWeight = FontWeight(settings.chatListNameFontWeight.v.clamp(100, 900).toInt());

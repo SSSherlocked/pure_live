@@ -26,7 +26,6 @@ class ResolutionSelector extends StatelessWidget {
         key: const ValueKey('room-quality-selector'),
         enabled: !switching,
         tooltip: i18n('toolbox_select_quality'),
-        color: Get.theme.colorScheme.surfaceContainerHighest,
         // As wide as the entries, not the 112 px default minimum.
         constraints: const BoxConstraints(),
         offset: const Offset(0.0, 5.0),
@@ -58,7 +57,7 @@ class ResolutionSelector extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     // Quality and line share one role, the secondary text.
-                    style: AppText.of(context).secondary.copyWith(color: Get.theme.colorScheme.primary),
+                    style: AppText.of(context).secondary.copyWith(color: Get.theme.colorScheme.primary, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],

@@ -343,7 +343,6 @@ class _DisplayModeMenu extends StatelessWidget {
     return PopupMenuButton<DisplayMode>(
       key: const ValueKey('display-mode-menu'),
       tooltip: i18n('display_mode'),
-      color: colors.surfaceContainerHighest,
       // As wide as the entries, not the 112 px default minimum.
       constraints: const BoxConstraints(),
       offset: const Offset(0.0, 5.0),

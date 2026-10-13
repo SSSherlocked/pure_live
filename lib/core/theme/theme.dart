@@ -10,6 +10,24 @@ const double kFloatingMenuItemHeight = 32;
 /// Top and bottom padding of a floating menu panel (75 % of the default 8).
 const double kFloatingMenuVerticalPadding = 6;
 
+/// Corner radius of a floating menu panel: nearly square.
+const double kFloatingMenuCornerRadius = 4;
+
+/// Opacity of a floating menu panel, the same over a page and over the
+/// picture.
+const double kFloatingMenuOpacity = 0.94;
+
+/// The shape of every floating menu panel: nearly square, no outline.
+const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(kFloatingMenuCornerRadius)),
+);
+
+/// The colour of every floating menu panel (MenuAnchor menus, their
+/// submenus and popup menus): one tonal grey at [kFloatingMenuOpacity] in
+/// every mode. Pure-black mode keeps the grey too, so a menu over a black
+/// page reads as a layer without an outline.
+Color floatingMenuColor(ColorScheme colors) => colors.surfaceContainerHigh.withValues(alpha: kFloatingMenuOpacity);
+
 const PageTransitionsTheme appPageTransitionsTheme = PageTransitionsTheme(
   builders: <TargetPlatform, PageTransitionsBuilder>{
     // Keep Android's system back dispatch, but let an unclaimed gesture commit
@@ -213,17 +231,17 @@ class MyTheme {
         backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainer,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       ),
-      // Floating menus run at 75 % of the Material spacing (entries and
-      // panel padding). Black menus over a black page also need an edge to
-      // read as a layer.
-      // Floating menus are square-cornered panels.
+      // Every floating menu (MenuAnchor menus, their submenus and popup
+      // menus) is the same panel: [floatingMenuColor], [kFloatingMenuShape],
+      // no outline, at 75 % of the Material spacing (entries and panel
+      // padding). A menu must not set its own colour or shape.
       menuTheme: MenuThemeData(
         style: MenuStyle(
-          shape: const WidgetStatePropertyAll(RoundedRectangleBorder()),
+          backgroundColor: WidgetStatePropertyAll(floatingMenuColor(baseTheme.colorScheme)),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+          shape: const WidgetStatePropertyAll(kFloatingMenuShape),
           padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
           visualDensity: VisualDensity.standard,
-          backgroundColor: pureBlack ? const WidgetStatePropertyAll(Colors.black) : null,
-          side: pureBlack ? WidgetStatePropertyAll(BorderSide(color: baseTheme.colorScheme.outlineVariant)) : null,
         ),
       ),
       menuButtonTheme: const MenuButtonThemeData(
@@ -239,10 +257,9 @@ class MyTheme {
       ),
       popupMenuTheme: PopupMenuThemeData(
         menuPadding: const EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding),
-        color: pureBlack ? Colors.black : null,
-        shape: RoundedRectangleBorder(
-          side: pureBlack ? BorderSide(color: baseTheme.colorScheme.outlineVariant) : BorderSide.none,
-        ),
+        color: floatingMenuColor(baseTheme.colorScheme),
+        surfaceTintColor: Colors.transparent,
+        shape: kFloatingMenuShape,
       ),
       dialogTheme: DialogThemeData(
         elevation: 0,

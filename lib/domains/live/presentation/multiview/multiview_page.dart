@@ -972,7 +972,6 @@ class _MultiviewCellView extends StatelessWidget {
     return PopupMenuButton<int>(
       key: const ValueKey('multiview-quality-selector'),
       tooltip: i18n('select_quality'),
-      color: theme.colorScheme.surfaceContainerHighest,
       offset: const Offset(0, 5),
       position: PopupMenuPosition.under,
       onSelected: onSelectQuality,

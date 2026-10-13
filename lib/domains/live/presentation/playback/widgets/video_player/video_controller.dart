@@ -772,7 +772,13 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     _addSubscription(
       _playerManager.onLoading.distinct().listen((loading) {
         if (_isDisposed || _playerManager.hasError.value) return;
-        if (loading) _setStatus(PlayerStatus.loading);
+        if (loading) {
+          _setStatus(PlayerStatus.loading);
+        } else if (_playerManager.isPlayingNow) {
+          // Buffering ended without a new playing event: the picture's
+          // loading spinner must not stay.
+          _setStatus(PlayerStatus.playing);
+        }
       }),
     );
   }

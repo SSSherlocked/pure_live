@@ -4,6 +4,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/room_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_player.dart';
+import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_loading.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/placeholder/not_living_video_widget.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
@@ -48,6 +49,7 @@ class LivePlayVideo extends StatelessWidget {
             };
             return pageSurface ? ColoredBox(color: Colors.black, child: placeholder) : placeholder;
           }
+          final reloading = state.room.isLoading;
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -59,6 +61,37 @@ class LivePlayVideo extends StatelessWidget {
                   videoViewportAspectRatio: videoViewportAspectRatio,
                   portraitFullscreenDisplayMode: portraitFullscreenDisplayMode,
                 ),
+              ),
+              // A spinner in the middle of the picture while the stream is not
+              // playing yet (opening, 刷新, a line change, buffering), so a
+              // black picture never leaves its state unknown. It takes no
+              // pointer; the controls stay usable over it.
+              ListenableBuilder(
+                listenable: videoController,
+                builder: (context, _) {
+                  final status = videoController.status;
+                  final waiting =
+                      reloading ||
+                      status == PlayerStatus.idle ||
+                      status == PlayerStatus.loading ||
+                      status == PlayerStatus.disposed;
+                  if (!waiting) return const SizedBox.shrink();
+                  return const IgnorePointer(
+                    key: ValueKey('player-loading-spinner'),
+                    child: Center(
+                      child: SizedBox.square(
+                        dimension: 48,
+                        child: AppStatusView(
+                          type: AppStatusType.loading,
+                          title: '',
+                          subtitle: '',
+                          iconColor: Colors.white,
+                          isMini: true,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           );

@@ -1075,7 +1075,9 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                             height: 15,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : Icon(icon, size: 17, color: Colors.white),
+                        // The HQ glyph has more inner padding than the line glyph,
+                        // so it is drawn a size larger to read the same.
+                        : Icon(icon, size: icon == Icons.high_quality_rounded ? 20 : 17, color: Colors.white),
                     const SizedBox(width: 5),
                     ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: compact ? 72 : 120),

@@ -66,3 +66,15 @@ class PlayerMenuChoice extends StatelessWidget {
     );
   }
 }
+
+/// Width of a player menu whose entries carry a leading icon column
+/// (`playerMenuLeading`: arrow slot and icon) before their label: the widest
+/// of [labels] in the menu entry style plus the entry's padding, icon column
+/// and the gap after it. [context] must be inside the menu's text scope
+/// (e.g. under `CompactText`).
+double playerMenuPanelWidth(BuildContext context, Iterable<String> labels) {
+  final style = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
+  // 12 px entry padding either side, 18 + 2 + 18 px leading column, 12 px gap.
+  const chrome = 12 + 18 + 2 + 18 + 12 + 12;
+  return menuLabelWidth(context, labels, style) + chrome;
+}

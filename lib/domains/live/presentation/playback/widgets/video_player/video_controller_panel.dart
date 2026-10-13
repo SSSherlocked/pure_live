@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
@@ -402,6 +403,14 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                           leadingEntries: [
                             if (policy.roomActionsInMoreMenu)
                               LiveRoomRecordMenuEntry(controller: controller.livePlayController),
+                          ],
+                          hostEntryLabels: [
+                            if (policy.roomActionsInMoreMenu) ...[
+                              i18n('record'),
+                              i18n('recording'),
+                              i18n('monitored'),
+                              i18n('video_details'),
+                            ],
                           ],
                           trailingEntries: [
                             if (policy.roomActionsInMoreMenu)
@@ -950,6 +959,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
             icon: Icons.high_quality_rounded,
             label: status.qualityLabel,
             switching: switching,
+            choices: [for (final quality in state.qualites) quality.quality],
             entries: [
               for (var index = 0; index < state.qualites.length; index++)
                 PlayerMenuChoice(
@@ -972,6 +982,10 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
               icon: Icons.alt_route_rounded,
               label: status.lineLabel,
               switching: switching,
+              choices: [
+                for (var line = 0; line < state.lineCount; line++)
+                  i18n('toolbox_line', args: {'index': (line + 1).toString()}),
+              ],
               entries: [
                 for (var index = 0; index < state.lineCount; index++)
                   PlayerMenuChoice(
@@ -1000,9 +1014,20 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
     required IconData icon,
     required String label,
     required bool switching,
+    required List<String> choices,
     required List<Widget> entries,
   }) {
+    // The list is as wide as its longest choice (PlayerMenuChoice, in the
+    // compact roles), so it can open centred on the chip; MenuAnchor still
+    // flips it above or slides it back on screen where it does not fit.
+    final compactLabel = compactTextTheme(Theme.of(context).textTheme).labelLarge ?? const TextStyle();
+    final width = math.max(
+      64.0,
+      menuLabelWidth(context, choices, compactLabel.copyWith(fontWeight: FontWeight.w700)) + playerMenuItemPadding,
+    );
     return MenuAnchor(
+      style: const MenuStyle(alignment: Alignment.bottomCenter),
+      alignmentOffset: Offset(-width / 2, 0),
       onOpen: () {
         controller.isMenuOpen.value = true;
         controller.stopHideController();
@@ -1012,7 +1037,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
         controller.isMenuOpen.value = false;
         controller.enableController();
       },
-      menuChildren: [for (final entry in entries) CompactText(child: entry)],
+      menuChildren: [for (final entry in entries) SizedBox(width: width, child: CompactText(child: entry))],
       builder: (context, menu, _) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Material(

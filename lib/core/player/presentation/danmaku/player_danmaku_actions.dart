@@ -287,6 +287,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
     this.onPip,
     this.leadingEntries = const [],
     this.trailingEntries = const [],
+    this.hostEntryLabels = const [],
   });
 
   final MenuController menu;
@@ -296,6 +297,10 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
   /// (the live room's fullscreen 录制 submenu and 视频详情).
   final List<Widget> leadingEntries;
   final List<Widget> trailingEntries;
+
+  /// The labels [leadingEntries] and [trailingEntries] can show, for the
+  /// panel's width (a label that changes, like 录制 / 录制中, lists each).
+  final List<String> hostEntryLabels;
 
   /// Reads the room's audio-only state (an observable); with
   /// [onToggleAudioOnly] it adds the 纯音频 entry.
@@ -312,57 +317,73 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
   Widget build(BuildContext context) {
     // A dense menu: its entries use the compact text roles.
     return CompactText(
-      child: MenuAnchor(
-      controller: menu,
-      menuChildren: [
-        ...leadingEntries,
-        LeftSubmenuButton(
-          key: const ValueKey('player-more-video-fit'),
-          leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
-          labels: [for (final option in AppConsts().videoFitType) i18n(option['desc'] as String)],
-          menuChildren: [
-            for (final (index, option) in AppConsts().videoFitType.indexed)
+      child: Builder(
+        builder: (context) {
+          // Every entry is as wide as the widest, so the panel's width is known
+          // here and it can open leftwards, its right edge on the ⋯ button's.
+          final width = playerMenuPanelWidth(context, [
+            i18n('video_fit'),
+            if (isAudioOnly != null && onToggleAudioOnly != null) i18n('audio_only_mode'),
+            if (onCast != null) i18n('cast_screen'),
+            if (onPip != null) i18n('float_window_play'),
+            ...hostEntryLabels,
+          ]);
+          final entries = <Widget>[
+            ...leadingEntries,
+            LeftSubmenuButton(
+              key: const ValueKey('player-more-video-fit'),
+              leadingIcon: const Icon(Icons.aspect_ratio_rounded, size: 18),
+              labels: [for (final option in AppConsts().videoFitType) i18n(option['desc'] as String)],
+              menuChildren: [
+                for (final (index, option) in AppConsts().videoFitType.indexed)
+                  Obx(
+                    () => PlayerMenuChoice(
+                      key: ValueKey('player-video-fit-$index'),
+                      label: i18n(option['desc'] as String),
+                      labels: [for (final option in AppConsts().videoFitType) i18n(option['desc'] as String)],
+                      selected: SettingsService.to.player.resolvedVideoFitIndex == index,
+                      onPressed: () => SettingsService.to.player.videoFitIndex.v = index,
+                    ),
+                  ),
+              ],
+              child: Text(i18n('video_fit')),
+            ),
+            if (isAudioOnly != null && onToggleAudioOnly != null)
               Obx(
-                () => PlayerMenuChoice(
-                  key: ValueKey('player-video-fit-$index'),
-                  label: i18n(option['desc'] as String),
-                  labels: [for (final option in AppConsts().videoFitType) i18n(option['desc'] as String)],
-                  selected: SettingsService.to.player.resolvedVideoFitIndex == index,
-                  onPressed: () => SettingsService.to.player.videoFitIndex.v = index,
+                () => MenuItemButton(
+                  key: const ValueKey('player-more-audio-only'),
+                  // The arrow column of 画面比例 stays empty here, so the icons align.
+                  leadingIcon: playerMenuLeading(
+                    Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
+                  ),
+                  onPressed: onToggleAudioOnly,
+                  child: Text(i18n('audio_only_mode')),
                 ),
               ),
-          ],
-          child: Text(i18n('video_fit')),
-        ),
-        if (isAudioOnly != null && onToggleAudioOnly != null)
-          Obx(
-            () => MenuItemButton(
-              key: const ValueKey('player-more-audio-only'),
-              // The arrow column of 画面比例 stays empty here, so the icons align.
-              leadingIcon: playerMenuLeading(
-                Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
+            if (onCast != null)
+              MenuItemButton(
+                key: const ValueKey('player-more-cast'),
+                leadingIcon: playerMenuLeading(const Icon(Remix.tv_2_line, size: 18)),
+                onPressed: onCast,
+                child: Text(i18n('cast_screen')),
               ),
-              onPressed: onToggleAudioOnly,
-              child: Text(i18n('audio_only_mode')),
-            ),
-          ),
-        if (onCast != null)
-          MenuItemButton(
-            key: const ValueKey('player-more-cast'),
-            leadingIcon: playerMenuLeading(const Icon(Remix.tv_2_line, size: 18)),
-            onPressed: onCast,
-            child: Text(i18n('cast_screen')),
-          ),
-        if (onPip != null)
-          MenuItemButton(
-            key: const ValueKey('player-more-pip'),
-            leadingIcon: playerMenuLeading(const Icon(CustomIcons.float_window, size: 18)),
-            onPressed: onPip,
-            child: Text(i18n('float_window_play')),
-          ),
-        ...trailingEntries,
-      ],
-      child: SizedBox.fromSize(size: size),
+            if (onPip != null)
+              MenuItemButton(
+                key: const ValueKey('player-more-pip'),
+                leadingIcon: playerMenuLeading(const Icon(CustomIcons.float_window, size: 18)),
+                onPressed: onPip,
+                child: Text(i18n('float_window_play')),
+              ),
+            ...trailingEntries,
+          ];
+          return MenuAnchor(
+            controller: menu,
+            style: const MenuStyle(alignment: AlignmentDirectional.bottomEnd),
+            alignmentOffset: Offset(-width, 0),
+            menuChildren: [for (final entry in entries) SizedBox(width: width, child: entry)],
+            child: SizedBox.fromSize(size: size),
+          );
+        },
       ),
     );
   }

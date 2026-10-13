@@ -1836,5 +1836,8 @@
   "cloud_font_group_subtitle": "Download, apply or delete fonts",
   "chat_list_bubble_border_opacity": "Bubble outline opacity",
   "chat_list_bubble_fill": "Bubble background",
-  "chat_list_bubble_fill_opacity": "Background opacity"
+  "chat_list_bubble_fill_opacity": "Background opacity",
+  "share_log_file": "Share log file",
+  "share_log_file_desc": "Send the newest log file to another app",
+  "log_file_not_found": "No log file yet"
 }

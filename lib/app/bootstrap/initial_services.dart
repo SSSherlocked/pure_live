@@ -77,7 +77,8 @@ class InitialServices {
     Get.lazyPut(() => RefreshConfigController(), fenix: true);
     Get.lazyPut(() => CacheController(), fenix: true);
     Get.lazyPut(() => FontSettingsController(), fenix: true);
-    Get.lazyPut(() => LogController(), fenix: true);
+    // Eager: a switch left on resumes the log writer at launch.
+    Get.put(LogController(), permanent: true);
     Get.lazyPut(() => CookieSettingsController(), fenix: true);
     Get.put(ExitSettingsController(), permanent: true);
   }

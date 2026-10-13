@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:remixicon/remixicon.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pure_live/core/logging/app_log.dart';
@@ -59,6 +61,28 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
       if (!await FileUtils.openFileOrUrl(logDir.path)) {
         ToastUtil.show(i18n('open_log_dir_failed'));
       }
+    } catch (_) {
+      ToastUtil.show(i18n('open_log_dir_failed'));
+    }
+  }
+
+  /// Android keeps the logs under the app's own external directory, which the
+  /// system file manager cannot browse; the newest file is shared instead.
+  Future<void> _shareLatestLogFile() async {
+    try {
+      final logDir = await LogFileWriter.resolveLogDirectory();
+      if (!await logDir.exists()) {
+        ToastUtil.show(i18n('log_dir_not_exist'));
+        return;
+      }
+      final logs = await logDir.list().where((entry) => entry is File && entry.path.endsWith('.log')).toList();
+      if (logs.isEmpty) {
+        ToastUtil.show(i18n('log_file_not_found'));
+        return;
+      }
+      // File names are timestamps, so the newest sorts last.
+      logs.sort((a, b) => a.path.compareTo(b.path));
+      await SharePlus.instance.share(ShareParams(files: [XFile(logs.last.path)]));
     } catch (_) {
       ToastUtil.show(i18n('open_log_dir_failed'));
     }
@@ -194,13 +218,22 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             );
           }),
 
-          context.buildTile(
-            icon: Remix.folder_open_line,
-            title: i18n("open_log_dir"),
-            subtitle: i18n("open_log_dir_desc"),
-            isLong: true,
-            onTap: _openLogDirectory,
-          ),
+          if (Platform.isAndroid)
+            context.buildTile(
+              icon: RemixIcons.share_forward_line,
+              title: i18n("share_log_file"),
+              subtitle: i18n("share_log_file_desc"),
+              isLong: true,
+              onTap: _shareLatestLogFile,
+            )
+          else
+            context.buildTile(
+              icon: Remix.folder_open_line,
+              title: i18n("open_log_dir"),
+              subtitle: i18n("open_log_dir_desc"),
+              isLong: true,
+              onTap: _openLogDirectory,
+            ),
         ]),
       ],
     );

@@ -10,8 +10,16 @@ import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
 
 typedef LogStatusApplier = Future<bool> Function(bool enabled);
 
-class LogController extends GetxController {
+/// A service, not a page controller: the first `Get.find` happens on the
+/// backup page, and GetX's smart management deleted a route-linked controller
+/// when that page closed, which disposed the log writer mid-session and reset
+/// the switch. The switch itself is kept in Hive (local only, not backed up:
+/// it is a diagnostic for this device) so logging resumes on the next launch,
+/// which is what a cold-start problem needs.
+class LogController extends GetxService {
   LogController({LogStatusApplier? applyLogStatus}) : _applyLogStatus = applyLogStatus ?? Log.setEnabled;
+
+  static const String enableLocalLogKey = 'enableLocalLog';
 
   static LogController get to => Get.find<LogController>();
   final LogStatusApplier _applyLogStatus;
@@ -21,7 +29,7 @@ class LogController extends GetxController {
   final RxString serverAddress = ''.obs;
   final RxInt serverPort = 0.obs;
 
-  final RxBool storedEnableLog = false.obs;
+  final RxBool storedEnableLog = hiveBool(enableLocalLogKey, false);
   final RxBool _isApplyingLogStatus = false.obs;
   final RxString _logStatusKey = ''.obs;
   Worker? _logStatusWorker;
@@ -37,7 +45,6 @@ class LogController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _lastConfirmedEnabled = storedEnableLog.v;
     _logStatusWorker = ever<bool>(storedEnableLog, (value) {
       if (_internalWrite == value) {
         _internalWrite = null;
@@ -45,6 +52,9 @@ class LogController extends GetxController {
       }
       unawaited(_setLoggingEnabled(value));
     });
+    // Nothing is running yet: a switch left on resumes logging now, and a
+    // failure to do so turns the switch off again (the usual failure path).
+    if (storedEnableLog.v) unawaited(_setLoggingEnabled(true));
   }
 
   Future<bool> _setLoggingEnabled(bool enabled) {

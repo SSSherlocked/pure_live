@@ -909,7 +909,6 @@
   "download_files": "下载文件",
   "room_card_settings": "房间卡片设置",
   "room_card_settings_subtitle": "卡片布局、宽度、圆角、显示内容与网格间距",
-  "room_card_target": "应用到",
   "room_card_preview": "实时预览",
   "room_card_preview_title": "直播间预览",
   "room_card_preview_anchor": "预览主播",
@@ -934,8 +933,8 @@
   "room_card_layout_compact": "紧凑信息行",
   "room_card_corner_radius": "圆角大小",
   "room_card_corner_radius_subtitle": "同步调整卡片和封面圆角",
-  "room_card_reset_current": "重置当前布局",
-  "room_card_settings_scope_hint": "窄屏布局和宽屏布局的设置分别保存；状态核验与历史删除控件会在需要时继续显示。",
+  "room_card_reset_current": "重置当前样式",
+  "room_card_settings_scope_hint": "手机、平板和桌面的设置分别保存，这里只编辑当前这一套；状态核验与历史删除控件会在需要时继续显示。",
   "cross_axis_spacing": "列间距 (横向)",
   "cross_axis_spacing_subtitle": "调整同一行中左右卡片之间的水平缝隙",
   "main_axis_spacing": "行间距 (纵向)",
@@ -1825,8 +1824,6 @@
   "room_text_opacity": "直播间文字亮度",
   "menu_entry_visible_subtitle": "在右上角菜单中显示",
   "record_settings_desc": "录像画质、存储目录、重连与轮询",
-  "room_card_narrow": "窄屏",
-  "room_card_wide": "宽屏",
   "max_visible_count_auto": "同屏数量自动",
   "max_visible_count_auto_subtitle": "不限条数，密度由显示区域、字号和屏幕宽度决定；关闭后可手动设置上限",
   "super_chat_group": "留言",
@@ -1834,6 +1831,7 @@
   "show_super_chat_on_player_subtitle": "醒目留言在画面左下角显示 15 秒，不受画面弹幕开关影响",
   "super_chat_opacity": "留言透明度",
   "super_chat_font_scale": "留言字号",
-  "danmaku_style_editing_narrow": "当前编辑：窄屏样式（窄屏和宽屏分别保存）",
-  "danmaku_style_editing_wide": "当前编辑：宽屏样式（窄屏和宽屏分别保存）"
+  "display_profile_editing_phone": "当前编辑：手机样式（手机、平板、桌面分别保存）",
+  "display_profile_editing_tablet": "当前编辑：平板样式（手机、平板、桌面分别保存）",
+  "display_profile_editing_desktop": "当前编辑：桌面样式（手机、平板、桌面分别保存）"
 }

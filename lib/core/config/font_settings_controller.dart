@@ -9,6 +9,7 @@ import 'package:pure_live/core/platform/font_download_manager.dart';
 import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/config/cache_controller.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
+import 'package:pure_live/core/config/profiled_settings.dart';
 import 'package:pure_live/core/models/download_state.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/get/get_navigation/src/root/get_root.dart';
@@ -48,6 +49,77 @@ class FontSettingsController extends GetxController {
   final RxString fontFamilyFileName = hiveString('fontFamilyFileName', '');
   final RxString danmakuFontFamilyFileName = hiveString('danmakuFontFamilyFileName', '');
 
+  /// Hive key prefix and backup key of the per-profile settings.
+  static const String profilePrefix = 'fontProfile';
+  static const String profilesKey = 'fontProfiles';
+
+  static ProfiledSpec<double> _sizeSpec(String key, double fallback, double min, double max) =>
+      ProfiledSpec<double>(key, fallback: fallback, read: ProfiledSpec.number(min: min, max: max));
+
+  static final _textScaleSpec = _sizeSpec(
+    'textScaleFactor',
+    defaultTextScaleFactor,
+    minTextScaleFactor,
+    maxTextScaleFactor,
+  );
+  static final _bodySmallSpec = _sizeSpec(
+    'fontSizeBodySmall',
+    defaultFontSizeBodySmall,
+    minFontSizeBodySmall,
+    maxFontSizeBodySmall,
+  );
+  static final _bodyMediumSpec = _sizeSpec(
+    'fontSizeBodyMedium',
+    defaultFontSizeBodyMedium,
+    minFontSizeBodyMedium,
+    maxFontSizeBodyMedium,
+  );
+  static final _bodyLargeSpec = _sizeSpec(
+    'fontSizeBodyLarge',
+    defaultFontSizeBodyLarge,
+    minFontSizeBodyLarge,
+    maxFontSizeBodyLarge,
+  );
+  static final _titleMediumSpec = _sizeSpec(
+    'fontSizeTitleMedium',
+    defaultFontSizeTitleMedium,
+    minFontSizeTitleMedium,
+    maxFontSizeTitleMedium,
+  );
+  static final _titleLargeSpec = _sizeSpec(
+    'fontSizeTitleLarge',
+    defaultFontSizeTitleLarge,
+    minFontSizeTitleLarge,
+    maxFontSizeTitleLarge,
+  );
+
+  /// What the phone, the tablet and the desktop profile keep apart: the text
+  /// scale and the five typography sizes. The fonts themselves stay shared.
+  static List<ProfiledSpec> get profiledSpecs => [
+    _textScaleSpec,
+    _bodySmallSpec,
+    _bodyMediumSpec,
+    _bodyLargeSpec,
+    _titleMediumSpec,
+    _titleLargeSpec,
+  ];
+
+  /// The per-profile settings above; their fields always hold the active
+  /// profile's values (see [ProfiledSettings]).
+  late final ProfiledSettings profiles = ProfiledSettings(profilePrefix, [
+    _textScaleSpec.bind(textScaleFactor),
+    _bodySmallSpec.bind(fontSizeBodySmall),
+    _bodyMediumSpec.bind(fontSizeBodyMedium),
+    _bodyLargeSpec.bind(fontSizeBodyLarge),
+    _titleMediumSpec.bind(fontSizeTitleMedium),
+    _titleLargeSpec.bind(fontSizeTitleLarge),
+  ]);
+
+  /// The profile the per-profile fields hold.
+  Rx<DisplayProfile> get profile => profiles.profile;
+
+  void useProfile(DisplayProfile profile) => profiles.use(profile);
+
   final Rx<FontModel?> curFontModel = Rx<FontModel?>(null);
   final RxList<FontModel> fontList = <FontModel>[].obs;
   final Rx<DownloadState> fontState = DownloadState.notDownloaded.obs;
@@ -57,6 +129,7 @@ class FontSettingsController extends GetxController {
   void onInit() {
     super.onInit();
     _normalizeStoredTypography();
+    profiles.init();
     unawaited(ensureInitialized());
 
     _themeWorker = everAll([
@@ -137,6 +210,7 @@ class FontSettingsController extends GetxController {
   @override
   void onClose() {
     _themeWorker?.dispose();
+    profiles.dispose();
     super.onClose();
   }
 
@@ -360,12 +434,15 @@ class FontSettingsController extends GetxController {
       'fontFamilyName': fontFamilyName.v,
       'fontFamilyFileName': fontFamilyFileName.v,
       'danmakuFontFamilyFileName': danmakuFontFamilyFileName.v,
+      // The single keys above carry the active profile's values (what an
+      // older build restores); this carries all three profiles.
+      profilesKey: profiles.export(),
     };
   }
 
   /// Parse the complete section without notifying observers or persisting values.
   static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
-    return {
+    final parsed = <String, dynamic>{
       'textScaleFactor': _parseBoundedValue(
         json['textScaleFactor'],
         fallback: defaultTextScaleFactor,
@@ -406,19 +483,19 @@ class FontSettingsController extends GetxController {
       'fontFamilyFileName': (json['fontFamilyFileName'] ?? '') as String,
       'danmakuFontFamilyFileName': (json['danmakuFontFamilyFileName'] ?? '') as String,
     };
+    // A backup from before the profiles has only the single values: every
+    // profile takes them.
+    parsed[profilesKey] = ProfiledSettings.parse(profiledSpecs, json[profilesKey], legacy: (_) => parsed);
+    return parsed;
   }
 
   void fromJson(Map<String, dynamic> json) {
     final parsed = parseConfig(json);
-    textScaleFactor.v = parsed['textScaleFactor'];
-    fontSizeBodySmall.v = parsed['fontSizeBodySmall'];
-    fontSizeBodyMedium.v = parsed['fontSizeBodyMedium'];
-    fontSizeBodyLarge.v = parsed['fontSizeBodyLarge'];
-    fontSizeTitleMedium.v = parsed['fontSizeTitleMedium'];
-    fontSizeTitleLarge.v = parsed['fontSizeTitleLarge'];
     fontFamilyName.v = parsed['fontFamilyName'];
     fontFamilyFileName.v = parsed['fontFamilyFileName'];
     danmakuFontFamilyFileName.v = parsed['danmakuFontFamilyFileName'];
+    // The text scale and sizes come from the restored active profile.
+    profiles.restore(parsed[profilesKey] as Map<String, dynamic>);
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {

@@ -16,14 +16,6 @@ class RoomCardSettingsPage extends StatefulWidget {
 }
 
 class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
-  late RoomCardViewport _viewport;
-
-  @override
-  void initState() {
-    super.initState();
-    _viewport = SettingsService.to.roomCard.currentViewport;
-  }
-
   // A made-up room: the preview only draws it and never opens it.
   LiveRoom get _previewRoom => LiveRoom(
     roomId: '',
@@ -37,19 +29,16 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
   );
 
   /// Width a card gets in the 关注 grid: the fixed width when set, otherwise
-  /// the automatic column width for this window (or a typical narrow/wide
-  /// window when previewing the other layout).
+  /// the automatic column width for this window.
   double _previewCardWidth(BuildContext context, RoomCardSettingsController controller) {
-    final width = _viewport == controller.currentViewport
-        ? MediaQuery.sizeOf(context).width
-        : (_viewport == RoomCardViewport.narrow ? 390.0 : 1280.0);
+    final width = MediaQuery.sizeOf(context).width;
     final sizing = resolveRoomGridSizing(
       width: width,
       autoColumns: roomGridAutoColumns(width, dense: SettingsService.to.app.enableDenseFavorites.v),
       spacing: SettingsService.to.theme.crossAxisSpacing.v,
       basePadding: 12,
-      fixedCardWidth: controller.cardWidthFor(_viewport),
-      columns: controller.columnsFor(_viewport),
+      fixedCardWidth: controller.currentCardWidth,
+      columns: controller.currentColumns,
     );
     return sizing.itemWidth;
   }
@@ -64,32 +53,22 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
           IconButton(
             key: const ValueKey('room-card-reset'),
             tooltip: i18n('room_card_reset_current'),
-            onPressed: () => controller.reset(_viewport),
+            onPressed: controller.reset,
             icon: const Icon(Remix.restart_line),
           ),
         ],
       ),
       body: SettingsContentWidth(child: Obx(() {
-        final config = controller.configFor(_viewport);
+        final config = controller.config.value;
+        final profile = controller.profile.value;
         return ListView(
           key: const ValueKey('room-card-settings-scroll'),
           physics: const PureLiveScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            context.buildGroupTitle(i18n('room_card_target')),
-            Semantics(
-              label: i18n('room_card_target'),
-              child: Wrap(
-                key: const ValueKey('room-card-target-selector'),
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _targetChip(RoomCardViewport.narrow, Remix.smartphone_line, i18n('room_card_narrow')),
-                  _targetChip(RoomCardViewport.wide, Remix.computer_line, i18n('room_card_wide')),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
+            // Everything down to the 关注 page group is kept per display
+            // profile; this page edits the current one.
+            DisplayProfileNote(profile: controller.profile, padding: const EdgeInsets.only(bottom: 12)),
             context.buildGroupTitle(i18n('room_card_preview')),
             // Drawn at the width and density the 关注 grid gives a card, so
             // what shows here is what the grid shows.
@@ -99,10 +78,9 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 // A picture of a card, not a card: nothing in it responds.
                 child: IgnorePointer(
                   child: RoomCard(
-                    key: ValueKey('room-card-preview-${_viewport.name}'),
+                    key: ValueKey('room-card-preview-${profile.name}'),
                     room: _previewRoom,
                     dense: SettingsService.to.app.enableDenseFavorites.v,
-                    settingsViewport: _viewport,
                     interactive: false,
                   ),
                 ),
@@ -112,30 +90,30 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             context.buildGroupTitle(i18n('room_card_appearance')),
             context.buildModernCard([
               _layoutMode(controller, config),
-              // Card size: automatic (scales with the window) or a fixed width
-              // per device class; the grid then only changes its column count.
+              // Card size: automatic (scales with the window) or a fixed width;
+              // the grid then only changes its column count.
               context.buildTile(
                 icon: Remix.aspect_ratio_line,
                 title: i18n('room_card_fixed_width'),
                 subtitle: i18n('room_card_fixed_width_subtitle'),
                 trailing: Switch(
-                  key: ValueKey('room-card-fixed-width-${_viewport.name}'),
-                  value: controller.cardWidthFor(_viewport) > 0,
-                  onChanged: (on) => controller.cardWidthRxFor(_viewport).v = on
+                  key: ValueKey('room-card-fixed-width-${profile.name}'),
+                  value: controller.currentCardWidth > 0,
+                  onChanged: (on) => controller.cardWidth.v = on
                       ? RoomCardSettingsController.defaultFixedCardWidth
                       : RoomCardSettingsController.autoCardWidth,
                 ),
               ),
-              if (controller.cardWidthFor(_viewport) > 0)
+              if (controller.currentCardWidth > 0)
                 context.buildSliderTile(
                   context,
                   icon: Remix.ruler_line,
                   title: i18n('room_card_width'),
-                  value: controller.cardWidthFor(_viewport),
+                  value: controller.currentCardWidth,
                   min: RoomCardSettingsController.minCardWidth,
                   max: RoomCardSettingsController.maxCardWidth,
-                  displayValue: controller.cardWidthFor(_viewport).toStringAsFixed(0),
-                  onChanged: (value) => controller.cardWidthRxFor(_viewport).v = value.roundToDouble(),
+                  displayValue: controller.currentCardWidth.toStringAsFixed(0),
+                  onChanged: (value) => controller.cardWidth.v = value.roundToDouble(),
                 )
               else
                 // Without a fixed width the cards stretch to fill each row;
@@ -145,14 +123,13 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                   icon: Remix.layout_column_line,
                   title: i18n('room_card_columns'),
                   subtitle: i18n('room_card_columns_subtitle'),
-                  value: controller.columnsFor(_viewport).toDouble(),
+                  value: controller.currentColumns.toDouble(),
                   min: RoomCardSettingsController.autoColumns.toDouble(),
                   max: RoomCardSettingsController.maxColumns.toDouble(),
-                  displayValue: controller.columnsFor(_viewport) == RoomCardSettingsController.autoColumns
+                  displayValue: controller.currentColumns == RoomCardSettingsController.autoColumns
                       ? i18n('room_card_columns_auto')
-                      : '${controller.columnsFor(_viewport)}',
-                  onChanged: (value) =>
-                      controller.columnsRxFor(_viewport).v = RoomCardSettingsController.normalizeColumns(value),
+                      : '${controller.currentColumns}',
+                  onChanged: (value) => controller.columns.v = RoomCardSettingsController.normalizeColumns(value),
                 ),
               context.buildSliderTile(
                 context,
@@ -163,7 +140,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 min: RoomCardAppearance.minCornerRadius,
                 max: RoomCardAppearance.maxCornerRadius,
                 displayValue: config.cornerRadius.toStringAsFixed(0),
-                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(cornerRadius: value)),
+                onChanged: (value) => controller.updateConfig(config.copyWith(cornerRadius: value)),
               ),
               // Gaps between cards in the grids.
               context.buildSliderTile(
@@ -246,14 +223,14 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 title: i18n('room_card_show_avatar'),
                 subtitle: i18n('room_card_show_avatar_subtitle'),
                 value: config.showAvatar,
-                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(showAvatar: value)),
+                onChanged: (value) => controller.updateConfig(config.copyWith(showAvatar: value)),
               ),
               _toggle(
                 icon: Remix.account_circle_line,
                 title: i18n('room_card_show_anchor'),
                 subtitle: i18n('room_card_show_anchor_subtitle'),
                 value: config.showAnchorName,
-                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(showAnchorName: value)),
+                onChanged: (value) => controller.updateConfig(config.copyWith(showAnchorName: value)),
               ),
               _platformBadgeMode(controller, config),
               _toggle(
@@ -261,14 +238,14 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 title: i18n('room_card_show_audience'),
                 subtitle: i18n('room_card_show_audience_subtitle'),
                 value: config.showAudience,
-                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(showAudience: value)),
+                onChanged: (value) => controller.updateConfig(config.copyWith(showAudience: value)),
               ),
               _toggle(
                 icon: Remix.video_line,
                 title: i18n('room_card_show_replay'),
                 subtitle: i18n('room_card_show_replay_subtitle'),
                 value: config.showReplayBadge,
-                onChanged: (value) => controller.updateConfig(_viewport, config.copyWith(showReplayBadge: value)),
+                onChanged: (value) => controller.updateConfig(config.copyWith(showReplayBadge: value)),
               ),
             ]),
             const SizedBox(height: 16),
@@ -278,8 +255,8 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
               style: AppText.of(context).secondary.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
             const SizedBox(height: 20),
-            // The home page menus. Global: unlike everything above they do not
-            // change with the 窄屏/宽屏 target.
+            // The home page menus. Global: unlike the card settings they are
+            // the same in every display profile.
             context.buildGroupTitle(i18n("menu")),
             context.buildModernCard([
               for (final (menu, icon, title) in [
@@ -310,16 +287,6 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
           ],
         );
       })),
-    );
-  }
-
-  Widget _targetChip(RoomCardViewport viewport, IconData icon, String label) {
-    return ChoiceChip(
-      key: ValueKey('room-card-target-${viewport.name}'),
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-      selected: _viewport == viewport,
-      onSelected: (_) => setState(() => _viewport = viewport),
     );
   }
 
@@ -432,7 +399,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       key: ValueKey('room-card-layout-${layout.name}'),
       label: Text(label),
       selected: config.layout == layout,
-      onSelected: (_) => controller.updateConfig(_viewport, config.copyWith(layout: layout)),
+      onSelected: (_) => controller.updateConfig(config.copyWith(layout: layout)),
     );
   }
 
@@ -446,7 +413,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       key: ValueKey('room-card-platform-${mode.name}'),
       label: Text(label),
       selected: config.platformBadgeMode == mode,
-      onSelected: (_) => controller.updateConfig(_viewport, config.withPlatformBadgeMode(mode)),
+      onSelected: (_) => controller.updateConfig(config.withPlatformBadgeMode(mode)),
     );
   }
 }

@@ -2,10 +2,7 @@ import 'dart:convert';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
-
-/// Which layout a set of room-card settings applies to: the narrow (phone)
-/// layout or the wide one ([AppLayout.wide]).
-enum RoomCardViewport { narrow, wide }
+import 'package:pure_live/core/config/profiled_settings.dart';
 
 enum RoomCardPlatformBadgeMode { automatic, always, hidden }
 
@@ -249,36 +246,25 @@ class RoomCardAppearance {
 }
 
 class RoomCardSettingsController extends GetxController {
-  RoomCardSettingsController()
-    : narrowPreset = hiveString('room_card_mobile_preset', defaultPresetFor(RoomCardViewport.narrow).storageKey),
-      widePreset = hiveString('room_card_desktop_preset', RoomCardPreset.standard.storageKey),
-      narrowConfig = hiveObject<RoomCardAppearance>(
-        'room_card_mobile_config',
-        _storedPresetFallback('room_card_mobile_preset'),
-        fromJson: (json) =>
-            RoomCardAppearance.fromJson(json, fallback: _storedPresetFallback('room_card_mobile_preset')),
-        toJson: (value) => value.toJson(),
-      ),
-      wideConfig = hiveObject<RoomCardAppearance>(
-        'room_card_desktop_config',
-        _storedPresetFallback('room_card_desktop_preset'),
-        fromJson: (json) =>
-            RoomCardAppearance.fromJson(json, fallback: _storedPresetFallback('room_card_desktop_preset')),
-        toJson: (value) => value.toJson(),
-      );
-
   static RoomCardSettingsController get to => Get.find<RoomCardSettingsController>();
 
-  final RxString narrowPreset;
-  final RxString widePreset;
-  final Rx<RoomCardAppearance> narrowConfig;
-  final Rx<RoomCardAppearance> wideConfig;
+  /// Hive key prefix and backup key of the per-profile settings.
+  static const String profilePrefix = 'roomCardProfile';
+  static const String profilesKey = 'roomCardProfiles';
 
-  /// Fixed card width for room grids, per viewport. 0 keeps the automatic
-  /// layout (columns by window width, cards stretch to fill); a width keeps
-  /// every card that size and fits as many columns as the window allows.
-  final RxDouble narrowCardWidth = hiveDouble('room_card_mobile_width', autoCardWidth);
-  final RxDouble wideCardWidth = hiveDouble('room_card_desktop_width', autoCardWidth);
+  /// The card look of the active profile.
+  final Rx<RoomCardAppearance> config = Rx<RoomCardAppearance>(RoomCardAppearance.standard);
+
+  /// Fixed card width for room grids in the active profile. 0 keeps the
+  /// automatic layout (columns by window width, cards stretch to fill); a
+  /// width keeps every card that size and fits as many columns as the window
+  /// allows.
+  final RxDouble cardWidth = RxDouble(autoCardWidth);
+
+  /// Columns per row when the card width is not fixed, in the active profile.
+  /// 0 keeps the automatic count (by window width); a count keeps that many
+  /// columns and the cards stretch to fill the row.
+  final RxInt columns = RxInt(autoColumns);
 
   static const double autoCardWidth = 0;
   static const double minCardWidth = 140;
@@ -290,35 +276,59 @@ class RoomCardSettingsController extends GetxController {
     return value.clamp(minCardWidth, maxCardWidth).toDouble();
   }
 
-  RxDouble cardWidthRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.narrow ? narrowCardWidth : wideCardWidth;
-  }
-
-  double cardWidthFor(RoomCardViewport viewport) => normalizeCardWidth(cardWidthRxFor(viewport).v);
-
-  /// The fixed card width for the current layout, or 0 for automatic.
-  double get currentCardWidth => cardWidthFor(currentViewport);
-
-  /// Columns per row when the card width is not fixed, per viewport. 0 keeps
-  /// the automatic count (by window width); a count keeps that many columns
-  /// and the cards stretch to fill the row.
-  final RxInt narrowColumns = hiveInt('room_card_mobile_columns', autoColumns);
-  final RxInt wideColumns = hiveInt('room_card_desktop_columns', autoColumns);
-
   static const int autoColumns = 0;
   static const int maxColumns = 8;
 
   static int normalizeColumns(num value) =>
       value.isFinite ? value.round().clamp(autoColumns, maxColumns).toInt() : autoColumns;
 
-  RxInt columnsRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.narrow ? narrowColumns : wideColumns;
-  }
+  static final _configSpec = ProfiledSpec<RoomCardAppearance>(
+    'config',
+    fallback: RoomCardAppearance.standard,
+    read: (raw) {
+      if (raw is! Map) return null;
+      try {
+        return _normalizeConfig(RoomCardAppearance.fromJson(Map<String, dynamic>.from(raw)));
+      } catch (_) {
+        return null;
+      }
+    },
+    write: (value) => value.toJson(),
+  );
+  static final _cardWidthSpec = ProfiledSpec<double>(
+    'cardWidth',
+    fallback: autoCardWidth,
+    read: (raw) => raw is num ? normalizeCardWidth(raw.toDouble()) : null,
+  );
+  static final _columnsSpec = ProfiledSpec<int>(
+    'columns',
+    fallback: autoColumns,
+    read: ProfiledSpec.integer(normalizeColumns),
+  );
 
-  int columnsFor(RoomCardViewport viewport) => normalizeColumns(columnsRxFor(viewport).v);
+  /// What the phone, the tablet and the desktop profile keep apart: the card
+  /// look, the fixed card width and the column count. The 关注 page's
+  /// platform tabs and room order stay shared.
+  static List<ProfiledSpec> get profiledSpecs => [_configSpec, _cardWidthSpec, _columnsSpec];
 
-  /// The chosen column count for the current layout, or 0 for automatic.
-  int get currentColumns => columnsFor(currentViewport);
+  /// The per-profile settings above; [config], [cardWidth] and [columns]
+  /// always hold the active profile's values (see [ProfiledSettings]).
+  late final ProfiledSettings profiles = ProfiledSettings(profilePrefix, [
+    _configSpec.bind(config),
+    _cardWidthSpec.bind(cardWidth),
+    _columnsSpec.bind(columns),
+  ]);
+
+  /// The profile [config], [cardWidth] and [columns] hold.
+  Rx<DisplayProfile> get profile => profiles.profile;
+
+  void useProfile(DisplayProfile profile) => profiles.use(profile);
+
+  /// The fixed card width for the current profile, or 0 for automatic.
+  double get currentCardWidth => normalizeCardWidth(cardWidth.v);
+
+  /// The chosen column count for the current profile, or 0 for automatic.
+  int get currentColumns => normalizeColumns(columns.v);
 
   /// Whether the home 关注 page shows its platform tab bar; without it the
   /// page lists every platform's rooms.
@@ -328,7 +338,6 @@ class RoomCardSettingsController extends GetxController {
   final RxString favoriteSortModeName = hiveString('favorite_sort_mode', FavoriteSortMode.name.name);
 
   FavoriteSortMode get favoriteSortMode => FavoriteSortMode.fromName(favoriteSortModeName.v);
-  final List<Worker> _workers = [];
 
   static RoomCardPreset normalizePreset(String? value) {
     final key = value?.trim().toLowerCase();
@@ -338,76 +347,65 @@ class RoomCardSettingsController extends GetxController {
     );
   }
 
-  /// The narrow layout defaults to the compact rows; the wide one to cover
-  /// cards.
-  static RoomCardPreset defaultPresetFor(RoomCardViewport viewport) =>
-      viewport == RoomCardViewport.narrow ? RoomCardPreset.compact : RoomCardPreset.standard;
+  /// The phone profile defaults to the compact rows; tablet and desktop to
+  /// cover cards.
+  static RoomCardPreset defaultPresetFor(DisplayProfile profile) =>
+      profile == DisplayProfile.phone ? RoomCardPreset.compact : RoomCardPreset.standard;
 
-  static RoomCardAppearance _storedPresetFallback(String key) {
-    final stored = HivePrefUtil.getString(key);
-    if (stored == null || stored.trim().isEmpty) {
-      return RoomCardAppearance.fromPreset(
-        defaultPresetFor(key == 'room_card_mobile_preset' ? RoomCardViewport.narrow : RoomCardViewport.wide),
-      );
+  /// Hive keys of the settings kept once for the narrow and once for the wide
+  /// layout before the profiles. Read once as the profiles' seed: the narrow
+  /// set becomes the phone profile, the wide set the tablet and desktop ones.
+  static String _legacyKey(DisplayProfile profile, String name) =>
+      'room_card_${profile == DisplayProfile.phone ? 'mobile' : 'desktop'}_$name';
+
+  static Map<String, dynamic> _legacySeed(DisplayProfile profile) {
+    final storedPreset = HivePrefUtil.getString(_legacyKey(profile, 'preset'));
+    final presetFallback = RoomCardAppearance.fromPreset(
+      storedPreset == null || storedPreset.trim().isEmpty ? defaultPresetFor(profile) : normalizePreset(storedPreset),
+    );
+    var appearance = presetFallback;
+    final storedConfig = HivePrefUtil.getString(_legacyKey(profile, 'config'));
+    if (storedConfig != null && storedConfig.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(storedConfig);
+        if (decoded is Map) {
+          appearance = RoomCardAppearance.fromJson(Map<String, dynamic>.from(decoded), fallback: presetFallback);
+        }
+      } catch (_) {}
     }
-    return RoomCardAppearance.fromPreset(normalizePreset(stored));
+    return {
+      'config': _normalizeConfig(appearance).toJson(),
+      'cardWidth': HivePrefUtil.getDouble(_legacyKey(profile, 'width')) ?? autoCardWidth,
+      'columns': HivePrefUtil.getInt(_legacyKey(profile, 'columns')) ?? autoColumns,
+    };
   }
 
   @override
   void onInit() {
     super.onInit();
-    _repairTarget(RoomCardViewport.narrow);
-    _repairTarget(RoomCardViewport.wide);
-    _workers.addAll([
-      ever<String>(narrowPreset, (_) => _repairPreset(RoomCardViewport.narrow)),
-      ever<String>(widePreset, (_) => _repairPreset(RoomCardViewport.wide)),
-    ]);
+    profiles.init(seed: _legacySeed);
   }
 
   @override
   void onClose() {
-    for (final worker in _workers) {
-      worker.dispose();
-    }
-    _workers.clear();
+    profiles.dispose();
     super.onClose();
   }
 
-  /// The narrow (phone) layout uses the narrow settings, the wide layout the
-  /// wide ones. Hive and backup keys keep their historical mobile/desktop
-  /// names so existing settings and backups still load.
-  RoomCardViewport get currentViewport => AppLayout.current.wide ? RoomCardViewport.wide : RoomCardViewport.narrow;
+  RoomCardAppearance resolve() => config.value;
 
-  Rx<RoomCardAppearance> configRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.narrow ? narrowConfig : wideConfig;
-  }
+  void updateConfig(RoomCardAppearance value) => config.value = _normalizeConfig(value);
 
-  RxString presetRxFor(RoomCardViewport viewport) {
-    return viewport == RoomCardViewport.narrow ? narrowPreset : widePreset;
-  }
+  /// Puts the current profile back to its default preset.
+  void reset() => config.value = RoomCardAppearance.fromPreset(defaultPresetFor(profile.value));
 
-  RoomCardAppearance configFor(RoomCardViewport viewport) => configRxFor(viewport).value;
-
-  RoomCardAppearance resolve({RoomCardViewport? viewport}) => configFor(viewport ?? currentViewport);
-
-  RoomCardPreset presetFor(RoomCardViewport viewport) => normalizePreset(presetRxFor(viewport).value);
-
-  void applyPreset(RoomCardViewport viewport, RoomCardPreset preset) {
-    if (preset == RoomCardPreset.custom) return;
-    configRxFor(viewport).value = RoomCardAppearance.fromPreset(preset);
-    presetRxFor(viewport).v = preset.storageKey;
-  }
-
-  void updateConfig(RoomCardViewport viewport, RoomCardAppearance value) {
+  static RoomCardAppearance _normalizeConfig(RoomCardAppearance value) {
     var normalized = value.copyWith(cornerRadius: value.cornerRadius);
     if (normalized.showPlatformBadge && normalized.automaticPlatformBadge) {
       normalized = normalized.copyWith(automaticPlatformBadge: false);
     }
-    configRxFor(viewport).value = normalized;
-    presetRxFor(viewport).v = _matchingPreset(normalized).storageKey;
+    return normalized;
   }
-
-  void reset(RoomCardViewport viewport) => applyPreset(viewport, defaultPresetFor(viewport));
 
   static RoomCardPreset _matchingPreset(RoomCardAppearance config) {
     if (config == RoomCardAppearance.compact) return RoomCardPreset.compact;
@@ -416,33 +414,28 @@ class RoomCardSettingsController extends GetxController {
     return RoomCardPreset.custom;
   }
 
-  void _repairTarget(RoomCardViewport viewport) {
-    var config = configFor(viewport).copyWith(cornerRadius: configFor(viewport).cornerRadius);
-    if (config.showPlatformBadge && config.automaticPlatformBadge) {
-      config = config.copyWith(automaticPlatformBadge: false);
-    }
-    if (config != configFor(viewport)) configRxFor(viewport).value = config;
-    final canonical = _matchingPreset(config).storageKey;
-    if (presetRxFor(viewport).v != canonical) presetRxFor(viewport).v = canonical;
-  }
-
-  void _repairPreset(RoomCardViewport viewport) {
-    final canonical = _matchingPreset(configFor(viewport)).storageKey;
-    if (presetRxFor(viewport).v != canonical) presetRxFor(viewport).v = canonical;
-  }
-
   Map<String, dynamic> toJson() {
+    // The mobile/desktop keys are what an older build restores (its narrow
+    // and wide layout): the phone profile, and the tablet profile when that
+    // is the one in use, else the desktop one.
+    final mobile = profiles.mapFor(DisplayProfile.phone);
+    final desktop = profiles.mapFor(
+      profile.value == DisplayProfile.tablet ? DisplayProfile.tablet : DisplayProfile.desktop,
+    );
+    final mobileConfig = _configSpec.decode(mobile['config']);
+    final desktopConfig = _configSpec.decode(desktop['config']);
     return {
-      'mobilePreset': presetFor(RoomCardViewport.narrow).storageKey,
-      'desktopPreset': presetFor(RoomCardViewport.wide).storageKey,
-      'mobileConfig': configFor(RoomCardViewport.narrow).toJson(),
-      'desktopConfig': configFor(RoomCardViewport.wide).toJson(),
-      'mobileCardWidth': cardWidthFor(RoomCardViewport.narrow),
-      'desktopCardWidth': cardWidthFor(RoomCardViewport.wide),
-      'mobileColumns': columnsFor(RoomCardViewport.narrow),
-      'desktopColumns': columnsFor(RoomCardViewport.wide),
+      'mobilePreset': _matchingPreset(mobileConfig).storageKey,
+      'desktopPreset': _matchingPreset(desktopConfig).storageKey,
+      'mobileConfig': mobileConfig.toJson(),
+      'desktopConfig': desktopConfig.toJson(),
+      'mobileCardWidth': mobile['cardWidth'],
+      'desktopCardWidth': desktop['cardWidth'],
+      'mobileColumns': mobile['columns'],
+      'desktopColumns': desktop['columns'],
       'showFavoritePlatformTabs': showFavoritePlatformTabs.v,
       'favoriteSortMode': favoriteSortMode.name,
+      profilesKey: profiles.export(),
     };
   }
 
@@ -462,7 +455,7 @@ class RoomCardSettingsController extends GetxController {
             fallback: RoomCardAppearance.fromPreset(widePreset),
             strict: true,
           );
-    return {
+    final parsed = <String, dynamic>{
       'mobilePreset': _matchingPreset(narrow).storageKey,
       'desktopPreset': _matchingPreset(wide).storageKey,
       'mobileConfig': narrow,
@@ -476,6 +469,25 @@ class RoomCardSettingsController extends GetxController {
           : true,
       'favoriteSortMode': FavoriteSortMode.fromName(source['favoriteSortMode']).name,
     };
+    // A backup from before the profiles keeps a narrow (mobile) and a wide
+    // (desktop) set: the phone profile takes the first, tablet and desktop
+    // the second.
+    final legacyMobile = <String, dynamic>{
+      'config': narrow.toJson(),
+      'cardWidth': parsed['mobileCardWidth'],
+      'columns': parsed['mobileColumns'],
+    };
+    final legacyDesktop = <String, dynamic>{
+      'config': wide.toJson(),
+      'cardWidth': parsed['desktopCardWidth'],
+      'columns': parsed['desktopColumns'],
+    };
+    parsed[profilesKey] = ProfiledSettings.parse(
+      profiledSpecs,
+      source[profilesKey],
+      legacy: (profile) => profile == DisplayProfile.phone ? legacyMobile : legacyDesktop,
+    );
+    return parsed;
   }
 
   static int _readColumns(Map<String, dynamic> json, String key) {
@@ -513,16 +525,9 @@ class RoomCardSettingsController extends GetxController {
 
   void fromJson(Map<String, dynamic> json) {
     final parsed = parseConfig(json);
-    narrowConfig.value = parsed['mobileConfig'] as RoomCardAppearance;
-    wideConfig.value = parsed['desktopConfig'] as RoomCardAppearance;
-    narrowPreset.v = parsed['mobilePreset'] as String;
-    widePreset.v = parsed['desktopPreset'] as String;
-    narrowCardWidth.v = parsed['mobileCardWidth'] as double;
-    wideCardWidth.v = parsed['desktopCardWidth'] as double;
-    narrowColumns.v = parsed['mobileColumns'] as int;
-    wideColumns.v = parsed['desktopColumns'] as int;
     showFavoritePlatformTabs.v = parsed['showFavoritePlatformTabs'] as bool;
     favoriteSortModeName.v = parsed['favoriteSortMode'] as String;
+    profiles.restore(parsed[profilesKey] as Map<String, dynamic>);
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
@@ -538,6 +543,7 @@ class RoomCardSettingsController extends GetxController {
       'desktopColumns': parsed['desktopColumns'],
       'showFavoritePlatformTabs': parsed['showFavoritePlatformTabs'],
       'favoriteSortMode': parsed['favoriteSortMode'],
+      profilesKey: parsed[profilesKey],
     };
   }
 }

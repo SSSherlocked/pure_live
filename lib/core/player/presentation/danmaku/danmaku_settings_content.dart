@@ -179,6 +179,14 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ?widget.header,
+          // The chat list, the position and style of the danmaku on the video
+          // and the super chats on it are kept per display profile; this page
+          // edits the current one.
+          DisplayProfileNote(
+            profile: SettingsService.to.danmaku.profile,
+            color: secondaryColor,
+            padding: const EdgeInsets.only(left: 8, right: 8, bottom: _titleGap),
+          ),
           // The side panel chat list has its own text size and spacing,
           // separate from the danmaku scrolling over the video below.
           context.buildGroupTitle(i18n('chat_list_display')),
@@ -274,20 +282,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
           _buildTemplateSection(theme),
           const SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n("position")),
-          // Position and style below are kept per layout (narrow / wide).
-          Obx(
-            () => Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8, bottom: _titleGap),
-              child: Text(
-                i18n(
-                  SettingsService.to.danmaku.styleViewportWide.value
-                      ? 'danmaku_style_editing_wide'
-                      : 'danmaku_style_editing_narrow',
-                ),
-                style: AppText.of(context).secondary.copyWith(color: secondaryColor),
-              ),
-            ),
-          ),
           const SizedBox(height: _titleGap),
           reactiveCard(
             () => [

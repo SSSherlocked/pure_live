@@ -127,12 +127,14 @@ class DanmakuManager {
     workers.add(
       debounce<int>(_visualSettingsRevision, (_) => _persistVisualSettings(), time: const Duration(milliseconds: 160)),
     );
-    // The narrow and the wide layout keep their own floating-danmaku style.
-    // When the layout changes with the room open (a tablet rotating across
-    // the breakpoint, a window resized), the global fields already hold the
-    // other layout's set: take it over, so the room shows that set and its
-    // next write-back lands in it unchanged instead of copying this set over.
-    workers.add(ever<bool>(dm.styleViewportWide, (_) => _loadLayoutStyle()));
+    // The phone, tablet and desktop profiles keep their own floating-danmaku
+    // style. When the profile changes with the room open (a tablet rotating
+    // across the breakpoint, a window resized, the display mode changed), the
+    // global fields already hold the other profile's values: take them over,
+    // so the room shows them and its next write-back lands in that profile
+    // unchanged instead of copying this one over. The chat list and the super
+    // chats read the global fields directly and follow on their own.
+    workers.add(ever<DisplayProfile>(dm.profile, (_) => _loadProfileStyle()));
     var resolvedAutoFps = dm.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode);
     workers.add(
       everAll([dm.danmakuAutoFps, DisplayModeService.info, SettingsService.to.app.refreshRateModeName], (_) {
@@ -173,7 +175,7 @@ class DanmakuManager {
     SchedulerBinding.instance.scheduleFrame();
   }
 
-  void _loadLayoutStyle() {
+  void _loadProfileStyle() {
     if (_disposed) return;
     final dm = settingsService.danmaku;
     videoController.danmakuArea.value = dm.danmakuArea.v;

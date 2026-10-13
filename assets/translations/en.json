@@ -909,7 +909,6 @@
   "download_files": "Download Files",
   "room_card_settings": "Room Card Settings",
   "room_card_settings_subtitle": "Card layout, width, corners, content and grid spacing",
-  "room_card_target": "Apply to",
   "room_card_preview": "Live preview",
   "room_card_preview_title": "Live room preview",
   "room_card_preview_anchor": "Preview anchor",
@@ -934,8 +933,8 @@
   "room_card_layout_compact": "Compact row",
   "room_card_corner_radius": "Corner radius",
   "room_card_corner_radius_subtitle": "Adjust the card and cover corner radius",
-  "room_card_reset_current": "Reset current layout",
-  "room_card_settings_scope_hint": "Narrow and wide layout settings are stored independently. Status verification and history delete controls remain visible when required.",
+  "room_card_reset_current": "Reset current style",
+  "room_card_settings_scope_hint": "Phone, tablet and desktop settings are stored separately; only the current one is edited here. Status verification and history delete controls remain visible when required.",
   "cross_axis_spacing": "Horizontal Spacing",
   "cross_axis_spacing_subtitle": "Adjust the gap between items in the same row",
   "main_axis_spacing": "Vertical Spacing",
@@ -1825,8 +1824,6 @@
   "room_text_opacity": "Room text brightness",
   "menu_entry_visible_subtitle": "Show in the top-right menu",
   "record_settings_desc": "Quality, storage folder, reconnect and polling",
-  "room_card_narrow": "Narrow",
-  "room_card_wide": "Wide",
   "max_visible_count_auto": "Automatic on-screen count",
   "max_visible_count_auto_subtitle": "No count limit; the display area, font size and screen width decide the density. Turn off to set a limit",
   "super_chat_group": "Super chats",
@@ -1834,6 +1831,7 @@
   "show_super_chat_on_player_subtitle": "Super chats show at the bottom left of the picture for 15 seconds, whether or not on-screen danmaku is on",
   "super_chat_opacity": "Super chat opacity",
   "super_chat_font_scale": "Super chat text size",
-  "danmaku_style_editing_narrow": "Editing the narrow-layout style (narrow and wide are saved separately)",
-  "danmaku_style_editing_wide": "Editing the wide-layout style (narrow and wide are saved separately)"
+  "display_profile_editing_phone": "Editing the phone style (phone, tablet and desktop are saved separately)",
+  "display_profile_editing_tablet": "Editing the tablet style (phone, tablet and desktop are saved separately)",
+  "display_profile_editing_desktop": "Editing the desktop style (phone, tablet and desktop are saved separately)"
 }

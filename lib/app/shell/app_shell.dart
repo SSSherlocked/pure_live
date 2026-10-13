@@ -53,12 +53,13 @@ class AppShell extends StatelessWidget {
           mobilePlatform: PlatformUtils.isMobile,
         );
         AppLayout.current = layout;
-        // The floating-danmaku style is kept per layout. Switch the set once
-        // this frame is built: its fields are observed by widgets below, which
-        // must not be marked dirty in the middle of this build. A no-op while
-        // the layout stays the same.
+        // Display settings are kept per profile (phone, tablet, desktop).
+        // Switch them once this frame is built: their fields are observed by
+        // widgets below (and the text scale by the app above), which must not
+        // be marked dirty in the middle of this build. A no-op while the
+        // profile stays the same.
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => SettingsService.to.danmaku.useViewport(AppLayout.current.wide),
+          (_) => SettingsService.to.useProfile(DisplayProfile.of(AppLayout.current)),
         );
         return AppLayoutScope(layout: layout, child: layoutChild);
       }),

@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/core/config/profiled_settings.dart';
 
 class ThemeSettingsController extends GetxController {
   static const String defaultThemeModeName = 'System';
@@ -43,6 +44,56 @@ class ThemeSettingsController extends GetxController {
 
   DisplayMode get displayMode => DisplayMode.parse(displayModeName.v);
 
+  /// Hive key prefix and backup key of the per-profile settings.
+  static const String profilePrefix = 'themeProfile';
+  static const String profilesKey = 'themeProfiles';
+
+  static final _crossSpacingSpec = ProfiledSpec<double>(
+    'crossAxisSpacing',
+    fallback: defaultSpacing,
+    read: ProfiledSpec.number(min: minSpacing, max: maxSpacing),
+  );
+  static final _mainSpacingSpec = ProfiledSpec<double>(
+    'mainAxisSpacing',
+    fallback: defaultSpacing,
+    read: ProfiledSpec.number(min: minSpacing, max: maxSpacing),
+  );
+  static final _livePanelWidthSpec = ProfiledSpec<double>(
+    'livePanelWidth',
+    fallback: LivePanelWidth.defaultValue,
+    read: ProfiledSpec.number(min: LivePanelWidth.min, max: LivePanelWidth.max),
+  );
+  static final _fullscreenPanelWidthSpec = ProfiledSpec<double>(
+    'fullscreenPanelWidth',
+    fallback: LivePanelWidth.defaultValue,
+    read: ProfiledSpec.number(min: LivePanelWidth.min, max: LivePanelWidth.max),
+  );
+
+  /// What the phone, the tablet and the desktop profile keep apart: the gaps
+  /// between room cards and the widths of the room's and the fullscreen
+  /// player's side panels. The theme itself, the language, the side panel's
+  /// sections and the display mode stay shared.
+  static List<ProfiledSpec> get profiledSpecs => [
+    _crossSpacingSpec,
+    _mainSpacingSpec,
+    _livePanelWidthSpec,
+    _fullscreenPanelWidthSpec,
+  ];
+
+  /// The per-profile settings above; their fields always hold the active
+  /// profile's values (see [ProfiledSettings]).
+  late final ProfiledSettings profiles = ProfiledSettings(profilePrefix, [
+    _crossSpacingSpec.bind(crossAxisSpacing),
+    _mainSpacingSpec.bind(mainAxisSpacing),
+    _livePanelWidthSpec.bind(livePanelWidth),
+    _fullscreenPanelWidthSpec.bind(fullscreenPanelWidth),
+  ]);
+
+  /// The profile the per-profile fields hold.
+  Rx<DisplayProfile> get profile => profiles.profile;
+
+  void useProfile(DisplayProfile profile) => profiles.use(profile);
+
   List<LivePanelTab> get resolvedLivePanelTabOrder => LivePanelTab.decode(livePanelTabOrder.v);
 
   Set<LivePanelTab> get hiddenLivePanelTabs => LivePanelTab.decodeSet(livePanelHiddenTabs.v);
@@ -71,6 +122,7 @@ class ThemeSettingsController extends GetxController {
   void onInit() {
     super.onInit();
     _normalizeStoredTheme();
+    profiles.init();
     _workers.addAll([
       ever<String>(themeModeName, (value) => _repairString(themeModeName, value, normalizeThemeMode)),
       ever<String>(themeColorSwitch, (value) => _repairString(themeColorSwitch, value, normalizeThemeColor)),
@@ -85,6 +137,7 @@ class ThemeSettingsController extends GetxController {
       worker.dispose();
     }
     _workers.clear();
+    profiles.dispose();
     super.onClose();
   }
 
@@ -194,12 +247,15 @@ class ThemeSettingsController extends GetxController {
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
       'fullscreenPanelWidth': LivePanelWidth.normalize(fullscreenPanelWidth.v),
       'displayMode': displayMode.name,
+      // The single keys above carry the active profile's values (what an
+      // older build restores); this carries all three profiles.
+      profilesKey: profiles.export(),
     };
   }
 
   /// Parse the complete section without notifying observers or persisting values.
   static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
-    return {
+    final parsed = <String, dynamic>{
       'themeModeName': normalizeThemeMode((json['themeMode'] ?? defaultThemeModeName) as String),
       'enableDynamicTheme': (json['enableDynamicTheme'] ?? false) as bool,
       'pureBlackDark': (json['pureBlackDark'] ?? false) as bool,
@@ -215,6 +271,10 @@ class ThemeSettingsController extends GetxController {
       'fullscreenPanelWidth': _parseLivePanelWidth(json['fullscreenPanelWidth']),
       'displayMode': DisplayMode.parse(json['displayMode']).name,
     };
+    // A backup from before the profiles has only the single values: every
+    // profile takes them.
+    parsed[profilesKey] = ProfiledSettings.parse(profiledSpecs, json[profilesKey], legacy: (_) => parsed);
+    return parsed;
   }
 
   void fromJson(Map<String, dynamic> json) {
@@ -224,13 +284,11 @@ class ThemeSettingsController extends GetxController {
     pureBlackDark.v = parsed['pureBlackDark'];
     themeColorSwitch.v = parsed['themeColorSwitch'];
     languageName.v = parsed['languageName'];
-    crossAxisSpacing.v = parsed['crossAxisSpacing'];
-    mainAxisSpacing.v = parsed['mainAxisSpacing'];
     livePanelTabOrder.v = parsed['livePanelTabOrder'];
     livePanelHiddenTabs.v = parsed['livePanelHiddenTabs'];
-    livePanelWidth.v = parsed['livePanelWidth'];
-    fullscreenPanelWidth.v = parsed['fullscreenPanelWidth'];
     displayModeName.v = parsed['displayMode'];
+    // The spacing and panel widths come from the restored active profile.
+    profiles.restore(parsed[profilesKey] as Map<String, dynamic>);
   }
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
@@ -249,6 +307,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelWidth': parsed['livePanelWidth'],
       'fullscreenPanelWidth': parsed['fullscreenPanelWidth'],
       'displayMode': parsed['displayMode'],
+      profilesKey: parsed[profilesKey],
     };
   }
 

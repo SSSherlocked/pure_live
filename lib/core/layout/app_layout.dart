@@ -79,6 +79,34 @@ class AppLayout {
   int get hashCode => Object.hash(wide, pointer);
 }
 
+/// Which of the three sets of display settings (danmaku style, room cards,
+/// text sizes, live panel) applies: one per resolved [AppLayout], so a phone,
+/// a tablet and a desktop screen keep their own and never overwrite each
+/// other. [DisplayMode.auto] picks one by screen and device; the other modes
+/// force theirs.
+enum DisplayProfile {
+  /// The narrow (phone) layout.
+  phone,
+
+  /// The wide layout with touch interaction.
+  tablet,
+
+  /// The wide layout with pointer interaction.
+  desktop;
+
+  static DisplayProfile of(AppLayout layout) {
+    if (!layout.wide) return phone;
+    return layout.pointer ? desktop : tablet;
+  }
+
+  static DisplayProfile? tryParse(Object? value) {
+    for (final profile in values) {
+      if (profile.name == value) return profile;
+    }
+    return null;
+  }
+}
+
 /// Publishes the app's [AppLayout] to everything below it.
 class AppLayoutScope extends InheritedWidget {
   const AppLayoutScope({super.key, required this.layout, required super.child});

@@ -13,3 +13,4 @@ export './fitting_sheet_body.dart';
 export './adaptive_refresh_rate_scope.dart';
 export './settings_content_width.dart';
 export './floating_refresh_button.dart';
+export './display_profile_note.dart';

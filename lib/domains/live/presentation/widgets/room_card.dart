@@ -22,7 +22,6 @@ class RoomCard extends StatelessWidget {
     this.showDelete = false,
     this.onDelete,
     this.deleteTooltip,
-    this.settingsViewport,
     this.interactive = true,
     this.forceCompact = false,
     this.onSelect,
@@ -36,7 +35,6 @@ class RoomCard extends StatelessWidget {
   final bool showDelete;
   final VoidCallback? onDelete;
   final String? deleteTooltip;
-  final RoomCardViewport? settingsViewport;
 
   /// False for a picture of a card (the settings preview): no tap, long
   /// press, hover or ink, and nothing that opens a room.
@@ -531,7 +529,7 @@ class RoomCard extends StatelessWidget {
     // GridView already inserts a RepaintBoundary around every child. Avoid a
     // second composited layer per card and keep the cover clip lightweight.
     return Obx(() {
-      final resolved = SettingsService.to.roomCard.resolve(viewport: settingsViewport);
+      final resolved = SettingsService.to.roomCard.resolve();
       final config = forceCompact ? resolved.copyWith(layout: RoomCardLayout.compact) : resolved;
       final radius = config.cornerRadius;
 

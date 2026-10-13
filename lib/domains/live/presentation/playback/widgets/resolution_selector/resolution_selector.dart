@@ -85,7 +85,7 @@ class ResolutionSelector extends StatelessWidget {
                 width: menuLabelWidth(
                   context,
                   [for (final quality in state.player.qualites) quality.quality],
-                  AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700),
+                  AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w800),
                 ),
                 child: Text(
                   qualityRate.quality,
@@ -93,7 +93,7 @@ class ResolutionSelector extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppText.of(context).secondary.copyWith(
                     color: isSelected ? Get.theme.colorScheme.primary : null,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   ),
                 ),
               ),

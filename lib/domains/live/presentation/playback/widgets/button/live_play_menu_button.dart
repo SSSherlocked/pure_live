@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/core/platform/share_command_handler.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
@@ -247,12 +248,12 @@ class _LiveRoomRecordMenuEntryState extends State<LiveRoomRecordMenuEntry> {
                   key: ValueKey('player-more-record-${action.name}'),
                   leadingIcon: Icon(icon, size: 18, color: enabled ? (color ?? primary) : null),
                   onPressed: enabled ? () => unawaited(_actions.perform(action, room)) : null,
-                  child: Text(i18n(labelKey)),
+                  child: Text(i18n(labelKey), style: playerMenuLabelStyle),
                 );
               },
             ),
         ],
-        child: Text(i18n(state.labelKey), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
+        child: Text(i18n(state.labelKey), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
       );
     });
   }

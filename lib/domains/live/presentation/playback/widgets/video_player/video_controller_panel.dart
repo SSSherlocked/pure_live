@@ -424,7 +424,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                                 onPressed: () => unawaited(
                                   VideoDetailsDialog.showPanel(context, controller.livePlayController),
                                 ),
-                                child: Text(i18n('video_details'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
+                                child: Text(i18n('video_details'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
                               ),
                           ],
                         ),
@@ -1038,7 +1038,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
     final compactLabel = compactTextTheme(Theme.of(context).textTheme).labelLarge ?? const TextStyle();
     final width = math.max(
       64.0,
-      menuLabelWidth(context, choices, compactLabel.copyWith(fontWeight: FontWeight.w700)) + playerMenuItemPadding,
+      menuLabelWidth(context, choices, compactLabel.copyWith(fontWeight: FontWeight.w800)) + playerMenuItemPadding,
     );
     return MenuAnchor(
       style: const MenuStyle(alignment: Alignment.bottomCenter),

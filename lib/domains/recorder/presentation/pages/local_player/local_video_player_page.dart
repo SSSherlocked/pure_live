@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:media_core_ui/media_core_ui.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
@@ -541,7 +542,7 @@ class _RecordingMoreMenu extends StatelessWidget {
                 size: 18,
               ),
               onPressed: () => controller.isAudioOnly.toggle(),
-              child: Text(i18n('audio_only_mode')),
+              child: Text(i18n('audio_only_mode'), style: playerMenuLabelStyle),
             ),
           ),
           MenuItemButton(
@@ -551,14 +552,14 @@ class _RecordingMoreMenu extends StatelessWidget {
               final name = await controller.saveScreenshot();
               ToastUtil.show(name ?? i18n('path_or_permission_error'));
             },
-            child: Text(i18n('local_player_screenshot')),
+            child: Text(i18n('local_player_screenshot'), style: playerMenuLabelStyle),
           ),
           if (PlatformUtils.supportsPip)
             MenuItemButton(
               key: const ValueKey('local-player-more-pip'),
               leadingIcon: const Icon(Remix.picture_in_picture_line, size: 18),
               onPressed: () => unawaited(_enterRecordingPip(controller)),
-              child: Text(i18n('pip_window_play')),
+              child: Text(i18n('pip_window_play'), style: playerMenuLabelStyle),
             ),
         ],
         builder: (context, menu, _) => SizedBox(

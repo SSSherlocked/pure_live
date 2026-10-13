@@ -349,7 +349,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
                     ),
                   ),
               ],
-              child: Text(i18n('video_fit'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
+              child: Text(i18n('video_fit'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
             ),
             if (isAudioOnly != null && onToggleAudioOnly != null)
               Obx(
@@ -360,7 +360,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
                     Icon(isAudioOnly!() ? Icons.check_rounded : Icons.headphones_rounded, size: 18),
                   ),
                   onPressed: onToggleAudioOnly,
-                  child: Text(i18n('audio_only_mode'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
+                  child: Text(i18n('audio_only_mode'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
                 ),
               ),
             if (onCast != null)
@@ -368,14 +368,14 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
                 key: const ValueKey('player-more-cast'),
                 leadingIcon: playerMenuLeading(const Icon(Remix.tv_2_line, size: 18)),
                 onPressed: onCast,
-                child: Text(i18n('cast_screen'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
+                child: Text(i18n('cast_screen'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
               ),
             if (onPip != null)
               MenuItemButton(
                 key: const ValueKey('player-more-pip'),
                 leadingIcon: playerMenuLeading(const Icon(CustomIcons.float_window, size: 18)),
                 onPressed: onPip,
-                child: Text(i18n('float_window_play'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis),
+                child: Text(i18n('float_window_play'), maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: playerMenuLabelStyle),
               ),
             ...trailingEntries,
           ];

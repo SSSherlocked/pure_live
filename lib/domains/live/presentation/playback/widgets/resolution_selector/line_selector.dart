@@ -86,7 +86,7 @@ class LineSelector extends StatelessWidget {
                     for (var line = 0; line < state.player.lineCount; line++)
                       i18n("toolbox_line", args: {"index": (line + 1).toString()}),
                   ],
-                  AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700),
+                  AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w800),
                 ),
                 child: Text(
                   i18n("toolbox_line", args: {"index": (index + 1).toString()}),
@@ -94,7 +94,7 @@ class LineSelector extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppText.of(context).secondary.copyWith(
                     color: isSelected ? Get.theme.colorScheme.primary : null,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   ),
                 ),
               ),

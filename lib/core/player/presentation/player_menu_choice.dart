@@ -44,7 +44,7 @@ class PlayerMenuChoice extends StatelessWidget {
   final VoidCallback? onPressed;
 
   static TextStyle styleOf(BuildContext context) =>
-      (Theme.of(context).textTheme.labelLarge ?? const TextStyle()).copyWith(fontWeight: FontWeight.w700);
+      (Theme.of(context).textTheme.labelLarge ?? const TextStyle()).copyWith(fontWeight: FontWeight.w800);
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class PlayerMenuChoice extends StatelessWidget {
           label,
           maxLines: 1,
           textAlign: TextAlign.center,
-          style: selected ? bold.copyWith(color: colors.primary) : bold.copyWith(fontWeight: FontWeight.w500),
+          style: selected ? bold.copyWith(color: colors.primary) : bold.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -73,7 +73,7 @@ class PlayerMenuChoice extends StatelessWidget {
 /// and the gap after it. [context] must be inside the menu's text scope
 /// (e.g. under `CompactText`).
 double playerMenuPanelWidth(BuildContext context, Iterable<String> labels) {
-  final style = Theme.of(context).textTheme.labelLarge ?? const TextStyle();
+  final style = (Theme.of(context).textTheme.labelLarge ?? const TextStyle()).merge(playerMenuLabelStyle);
   // 12 px entry padding either side, 18 + 2 + 18 px leading column, 12 px gap,
   // and the trailing slot a SubmenuButton keeps after its label even with its
   // arrow drawn in front (画面比例 wrapped on phones without it), plus a
@@ -81,3 +81,7 @@ double playerMenuPanelWidth(BuildContext context, Iterable<String> labels) {
   const chrome = 12 + 18 + 2 + 18 + 12 + 12 + 16 + 4;
   return menuLabelWidth(context, labels, style) + chrome;
 }
+
+/// The label weight of a plain player menu entry (⋯ entries, submenu
+/// titles): one step above the menu default.
+const TextStyle playerMenuLabelStyle = TextStyle(fontWeight: FontWeight.w600);

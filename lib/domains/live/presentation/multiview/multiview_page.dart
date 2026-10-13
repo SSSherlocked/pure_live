@@ -1002,21 +1002,19 @@ class _MultiviewCellView extends StatelessWidget {
           ),
         ),
       ),
-      itemBuilder: (context) => [
-        for (var i = 0; i < state.qualities.length; i++)
-          PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
-            value: i,
-            child: Center(
-              child: Text(
-              state.qualities[i].quality,
-              style: AppText.of(context).body.copyWith(
-                color: i == state.qualityIndex ? theme.colorScheme.primary : null,
-                fontWeight: i == state.qualityIndex ? FontWeight.w700 : null,
-              ),
+      itemBuilder: (context) {
+        final labels = [for (final quality in state.qualities) quality.quality];
+        return [
+          for (var i = 0; i < labels.length; i++)
+            choiceMenuItem<int>(
+              context,
+              value: i,
+              label: labels[i],
+              labels: labels,
+              selected: i == state.qualityIndex,
             ),
-            ),
-          ),
-      ],
+        ];
+      },
     );
   }
 

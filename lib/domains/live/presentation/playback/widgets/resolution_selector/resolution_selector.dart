@@ -1,6 +1,5 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
-import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
@@ -71,37 +70,17 @@ class ResolutionSelector extends StatelessWidget {
           await controller.setResolution(ReloadDataType.changeQuality, newQualityIndex, state.player.currentLineIndex);
         },
         itemBuilder: (context) {
-          return List.generate(state.player.qualites.length, (index) {
-            final qualityRate = state.player.qualites[index];
-
-            final isSelected = index == currentIndex;
-
-            return PopupMenuItem<int>(height: kFloatingMenuItemHeight, 
-              value: index,
-              // Centred in the width of the longest entry; the current one bold
-              // in the primary colour.
-              // The popup menu rounds its width up in 56 px steps and lays entries
-              // out from the start: Center keeps the label centred in the panel.
-              child: Center(
-                child: SizedBox(
-                width: menuLabelWidth(
-                  context,
-                  [for (final quality in state.player.qualites) quality.quality],
-                  AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w800),
-                ),
-                child: Text(
-                  qualityRate.quality,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: AppText.of(context).secondary.copyWith(
-                    color: isSelected ? Get.theme.colorScheme.primary : null,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                ),
+          final labels = [for (final quality in state.player.qualites) quality.quality];
+          return [
+            for (var index = 0; index < labels.length; index++)
+              choiceMenuItem<int>(
+                context,
+                value: index,
+                label: labels[index],
+                labels: labels,
+                selected: index == currentIndex,
               ),
-              ),
-            );
-          });
+          ];
         },
       );
     });

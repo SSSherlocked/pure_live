@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_settings_content.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/features/settings/widgets/font_family_list.dart';
@@ -352,23 +351,12 @@ class _DisplayModeMenu extends StatelessWidget {
       onSelected: (mode) => unawaited(_apply(mode)),
       itemBuilder: (context) => [
         for (final mode in DisplayMode.values)
-          PopupMenuItem<DisplayMode>(
-            height: kFloatingMenuItemHeight,
+          choiceMenuItem<DisplayMode>(
+            context,
             value: mode,
-            // Centred in the width of the longest entry; the current one bold
-            // in the primary colour.
-            child: SizedBox(
-              width: menuLabelWidth(context, labels, AppText.of(context).secondary.copyWith(fontWeight: FontWeight.w700)),
-              child: Text(
-                i18n('display_mode_${mode.name}'),
-                maxLines: 1,
-                textAlign: TextAlign.center,
-                style: AppText.of(context).secondary.copyWith(
-                  color: mode == current ? colors.primary : null,
-                  fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ),
+            label: i18n('display_mode_${mode.name}'),
+            labels: labels,
+            selected: mode == current,
           ),
       ],
       child: ConstrainedBox(

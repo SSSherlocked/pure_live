@@ -1150,13 +1150,28 @@ class _FitButton extends StatelessWidget {
 }
 
 /// File name plus how big it is and when it was written.
-class _FileRow extends StatelessWidget {
+class _FileRow extends StatefulWidget {
   const _FileRow({required this.controller, required this.index, this.dense = false, this.onPicked});
 
   final LocalVideoPlayerController controller;
   final int index;
   final bool dense;
   final VoidCallback? onPicked;
+
+  @override
+  State<_FileRow> createState() => _FileRowState();
+}
+
+class _FileRowState extends State<_FileRow> {
+  /// The row's actions open under it, in the app's floating-menu style.
+  final MenuController _menu = MenuController();
+
+  LocalVideoPlayerController get controller => widget.controller;
+  int get index => widget.index;
+  bool get dense => widget.dense;
+  VoidCallback? get onPicked => widget.onPicked;
+
+  void _showMenu() => _menu.isOpen ? _menu.close() : _menu.open();
 
   @override
   Widget build(BuildContext context) {
@@ -1170,13 +1185,42 @@ class _FileRow extends StatelessWidget {
         if (_sizeOf(file).isNotEmpty) _sizeOf(file),
         if (_modifiedOf(file).isNotEmpty) _modifiedOf(file),
       ].join(' · ');
-      return InkWell(
+      return MenuAnchor(
+        controller: _menu,
+        style: homeMenuStyle,
+        menuChildren: [
+          homeMenuItem(
+            context,
+            icon: Icons.play_arrow_rounded,
+            text: i18n('recorder_play_video'),
+            onPressed: () => unawaited(controller.showIndex(index)),
+          ),
+          homeMenuItem(
+            context,
+            icon: Icons.folder_open_rounded,
+            text: i18n('recorder_open_task_folder'),
+            onPressed: () => unawaited(controller.openFileDir()),
+          ),
+          homeMenuItem(
+            context,
+            icon: Icons.edit_rounded,
+            text: i18n('local_player_rename'),
+            onPressed: () => unawaited(_promptRename(context, name)),
+          ),
+          homeMenuItem(
+            context,
+            icon: Icons.delete_outline_rounded,
+            text: i18n('local_player_delete'),
+            onPressed: () => unawaited(_confirmDelete(context, name)),
+          ),
+        ],
+        child: InkWell(
         onTap: () {
           unawaited(controller.showIndex(index));
           onPicked?.call();
         },
-        onLongPress: () => _showMenu(context),
-        onSecondaryTap: () => _showMenu(context),
+        onLongPress: _showMenu,
+        onSecondaryTap: _showMenu,
         child: Container(
           decoration: BoxDecoration(
             color: active ? accent.withValues(alpha: 0.12) : Colors.transparent,
@@ -1228,55 +1272,15 @@ class _FileRow extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 color: theme.colorScheme.onSurfaceVariant,
                 icon: const Icon(Icons.more_vert_rounded),
-                onPressed: () => _showMenu(context),
+                onPressed: _showMenu,
               ),
             ],
           ),
         ),
+        ),
       );
     });
   }
-
-  Future<void> _showMenu(BuildContext context) async {
-    final file = controller.videoFiles[index];
-    final name = file.uri.pathSegments.last;
-    final box = context.findRenderObject() as RenderBox?;
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (box == null || overlay == null) return;
-    final action = await showMenu<String>(
-      context: context,
-      position: RelativeRect.fromRect(
-        box.localToGlobal(Offset.zero, ancestor: overlay) & box.size,
-        Offset.zero & overlay.size,
-      ),
-      items: [
-        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'play', child: _menuRow(Icons.play_arrow_rounded, i18n('recorder_play_video'))),
-        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'open_dir', child: _menuRow(Icons.folder_open_rounded, i18n('recorder_open_task_folder'))),
-        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'rename', child: _menuRow(Icons.edit_rounded, i18n('local_player_rename'))),
-        PopupMenuItem(height: kFloatingMenuItemHeight, value: 'delete', child: _menuRow(Icons.delete_outline_rounded, i18n('local_player_delete'))),
-      ],
-    );
-    if (action == null || !context.mounted) return;
-    switch (action) {
-      case 'play':
-        await controller.showIndex(index);
-      case 'open_dir':
-        await controller.openFileDir();
-      case 'rename':
-        await _promptRename(context, name);
-      case 'delete':
-        await _confirmDelete(context, name);
-    }
-  }
-
-  Widget _menuRow(IconData icon, String text) => Row(
-    children: [
-      Icon(icon, size: 18),
-      const SizedBox(width: 10),
-      // The popup menu's own text style (the body role).
-      Text(text),
-    ],
-  );
 
   Future<void> _promptRename(BuildContext context, String name) async {
     final textController = TextEditingController(text: name);

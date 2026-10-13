@@ -279,35 +279,29 @@ class _WebDavPageState extends State<WebDavPage> {
       surfaceTintColor: Colors.transparent,
       title: Text(i18n("webdav"), style: const TextStyle(fontWeight: FontWeight.w400)),
       actions: [
-        PopupMenuButton<int>(
-          tooltip: i18n("webdav_more_actions"),
-          child: SizedBox.square(
-            dimension: kMinInteractiveDimension,
-            child: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onPrimaryContainer),
-          ),
-          onSelected: (int value) {
-            if (value == 1) {
-              controller.loadFiles();
-            } else if (value == 2) {
-              _scaffoldKey.currentState?.openEndDrawer();
-            } else if (value == 3) {
-              showWebDavHelpDialog(context);
-            }
-          },
-          itemBuilder: (BuildContext context) => [
-            PopupMenuItem(height: kFloatingMenuItemHeight, 
-              value: 1,
-              child: MenuListTile(leading: const Icon(Icons.refresh), text: i18n("webdav_refresh")),
+        // The app's floating-menu style (see the home menus).
+        MenuAnchor(
+          style: homeMenuStyle,
+          menuChildren: [
+            homeMenuItem(context, icon: Icons.refresh, text: i18n("webdav_refresh"), onPressed: controller.loadFiles),
+            homeMenuItem(
+              context,
+              icon: Icons.menu,
+              text: i18n("webdav_open_config_list"),
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
             ),
-            PopupMenuItem(height: kFloatingMenuItemHeight, 
-              value: 2,
-              child: MenuListTile(leading: const Icon(Icons.menu), text: i18n("webdav_open_config_list")),
-            ),
-            PopupMenuItem(height: kFloatingMenuItemHeight, 
-              value: 3,
-              child: MenuListTile(leading: const Icon(Remix.question_line), text: i18n("webdav_help_tutorial")),
+            homeMenuItem(
+              context,
+              icon: Remix.question_line,
+              text: i18n("webdav_help_tutorial"),
+              onPressed: () => showWebDavHelpDialog(context),
             ),
           ],
+          builder: (context, menu, _) => IconButton(
+            tooltip: i18n("webdav_more_actions"),
+            icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onPrimaryContainer),
+            onPressed: () => menu.isOpen ? menu.close() : menu.open(),
+          ),
         ),
       ],
     );
@@ -524,37 +518,40 @@ class _WebDavPageState extends State<WebDavPage> {
       ),
       trailing: Obx(() {
         final enabled = controller.canStartFileAction;
-        return PopupMenuButton<String>(
-          enabled: enabled,
-          tooltip: i18n("webdav_more_actions"),
-          child: SizedBox.square(
-            dimension: kMinInteractiveDimension,
-            child: Icon(
+        return MenuAnchor(
+          style: homeMenuStyle,
+          menuChildren: [
+            if (file.isDir != true)
+              homeMenuItem(
+                context,
+                icon: Icons.settings_backup_restore_rounded,
+                text: i18n("webdav_restore_all_settings"),
+                onPressed: () => unawaited(
+                  controller.downloadFile(
+                    file,
+                    confirmRestore: () => _showFileRestoreDialog(file),
+                    selectSections: (available) =>
+                        pickBackupSections(direction: BackupSectionDirection.import, available: available),
+                    askPassword: ({required bool retry}) async =>
+                        mounted ? askBackupDecryptionPassword(context, retry: retry) : null,
+                  ),
+                ),
+              ),
+            homeMenuItem(
+              context,
+              icon: Icons.delete_outline_rounded,
+              text: i18n("webdav_delete"),
+              onPressed: () => unawaited(controller.deleteFile(file, confirmDelete: () => _showFileDeleteDialog(file))),
+            ),
+          ],
+          builder: (context, menu, _) => IconButton(
+            tooltip: i18n("webdav_more_actions"),
+            icon: Icon(
               Icons.more_vert,
               color: enabled ? Theme.of(context).colorScheme.onSurface : Theme.of(context).disabledColor,
             ),
+            onPressed: enabled ? () => menu.isOpen ? menu.close() : menu.open() : null,
           ),
-          itemBuilder: (context) => [
-            if (file.isDir != true)
-              PopupMenuItem(height: kFloatingMenuItemHeight, value: 'RestoreAll', child: Text(i18n("webdav_restore_all_settings"))),
-            PopupMenuItem(height: kFloatingMenuItemHeight, value: 'Delete', child: Text(i18n("webdav_delete"))),
-          ],
-          onSelected: (value) {
-            if (value == 'RestoreAll') {
-              unawaited(
-                controller.downloadFile(
-                  file,
-                  confirmRestore: () => _showFileRestoreDialog(file),
-                  selectSections: (available) =>
-                      pickBackupSections(direction: BackupSectionDirection.import, available: available),
-                  askPassword: ({required bool retry}) async =>
-                      mounted ? askBackupDecryptionPassword(context, retry: retry) : null,
-                ),
-              );
-            } else if (value == 'Delete') {
-              unawaited(controller.deleteFile(file, confirmDelete: () => _showFileDeleteDialog(file)));
-            }
-          },
         );
       }),
       onTap: () => controller.onFileTap(file),

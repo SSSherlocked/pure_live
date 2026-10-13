@@ -52,21 +52,18 @@ String _labelOf(FavoriteSortMode mode) => switch (mode) {
   FavoriteSortMode.audience => i18n('favorite_sort_audience'),
 };
 
-/// The three orders, the current one bold in the primary colour.
+/// The three orders (the shared choice entry), the current one highlighted.
 List<PopupMenuEntry<FavoriteSortMode>> _sortItems(BuildContext context) {
-  final colors = Theme.of(context).colorScheme;
   final current = SettingsService.to.roomCard.favoriteSortMode;
+  final labels = [for (final mode in FavoriteSortMode.values) _labelOf(mode)];
   return [
     for (final mode in FavoriteSortMode.values)
-      PopupMenuItem<FavoriteSortMode>(height: kFloatingMenuItemHeight, 
+      choiceMenuItem<FavoriteSortMode>(
+        context,
         value: mode,
-        child: Text(
-          _labelOf(mode),
-          style: AppText.of(context).body.copyWith(
-            color: mode == current ? colors.primary : null,
-            fontWeight: mode == current ? FontWeight.w700 : FontWeight.w500,
-          ),
-        ),
+        label: _labelOf(mode),
+        labels: labels,
+        selected: mode == current,
       ),
   ];
 }

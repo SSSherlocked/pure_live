@@ -310,10 +310,12 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     return filteredSyncedRoomsForSite(currentAvailableSites[tabSiteIndex.value].id);
   }
 
-  List<LiveRoom> filteredSyncedRoomsForSite(String siteId) {
+  /// [siteId]'s rooms in the current status tab, or in [statusIndex]'s (the
+  /// neighbouring status page while it is swiped into view).
+  List<LiveRoom> filteredSyncedRoomsForSite(String siteId, {int? statusIndex}) {
     List<LiveRoom> source;
 
-    switch (tabOnlineIndex.value) {
+    switch (statusIndex ?? tabOnlineIndex.value) {
       case 0:
         source = onlineRooms;
         break;

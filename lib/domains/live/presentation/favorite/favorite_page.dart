@@ -82,6 +82,20 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
   ScrollController _scrollControllerFor(String siteId) =>
       _siteScrollControllers.putIfAbsent(siteId, () => createPureLiveScrollController());
 
+  /// The scroll controller of status page [index] (已开播 / 录播 / 未开播) when
+  /// the platform tabs are hidden and the statuses are the swiped pages.
+  ScrollController _statusScrollControllerFor(int index) => _scrollControllerFor('status_$index');
+
+  bool get _platformTabsShown => SettingsService.to.roomCard.showFavoritePlatformTabs.v;
+
+  /// With the platform tabs hidden the status pages scroll; the visible one's
+  /// controller is the active one (back-to-top, load more).
+  void _handleStatusChanged() {
+    final status = widget.controller.tabController;
+    if (_platformTabsShown || status.indexIsChanging) return;
+    widget.controller.bindActiveScrollController(_statusScrollControllerFor(status.index));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -96,7 +110,12 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
       vsync: this,
       animationDuration: pureLiveTabTransitionDuration,
     )..addListener(_handleTabChanged);
-    widget.controller.bindActiveScrollController(_scrollControllerFor(widget.availableSitesList[initialIndex].id));
+    widget.controller.tabController.addListener(_handleStatusChanged);
+    widget.controller.bindActiveScrollController(
+      _platformTabsShown
+          ? _scrollControllerFor(widget.availableSitesList[initialIndex].id)
+          : _statusScrollControllerFor(widget.controller.tabController.index),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) widget.controller.selectSiteIndex(initialIndex);
     });
@@ -113,20 +132,11 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
     controller.selectSiteIndex(tabController.index);
   }
 
-  /// A horizontal fling steps through the status tabs: left to the next,
-  /// right to the previous.
-  void _swipeStatus(double velocity) {
-    const threshold = 300.0;
-    final status = widget.controller.tabController;
-    if (status.indexIsChanging || velocity.abs() < threshold) return;
-    final next = (status.index + (velocity < 0 ? 1 : -1)).clamp(0, status.length - 1);
-    if (next != status.index) status.animateTo(next);
-  }
-
   @override
   void dispose() {
     _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
+    widget.controller.tabController.removeListener(_handleStatusChanged);
     widget.controller.bindActiveScrollController(null);
     for (final controller in _siteScrollControllers.values) {
       controller.dispose();
@@ -170,14 +180,36 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
             preserveContentWhenEmpty: true,
             contentBuilder: (context, list, _) {
               final activeSiteIndex = controller.tabSiteIndex.value;
-              final platformTabsShown = SettingsService.to.roomCard.showFavoritePlatformTabs.v;
-              final pages = TabBarView(
+              if (!_platformTabsShown) {
+                // Without the platform tabs the statuses are the pages: the
+                // list follows the finger like the platform pages do, and the
+                // status tabs above move with it.
+                const allSite = Sites.allSite;
+                final activeStatus = controller.tabOnlineIndex.value;
+                return TabBarView(
+                  key: const ValueKey('favorite-status-pages'),
+                  controller: controller.tabController,
+                  physics: const PureLiveBoundedScrollPhysics(),
+                  children: [
+                    for (var status = 0; status < controller.tabController.length; status++)
+                      Builder(
+                        key: ValueKey('favorite_status_$status'),
+                        builder: (context) => RoomGridView(
+                          siteId: allSite,
+                          scrollController: _statusScrollControllerFor(status),
+                          displayList: status == activeStatus
+                              ? list
+                              : controller.filteredSyncedRoomsForSite(allSite, statusIndex: status),
+                          emptyBuilder: (context) =>
+                              _FavoriteEmptyState(controller: controller, siteId: allSite, statusIndex: status),
+                        ),
+                      ),
+                  ],
+                );
+              }
+              return TabBarView(
                 controller: _tabController,
-                // With the platform tabs hidden a swipe changes the status
-                // tab (已开播 / 录播 / 未开播) instead; see below.
-                physics: platformTabsShown
-                    ? const PureLiveBoundedScrollPhysics()
-                    : const NeverScrollableScrollPhysics(),
+                physics: const PureLiveBoundedScrollPhysics(),
                 children: availableSitesList.asMap().entries.map((entry) {
                   final site = entry.value;
                   return Builder(
@@ -199,13 +231,6 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
                   );
                 }).toList(),
               );
-              if (platformTabsShown) return pages;
-              return GestureDetector(
-                key: const ValueKey('favorite-status-swipe'),
-                behavior: HitTestBehavior.translucent,
-                onHorizontalDragEnd: (details) => _swipeStatus(details.primaryVelocity ?? 0),
-                child: pages,
-              );
             },
           ),
         ),
@@ -215,15 +240,18 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
 }
 
 class _FavoriteEmptyState extends StatelessWidget {
-  const _FavoriteEmptyState({required this.controller, required this.siteId});
+  const _FavoriteEmptyState({required this.controller, required this.siteId, this.statusIndex});
 
   final FavoriteController controller;
   final String siteId;
 
+  /// The status page this state belongs to; null follows the status tab.
+  final int? statusIndex;
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final statusIndex = controller.tabOnlineIndex.value;
+      final statusIndex = this.statusIndex ?? controller.tabOnlineIndex.value;
       final totalForSite = controller.favoriteCountForSite(siteId);
       final globalTotal = FavoriteRoomController.to.favoriteRooms.v.length;
       final offlineForSite = controller.favoriteCountForSite(siteId, statusIndex: 2);

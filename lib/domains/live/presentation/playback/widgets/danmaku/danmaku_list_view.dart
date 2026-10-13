@@ -463,6 +463,8 @@ class DanmakuItem extends StatelessWidget {
         fontWeight: fontWeight,
         nameFontWeight: nameFontWeight,
         bubble: settings.chatListBubble.v,
+        bubbleBorderOpacity: settings.chatListBubbleBorderOpacity.v,
+        bubbleFillOpacity: settings.chatListBubbleFill.v ? settings.chatListBubbleFillOpacity.v : 0,
         colorMode: settings.resolvedChatListColorMode,
         colorName: settings.chatListColorName.v,
         showAvatar: settings.chatListShowAvatar.v,
@@ -481,6 +483,8 @@ class DanmakuItem extends StatelessWidget {
     required FontWeight fontWeight,
     required FontWeight nameFontWeight,
     required bool bubble,
+    required double bubbleBorderOpacity,
+    required double bubbleFillOpacity,
     required ChatListColorMode colorMode,
     required bool colorName,
     required bool showAvatar,
@@ -492,10 +496,18 @@ class DanmakuItem extends StatelessWidget {
     final repeated = repeats > 1;
     final card = DecoratedBox(
       decoration: bubble
-          // An outline only: the list's own background shows through.
+          // An outline at its own opacity, and a background fill only when
+          // switched on (off, the list's own background shows through).
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+              color: bubbleFillOpacity > 0
+                  ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: bubbleFillOpacity)
+                  : null,
+              border: bubbleBorderOpacity > 0
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: bubbleBorderOpacity),
+                    )
+                  : null,
             )
           : const BoxDecoration(),
       child: Padding(

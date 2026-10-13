@@ -1834,5 +1834,8 @@
   "display_profile_editing_phone": "Editing the phone style (phone, tablet and desktop are saved separately)",
   "display_profile_editing_tablet": "Editing the tablet style (phone, tablet and desktop are saved separately)",
   "display_profile_editing_desktop": "Editing the desktop style (phone, tablet and desktop are saved separately)",
-  "cloud_font_group_subtitle": "Download, apply or delete fonts"
+  "cloud_font_group_subtitle": "Download, apply or delete fonts",
+  "chat_list_bubble_border_opacity": "Bubble outline opacity",
+  "chat_list_bubble_fill": "Bubble background",
+  "chat_list_bubble_fill_opacity": "Background opacity"
 }

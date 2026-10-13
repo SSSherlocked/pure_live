@@ -899,7 +899,7 @@ class _RecordingControlBar extends StatelessWidget {
                       return SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: 3,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.4),
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
                           overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
                           activeTrackColor: primary,
                           inactiveTrackColor: Colors.white24,

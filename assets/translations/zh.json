@@ -1834,5 +1834,8 @@
   "display_profile_editing_phone": "当前编辑：手机样式（手机、平板、桌面分别保存）",
   "display_profile_editing_tablet": "当前编辑：平板样式（手机、平板、桌面分别保存）",
   "display_profile_editing_desktop": "当前编辑：桌面样式（手机、平板、桌面分别保存）",
-  "cloud_font_group_subtitle": "下载、应用或删除字体"
+  "cloud_font_group_subtitle": "下载、应用或删除字体",
+  "chat_list_bubble_border_opacity": "气泡边框透明度",
+  "chat_list_bubble_fill": "气泡背景色",
+  "chat_list_bubble_fill_opacity": "背景透明度"
 }

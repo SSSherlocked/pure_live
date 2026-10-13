@@ -51,7 +51,7 @@ class CompactPlaybackProgress extends StatelessWidget {
                   : SliderTheme(
                       data: SliderTheme.of(context).copyWith(
                         trackHeight: 3,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.8),
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 3.4),
                         overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
                       ),
                       child: Slider(

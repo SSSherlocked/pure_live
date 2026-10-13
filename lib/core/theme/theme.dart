@@ -135,12 +135,12 @@ class MyTheme {
 
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
-      // A smaller drag halo makes every slider 32 px tall instead of 48; the
-      // thumb itself keeps its size.
+      // A smaller drag halo makes every slider about 22 px tall instead of 48;
+      // the thumb shrinks with it.
       sliderTheme: baseTheme.sliderTheme.copyWith(
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-        // 20 % smaller than Material's 10 px thumb.
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 11.2),
+        // Thumb and drag halo 30 % below the previous 8 / 16 px.
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.6),
       ),
       pageTransitionsTheme: appPageTransitionsTheme,
       appBarTheme: AppBarTheme(

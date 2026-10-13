@@ -4,15 +4,21 @@ description: >
   so every build, installer and file name reads it, and reports it. The
   workflow's `version` input is the source; empty keeps the pubspec version.
   With require_notes (a release) the version must have a RELEASE_NOTES.md
-  section and must not be released already (no v<version> tag), so such a
-  release fails before anything is built.
+  section; with unreleased it must not be released already (no v<version>
+  tag), so a release of a published version fails before anything is built.
+  Only the build jobs pass unreleased: publishing and the write-back run
+  after the tag exists.
 inputs:
   version:
     description: Version to build (a leading v is accepted).
     required: false
     default: ""
   require_notes:
-    description: Fail unless RELEASE_NOTES.md has this version's section and its tag does not exist yet.
+    description: Fail unless RELEASE_NOTES.md has this version's section.
+    required: false
+    default: "false"
+  unreleased:
+    description: Fail when the version's tag already exists.
     required: false
     default: "false"
 outputs:
@@ -36,6 +42,7 @@ runs:
       env:
         VERSION_INPUT: ${{ inputs.version }}
         REQUIRE_NOTES: ${{ inputs.require_notes }}
+        UNRELEASED: ${{ inputs.unreleased }}
         # The notes are Chinese; Windows consoles are not UTF-8 by default.
         PYTHONIOENCODING: utf-8
       run: |
@@ -43,14 +50,16 @@ runs:
         # Windows runners name it python; elsewhere python3 is the safe name.
         if [[ "${RUNNER_OS:-}" == "Windows" ]]; then py=python; else py=python3; fi
         "$py" tool/release_version.py stamp --version "$VERSION_INPUT"
+        version=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//')
         if [[ "$REQUIRE_NOTES" == "true" ]]; then
-          version=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//')
           if ! "$py" tool/release_version.py notes --version "$version" > /dev/null; then
             echo "::error::RELEASE_NOTES.md has no '# Pure Live v$version' section. Write the notes first."
             exit 1
           fi
-          # A published version is never released again: its tag already
-          # exists, and a second run would silently replace its assets.
+        fi
+        # A published version is never built again: a second run would
+        # silently replace its assets.
+        if [[ "$UNRELEASED" == "true" ]]; then
           if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null 2>&1; then
             echo "::error::v$version is already released. Enter a new version."
             exit 1

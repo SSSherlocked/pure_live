@@ -132,6 +132,7 @@ jobs:
         with:
           version: ${{ inputs.version }}
           require_notes: ${{ inputs.create_release }}
+          unreleased: ${{ inputs.create_release }}
       - name: Configure Android signing
         shell: bash
         env:
@@ -214,6 +215,7 @@ jobs:
         with:
           version: ${{ inputs.version }}
           require_notes: ${{ inputs.create_release }}
+          unreleased: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -374,6 +376,7 @@ jobs:
         with:
           version: ${{ inputs.version }}
           require_notes: ${{ inputs.create_release }}
+          unreleased: ${{ inputs.create_release }}
       - name: Verify Flutter SDK
         run: flutter --version
       - name: Resolve packages
@@ -464,6 +467,7 @@ jobs:
         with:
           version: ${{ inputs.version }}
           require_notes: ${{ inputs.create_release }}
+          unreleased: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -577,6 +581,7 @@ jobs:
         with:
           version: ${{ inputs.version }}
           require_notes: ${{ inputs.create_release }}
+          unreleased: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -787,59 +792,11 @@ jobs:
           BUILT: >-
             ${{ inputs.build_android && 'android,' || '' }}${{ inputs.build_windows && 'windows,' || '' }}${{ inputs.build_linux && 'linux,' || '' }}${{ inputs.build_macos && 'macos,' || '' }}${{ inputs.build_ios && 'ios' || '' }}
         run: python3 tool/release_version.py feed --built "$BUILT"
+      # The same index the scheduled 更新历史发布数据 workflow writes.
       - name: Update assets/releases.json
         env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 <<'PY'
-          import json
-          import os
-          import subprocess
-          from pathlib import Path
-          tag = os.environ["RELEASE_TAG"]
-          result = subprocess.run(
-              [
-                  "gh",
-                  "release",
-                  "view",
-                  tag,
-                  "--json",
-                  "tagName,name,url,publishedAt,isDraft,isPrerelease,assets"
-              ],
-              check=True,
-              capture_output=True,
-              text=True,
-          )
-          release = json.loads(result.stdout)
-          path = Path("assets/releases.json")
-          if path.exists():
-              data = json.loads(path.read_text(encoding="utf-8"))
-          else:
-              data = {}
-          if isinstance(data, dict) and isinstance(data.get("releases"), list):
-              releases = data["releases"]
-          elif isinstance(data, list):
-              releases = data
-              data = {"releases": releases}
-          else:
-              releases = []
-              data = {"releases": releases}
-          releases[:] = [
-              item for item in releases
-              if not (
-                  isinstance(item, dict)
-                  and item.get("tagName") == tag
-              )
-          ]
-          releases.insert(0, release)
-          path.write_text(
-              json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          PY
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tool/update_releases.py
       - name: Commit and push the version and indexes
         shell: bash
         env:

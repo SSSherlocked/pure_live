@@ -4,7 +4,6 @@ import 'package:pure_live/core/widgets/refresh_indicators.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
 
 /// Pull-to-refresh belongs to every layout except the desktop one (wide + pointer):
 /// a touch tablet keeps it, while the desktop layout reloads from the page's
@@ -35,7 +34,6 @@ class RoomGridView extends GetView<FavoriteController> {
           final dense = SettingsService.to.app.enableDenseFavorites.v;
           final spacing = SettingsService.to.theme.crossAxisSpacing.v;
           final mainAxisSpacing = SettingsService.to.theme.mainAxisSpacing.v;
-          final roomCardAppearance = SettingsService.to.roomCard.resolve();
           final isVerifyingFavorites = controller.isVerifyingFavorites.value;
           final crossAxisCount = roomGridAutoColumns(width, dense: dense);
           final sizing = resolveRoomGridSizing(
@@ -69,39 +67,61 @@ class RoomGridView extends GetView<FavoriteController> {
               );
             }
 
-            final itemWidth = sizing.itemWidth;
-            return GridView.builder(
-              padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding, vertical: 12),
+            // Rows as tall as their cards, like 热门: a fixed grid extent that
+            // disagreed with the card (a stale layout, a resolved appearance
+            // other than the one drawn) left each card centred in a taller
+            // cell, with a band of empty space under every row.
+            final columns = sizing.columns;
+            final rows = (displayList.length + columns - 1) ~/ columns;
+            Widget card(LiveRoom room) => RoomCard(
+              key: ValueKey('${room.platform}:${room.roomId}'),
+              room: room,
+              dense: dense,
+              statusPending: isVerifyingFavorites || room.isLiveStatusPending,
+              statusPendingLabel: isVerifyingFavorites
+                  ? i18n('favorite_status_verifying')
+                  : i18n('favorite_status_unknown'),
+            );
+            return CustomScrollView(
               controller: scrollController,
               physics: physics,
               scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
-              addAutomaticKeepAlives: false,
-              addRepaintBoundaries: true,
+              semanticChildCount: displayList.length,
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: sizing.columns,
-                crossAxisSpacing: spacing,
-                mainAxisSpacing: mainAxisSpacing,
-                mainAxisExtent: RoomCardLayoutMetrics.gridMainAxisExtent(
-                  itemWidth: itemWidth,
-                  appearance: roomCardAppearance,
-                  dense: dense,
-                  textScaler: MediaQuery.textScalerOf(context),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding, vertical: 12),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, row) => Padding(
+                        padding: EdgeInsets.only(bottom: row + 1 < rows ? mainAxisSpacing : 0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var column = 0; column < columns; column++) ...[
+                              if (column > 0) SizedBox(width: spacing),
+                              Expanded(
+                                child: row * columns + column < displayList.length
+                                    ? RepaintBoundary(
+                                        child: IndexedSemantics(
+                                          index: row * columns + column,
+                                          child: card(displayList[row * columns + column]),
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      childCount: rows,
+                      addAutomaticKeepAlives: false,
+                      addRepaintBoundaries: false,
+                      addSemanticIndexes: false,
+                    ),
+                  ),
                 ),
-              ),
-              itemCount: displayList.length,
-              itemBuilder: (context, index) {
-                final room = displayList[index];
-                return RoomCard(
-                  key: ValueKey('${room.platform}:${room.roomId}'),
-                  room: room,
-                  dense: dense,
-                  statusPending: isVerifyingFavorites || room.isLiveStatusPending,
-                  statusPendingLabel: isVerifyingFavorites
-                      ? i18n('favorite_status_verifying')
-                      : i18n('favorite_status_unknown'),
-                );
-              },
+              ],
             );
           }
 

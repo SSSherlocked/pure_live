@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 
 /// Height of a floating menu entry (popup menus, the home and player menus):
 /// 75 % of the 48 px Material default, which read as too airy.
@@ -6,7 +7,6 @@ const double kFloatingMenuItemHeight = 36;
 
 /// Top and bottom padding of a floating menu panel (75 % of the default 8).
 const double kFloatingMenuVerticalPadding = 6;
-import 'package:pure_live/core/platform/platform_utils.dart';
 
 const PageTransitionsTheme appPageTransitionsTheme = PageTransitionsTheme(
   builders: <TargetPlatform, PageTransitionsBuilder>{

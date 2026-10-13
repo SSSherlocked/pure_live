@@ -139,7 +139,13 @@ class DanmakuSettingsController extends GetxController {
 
   static const int massModeMaxVisibleCount = 1000;
 
-  int get effectiveMaxVisibleCount => danmakuMassMode.v ? massModeMaxVisibleCount : danmakuMaxVisibleCount.v;
+  /// 同屏数量自动: no count limit of its own; the lanes (display area, font
+  /// size, screen width) decide how many fit. Off, [danmakuMaxVisibleCount]
+  /// applies - a density or low-end-device limit.
+  final RxBool danmakuAutoMaxVisible = hiveBool('danmakuAutoMaxVisible', true);
+
+  int get effectiveMaxVisibleCount =>
+      danmakuMassMode.v || danmakuAutoMaxVisible.v ? massModeMaxVisibleCount : danmakuMaxVisibleCount.v;
 
   final RxDouble danmakuLetterSpacing = hiveDouble('danmakuLetterSpacing', 0.0);
   final RxInt danmakuFps = hiveInt('danmakuFps', defaultDanmakuFps);
@@ -259,6 +265,7 @@ class DanmakuSettingsController extends GetxController {
       'danmakuFontBorder': danmakuFontBorder.v,
       'danmakuLetterSpacing': danmakuLetterSpacing.v,
       'danmakuRealtimeMode': danmakuMassMode.v,
+      'danmakuAutoMaxVisible': danmakuAutoMaxVisible.v,
       'danmakuOpacity': danmakuOpacity.v,
       'danmakuFontFamilyName': danmakuFontFamilyName.v,
       'enableDanmakuStroke': enableDanmakuStroke.v,
@@ -332,6 +339,7 @@ class DanmakuSettingsController extends GetxController {
         _boundedDouble(json['danmakuLetterSpacing'], fallback: 0.0, min: -2, max: 8),
       ),
       'danmakuRealtimeMode': typed<bool>(json['danmakuRealtimeMode'] ?? false),
+      'danmakuAutoMaxVisible': typed<bool>(json['danmakuAutoMaxVisible'] ?? true),
       'danmakuOpacity': typed<double>(
         _boundedDouble(json['danmakuOpacity'], fallback: defaultDanmakuOpacity, min: 0, max: 1),
       ),
@@ -395,6 +403,7 @@ class DanmakuSettingsController extends GetxController {
     danmakuFontBorder.v = parsed['danmakuFontBorder'];
     danmakuLetterSpacing.v = parsed['danmakuLetterSpacing'];
     danmakuMassMode.v = parsed['danmakuRealtimeMode'];
+    danmakuAutoMaxVisible.v = parsed['danmakuAutoMaxVisible'];
     danmakuOpacity.v = parsed['danmakuOpacity'];
     danmakuFontFamilyName.v = parsed['danmakuFontFamilyName'];
     enableDanmakuStroke.v = parsed['enableDanmakuStroke'];
@@ -468,6 +477,7 @@ class DanmakuSettingsController extends GetxController {
       'danmakuOpacity': _boundedDouble(danmaku['danmakuOpacity'], fallback: defaultDanmakuOpacity, min: 0, max: 1),
       'danmakuLetterSpacing': _boundedDouble(danmaku['danmakuLetterSpacing'], fallback: 0.0, min: -2, max: 8),
       'danmakuRealtimeMode': danmaku['danmakuRealtimeMode'] ?? false,
+      'danmakuAutoMaxVisible': danmaku['danmakuAutoMaxVisible'] ?? true,
       'danmakuFontFamilyName': danmaku['danmakuFontFamilyName'] ?? 'Default',
       'enableDanmakuStroke': danmaku['enableDanmakuStroke'] ?? true,
       'danmakuFps': _boundedInt(danmaku['danmakuFps'], fallback: defaultDanmakuFps, min: 30, max: 240),

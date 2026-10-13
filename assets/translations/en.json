@@ -1843,5 +1843,7 @@
   "menu_entry_visible_subtitle": "Show in the top-right menu",
   "record_settings_desc": "Quality, storage folder, reconnect and polling",
   "room_card_narrow": "Narrow",
-  "room_card_wide": "Wide"
+  "room_card_wide": "Wide",
+  "max_visible_count_auto": "Automatic on-screen count",
+  "max_visible_count_auto_subtitle": "No count limit; the display area, font size and screen width decide the density. Turn off to set a limit"
 }

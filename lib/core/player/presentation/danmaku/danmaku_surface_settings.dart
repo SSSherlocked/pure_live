@@ -50,6 +50,8 @@ abstract interface class DanmakuSettingsSource {
 
   RxInt get danmakuMaxVisibleCount;
 
+  RxBool get danmakuAutoMaxVisible;
+
   RxDouble get danmakuOpacity;
 
   RxBool get pipDanmakuScaleAuto;
@@ -110,6 +112,9 @@ class SettingsDanmakuSource implements DanmakuSettingsSource {
 
   @override
   RxInt get danmakuMaxVisibleCount => _settings.danmakuMaxVisibleCount;
+
+  @override
+  RxBool get danmakuAutoMaxVisible => _settings.danmakuAutoMaxVisible;
 
   @override
   RxDouble get danmakuOpacity => _settings.danmakuOpacity;

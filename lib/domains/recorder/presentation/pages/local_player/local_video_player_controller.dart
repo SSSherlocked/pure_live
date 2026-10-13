@@ -720,6 +720,9 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   RxInt get danmakuMaxVisibleCount => _danmakuSettings.danmakuMaxVisibleCount;
 
   @override
+  RxBool get danmakuAutoMaxVisible => _danmakuSettings.danmakuAutoMaxVisible;
+
+  @override
   RxDouble get danmakuOpacity => _danmakuSettings.danmakuOpacity;
 
   @override

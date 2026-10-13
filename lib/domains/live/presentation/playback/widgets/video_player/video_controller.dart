@@ -437,6 +437,8 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   @override
   RxInt get danmakuMaxVisibleCount => SettingsService.to.danmaku.danmakuMaxVisibleCount;
   @override
+  RxBool get danmakuAutoMaxVisible => SettingsService.to.danmaku.danmakuAutoMaxVisible;
+  @override
   final enableDanmakuStroke = true.obs;
   @override
   final danmakuFps = 60.obs;

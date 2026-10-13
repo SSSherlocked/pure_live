@@ -1843,5 +1843,7 @@
   "menu_entry_visible_subtitle": "在右上角菜单中显示",
   "record_settings_desc": "录像画质、存储目录、重连与轮询",
   "room_card_narrow": "窄屏",
-  "room_card_wide": "宽屏"
+  "room_card_wide": "宽屏",
+  "max_visible_count_auto": "同屏数量自动",
+  "max_visible_count_auto_subtitle": "不限条数，密度由显示区域、字号和屏幕宽度决定；关闭后可手动设置上限"
 }

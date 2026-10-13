@@ -524,6 +524,25 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
           const SizedBox(height: _titleGap),
           reactiveCard(
             () => [
+              // One setting shown as its two states, after Simple Live: the
+              // 留言 list keeps every super chat, or each leaves when its
+              // countdown ends. Turning either on turns the other off.
+              _switch(
+                theme,
+                title: i18n('super_chat_pinned'),
+                subtitle: i18n('super_chat_pinned_subtitle'),
+                value: SettingsService.to.danmaku.superChatPinned.value,
+                onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = v,
+                labelColor: labelColor,
+              ),
+              _switch(
+                theme,
+                title: i18n('super_chat_countdown'),
+                subtitle: i18n('super_chat_countdown_subtitle'),
+                value: !SettingsService.to.danmaku.superChatPinned.value,
+                onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = !v,
+                labelColor: labelColor,
+              ),
               _switch(
                 theme,
                 title: i18n('show_super_chat_on_player'),

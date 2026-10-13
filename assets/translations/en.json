@@ -1839,5 +1839,9 @@
   "chat_list_bubble_fill_opacity": "Background opacity",
   "share_log_file": "Share log file",
   "share_log_file_desc": "Send the newest log file to another app",
-  "log_file_not_found": "No log file yet"
+  "log_file_not_found": "No log file yet",
+  "super_chat_pinned": "Keep super chats",
+  "super_chat_pinned_subtitle": "The super chat list keeps every super chat until you leave the room",
+  "super_chat_countdown": "Normal countdown",
+  "super_chat_countdown_subtitle": "Each super chat leaves the list when its countdown ends"
 }

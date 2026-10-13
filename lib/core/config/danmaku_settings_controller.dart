@@ -81,6 +81,11 @@ class DanmakuSettingsController extends GetxController {
   /// room's picture. Independent of the danmaku overlay toggle.
   final RxBool showSuperChatOnPlayer = hiveBool('showSuperChatOnPlayer', true);
 
+  /// 留言板常驻: the room's 留言 list keeps every super chat until the room
+  /// closes. Off (正常倒计时, the default) a super chat leaves the list when
+  /// its countdown ends. After Simple Live.
+  final RxBool superChatPinned = hiveBool('superChatPinned', false);
+
   /// 留言透明度: opacity of the super chat cards on the picture, 30%-100% in
   /// 5% steps.
   final RxDouble superChatOpacity = hiveDouble('superChatOpacity', defaultSuperChatOpacity);
@@ -524,6 +529,7 @@ class DanmakuSettingsController extends GetxController {
     return {
       'hideDanmaku': hideDanmaku.v,
       'showSuperChatOnPlayer': showSuperChatOnPlayer.v,
+      'superChatPinned': superChatPinned.v,
       'superChatOpacity': normalizeSuperChatOpacity(superChatOpacity.v),
       'superChatFontScale': normalizeSuperChatFontScale(superChatFontScale.v),
       'chatListFontSize': chatListFontSize.v,
@@ -582,6 +588,7 @@ class DanmakuSettingsController extends GetxController {
     final parsed = <String, dynamic>{
       'hideDanmaku': typed<bool>(json['hideDanmaku'] ?? false),
       'showSuperChatOnPlayer': typed<bool>(json['showSuperChatOnPlayer'] ?? true),
+      'superChatPinned': typed<bool>(json['superChatPinned'] ?? false),
       'superChatOpacity': typed<double>(normalizeSuperChatOpacity(json['superChatOpacity'])),
       'superChatFontScale': typed<double>(normalizeSuperChatFontScale(json['superChatFontScale'])),
       'chatListFontSize': typed<double>(
@@ -687,6 +694,7 @@ class DanmakuSettingsController extends GetxController {
     final parsed = parseConfig(json);
     hideDanmaku.v = parsed['hideDanmaku'];
     showSuperChatOnPlayer.v = parsed['showSuperChatOnPlayer'];
+    superChatPinned.v = parsed['superChatPinned'];
     danmakuMaxVisibleCount.v = parsed['danmakuMaxVisibleCount'];
     noEmojiMode.v = parsed['noEmojiMode'];
     // The per-profile fields come from the restored active profile below.
@@ -715,6 +723,7 @@ class DanmakuSettingsController extends GetxController {
     final extracted = <String, dynamic>{
       'hideDanmaku': danmaku['hideDanmaku'] ?? false,
       'showSuperChatOnPlayer': danmaku['showSuperChatOnPlayer'] ?? true,
+      'superChatPinned': danmaku['superChatPinned'] ?? false,
       'superChatOpacity': normalizeSuperChatOpacity(danmaku['superChatOpacity']),
       'superChatFontScale': normalizeSuperChatFontScale(danmaku['superChatFontScale']),
       'chatListFontSize': _boundedDouble(

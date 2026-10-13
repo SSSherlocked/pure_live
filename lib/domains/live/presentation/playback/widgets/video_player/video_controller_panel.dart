@@ -248,9 +248,14 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                     );
                   }),
                   // 在播放器中显示留言: bottom left, above the bottom bar and
-                  // below the top bar, in every layout. It takes no pointer.
+                  // below the top bar. It takes no pointer. The small inline
+                  // player of a phone leaves super chats to the 留言 tab below
+                  // it, whatever the setting; fullscreen shows them.
                   Builder(
                     builder: (context) {
+                      if (AppLayout.of(context).phone && !requiresSystemFullscreenExit(screenMode)) {
+                        return const SizedBox.shrink();
+                      }
                       final insets = playerBarInsets(
                         context,
                         portraitFullscreen: screenMode == VideoMode.portraitFullscreen,

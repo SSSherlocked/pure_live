@@ -182,7 +182,18 @@ class LivePlayController extends GetxController
       ? SettingsService.to.theme.visibleLivePanelTabs
       : LivePanelTab.defaultOrder;
 
-  late final List<String> tabs = [for (final tab in panelTabs) i18n(tab.shortLabelKey)];
+  /// The side panel's tab labels. 留言 carries the room's super chat count,
+  /// 留言(3); with none it is plain 留言. Reads [superChats], so an [Obx]
+  /// building the tab bar follows the count.
+  List<String> get tabs {
+    final superChatCount = superChats.length;
+    return [
+      for (final tab in panelTabs)
+        tab == LivePanelTab.superChat && superChatCount > 0
+            ? '${i18n(tab.shortLabelKey)}($superChatCount)'
+            : i18n(tab.shortLabelKey),
+    ];
+  }
 
   /// Brings [tab] of the side panel to the front. False when the room has no
   /// side panel (IPTV) or no such section, so the caller can fall back.
@@ -206,6 +217,7 @@ class LivePlayController extends GetxController
   Timer? _danmakuFlushTimer;
   Worker? _pipStateWorker;
   Worker? _screenKeepOnWorker;
+  Worker? _superChatPinnedWorker;
   late final DanmakuPresentationRecovery _danmakuPresentationRecovery;
   bool _wasInSystemPip = false;
   bool _wasBackgrounded = false;
@@ -300,6 +312,8 @@ class LivePlayController extends GetxController
     // reachable through the global Rx callback together with its 500-message
     // history, player controller and render caches.
     _screenKeepOnWorker = ever(SettingsService.to.app.enableScreenKeepOn, (_) => _updateWakelock());
+    // 留言板常驻 off again: the super chats whose countdown has ended go now.
+    _superChatPinnedWorker = ever(SettingsService.to.danmaku.superChatPinned, (_) => _removeExpiredSuperChats());
 
     _updateWakelock();
   }
@@ -475,6 +489,13 @@ class LivePlayController extends GetxController
   }
 
   void _removeExpiredSuperChats() {
+    if (isClosed || _ownerClosed) return;
+    // 留言板常驻: nothing leaves the list before the room closes.
+    if (SettingsService.to.danmaku.superChatPinned.v) {
+      _superChatExpiryTimer?.cancel();
+      _superChatExpiryTimer = null;
+      return;
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     final filtered = superChats.where((x) => x.endTime.millisecondsSinceEpoch > now).toList(growable: false);
     if (filtered.length != superChats.length) {
@@ -486,7 +507,7 @@ class LivePlayController extends GetxController
   void _scheduleSuperChatExpiry() {
     _superChatExpiryTimer?.cancel();
     _superChatExpiryTimer = null;
-    if (isClosed || _ownerClosed) return;
+    if (isClosed || _ownerClosed || SettingsService.to.danmaku.superChatPinned.v) return;
     final delay = nextSuperChatExpiryDelay(superChats, DateTime.now());
     if (delay == null) return;
     _superChatExpiryTimer = Timer(delay, _removeExpiredSuperChats);
@@ -1316,6 +1337,7 @@ class LivePlayController extends GetxController
     WidgetsBinding.instance.removeObserver(this);
     _pipStateWorker?.dispose();
     _screenKeepOnWorker?.dispose();
+    _superChatPinnedWorker?.dispose();
     _danmakuPresentationRecovery.dispose();
     clearSuperChats();
     playerController.invalidateLoad();

@@ -1839,5 +1839,9 @@
   "chat_list_bubble_fill_opacity": "背景不透明度",
   "share_log_file": "分享日志文件",
   "share_log_file_desc": "把最新的日志文件发送给其它应用",
-  "log_file_not_found": "还没有日志文件"
+  "log_file_not_found": "还没有日志文件",
+  "super_chat_pinned": "留言板常驻",
+  "super_chat_pinned_subtitle": "留言列表永久保留每条 SC，直到离开直播间",
+  "super_chat_countdown": "正常倒计时",
+  "super_chat_countdown_subtitle": "每条 SC 倒计时结束后从留言列表移除"
 }

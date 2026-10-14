@@ -179,7 +179,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           source="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
           target="PureLive-${VERSION}-android-arm64-v8a-release.apk"
           if [[ ! -f "$source" ]]; then
@@ -258,7 +258,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $version = "${{ steps.version.outputs.artifact_version }}"
+          $version = "${{ steps.version.outputs.version }}"
           $bundle = "${{ steps.bundle.outputs.path }}"
           $portable = "PureLive-$version-windows-x64-portable.zip"
           $temporary = Join-Path $env:RUNNER_TEMP "pure-live-portable"
@@ -287,7 +287,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $version = "${{ steps.version.outputs.artifact_version }}"
+          $version = "${{ steps.version.outputs.version }}"
           $portable = "PureLive-$version-windows-x64-portable.zip"
           if (!(Test-Path $portable -PathType Leaf)) {
             Write-Error "Portable package not found: $portable"
@@ -300,7 +300,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $version = "${{ steps.version.outputs.artifact_version }}"
+          $version = "${{ steps.version.outputs.version }}"
           $distDir = "dist"
 
           $exeFile = Get-ChildItem $distDir -Recurse -Filter "*.exe" | Select-Object -First 1
@@ -395,7 +395,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           tar -C build/linux/x64/release/bundle -czf "PureLive-${VERSION}-linux-x64.tar.gz" .
           (cd build/linux/x64/release/bundle && zip -qr "$GITHUB_WORKSPACE/PureLive-${VERSION}-linux-x64.zip" .)
       - name: Install pinned Linux packager
@@ -420,7 +420,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           deb_source=$(find dist -type f -name '*.deb' -print -quit)
           if [[ -z "$deb_source" ]]; then
             echo "DEB package not found under dist/." >&2
@@ -503,17 +503,19 @@ jobs:
           fi
           lipo -info "$executable"
       # Flutter builds one universal app; Apple Silicon and Intel ship as
-      # separate, smaller packages thinned from it. ditto --arch drops the
-      # other slice from every Mach-O in the bundle, which breaks the bundle
-      # seal, so each copy is re-signed ad hoc with its existing entitlements.
+      # separate, smaller packages thinned from it, named for the chip
+      # (MacOS-AppleSilicon, MacOS-Intel) rather than the architecture.
+      # ditto --arch drops the other slice from every Mach-O in the bundle,
+      # which breaks the bundle seal, so each copy is re-signed ad hoc with
+      # its existing entitlements.
       - name: Split macOS application by architecture
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           APP="${{ steps.macos_app.outputs.app_path }}"
           NAME=$(basename "$APP")
-          for pair in "arm64:arm64" "x86_64:x64"; do
+          for pair in "arm64:AppleSilicon" "x86_64:Intel"; do
             arch="${pair%%:*}"
             label="${pair##*:}"
             out="thin-$label"
@@ -535,24 +537,24 @@ jobs:
               "$out/$NAME"
             codesign --verify --deep --strict "$out/$NAME"
             lipo -info "$out/$NAME/Contents/MacOS/$(basename "$NAME" .app)"
-            ditto -c -k --sequesterRsrc --keepParent "$out/$NAME" "PureLive-${VERSION}-macos-$label.zip"
+            ditto -c -k --sequesterRsrc --keepParent "$out/$NAME" "PureLive-${VERSION}-MacOS-$label.zip"
           done
       - name: Verify macOS packages
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
-          for label in arm64 x64; do
-            test -f "PureLive-${VERSION}-macos-$label.zip"
-            ls -lh "PureLive-${VERSION}-macos-$label.zip"
+          VERSION="${{ steps.version.outputs.version }}"
+          for label in AppleSilicon Intel; do
+            test -f "PureLive-${VERSION}-MacOS-$label.zip"
+            ls -lh "PureLive-${VERSION}-MacOS-$label.zip"
           done
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-macos
           path: |
-            PureLive-*-macos-arm64.zip
-            PureLive-*-macos-x64.zip
+            PureLive-*-MacOS-AppleSilicon.zip
+            PureLive-*-MacOS-Intel.zip
           if-no-files-found: error
           retention-days: 3
   ios:
@@ -610,7 +612,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           APP="${{ steps.ios_app.outputs.app_path }}"
           ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-ios-arm64-unsigned-app.zip"
       - name: Create TrollStore entitlements
@@ -652,7 +654,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           APP="${{ steps.ios_app.outputs.app_path }}"
           WORK_DIR="$RUNNER_TEMP/ios-ipa-build"
           rm -rf "$WORK_DIR"
@@ -664,7 +666,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.artifact_version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           IPA="PureLive-${VERSION}-ios-arm64-trollstore.ipa"
           test -f "$IPA"
           unzip -l "$IPA" | grep -qE 'Payload/Runner\.app/$'

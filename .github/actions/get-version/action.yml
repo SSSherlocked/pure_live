@@ -28,9 +28,6 @@ outputs:
   build_number:
     description: Build number, one above the previous version's.
     value: ${{ steps.stamp.outputs.build_number }}
-  artifact_version:
-    description: File-name-safe version, e.g. 3.2.2-4111.
-    value: ${{ steps.stamp.outputs.artifact_version }}
   tag:
     description: Release tag, e.g. v3.2.2.
     value: ${{ steps.stamp.outputs.tag }}

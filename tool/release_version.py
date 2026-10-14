@@ -177,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == 'stamp':
             name, build = stamped(read_pubspec(root), normalize_input(args.version))
             write_pubspec(root, name, build)
-            _output(version=name, build_number=build, artifact_version=f'{name}-{build}', tag=f'v{name}')
+            _output(version=name, build_number=build, tag=f'v{name}')
         elif args.command == 'notes':
             text = release_notes(root, normalize_input(args.version) or '')
             if args.out:

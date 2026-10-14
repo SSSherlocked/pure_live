@@ -169,34 +169,48 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
             children: [
               const FavoriteSortButton(key: ValueKey('follow-panel-sort')),
               Expanded(
-                child: SizedBox(
-                  height: textMetrics.tabBarHeight,
-                  child: ScrollableTabBar(
-                    controller: tabController,
-                    isScrollable: textMetrics.scrollTabs,
-                    tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
-                    physics: const PureLiveBoundedScrollPhysics(),
-                    labelColor: colors.primary,
-                    unselectedLabelColor: colors.onSurfaceVariant,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    dividerHeight: 0,
-                    splashBorderRadius: BorderRadius.circular(8),
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                    tabs: [
-                      _CompactTab(
-                        icon: Icons.sensors_rounded,
-                        label: i18n('online_room_title'),
+                // The two tabs share the row equally, each label centred in
+                // its half; the bar is narrowed so the gap between the labels
+                // is half what the full row gave them. A row that scrolls its
+                // tabs keeps the full width.
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = textMetrics.scrollTabs
+                        ? constraints.maxWidth
+                        : _followTabsWidth(context, constraints.maxWidth);
+                    return Center(
+                      child: SizedBox(
+                        width: width,
                         height: textMetrics.tabBarHeight,
-                        shrinkToFit: !textMetrics.scrollTabs,
+                        child: ScrollableTabBar(
+                          controller: tabController,
+                          isScrollable: textMetrics.scrollTabs,
+                          tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
+                          physics: const PureLiveBoundedScrollPhysics(),
+                          labelColor: colors.primary,
+                          unselectedLabelColor: colors.onSurfaceVariant,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          dividerHeight: 0,
+                          splashBorderRadius: BorderRadius.circular(8),
+                          labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                          tabs: [
+                            _CompactTab(
+                              icon: Icons.sensors_rounded,
+                              label: i18n('online_room_title'),
+                              height: textMetrics.tabBarHeight,
+                              shrinkToFit: !textMetrics.scrollTabs,
+                            ),
+                            _CompactTab(
+                              icon: Icons.fiber_smart_record_rounded,
+                              label: i18n('recording_room_title'),
+                              height: textMetrics.tabBarHeight,
+                              shrinkToFit: !textMetrics.scrollTabs,
+                            ),
+                          ],
+                        ),
                       ),
-                      _CompactTab(
-                        icon: Icons.fiber_smart_record_rounded,
-                        label: i18n('recording_room_title'),
-                        height: textMetrics.tabBarHeight,
-                        shrinkToFit: !textMetrics.scrollTabs,
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
               Obx(
@@ -309,6 +323,31 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       },
     );
   }
+}
+
+/// The width of the 关注 panel's two tabs within [rowWidth]: the full row
+/// set each label in the middle of its half, [rowWidth] / 2 minus a label
+/// apart; this width halves that gap.
+double _followTabsWidth(BuildContext context, double rowWidth) {
+  final style = Theme.of(context).textTheme.labelLarge;
+  final scaler = MediaQuery.textScalerOf(context);
+  double labelWidth(String text) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: Directionality.of(context),
+      textScaler: scaler,
+      maxLines: 1,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    // The tab's icon and the gap after it.
+    return 14 + 3 + width;
+  }
+
+  final label = (labelWidth(i18n('online_room_title')) + labelWidth(i18n('recording_room_title'))) / 2;
+  // Never so narrow that a tab (label plus 6 padding a side) has to shrink
+  // its label.
+  return (rowWidth / 2 + label).clamp(math.min(rowWidth, 2 * (label + 12)), rowWidth).toDouble();
 }
 
 class _CompactTab extends StatelessWidget {

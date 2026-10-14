@@ -205,6 +205,30 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               ),
             if (_isAndroid)
               context.buildSwitchTile(
+                icon: Icons.headphones_rounded,
+                title: i18n('background_audio_only'),
+                subtitle: i18n('background_audio_only_desc'),
+                isLong: true,
+                value: SettingsService.to.app.backgroundAudioOnly,
+              ),
+            if (_isAndroid)
+              context.buildSwitchTile(
+                icon: Icons.speaker_notes_off_rounded,
+                title: i18n('background_pause_danmaku'),
+                subtitle: i18n('background_pause_danmaku_desc'),
+                isLong: true,
+                value: SettingsService.to.app.backgroundPauseDanmaku,
+              ),
+            if (_isAndroid)
+              context.buildSwitchTile(
+                icon: Icons.picture_in_picture_alt_rounded,
+                title: i18n('pause_on_pip_close'),
+                subtitle: i18n('pause_on_pip_close_desc'),
+                isLong: true,
+                value: SettingsService.to.app.pauseOnPipClose,
+              ),
+            if (_isAndroid)
+              context.buildSwitchTile(
                 icon: Remix.moon_clear_line,
                 title: i18n('asmr_sleep_mode'),
                 subtitle: _asmrModeErrorText ?? i18n('asmr_sleep_mode_desc'),

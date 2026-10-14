@@ -451,6 +451,11 @@ class LivePlayController extends GetxController
       _wasInSystemPip = isInPip;
       if (returnedFromPip) _restoreDanmakuPresentation();
       _syncBackgroundHold();
+      if (isInPip) {
+        _pipJustClosed = false;
+      } else if (returnedFromPip) {
+        _onPipWindowGone();
+      }
     });
     // Whether the room is on air is part of what the background keeper reads.
     _roomStateHoldWorker = ever<LivePlayState>(state, (_) => _syncBackgroundHold());
@@ -471,16 +476,107 @@ class LivePlayController extends GetxController
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden || state == AppLifecycleState.detached) {
+      final leaving = !_wasBackgrounded;
       _wasBackgrounded = true;
       _syncBackgroundHold();
+      if (leaving) _onLeftApp();
       return;
     }
+    // The picture-in-picture window was expanded back into the app.
+    if (state == AppLifecycleState.resumed) _pipJustClosed = false;
     if (state != AppLifecycleState.resumed || !_wasBackgrounded) return;
     _wasBackgrounded = false;
     _syncBackgroundHold();
+    _restoreAwaySwitches();
     _resumeDeferredReconnect();
     if (!GlobalPlayerService.instance.player.isInPip.value) {
       _restoreDanmakuPresentation();
+    }
+  }
+
+  // Away from the app (Android, wzgrx/pure_live O01.3): "后台只播声音" stops
+  // decoding the picture and "后台断开弹幕" closes the danmaku connection
+  // once the app stayed away [_awaySwitchDelay] without a picture-in-picture
+  // window; coming back undoes both. "关闭画中画时暂停" pauses a room whose
+  // picture-in-picture window was closed, and resumes it on return.
+  static const Duration _awaySwitchDelay = Duration(milliseconds: 1500);
+  Timer? _awaySwitchTimer;
+  bool _videoOffByUs = false;
+  bool _danmakuOffByUs = false;
+  bool _pausedByPipClose = false;
+
+  /// The picture-in-picture window went while the app was not yet stopped:
+  /// it was closed if the app stops next, expanded if it resumes.
+  bool _pipJustClosed = false;
+
+  void _onLeftApp() {
+    if (_pipJustClosed) {
+      _pipJustClosed = false;
+      _onPipClosed();
+    }
+    _scheduleAwaySwitches();
+  }
+
+  void _onPipWindowGone() {
+    if (!_wasBackgrounded) {
+      _pipJustClosed = true;
+      return;
+    }
+    // The app stopped first, then the window went: it was closed.
+    _onPipClosed();
+    _scheduleAwaySwitches();
+  }
+
+  void _onPipClosed() {
+    if (!Platform.isAndroid || isClosed || _ownerClosed || !SettingsService.to.app.pauseOnPipClose.v) return;
+    final player = GlobalPlayerService.instance.player;
+    if (!player.isPlayingNow) return;
+    _pausedByPipClose = true;
+    _markUserPause();
+    unawaited(player.pause());
+  }
+
+  void _scheduleAwaySwitches() {
+    if (!Platform.isAndroid) return;
+    _awaySwitchTimer?.cancel();
+    _awaySwitchTimer = Timer(_awaySwitchDelay, _applyAwaySwitches);
+  }
+
+  void _applyAwaySwitches() {
+    _awaySwitchTimer = null;
+    if (isClosed || _ownerClosed || !_wasBackgrounded) return;
+    final player = GlobalPlayerService.instance.player;
+    if (player.isInPip.value) return;
+    final app = SettingsService.to.app;
+    if (!_danmakuOffByUs && app.backgroundPauseDanmaku.v) {
+      _danmakuOffByUs = true;
+      unawaited(danmakuController.suspendConnections());
+    }
+    // The user's own audio-only choice is theirs to undo: only a room that
+    // shows its picture is switched, and only that one is switched back.
+    if (!_videoOffByUs && app.backgroundAudioOnly.v && !player.desiredAudioOnlyMode) {
+      _videoOffByUs = true;
+      unawaited(player.setAudioOnly(true));
+    }
+  }
+
+  void _restoreAwaySwitches() {
+    _awaySwitchTimer?.cancel();
+    _awaySwitchTimer = null;
+    if (isClosed || _ownerClosed) return;
+    final player = GlobalPlayerService.instance.player;
+    if (_videoOffByUs) {
+      _videoOffByUs = false;
+      if (!player.desiredAudioOnlyMode) unawaited(player.setAudioOnly(false));
+    }
+    if (_danmakuOffByUs) {
+      _danmakuOffByUs = false;
+      danmakuController.resumeConnections();
+      unawaited(_recoverDanmakuAfterPresentation());
+    }
+    if (_pausedByPipClose) {
+      _pausedByPipClose = false;
+      if (!player.isPlayingNow) unawaited(player.resume());
     }
   }
 
@@ -1493,6 +1589,13 @@ class LivePlayController extends GetxController
     _longStallSub = null;
     unawaited(_playerPhaseSub?.cancel());
     _playerPhaseSub = null;
+    _awaySwitchTimer?.cancel();
+    _awaySwitchTimer = null;
+    // The player outlives the room: give its picture back.
+    if (_videoOffByUs && !GlobalPlayerService.instance.player.desiredAudioOnlyMode) {
+      unawaited(GlobalPlayerService.instance.player.setAudioOnly(false));
+    }
+    _videoOffByUs = false;
     _roomStateHoldWorker?.dispose();
     LiveAudioFocus.instance.pausedByInterruption.removeListener(_syncBackgroundHold);
     if (LiveAudioFocus.instance.onNoisyPause == _markUserPause) LiveAudioFocus.instance.onNoisyPause = null;

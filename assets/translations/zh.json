@@ -1813,5 +1813,11 @@
   "log_file_save_failed": "保存日志失败",
   "keyword_regex_hint": "以 / 开头和结尾按正则匹配，不分大小写，例如 /^[0-9]+$/",
   "keyword_regex_invalid": "正则写法不正确，未添加",
-  "keyword_regex_slow": "这个正则可能拖慢弹幕（重复嵌套的量词），未添加"
+  "keyword_regex_slow": "这个正则可能拖慢弹幕（重复嵌套的量词），未添加",
+  "background_audio_only": "后台只播声音",
+  "background_audio_only_desc": "离开应用后停掉画面解码，只留声音，更省电、不发热；回到应用恢复画面。自己选的纯音频不受影响",
+  "background_pause_danmaku": "后台断开弹幕",
+  "background_pause_danmaku_desc": "离开应用后断开弹幕，省电省流量；回到应用重新连接，期间的弹幕不补",
+  "pause_on_pip_close": "关闭画中画时暂停",
+  "pause_on_pip_close_desc": "关掉画中画小窗就暂停，不在后台继续出声；回到应用再继续"
 }

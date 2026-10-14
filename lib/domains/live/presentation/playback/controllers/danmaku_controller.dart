@@ -67,6 +67,23 @@ class DanmakuController extends GetxController {
   /// Whether the room's danmaku session is connected right now.
   bool get isSessionConnected => _initialized && _sessionKey != null && liveDanmaku.isConnected;
 
+  bool _suspended = false;
+
+  /// "后台断开弹幕": the connection is closed while the app is away and no
+  /// path (a reload, the stall watchdog, a setting) opens it again until
+  /// [resumeConnections].
+  bool get suspended => _suspended;
+
+  /// Closes the connection and keeps it closed; the rendered history stays.
+  Future<void> suspendConnections() async {
+    if (_suspended) return;
+    _suspended = true;
+    await stopDanmaku(clearRenderer: false);
+  }
+
+  /// Lets the room connect again (the caller reconnects).
+  void resumeConnections() => _suspended = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -130,7 +147,7 @@ class DanmakuController extends GetxController {
   /// packet gap by tearing down a healthy websocket on every PiP return.
   Future<void> connectRoom(LiveRoom liveroom, {bool force = false}) {
     final key = _roomKey(liveroom);
-    if (!_initialized) return Future<void>.value();
+    if (!_initialized || _suspended) return Future<void>.value();
     final healthyMatchingSession = _sessionKey == key && _sessionSettled;
     // This fast path is deliberately before the request epoch increment. A
     // duplicate lifecycle/PiP request must not invalidate an already-running
@@ -141,7 +158,7 @@ class DanmakuController extends GetxController {
 
     final request = ++_requestEpoch;
     return _serialize(() async {
-      if (request != _requestEpoch || !_initialized) return;
+      if (request != _requestEpoch || !_initialized || _suspended) return;
       final stillHealthy = _sessionKey == key && _sessionSettled;
       if (!force && (stillHealthy || _connectingKey == key)) return;
 

@@ -1813,5 +1813,11 @@
   "log_file_save_failed": "Failed to save the log",
   "keyword_regex_hint": "Start and end with / to match a regular expression, ignoring case, e.g. /^[0-9]+$/",
   "keyword_regex_invalid": "Not a valid regular expression; not added",
-  "keyword_regex_slow": "This pattern could slow the chat down (nested repetition); not added"
+  "keyword_regex_slow": "This pattern could slow the chat down (nested repetition); not added",
+  "background_audio_only": "Audio only in the background",
+  "background_audio_only_desc": "After you leave the app, stop decoding the picture and keep the sound, saving power and heat; the picture returns when you come back. Your own audio-only choice is left alone",
+  "background_pause_danmaku": "Disconnect chat in the background",
+  "background_pause_danmaku_desc": "After you leave the app, close the chat connection to save power and data; it reconnects when you come back, without the messages sent meanwhile",
+  "pause_on_pip_close": "Pause when picture-in-picture closes",
+  "pause_on_pip_close_desc": "Closing the picture-in-picture window pauses the room instead of playing on in the background; it resumes when you come back"
 }

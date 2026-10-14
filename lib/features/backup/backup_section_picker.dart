@@ -96,8 +96,11 @@ class _BackupSectionPickerPageState extends State<BackupSectionPickerPage> {
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          // Same width as the list above it.
+          // Same width as the list above it. heightFactor keeps the bar as
+          // tall as the button: an unbounded Center filled the whole screen,
+          // hiding the list and the back button behind a lone 确认.
           child: Center(
+            heightFactor: 1,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: SettingsContentWidth.width - 32),
               child: SizedBox(

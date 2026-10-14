@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.3.3
+
+## 🛠 修复
+
+- **局域网同步与备份**：发送或接收配置时的「选择要同步的项目」页面恢复正常，可以勾选部分项目、返回上一页（之前整页被一个居中的「确认」按钮盖住）。
+
+---
+
 # Pure Live v3.3.2
 
 ## 🎨 外观

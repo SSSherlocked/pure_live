@@ -83,7 +83,7 @@ final class CompactDanmakuTypography {
 
   factory CompactDanmakuTypography.resolve({
     required int configuredFontWeight,
-    required String configuredFontFamily,
+    required String? configuredFontFamily,
     required bool showStroke,
     required double configuredStrokeWidth,
   }) {
@@ -97,7 +97,8 @@ final class CompactDanmakuTypography {
   }
 
   final int fontWeight;
-  final String fontFamily;
+  /// Null draws in the platform's default family.
+  final String? fontFamily;
   final bool showStroke;
   final double strokeWidth;
 }

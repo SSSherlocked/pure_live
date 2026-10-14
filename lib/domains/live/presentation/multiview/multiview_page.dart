@@ -1244,7 +1244,7 @@ BarrageConfig _buildBarrageConfig({required bool isVerticalVideo}) {
     maxVisibleCount: settings.effectiveMaxVisibleCount,
     maxPendingCount: 120,
     maxPendingAge: const Duration(seconds: 5),
-    fontFamily: settings.danmakuFontFamilyName.v,
+    fontFamily: SettingsService.to.font.danmakuFontFamily(settings.danmakuFontFamilyName.v),
     trackHeight: DanmakuSettingsController.trackHeightFor(settings.danmakuFontSize.v, settings.danmakuLineSpacing.v),
     emojiSize: (settings.danmakuFontSize.v * 1.3).clamp(16.0, 48.0).toDouble(),
     pictureCacheMaxSize: 96,

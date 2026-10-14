@@ -77,7 +77,9 @@ class CompactDanmakuOverlay extends StatelessWidget {
       final opacity = settings.danmakuOpacity.v;
       final fps = settings.resolvedDanmakuFps(pip: true, refreshRateMode: SettingsService.to.app.refreshRateMode);
       final maxVisibleCount = settings.effectiveMaxVisibleCount;
-      final fontFamily = room?.roomDanmakuFontFamily.value ?? settings.danmakuFontFamilyName.v;
+      final fontFamily = SettingsService.to.font.danmakuFontFamily(
+        room?.roomDanmakuFontFamily.value ?? settings.danmakuFontFamilyName.v,
+      );
       final showStroke = room?.enableDanmakuStroke.value ?? settings.enableDanmakuStroke.v;
       final strokeWidth = room?.danmakuFontBorder.value ?? settings.danmakuFontBorder.v;
       final typography = CompactDanmakuTypography.resolve(

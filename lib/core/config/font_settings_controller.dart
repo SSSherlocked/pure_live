@@ -15,6 +15,25 @@ import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/get/get_navigation/src/root/get_root.dart';
 
 class FontSettingsController extends GetxController {
+  /// The family the app's text is drawn in: the chosen downloaded font, else
+  /// the bundled MiSans (the macOS system font on macOS). The same rule as
+  /// the theme ([resolveAppFontFamily]).
+  String? get appFontFamily => resolveAppFontFamily(
+    selectedName: fontFamilyName.v,
+    customFonts: fontList.map((font) => font.id),
+    isWindows: Platform.isWindows,
+    isMacOS: Platform.isMacOS,
+  );
+
+  /// The family floating danmaku are drawn in for the danmaku font setting
+  /// [id]. "Default" means the app's own font: passed on as a family name,
+  /// it named no font at all and the platform fell back to its system font
+  /// (whose weights the danmaku font-weight setting then barely changed).
+  String? danmakuFontFamily(String? id) {
+    if (id == null || id.isEmpty || id == defaultFontFamilyName) return appFontFamily;
+    return id;
+  }
+
   static const defaultFontFamilyName = 'Default';
   static const defaultTextScaleFactor = 1.0;
   static const minTextScaleFactor = 0.5;

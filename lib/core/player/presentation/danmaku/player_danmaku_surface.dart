@@ -92,7 +92,7 @@ class PlayerDanmakuSurface extends StatelessWidget {
           maxVisibleCount: danmaku.effectiveMaxVisibleCount,
           maxPendingCount: 120,
           maxPendingAge: const Duration(seconds: 5),
-          fontFamily: settings.danmakuFontFamilyName,
+          fontFamily: SettingsService.to.font.danmakuFontFamily(settings.danmakuFontFamilyName),
           trackHeight: DanmakuSettingsController.trackHeightFor(fontSize, danmaku.danmakuLineSpacing.v),
           emojiSize: (fontSize * 1.3).clamp(16.0, 48.0).toDouble(),
           pictureCacheMaxSize: 96,

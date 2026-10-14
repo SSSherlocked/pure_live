@@ -262,6 +262,20 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),
+              _slider(
+                theme,
+                title: i18n('font_weight'),
+                value: controller.danmakuFontWeight.value.toDouble(),
+                min: 100,
+                max: 900,
+                stepSize: 100,
+                display: i18n(AppConsts.fontWeightLabels[controller.danmakuFontWeight.value] ?? 'font_weight_medium'),
+                semanticValueBuilder: (value) =>
+                    i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_medium'),
+                onChanged: (v) => controller.danmakuFontWeight.value = (v / 100).round() * 100,
+                labelColor: labelColor,
+                digitColor: digitColor,
+              ),
               // 弹幕间距: the gap between two tracks, as a share of the font
               // size. Kept per profile with the rest of the floating style.
               _slider(
@@ -277,20 +291,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => '${(value * 100).round()}%',
                 onChanged: (v) =>
                     SettingsService.to.danmaku.danmakuLineSpacing.value = DanmakuSettingsController.normalizeLineSpacing(v),
-                labelColor: labelColor,
-                digitColor: digitColor,
-              ),
-              _slider(
-                theme,
-                title: i18n('font_weight'),
-                value: controller.danmakuFontWeight.value.toDouble(),
-                min: 100,
-                max: 900,
-                stepSize: 100,
-                display: i18n(AppConsts.fontWeightLabels[controller.danmakuFontWeight.value] ?? 'font_weight_medium'),
-                semanticValueBuilder: (value) =>
-                    i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_medium'),
-                onChanged: (v) => controller.danmakuFontWeight.value = (v / 100).round() * 100,
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),

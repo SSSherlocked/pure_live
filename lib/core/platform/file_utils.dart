@@ -221,18 +221,23 @@ class FileUtils {
           '${Uri.encodeComponent(documentId)}',
         );
 
-        final intent = AndroidIntent(
-          action: 'android.intent.action.VIEW',
-          data: contentUri.toString(),
-          type: 'vnd.android.document/directory',
-        );
-
-        if (await intent.canResolveActivity() != true) {
-          return false;
+        // Addressed to the system Files app (DocumentsUI) by package: left
+        // to the default handler, some vendor file managers (ColorOS's)
+        // take a document-tree directory URI they cannot read and show an
+        // "invalid" empty file. Google's build first, then AOSP's.
+        for (final package in const ['com.google.android.documentsui', 'com.android.documentsui']) {
+          final intent = AndroidIntent(
+            action: 'android.intent.action.VIEW',
+            data: contentUri.toString(),
+            type: 'vnd.android.document/directory',
+            package: package,
+          );
+          if (await intent.canResolveActivity() == true) {
+            await intent.launch();
+            return true;
+          }
         }
-
-        await intent.launch();
-        return true;
+        return false;
       } catch (_) {}
       return false;
     }

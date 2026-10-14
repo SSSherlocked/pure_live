@@ -1810,5 +1810,8 @@
   "clear_log_files_failed": "部分日志文件未能删除",
   "log_file_in_use": "正在写入",
   "log_file_saved": "日志已保存",
-  "log_file_save_failed": "保存日志失败"
+  "log_file_save_failed": "保存日志失败",
+  "keyword_regex_hint": "以 / 开头和结尾按正则匹配，不分大小写，例如 /^[0-9]+$/",
+  "keyword_regex_invalid": "正则写法不正确，未添加",
+  "keyword_regex_slow": "这个正则可能拖慢弹幕（重复嵌套的量词），未添加"
 }

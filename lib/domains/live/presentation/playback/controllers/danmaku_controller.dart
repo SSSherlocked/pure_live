@@ -8,6 +8,7 @@ import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/platforms/danmaku_emote_loader.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
+import 'package:pure_live/domains/live/domain/danmaku_block_filter.dart';
 import 'package:pure_live/core/player/core/live_message_normalization.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_play_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_session_host.dart';
@@ -57,8 +58,7 @@ class DanmakuController extends GetxController {
   String? _lastStatusText;
   DateTime? _lastStatusAt;
   bool _maskedNameNoticeShown = false;
-  Set<String> _blockedUsers = const <String>{};
-  List<String> _blockedKeywords = const <String>[];
+  DanmakuBlockFilter _blockFilter = DanmakuBlockFilter.none;
 
   LivePlayState get _state => _main.state.value;
   bool get _initialized => _liveDanmaku != null;
@@ -308,28 +308,13 @@ class DanmakuController extends GetxController {
     return token == _sessionToken && identical(_liveDanmaku, engine) && (_sessionKey == key || _connectingKey == key);
   }
 
-  static final RegExp _maskedName = RegExp(r'\*{2,}|＊{2,}');
-
   bool get sawMaskedName => _maskedNameNoticeShown;
 
-  bool _isBlocked(LiveMessage message) {
-    final user = message.userName.trim().toLowerCase();
-    if (user.isNotEmpty && !_maskedName.hasMatch(user) && _blockedUsers.contains(user)) return true;
-    final text = message.message.toLowerCase();
-    return _blockedKeywords.any(text.contains);
-  }
+  bool _isBlocked(LiveMessage message) => _blockFilter.blocks(message);
 
   void _refreshFilters() {
     final favorite = FavoriteRoomController.to;
-    _blockedUsers = favorite.blockedDanmakuUsers
-        .map((user) => user.trim().toLowerCase())
-        .where((user) => user.isNotEmpty)
-        .where((user) => !_maskedName.hasMatch(user))
-        .toSet();
-    _blockedKeywords = favorite.shieldList
-        .map((keyword) => keyword.trim().toLowerCase())
-        .where((keyword) => keyword.isNotEmpty)
-        .toList(growable: false);
+    _blockFilter = DanmakuBlockFilter(users: favorite.blockedDanmakuUsers, keywords: favorite.shieldList);
   }
 
   void _updateSimilarityFilterConfig() {

@@ -1810,5 +1810,8 @@
   "clear_log_files_failed": "Some log files could not be deleted",
   "log_file_in_use": "Being written",
   "log_file_saved": "Log saved",
-  "log_file_save_failed": "Failed to save the log"
+  "log_file_save_failed": "Failed to save the log",
+  "keyword_regex_hint": "Start and end with / to match a regular expression, ignoring case, e.g. /^[0-9]+$/",
+  "keyword_regex_invalid": "Not a valid regular expression; not added",
+  "keyword_regex_slow": "This pattern could slow the chat down (nested repetition); not added"
 }

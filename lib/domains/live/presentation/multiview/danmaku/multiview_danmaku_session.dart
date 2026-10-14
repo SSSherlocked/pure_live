@@ -5,6 +5,7 @@ import 'package:media_core_danmaku/media_core_danmaku.dart';
 import 'package:pure_live/shared/platforms/live_danmaku.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
+import 'package:pure_live/domains/live/domain/danmaku_block_filter.dart';
 import 'package:pure_live/core/player/core/live_message_normalization.dart';
 import 'package:pure_live/shared/platforms/huya/huya_danmaku.dart' show HuyaDanmakuArgs;
 import 'package:pure_live/core/logging/app_log.dart';
@@ -157,14 +158,23 @@ class MultiviewDanmakuSession {
     };
   }
 
+  int? _blockKey;
+  DanmakuBlockFilter _blockFilter = DanmakuBlockFilter.none;
+
   void _handleChatMessage(LiveMessage msg) {
     if (msg.type != LiveMessageType.chat) return;
     if (!_messageGate.accepts(normalizeLiveMessage(msg))) return;
     final favorite = FavoriteRoomController.to;
-    final user = msg.userName.trim().toLowerCase();
-    if (user.isNotEmpty && favorite.blockedDanmakuUsers.v.contains(user)) return;
-    final text = msg.message.toLowerCase();
-    if (favorite.shieldList.v.any(text.contains)) return;
+    // The same 屏蔽管理 rules as the room, recompiled only when the lists
+    // change (they are edited in place, so their content is compared).
+    final users = favorite.blockedDanmakuUsers;
+    final keywords = favorite.shieldList;
+    final blockKey = Object.hash(Object.hashAll(users), Object.hashAll(keywords));
+    if (blockKey != _blockKey) {
+      _blockKey = blockKey;
+      _blockFilter = DanmakuBlockFilter(users: users, keywords: keywords);
+    }
+    if (_blockFilter.blocks(msg)) return;
     final danmakuSettings = SettingsService.to.danmaku;
     if (!_repeatedFilter.accepts(
       normalizeLiveMessage(msg),

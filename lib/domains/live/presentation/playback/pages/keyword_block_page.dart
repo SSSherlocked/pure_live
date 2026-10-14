@@ -1,5 +1,6 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
+import 'package:pure_live/domains/live/domain/danmaku_block_filter.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 
@@ -49,6 +50,14 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
 
     if (keyword.isEmpty) {
       ToastUtil.show(i18n('please_enter_keyword'));
+      return;
+    }
+
+    // A `/…/` keyword is a regular expression; one that is broken or could
+    // stall the chat is refused here rather than silently ignored later.
+    final problem = DanmakuBlockFilter.validate(keyword);
+    if (problem != null) {
+      ToastUtil.show(i18n(problem));
       return;
     }
 
@@ -298,6 +307,8 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
         onSubmitted: (_) => addKeyword(),
         decoration: InputDecoration(
           hintText: i18n('please_enter_keyword'),
+          helperText: i18n('keyword_regex_hint'),
+          helperMaxLines: 2,
           filled: true,
           fillColor: isFocused
               ? theme.colorScheme.primary.withValues(alpha: 0.04)

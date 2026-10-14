@@ -36,7 +36,7 @@ class SuperChatPage extends StatelessWidget {
         final message = list[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 4),
           child: SuperChatCard(message, key: ValueKey<LiveSuperChatMessage>(message)),
         );
       },

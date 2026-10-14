@@ -327,10 +327,10 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
 
 /// The width of the 关注 panel's two tabs within [rowWidth]. The full row set
 /// each label in the middle of its half, [rowWidth] / 2 minus a label apart;
-/// this width keeps a share of that gap: half on touch layouts, three
-/// quarters with a pointer, where half read crowded.
+/// this width keeps a share of that gap: three quarters on touch layouts,
+/// four fifths with a pointer.
 double _followTabsWidth(BuildContext context, double rowWidth) {
-  final share = AppLayout.of(context).touch ? 0.5 : 0.75;
+  final share = AppLayout.of(context).touch ? 0.75 : 0.8;
   final style = Theme.of(context).textTheme.labelLarge;
   final scaler = MediaQuery.textScalerOf(context);
   double labelWidth(String text) {

@@ -131,6 +131,12 @@ class PlayerKernelService {
     // keeps the kernel's info lines (engine, source and candidate changes),
     // which is what a stalled start needs to be explained.
     mlog.MediaCoreLog.level = const bool.fromEnvironment('dart.vm.product') ? mlog.LogLevel.info : mlog.LogLevel.debug;
-    await MediaSessionBootstrap.attachTo(instance.kernel, config: const MediaSessionConfig.video());
+    // Exiting the app (swiping it away) ends the media service with it: no
+    // playback carrying on, no notification left behind, no media button
+    // bringing a closed app back.
+    await MediaSessionBootstrap.attachTo(
+      instance.kernel,
+      config: const MediaSessionConfig.video(androidStopOnRemoveTask: true, androidResumeOnClick: false),
+    );
   }
 }

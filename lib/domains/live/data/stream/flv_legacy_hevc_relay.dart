@@ -97,12 +97,16 @@ class FlvLegacyHevcRelay {
     return _hostSuffixes.any(host.endsWith);
   }
 
+  /// [anyHost] serves any FLV URL, not only the HEVC CDNs: the caller wants
+  /// the Dart connection (every resolved address is tried) rather than the
+  /// rewrite, which leaves AVC tags untouched.
   static Future<FlvLegacyHevcRelay> start(
     String url,
     Map<String, String> headers, {
     required String Function(Uri) findProxy,
+    bool anyHost = false,
   }) async {
-    if (!appliesTo(url)) throw const FormatException('Expected a legacy HEVC FLV input');
+    if (!anyHost && !appliesTo(url)) throw const FormatException('Expected a legacy HEVC FLV input');
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0, shared: false);
     final random = Random.secure();
     final secret = base64UrlEncode(List.generate(18, (_) => random.nextInt(256))).replaceAll('=', '');

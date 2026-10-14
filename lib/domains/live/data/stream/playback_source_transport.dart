@@ -82,6 +82,13 @@ class PlaybackSourceTransport {
     return PlaybackInputLease(relay.inputUri, relay.close, isUsable: () => !relay.isClosed);
   }
 
+  /// The same loopback FLV relay for a host the native engine cannot reach
+  /// on its first address; the HEVC rewrite is a no-op on AVC.
+  static Future<PlaybackInputLease> _createFlvPassthroughRelay(String url, Map<String, String> headers) async {
+    final relay = await FlvLegacyHevcRelay.start(url, headers, findProxy: _perHostProxy, anyHost: true);
+    return PlaybackInputLease(relay.inputUri, relay.close, isUsable: () => !relay.isClosed);
+  }
+
   /// Serves a rewritten manifest tree from loopback: every child the player sees
   /// is already an absolute loopback URL, so neither a bare `media.95.mp4` nor an
   /// absolute path `/tc.livehls/...` can become a Windows path on the way to the
@@ -143,6 +150,7 @@ class PlaybackSourceTransport {
     required Map<String, String> headers,
     LiveStreamFacts? facts,
     HlsSourceQueryPolicy? policy,
+    bool relayPreferred = false,
   }) async {
     if (_closed) return null;
     final int generation = ++_generation;
@@ -156,6 +164,7 @@ class PlaybackSourceTransport {
         headers: headers,
         facts: facts,
         policy: policy,
+        relayPreferred: relayPreferred,
       );
       // The superseded input stays open one more round: the engine may still be
       // reading it while the caller assembles the replacement source list.
@@ -196,6 +205,7 @@ class PlaybackSourceTransport {
     required Map<String, String> headers,
     required LiveStreamFacts? facts,
     required HlsSourceQueryPolicy? policy,
+    bool relayPreferred = false,
   }) async {
     final Uri? source = Uri.tryParse(url);
     if (source == null) return null;
@@ -226,7 +236,23 @@ class PlaybackSourceTransport {
       manifest: manifest,
     );
     final IngestPlan plan = resolveIngestPlan(needs: decision.needs, sourceIsManifest: manifest);
-    if (plan.isDirect) return null;
+    if (plan.isDirect) {
+      if (!relayPreferred) return null;
+      // The probe reached this host only past its first address (IPv6
+      // black-holed, IPv4 fine). A native engine sits on that first address
+      // for its whole connect timeout; Dart's connect tries every address,
+      // so the line is served from loopback instead. Manifests go through
+      // the manifest relay, FLV through the tag relay (AVC passes unchanged);
+      // anything else has no Dart relay and stays direct.
+      if (manifest) {
+        Log.dev('${source.host}: first address dead, manifest served by the Dart relay', name: 'PlaybackIngest');
+        return (_) => _createIngestRelay(url, frozen);
+      }
+      final bool flv = facts?.format == LiveStreamFormat.flv || source.path.toLowerCase().endsWith('.flv');
+      if (!flv) return null;
+      Log.dev('${source.host}: first address dead, FLV served by the Dart relay', name: 'PlaybackIngest');
+      return (_) => _createFlvPassthroughRelay(url, frozen);
+    }
     // Host only: a signed live URL carries its token in the query.
     Log.dev('${source.host} -> $plan', name: 'PlaybackIngest');
     if (plan.strategy == IngestStrategy.manifestRelay) {

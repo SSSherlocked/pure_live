@@ -3,6 +3,7 @@ import 'package:media_core/media_core.dart';
 import 'package:pure_live/core/player/core/playback_input_lease.dart';
 import 'package:pure_live/core/stream/hls_source_query_policy.dart';
 import 'package:pure_live/domains/live/data/stream/ingest_source_interceptor.dart';
+import 'package:pure_live/domains/live/data/stream/line_preflight.dart';
 import 'package:pure_live/domains/live/data/stream/playback_source_transport.dart';
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/shared/platforms/live_site.dart';
@@ -22,6 +23,7 @@ class _ScriptedTransport extends PlaybackSourceTransport {
   Map<String, String>? requestedHeaders;
   LiveStreamFacts? requestedFacts;
   HlsSourceQueryPolicy? requestedPolicy;
+  bool? requestedRelayPreferred;
 
   @override
   Future<PlaybackInputLease?> prepare({
@@ -29,12 +31,14 @@ class _ScriptedTransport extends PlaybackSourceTransport {
     required Map<String, String> headers,
     LiveStreamFacts? facts,
     HlsSourceQueryPolicy? policy,
+    bool relayPreferred = false,
   }) async {
     prepareCalls++;
     requestedUrl = url;
     requestedHeaders = headers;
     requestedFacts = facts;
     requestedPolicy = policy;
+    requestedRelayPreferred = relayPreferred;
     final failure = error;
     if (failure != null) throw failure;
     return lease;
@@ -120,6 +124,36 @@ void main() {
 
       expect(await interceptor.intercept(PlaybackSourceInterception(sources: [owned])), [owned]);
       expect(transport.prepareCalls, 0);
+    });
+
+    test('预检把能连上的线路排到前面，首选线路不走中继', () async {
+      final transport = _ScriptedTransport();
+      final interceptor = IngestSourceInterceptor(
+        transport: transport,
+        preflight: LinePreflight(
+          probe: (uri, _) async =>
+              uri.host == 'cdn2.example.com' ? LineReach.reachable : LineReach.firstAddressDead,
+        ),
+      );
+
+      final intercepted = await interceptor.intercept(
+        PlaybackSourceInterception(sources: [_source(primary), _source(backup)]),
+      );
+      expect(intercepted.map((s) => s.uri.toString()), [backup, primary]);
+      expect(transport.requestedUrl, backup);
+      expect(transport.requestedRelayPreferred, isFalse);
+    });
+
+    test('每条线路的首地址都不通时，首选线路交给 Dart 中继', () async {
+      final transport = _ScriptedTransport();
+      final interceptor = IngestSourceInterceptor(
+        transport: transport,
+        preflight: LinePreflight(probe: (_, _) async => LineReach.firstAddressDead),
+      );
+
+      await interceptor.intercept(PlaybackSourceInterception(sources: [_source(primary), _source(backup)]));
+      expect(transport.requestedUrl, primary);
+      expect(transport.requestedRelayPreferred, isTrue);
     });
 
     test('停止与销毁分别释放和关闭中继', () async {

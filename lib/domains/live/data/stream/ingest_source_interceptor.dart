@@ -22,7 +22,12 @@ class IngestSourceInterceptor implements PlaybackSourceInterceptor {
     List<PlayerSource> sources = request.sources;
     if (sources.isEmpty) return sources;
     final preflight = _preflight;
-    if (preflight != null) sources = await preflight.order(sources);
+    LineReach? verdict;
+    if (preflight != null) {
+      final outcome = await preflight.order(sources);
+      sources = outcome.sources;
+      verdict = outcome.verdictOf(sources.first.uri);
+    }
     final PlayerSource primary = sources.first;
     if (!const <String>{'http', 'https'}.contains(primary.uri.scheme.toLowerCase())) return sources;
     final String url = primary.uri.toString();
@@ -33,6 +38,8 @@ class IngestSourceInterceptor implements PlaybackSourceInterceptor {
         headers: primary.headers?.values ?? const <String, String>{},
         facts: request.streamFacts[url],
         policy: request.sourceQueryPolicies[url],
+        // Only its first address is dead: a Dart relay reaches the others.
+        relayPreferred: verdict == LineReach.firstAddressDead,
       );
     } catch (error) {
       Log.dev('relay unavailable, playing the upstream directly: $error', name: 'PlaybackIngest');

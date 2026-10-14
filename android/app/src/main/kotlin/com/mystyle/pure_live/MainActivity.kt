@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
-import android.provider.Settings
 import android.view.Display
 import android.view.View
 import android.view.WindowInsets
@@ -210,22 +209,6 @@ class MainActivity : AudioServiceActivity() {
                     }
 
                     "getDisplayModeInfo" -> result.success(displayModeInfo())
-
-                    // Whether the system's auto-rotate is on. With it off,
-                    // releasing a forced orientation hands the screen to the
-                    // locked rotation, which some systems (HyperOS) have
-                    // moved to landscape during the fullscreen.
-                    "isAutoRotateOn" -> result.success(
-                        try {
-                            Settings.System.getInt(
-                                contentResolver,
-                                Settings.System.ACCELEROMETER_ROTATION,
-                                0,
-                            ) == 1
-                        } catch (_: Exception) {
-                            false
-                        },
-                    )
 
                     else -> result.notImplemented()
                 }

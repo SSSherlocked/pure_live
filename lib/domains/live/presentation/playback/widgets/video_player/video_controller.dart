@@ -328,64 +328,6 @@ class DanmakuManager {
   }
 }
 
-/// One-shot orientation ownership for a fullscreen presentation.
-///
-/// An explicit landscape action entered from a portrait room must restore the
-/// portrait normal room when fullscreen closes. Ordinary fullscreen entries
-/// replace any unfinished request so an earlier presentation cannot affect a
-/// later one.
-class FullscreenOrientationRestoreState {
-  bool _restorePortrait = false;
-  int _generation = 0;
-
-  void begin({required bool restorePortraitOnExit}) {
-    _restorePortrait = restorePortraitOnExit;
-    _generation++;
-  }
-
-  bool takePortraitRestore() {
-    final restore = _restorePortrait;
-    _restorePortrait = false;
-    return restore;
-  }
-
-  /// Bumped by every fullscreen entry: a release still waiting from the last
-  /// exit stands down when the user went fullscreen again meanwhile.
-  int get generation => _generation;
-}
-
-/// Leaves a landscape fullscreen and gives the orientation back.
-///
-/// With auto-rotate on, the phone is upright for [portraitSettleDelay] and
-/// then follows the sensor again. With it off, releasing a forced
-/// orientation hands the screen to the system's locked rotation, which
-/// HyperOS had moved to landscape while the fullscreen turned the screen:
-/// the whole app, and other apps, stayed sideways. The phone is then held
-/// upright for [lockedSettleDelay] - the turn and the system's own rotation
-/// bookkeeping finish first - before it is let go. After wzgrx v4.1.0.
-Future<void> exitFullscreenWithOrientationRestore({
-  required FullscreenOrientationRestoreState state,
-  required Future<void> Function() exitFullscreen,
-  required Future<void> Function() restorePortrait,
-  required Future<void> Function() releaseOrientation,
-  Future<bool> Function()? isAutoRotateOn,
-  Duration portraitSettleDelay = const Duration(milliseconds: 350),
-  Duration lockedSettleDelay = const Duration(seconds: 3),
-}) async {
-  final shouldRestorePortrait = state.takePortraitRestore();
-  final generation = state.generation;
-  await exitFullscreen();
-  if (!shouldRestorePortrait) return;
-  await restorePortrait();
-  final autoRotate = isAutoRotateOn == null || await isAutoRotateOn();
-  final settle = autoRotate ? portraitSettleDelay : lockedSettleDelay;
-  if (settle > Duration.zero) {
-    await Future<void>.delayed(settle);
-  }
-  if (state.generation != generation) return;
-  await releaseOrientation();
-}
-
 class VideoController with ChangeNotifier implements DanmakuSettingsSource, PlayerUiController {
   // Two seconds was shorter than the orientation animation plus an
   // accessibility scan on phones, so controls could disappear before a user
@@ -446,7 +388,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   /// platform whose query fails) hide the battery readout.
   final hasBattery = false.obs;
   final currentVolume = 1.0.obs;
-  final FullscreenOrientationRestoreState _fullscreenOrientationRestore = FullscreenOrientationRestoreState();
 
   final hideDanmaku = false.obs;
   @override
@@ -1508,13 +1449,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   }
 
   Future<void> exitFullScreen() async {
-    await exitFullscreenWithOrientationRestore(
-      state: _fullscreenOrientationRestore,
-      exitFullscreen: WindowService().doExitFullScreen,
-      restorePortrait: WindowService().verticalScreen,
-      releaseOrientation: WindowService().followSystemOrientation,
-      isAutoRotateOn: Platform.isAndroid ? DisplayModeService.isAutoRotateOn : null,
-    );
+    await WindowService().doExitFullScreen();
     GlobalPlayerService.instance.player.isSystemFullscreen.value = false;
   }
 
@@ -1571,9 +1506,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     return toggleFullScreen();
   }
 
-  Future<void> enterFullScreen({bool forceLandscape = false}) async {
-    final isMobile = Platform.isAndroid || Platform.isIOS;
-    _fullscreenOrientationRestore.begin(restorePortraitOnExit: isMobile && forceLandscape);
+  Future<void> enterFullScreen() async {
     await WindowService().doEnterFullScreen();
     GlobalPlayerService.instance.player.isSystemFullscreen.value = true;
 
@@ -1582,31 +1515,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     // native transition was still running, producing inconsistent work-area
     // bounds on Windows systems with a side taskbar.
     if (Platform.isAndroid || Platform.isIOS) {
-      if (forceLandscape) {
-        await WindowService().landScape();
-      } else {
-        await applyFullscreenOrientationPolicy();
-      }
-    }
-  }
-
-  /// Explicit landscape-fullscreen action for a portrait live room.
-  ///
-  /// This is intentionally a one-shot presentation action rather than a
-  /// settings mutation: users keep their preferred automatic policy while the
-  /// visible room control can always request a conventional landscape view.
-  Future<void> enterLandscapeFullScreen() async {
-    if (_fullscreenTransitioning) return;
-    _fullscreenTransitioning = true;
-    showLocked.value = false;
-    stopHideController();
-    GlobalPlayerService.instance.player.isWindowFullscreen.value = false;
-    try {
-      _livePlayController.setFullScreen();
-      await enterFullScreen(forceLandscape: true);
-      enableController();
-    } finally {
-      _fullscreenTransitioning = false;
+      await applyFullscreenOrientationPolicy();
     }
   }
 

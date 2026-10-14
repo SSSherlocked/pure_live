@@ -40,7 +40,6 @@ class AppSettingsController extends GetxController {
     return _legacyRefreshRateMode(HivePrefUtil.getBool('enableHighRefreshRate')).storageValue;
   }
 
-  final RxInt autoRefreshTime = hiveInt('autoRefreshTime', 3);
   final RxBool enableDenseFavorites = hiveBool('enableDenseFavorites', true);
   final RxBool enableBackgroundPlay = hiveBool('enableBackgroundPlay', false);
   // Away from the app (Android): stop decoding the picture, close the danmaku
@@ -191,7 +190,6 @@ class AppSettingsController extends GetxController {
   // ======================
   Map<String, dynamic> toJson() {
     return {
-      'autoRefreshTime': autoRefreshTime.v,
       'enableDenseFavorites': enableDenseFavorites.v,
       'enableBackgroundPlay': enableBackgroundPlay.v,
       'backgroundAudioOnly': backgroundAudioOnly.v,
@@ -217,7 +215,6 @@ class AppSettingsController extends GetxController {
     T typed<T>(dynamic value) => value as T;
     return {
       'refreshRateMode': refreshRateModeFromConfig(json),
-      'autoRefreshTime': typed<int>(json['autoRefreshTime'] ?? 3),
       'enableDenseFavorites': typed<bool>(json['enableDenseFavorites'] ?? true),
       'enableBackgroundPlay': typed<bool>(json['enableBackgroundPlay'] ?? false),
       'backgroundAudioOnly': typed<bool>(json['backgroundAudioOnly'] ?? false),
@@ -244,7 +241,6 @@ class AppSettingsController extends GetxController {
 
   void fromJson(Map<String, dynamic> json) {
     final parsed = parseConfig(json);
-    autoRefreshTime.v = parsed['autoRefreshTime'];
     enableDenseFavorites.v = parsed['enableDenseFavorites'];
     enableBackgroundPlay.v = parsed['enableBackgroundPlay'];
     backgroundAudioOnly.v = parsed['backgroundAudioOnly'];
@@ -267,7 +263,6 @@ class AppSettingsController extends GetxController {
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
     final app = rootConfig?['app'] as Map<String, dynamic>? ?? {};
     return {
-      'autoRefreshTime': app['autoRefreshTime'] ?? 3,
       'enableDenseFavorites': app['enableDenseFavorites'] ?? true,
       'enableBackgroundPlay': app['enableBackgroundPlay'] ?? false,
       'backgroundAudioOnly': app['backgroundAudioOnly'] ?? false,

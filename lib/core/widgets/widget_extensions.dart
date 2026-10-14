@@ -112,7 +112,6 @@ extension AppLayoutFactory on BuildContext {
     String? subtitle,
     Color? iconColor,
     Color? subtitleColor,
-    bool isLong = false,
     bool enabled = true,
     bool autoCommit = true,
     ValueChanged<bool>? onChanged,
@@ -128,8 +127,6 @@ extension AppLayoutFactory on BuildContext {
                 child: Text(
                   subtitle,
                   style: AppText.of(this).secondary.copyWith(color: subtitleColor ?? theme.colorScheme.onSurfaceVariant),
-                  maxLines: isLong ? null : 1,
-                  overflow: isLong ? TextOverflow.visible : TextOverflow.ellipsis,
                 ),
               )
             : null,
@@ -154,7 +151,6 @@ extension AppLayoutFactory on BuildContext {
     Color? iconColor,
     Color? subtitleColor,
     Widget? trailing,
-    bool isLong = false,
     bool stackTrailingOnNarrow = false,
     bool showNavigationChevronWhenStacked = true,
     bool destructive = false,
@@ -202,8 +198,6 @@ extension AppLayoutFactory on BuildContext {
             child: Text(
               subtitle,
               style: AppText.of(this).secondary.copyWith(color: subtitleColor ?? theme.colorScheme.onSurfaceVariant),
-              maxLines: isLong ? null : 1,
-              overflow: isLong ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
           )
         : null;
@@ -267,7 +261,6 @@ extension AppLayoutFactory on BuildContext {
     String? subtitle,
     Color? iconColor,
     Color? subtitleColor,
-    bool isLong = false,
   }) {
     final theme = Theme.of(this);
     final rawValueString = valueMap[value] ?? "$value";
@@ -279,7 +272,6 @@ extension AppLayoutFactory on BuildContext {
       subtitle: subtitle,
       iconColor: iconColor,
       subtitleColor: subtitleColor,
-      isLong: isLong,
       stackTrailingOnNarrow: true,
       showNavigationChevronWhenStacked: false,
       trailing: Wrap(

@@ -28,7 +28,6 @@ class PlatformSettingsPage extends GetView<SettingsService> {
                 icon: Remix.heart_3_line,
                 title: i18n("prefer_platform"),
                 subtitle: i18n('prefer_platform_subtitle'),
-                isLong: true,
                 stackTrailingOnNarrow: true,
                 showNavigationChevronWhenStacked: false,
                 trailing: Wrap(
@@ -54,7 +53,6 @@ class PlatformSettingsPage extends GetView<SettingsService> {
               icon: Remix.accessibility_line,
               title: i18n('third_party_auth'),
               subtitle: i18n('third_party_auth_subtitle'),
-              isLong: true,
               onTap: () {
                 Get.toNamed(RoutePath.kSettingsAccount);
               },

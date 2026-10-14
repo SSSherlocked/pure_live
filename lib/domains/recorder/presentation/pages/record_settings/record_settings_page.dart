@@ -224,7 +224,6 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                 title: i18n("auto_start_boot"),
                 subtitle: i18n("auto_start_boot_desc"),
                 value: controller.autoStartOnBoot,
-                isLong: true,
               ),
             ]),
             const SizedBox(height: 60),

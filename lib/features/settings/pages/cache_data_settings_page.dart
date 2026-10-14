@@ -168,7 +168,6 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
                 destructive: true,
                 title: i18n('clear_local_cache'),
                 subtitle: i18n('clear_local_cache_desc'),
-                isLong: true,
                 trailing: SettingsService.to.cache.isClearing.value ? _progressIndicator(theme.colorScheme.error) : null,
                 onTap: SettingsService.to.cache.isBusy || _clearTransactionBusy
                     ? null

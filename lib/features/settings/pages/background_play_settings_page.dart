@@ -175,7 +175,6 @@ class _BackgroundPlaySettingsPageState extends State<BackgroundPlaySettingsPage>
       title: i18n(step.titleKey),
       subtitle: i18n(todo ? step.problemKey ?? step.howKey : step.howKey),
       subtitleColor: todo ? colors.error : null,
-      isLong: true,
       onTap: !tappable || _opening != null ? null : () => unawaited(_run(step)),
       trailing: !tappable
           ? const SizedBox.shrink()

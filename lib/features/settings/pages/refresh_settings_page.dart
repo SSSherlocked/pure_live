@@ -44,7 +44,6 @@ class RefreshSettingsPage extends GetView<RefreshConfigController> {
                 title: i18n("max_concurrent_refresh"),
                 subtitle:
                     '${controller.maxConcurrentRefresh.value} ${i18n('concurrent_tasks')} · ${i18n('max_concurrent_refresh_subtitle')}',
-                isLong: true,
                 onTap: () => showMaxConcurrentDialog(context),
               ),
             ),

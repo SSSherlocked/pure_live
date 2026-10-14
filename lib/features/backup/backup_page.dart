@@ -230,7 +230,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             icon: Remix.cloud_line,
             title: i18n("webdav"),
             subtitle: i18n("backup_to_webdav"),
-            isLong: true,
             onTap: () => Get.toNamed(RoutePath.kWebDavPage),
           ),
           context.buildTile(
@@ -247,7 +246,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             icon: Remix.file_download_line,
             title: i18n("create_backup"),
             subtitle: i18n("create_backup_subtitle"),
-            isLong: true,
             trailing: _backupActionIndicator(_BackupAction.create),
             onTap: _backupAction == null
                 ? () => unawaited(
@@ -263,7 +261,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             icon: Remix.file_upload_line,
             title: i18n("recover_backup"),
             subtitle: i18n("recover_backup_subtitle"),
-            isLong: true,
             trailing: _backupActionIndicator(_BackupAction.restore),
             onTap: _backupAction == null
                 ? () => unawaited(
@@ -279,7 +276,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             icon: Remix.folder_open_line,
             title: i18n("backup_directory"),
             subtitle: backupDirectory.isEmpty ? i18n('please_set_backup_directory') : backupDirectory,
-            isLong: true,
             trailing: _backupActionIndicator(_BackupAction.directory),
             onTap: _backupAction == null
                 ? () => unawaited(
@@ -306,7 +302,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
               title: i18n("enable_local_log"),
               subtitle: i18n(subtitleKey),
               subtitleColor: statusKey.isNotEmpty && !applying ? Theme.of(context).colorScheme.error : null,
-              isLong: true,
               stackTrailingOnNarrow: true,
               showNavigationChevronWhenStacked: false,
               trailing: Switch(
@@ -323,7 +318,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             icon: Remix.file_list_3_line,
             title: i18n("view_logs_in_app"),
             subtitle: i18n("view_logs_in_app_desc"),
-            isLong: true,
             onTap: () => Get.toNamed(RoutePath.kLogs),
           ),
           // Android keeps the logs in the app's own external directory, which
@@ -333,7 +327,6 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
               icon: Remix.folder_open_line,
               title: i18n("open_log_dir"),
               subtitle: i18n("open_log_dir_desc"),
-              isLong: true,
               onTap: _openLogDirectory,
             ),
         ]),

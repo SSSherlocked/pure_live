@@ -100,7 +100,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                   title: i18n('windows_dynamic_refresh_rate'),
                   subtitle: '${i18n('windows_dynamic_refresh_rate_subtitle')}\n$mode',
                   icon: Remix.speed_up_line,
-                  isLong: true,
                   trailing: const Icon(Icons.refresh_rounded),
                   onTap: () => DisplayModeService.refreshInfo(),
                 );
@@ -730,7 +729,6 @@ class _DanmakuSettingsSubpage extends StatelessWidget {
                         '${_general._refreshRateModeLabel(mode)} · '
                         '${_general._refreshRateModeDescription(mode)}$suffix',
                     icon: Remix.speed_up_line,
-                    isLong: true,
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _general._showRefreshRateModeDialog(context),
                   );

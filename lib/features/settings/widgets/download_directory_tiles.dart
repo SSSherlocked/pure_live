@@ -57,7 +57,6 @@ class DownloadDirectoryTiles extends StatelessWidget {
             icon: Remix.folder_2_line,
             title: i18n('download_directory'),
             subtitle: customDirectory.isEmpty ? i18n('download_directory_default_label') : customDirectory,
-            isLong: true,
             onTap: _pick,
           ),
           if (customDirectory.isNotEmpty)

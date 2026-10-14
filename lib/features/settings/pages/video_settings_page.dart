@@ -197,7 +197,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 title: i18n("enable_background_play"),
                 subtitle: _backgroundPlayErrorText ?? i18n("enable_background_play_subtitle"),
                 subtitleColor: _backgroundPlayErrorText == null ? null : theme.colorScheme.error,
-                isLong: true,
                 value: SettingsService.to.app.enableBackgroundPlay,
                 enabled: !_backgroundPlayBusy,
                 autoCommit: false,
@@ -211,7 +210,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 icon: Icons.tune_rounded,
                 title: i18n('background_play_settings'),
                 subtitle: i18n('background_play_settings_desc'),
-                isLong: true,
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => Get.to(() => const BackgroundPlaySettingsPage()),
               ),
@@ -220,7 +218,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 icon: Icons.headphones_rounded,
                 title: i18n('background_audio_only'),
                 subtitle: i18n('background_audio_only_desc'),
-                isLong: true,
                 value: SettingsService.to.app.backgroundAudioOnly,
               ),
             if (_isAndroid)
@@ -228,7 +225,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 icon: Icons.speaker_notes_off_rounded,
                 title: i18n('background_pause_danmaku'),
                 subtitle: i18n('background_pause_danmaku_desc'),
-                isLong: true,
                 value: SettingsService.to.app.backgroundPauseDanmaku,
               ),
             if (_isAndroid)
@@ -236,7 +232,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 icon: Icons.picture_in_picture_alt_rounded,
                 title: i18n('pause_on_pip_close'),
                 subtitle: i18n('pause_on_pip_close_desc'),
-                isLong: true,
                 value: SettingsService.to.app.pauseOnPipClose,
               ),
             if (_isAndroid)
@@ -245,7 +240,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 title: i18n('asmr_sleep_mode'),
                 subtitle: _asmrModeErrorText ?? i18n('asmr_sleep_mode_desc'),
                 subtitleColor: _asmrModeErrorText == null ? null : theme.colorScheme.error,
-                isLong: true,
                 value: SettingsService.to.app.enableAsmrSleepMode,
                 enabled: !_asmrModeBusy,
                 autoCommit: false,
@@ -275,7 +269,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 title: i18n('windows_pip_always_on_top'),
                 subtitle: _pipAlwaysOnTopErrorText ?? i18n('windows_pip_always_on_top_subtitle'),
                 subtitleColor: _pipAlwaysOnTopErrorText == null ? null : theme.colorScheme.error,
-                isLong: true,
                 value: SettingsService.to.player.windowsPipAlwaysOnTop,
                 icon: Remix.pushpin_line,
                 enabled: !_pipAlwaysOnTopBusy,
@@ -345,7 +338,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 subtitle: i18n('windows_pip_free_aspect_subtitle'),
                 value: SettingsService.to.player.windowsPipFreeAspect,
                 icon: Remix.aspect_ratio_line,
-                isLong: true,
                 onChanged: (value) {
                   SettingsService.to.player.windowsPipFreeAspect.v = value;
                   _syncPipConfig();

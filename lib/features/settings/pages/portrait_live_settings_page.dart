@@ -26,7 +26,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
               icon: Icons.aspect_ratio_rounded,
               title: i18n('portrait_smart_detection'),
               subtitle: i18n('portrait_smart_detection_desc'),
-              isLong: true,
               value: settings.enablePortraitStreamAdaptation,
               onChanged: (_) => _refreshPresentation(),
             ),
@@ -34,7 +33,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
               icon: Icons.view_agenda_outlined,
               title: i18n('portrait_adaptive_height'),
               subtitle: i18n('portrait_adaptive_height_desc'),
-              isLong: true,
               value: settings.portraitAdaptiveHeight,
             ),
             Obx(
@@ -42,7 +40,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.dashboard_customize_outlined,
                 title: i18n('portrait_layout_mode'),
                 subtitle: i18n('portrait_layout_mode_desc'),
-                isLong: true,
                 trailing: Text(
                   _layoutModeLabel(settings.portraitLayoutMode),
                   style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
@@ -67,7 +64,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.fullscreen_rounded,
                 title: i18n('portrait_fullscreen_policy'),
                 subtitle: i18n('portrait_fullscreen_policy_desc'),
-                isLong: true,
                 trailing: Text(
                   _fullscreenPolicyLabel(settings.portraitFullscreenPolicy),
                   style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
@@ -91,7 +87,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.fit_screen_rounded,
                 title: i18n('portrait_fullscreen_display_mode'),
                 subtitle: i18n('portrait_fullscreen_display_mode_desc'),
-                isLong: true,
                 trailing: Text(
                   portraitFullscreenDisplayModeLabel(settings.portraitFullscreenDisplayMode),
                   style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
@@ -112,7 +107,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.picture_in_picture_alt_rounded,
                 title: i18n('portrait_pip_follow_source'),
                 subtitle: i18n('portrait_pip_follow_source_desc'),
-                isLong: true,
                 value: settings.portraitPipFollowSource,
               ),
             Obx(
@@ -120,7 +114,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.subtitles_outlined,
                 title: i18n('portrait_danmaku_mode'),
                 subtitle: i18n('portrait_danmaku_mode_desc'),
-                isLong: true,
                 trailing: Text(
                   _danmakuModeLabel(settings.portraitDanmakuMode),
                   style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
@@ -140,7 +133,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
               icon: Icons.bookmark_added_outlined,
               title: i18n('portrait_remember_room_override'),
               subtitle: i18n('portrait_remember_room_override_desc'),
-              isLong: true,
               value: settings.rememberPortraitRoomOverride,
             ),
           ]),
@@ -151,14 +143,12 @@ class PortraitLiveSettingsPage extends StatelessWidget {
               icon: Icons.monitor_heart_outlined,
               title: i18n('portrait_show_diagnostics'),
               subtitle: i18n('portrait_show_diagnostics_desc'),
-              isLong: true,
               value: settings.showPortraitDiagnostics,
             ),
             context.buildTile(
               icon: Icons.restart_alt_rounded,
               title: i18n('portrait_reset_settings'),
               subtitle: i18n('portrait_reset_settings_desc'),
-              isLong: true,
               onTap: () {
                 settings.resetPortraitStreamSettings();
                 _refreshPresentation();

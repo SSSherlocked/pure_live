@@ -389,9 +389,12 @@ class BarrageDataSystem extends Component {
     }
   }
 
-  void relayoutActive() {
+  /// Re-lays out every on-screen message under the current config; returns
+  /// how many were re-laid out.
+  int relayoutActive() {
     final entries = _ctx.activeEntries;
-    if (entries.isEmpty) return;
+    if (entries.isEmpty) return 0;
+    var count = 0;
     final trackCount = _ctx.trackManager.tracks.length;
     for (final entry in entries) {
       // Motion-effect shows keep their own choreography; re-centering them
@@ -430,7 +433,9 @@ class BarrageDataSystem extends Component {
           entry.y = _ctx.topOffset + (trackIndex * config.trackHeight) + centerY;
           break;
       }
+      count++;
     }
+    return count;
   }
 
   BarrageConfig _resolveConfig(BarrageItem item) {

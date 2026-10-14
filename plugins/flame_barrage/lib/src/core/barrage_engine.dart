@@ -188,6 +188,9 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
   @override
   void updateConfig(BarrageConfig newConfig) {
     final old = _ctx.config;
+    if (!_initialized && _configAffectsOnScreenStyle(old, newConfig)) {
+      debugPrint('[barrage] style changed before the engine is ready; applies to new messages');
+    }
     _ctx.config = newConfig;
     _ctx.parser.updateMaxCacheSize(newConfig.textCacheMaxSize);
     _ctx.layout.updateMaxTextCacheSize(newConfig.textCacheMaxSize);
@@ -203,8 +206,17 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
       if (geometryChanged) {
         _ctx.trackManager.forceRefresh(newConfig, _ctx.allowedHeight);
       }
-      if (geometryChanged || _configAffectsOnScreenStyle(old, newConfig)) {
-        _dataSystem.relayoutActive();
+      final styleChanged = _configAffectsOnScreenStyle(old, newConfig);
+      if (geometryChanged || styleChanged) {
+        final count = _dataSystem.relayoutActive();
+        // Diagnostic: on-screen messages taking a new style (the app log
+        // captures debugPrint). One line per change, not per frame.
+        debugPrint(
+          '[barrage] restyled $count on-screen message(s): '
+          'size ${old.fontSize}->${newConfig.fontSize}, '
+          'weight ${old.fontWeight.value}->${newConfig.fontWeight.value}, '
+          'family ${old.fontFamily}->${newConfig.fontFamily}',
+        );
       }
       // A new speed (the player going fullscreen scales it with the width)
       // applies to the messages already crossing the screen too, so old and

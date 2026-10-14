@@ -96,7 +96,7 @@ def category(path: str) -> str:
         ("native_apple", ("ios/", "macos/")),
         ("native_linux", ("linux/",)),
         ("release_build", (".github/", "tool/",)),
-        ("dependencies", ("pubspec.yaml", "pubspec.lock", "plugins/", "third_party/")),
+        ("dependencies", ("pubspec.yaml", "pubspec.lock", "plugins/")),
         ("tests", ("test/",)),
         ("assets_docs", ("assets/", "docs/")),
         ("app_source", ("lib/",)),

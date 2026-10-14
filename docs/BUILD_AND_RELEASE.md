@@ -192,7 +192,7 @@ python .\tool\update_releases.py
 | 变量 | 作用 | 出现在 |
 | --- | --- | --- |
 | `PURELIVE_UPDATE_OWNER` / `PURELIVE_UPDATE_REPOSITORY` | 本仓库自身的发布 | `assets/version.json` 的 `download_url`、`assets/releases.json`、发布工作流的说明与附件链接 |
-| `PURELIVE_NATIVE_OWNER` / `PURELIVE_NATIVE_REPOSITORY` | 构建时下载的原生库（FFmpeg、libmpv）所在仓库 | `pubspec.yaml` 的 `ffmpeg_kit_extended_config`、`third_party/media_kit/hook/native_bundles.json`、`tool/prefetch_android_native.ps1` |
+| `PURELIVE_NATIVE_OWNER` / `PURELIVE_NATIVE_REPOSITORY` | 构建时下载的原生库（FFmpeg、libmpv）所在仓库 | `pubspec.yaml` 的 `ffmpeg_kit_extended_config`、`tool/prefetch_android_native.ps1` |
 
 `PURELIVE_UPDATE_OWNER`/`PURELIVE_UPDATE_REPOSITORY` 另会生成 `lib/gen/env.g.dart`（运行时更新检查使用）：
 
@@ -207,7 +207,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/flutterw.ps1 pub run en
 3. `powershell -NoProfile -ExecutionPolicy Bypass -File tool/sync_owner_refs.ps1 -Apply` 改写派生文件。
 4. 不带 `-Apply` 再运行一次 `tool/sync_owner_refs.ps1`，确认没有遗漏的派生文件（例如只改了 `pubspec.yaml` 没改预取脚本）。
 
-第三方地址不属于本仓库的镜像，脚本不会改写：`third_party/media_kit/hook/native_bundles.json` 里 Predidit 的 libmpv 构建、`tool/prefetch_android_native.ps1` 里 akashskypatel 的 ffmpeg-kit builders。`docs/` 下的历史记录同样保持原样。
+第三方地址不属于本仓库的镜像，脚本不会改写：libmpv 由 Predidit/media-kit 的 `media_kit/hook/native_bundles.json` 指定，经本项目的 media_core 分叉（[SSSherlocked/media_core](https://github.com/SSSherlocked/media_core) `pure-live` 分支）里钉住的提交引入，升级 libmpv 就是在分叉里改 media_kit 的 `ref`；`tool/prefetch_android_native.ps1` 里 akashskypatel 的 ffmpeg-kit builders 也一样。`docs/` 下的历史记录同样保持原样。
 
 ## 版本号
 

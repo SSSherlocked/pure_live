@@ -75,12 +75,16 @@ abstract final class MediaKitLiveProperties {
       'demuxer-thread': 'yes',
       // Drop late frames instead of stacking lag.
       'framedrop': 'decoder+vo',
+      // A connection that breaks mid-stream is reopened by ffmpeg itself
+      // (a live stream has no known size, so a read error or a close both
+      // count as "before the end"); for live that lands at the live edge.
+      // Connect errors are retried within 2 s at most, so a dead line still
+      // fails over inside the source-ready window. Was low-end only.
+      'stream-lavf-o': 'reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=2',
     };
 
     if (_lowEnd) {
       properties['audio-buffer'] = '0.4';
-      properties['stream-lavf-o'] =
-          'reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=2';
     }
 
     if (Platform.isAndroid) {

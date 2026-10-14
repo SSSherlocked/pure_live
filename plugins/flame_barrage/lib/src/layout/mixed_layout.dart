@@ -268,16 +268,26 @@ class MixedLayout {
     return LayoutResult(width: currentX, height: maxHeight, spans: finalSpans, cacheKey: combinedHash.toString());
   }
 
+  /// Font size added per unit of font weight; see [_buildParagraph].
+  static const double _weightSizeOffset = 0.0001;
+
   ui.Paragraph _buildParagraph(String text, BarrageConfig config, String textCacheKey, {required bool isStroke}) {
     final cached = _textCache.get(textCacheKey);
     if (cached != null) {
       return cached;
     }
 
+    // The engine's glyph cache tells variable-font instances of one family
+    // apart by size but not by weight: re-laying out an on-screen message at
+    // a new weight and the same size reused the glyphs of the old weight, so
+    // a weight change only showed on later messages. An invisible per-weight
+    // size offset (at most 0.09 px) gives every weight its own glyphs.
+    final fontSize = config.fontSize + config.fontWeight.value * _weightSizeOffset;
+
     // A 1.0 line box clips the ascent of several CJK/custom fonts and also
     // leaves no room for the stroke at the top edge.  Keep a small symmetric
     // vertical allowance so glyphs remain complete at every configured size.
-    final builder = ui.ParagraphBuilder(ui.ParagraphStyle(fontSize: config.fontSize, height: 1.15));
+    final builder = ui.ParagraphBuilder(ui.ParagraphStyle(fontSize: fontSize, height: 1.15));
 
     if (isStroke) {
       final strokePaint = ui.Paint()
@@ -291,7 +301,7 @@ class MixedLayout {
       builder.pushStyle(
         ui.TextStyle(
           foreground: strokePaint,
-          fontSize: config.fontSize,
+          fontSize: fontSize,
           fontWeight: config.fontWeight,
           fontStyle: config.fontStyle,
           fontFamily: config.fontFamily,
@@ -306,7 +316,7 @@ class MixedLayout {
       builder.pushStyle(
         ui.TextStyle(
           foreground: textPaint,
-          fontSize: config.fontSize,
+          fontSize: fontSize,
           fontWeight: config.fontWeight,
           fontStyle: config.fontStyle,
           fontFamily: config.fontFamily,

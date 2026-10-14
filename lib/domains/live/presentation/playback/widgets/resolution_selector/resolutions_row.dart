@@ -11,13 +11,16 @@ class ResolutionsRow extends StatelessWidget {
 
   final LivePlayController controller;
 
+  /// The bar's height unless a large text scale needs more room.
+  static const double _minRowHeight = 45;
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final state = controller.state.value;
 
       if (!state.room.success) {
-        return Container(height: 56);
+        return Container(height: _minRowHeight);
       }
 
       final bodyText = TextPainter(
@@ -27,7 +30,7 @@ class ResolutionsRow extends StatelessWidget {
         maxLines: 1,
       )..layout();
       final contentHeight = bodyText.height + 8;
-      final rowHeight = contentHeight > 56 ? contentHeight : 56.0;
+      final rowHeight = contentHeight > _minRowHeight ? contentHeight : _minRowHeight;
 
       return Container(
         height: rowHeight,

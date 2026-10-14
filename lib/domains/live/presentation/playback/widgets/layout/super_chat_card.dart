@@ -331,7 +331,7 @@ class _SuperChatCardState extends State<SuperChatCard> {
             style: AppText.of(context).listPrimary.copyWith(
               color: textColor,
               height: 1.5,
-              fontWeight: FontWeight(SettingsService.to.danmaku.superChatFontWeight.v),
+              fontWeight: FontWeight(SettingsService.to.danmaku.superChatFontWeight.value),
             ),
           ),
         ),

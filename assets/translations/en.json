@@ -1277,7 +1277,6 @@
   "items": "items",
   "portrait_panel_resize": "Danmaku panel height",
   "portrait_panel_resize_hint": "Swipe vertically or use accessibility adjustment actions to resize the panel",
-  "portrait_fullscreen_restore_hint": "Portrait fullscreen · Swipe up to restore danmaku",
   "picarto_public_directory": "Public live streams (adult content excluded)",
   "audience_picarto_detail": "Directory and room viewers are concurrent viewers; total_views is cumulative and remains separate.",
   "audience_twitcasting_detail": "Directory current_viewer_count is concurrent audience. Room detail omits it; no cumulative count is substituted.",

@@ -505,12 +505,7 @@ class LivePlayContent extends StatelessWidget {
           ),
         );
       }
-      if (mode != VideoMode.portraitFullscreen) return presentation;
-      return Stack(
-        key: const ValueKey('portrait-panel-fullscreen'),
-        fit: StackFit.expand,
-        children: [presentation, const PortraitFullscreenEntryHint()],
-      );
+      return presentation;
     });
   }
 

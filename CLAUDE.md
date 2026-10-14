@@ -22,7 +22,8 @@
 
 - media_core 用本项目自己的分叉 [SSSherlocked/media_core](https://github.com/SSSherlocked/media_core) 的 `pure-live` 分支，本地克隆在 `../media_core`。修播放内核（线路切换、各播放器适配层）的问题时直接在分叉里改：每项修复单独提交并推送，再把 `pubspec.yaml` 里所有 media_core 子包的 `ref` 和 `pubspec.lock` 的 `resolved-ref` 一起改成新提交。分叉不跟随上游自动更新，需要上游的改动时手工合并。
 - 可下载字体来自本项目的字体仓库 [SSSherlocked/fonts](https://github.com/SSSherlocked/fonts)（fork 自 SlotSun/fonts）。`assets/fonts/fonts-manifest.json` 是 app 实际使用的可下载列表，按它的顺序显示，与该仓库的 `fonts-manifest.json` 保持一致。苹方（6 个字重，`ping-fang/`）按用户决定排在第一位。
-- 其余 2 个外部依赖仍指向 liuchuancong：floating、flv_lzc。media_kit 来自 Predidit/media-kit（经 media_core 引入），不自行维护。
+- media_kit / media_kit_video 来自本项目的分叉 [SSSherlocked/media-kit](https://github.com/SSSherlocked/media-kit) 的 `pure-live` 分支（基于 Predidit/media-kit，本地克隆在 `../media-kit`），由 media_core 分叉里的 `media_core_media_kit/pubspec.yaml` 钉住提交。补丁写在分叉的 `media_kit_video/PURELIVE_PATCH.md`。改 media_kit 时：分叉提交并推送 → media_core 分叉更新 `ref` 和锁文件 → pure_live 更新 media_core 的 `ref` 以及锁文件里 media_kit 的 `resolved-ref`。
+- 其余 2 个外部依赖仍指向 liuchuancong：floating、flv_lzc。
 - `pubspec.lock` 由 CI 用 `flutter pub get --enforce-lockfile` 校验，改依赖时要手工同步锁文件。
 
 ## 分支、提交与推送

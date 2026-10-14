@@ -207,7 +207,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/flutterw.ps1 pub run en
 3. `powershell -NoProfile -ExecutionPolicy Bypass -File tool/sync_owner_refs.ps1 -Apply` 改写派生文件。
 4. 不带 `-Apply` 再运行一次 `tool/sync_owner_refs.ps1`，确认没有遗漏的派生文件（例如只改了 `pubspec.yaml` 没改预取脚本）。
 
-第三方地址不属于本仓库的镜像，脚本不会改写：libmpv 由 Predidit/media-kit 的 `media_kit/hook/native_bundles.json` 指定，经本项目的 media_core 分叉（[SSSherlocked/media_core](https://github.com/SSSherlocked/media_core) `pure-live` 分支）里钉住的提交引入，升级 libmpv 就是在分叉里改 media_kit 的 `ref`；`tool/prefetch_android_native.ps1` 里 akashskypatel 的 ffmpeg-kit builders 也一样。`docs/` 下的历史记录同样保持原样。
+第三方地址不属于本仓库的镜像，脚本不会改写：libmpv 由 media_kit 的 `media_kit/hook/native_bundles.json` 指定（Predidit 的 libmpv 构建），media_kit 用本项目的分叉 [SSSherlocked/media-kit](https://github.com/SSSherlocked/media-kit) `pure-live` 分支，经 media_core 分叉（[SSSherlocked/media_core](https://github.com/SSSherlocked/media_core) `pure-live` 分支）里钉住的提交引入；升级 libmpv 就是把 media-kit 分叉合并到上游新提交，再依次更新 media_core 分叉和本仓库的 `ref`；`tool/prefetch_android_native.ps1` 里 akashskypatel 的 ffmpeg-kit builders 也一样。`docs/` 下的历史记录同样保持原样。
 
 ## 版本号
 

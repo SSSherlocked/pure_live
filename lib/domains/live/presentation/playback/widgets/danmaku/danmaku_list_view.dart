@@ -418,6 +418,31 @@ class DanmakuListViewState extends State<DanmakuListView> {
   }
 }
 
+/// A danmaku colour for the chat list, darkened in the light theme until it
+/// reaches 3:1 against [background]: a yellow or light green message at full
+/// saturation was unreadable on a white panel. Colours that already contrast
+/// enough, and every colour in the dark theme, are returned unchanged.
+@visibleForTesting
+Color readableChatColor(Color color, {required Color background, required bool isDark}) {
+  if (isDark) return color;
+  const minContrast = 3.0;
+  final backgroundLuminance = background.computeLuminance();
+  double contrastOf(Color c) {
+    final luminance = c.computeLuminance();
+    final lighter = luminance > backgroundLuminance ? luminance : backgroundLuminance;
+    final darker = luminance > backgroundLuminance ? backgroundLuminance : luminance;
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  var hsl = HSLColor.fromColor(color);
+  var result = color;
+  while (contrastOf(result) < minContrast && hsl.lightness > 0.2) {
+    hsl = hsl.withLightness((hsl.lightness - 0.02).clamp(0.0, 1.0).toDouble());
+    result = hsl.toColor();
+  }
+  return result;
+}
+
 class DanmakuItem extends StatelessWidget {
   final LiveMessage danmaku;
   final LivePlayController controller;
@@ -442,13 +467,17 @@ class DanmakuItem extends StatelessWidget {
     final vibrantColor =
         baseColor.toARGB32() == Colors.white.toARGB32() || baseColor.toARGB32() == Colors.black.toARGB32()
         ? (isDark ? Colors.white : Colors.black)
-        : HSLColor.fromColor(baseColor).withLightness(isDark ? 0.75 : 0.52).withSaturation(1).toColor();
+        : readableChatColor(
+            HSLColor.fromColor(baseColor).withLightness(isDark ? 0.75 : 0.52).withSaturation(1).toColor(),
+            background: theme.colorScheme.surface,
+            isDark: isDark,
+          );
 
     return Obx(() {
       final settings = SettingsService.to.danmaku;
-      // 直播间文字亮度 sets how far the text is from full contrast.
-      final opacity = DanmakuSettingsController.normalizeRoomTextOpacity(settings.roomTextOpacity.v);
-      final textColor = (isDark ? Colors.white : Colors.black).withValues(alpha: opacity);
+      final textColor = isDark ? Colors.white : Colors.black;
+      // The sender's name at a fixed 55 %, so the message leads the line.
+      final nameColor = textColor.withValues(alpha: 0.55);
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final nameFontWeight = FontWeight(settings.chatListNameFontWeight.v.clamp(100, 900).toInt());
@@ -458,6 +487,7 @@ class DanmakuItem extends StatelessWidget {
         context,
         vibrantColor,
         textColor,
+        nameColor,
         fontSize,
         spacing,
         fontWeight: fontWeight,
@@ -466,7 +496,6 @@ class DanmakuItem extends StatelessWidget {
         bubbleBorderOpacity: settings.chatListBubbleBorderOpacity.v,
         bubbleFillOpacity: settings.chatListBubbleFill.v ? settings.chatListBubbleFillOpacity.v : 0,
         colorMode: settings.resolvedChatListColorMode,
-        colorName: settings.chatListColorName.v,
         showAvatar: settings.chatListShowAvatar.v,
         showFansBadge: settings.chatListShowFansBadge.v,
         repeats: repeats,
@@ -478,6 +507,7 @@ class DanmakuItem extends StatelessWidget {
     BuildContext context,
     Color vibrantColor,
     Color textColor,
+    Color nameColor,
     double fontSize,
     double spacing, {
     required FontWeight fontWeight,
@@ -486,7 +516,6 @@ class DanmakuItem extends StatelessWidget {
     required double bubbleBorderOpacity,
     required double bubbleFillOpacity,
     required ChatListColorMode colorMode,
-    required bool colorName,
     required bool showAvatar,
     required bool showFansBadge,
     required int repeats,
@@ -582,7 +611,7 @@ class DanmakuItem extends StatelessWidget {
                         text: "${danmaku.userName}: ",
                         style: base.copyWith(
                           fontWeight: nameFontWeight,
-                          color: colorName ? vibrantColor : textColor,
+                          color: nameColor,
                         ),
                       ),
                       TextSpan(

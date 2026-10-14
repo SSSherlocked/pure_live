@@ -41,8 +41,9 @@ class DanmakuSettingsController extends GetxController {
   static const bool defaultNoEmojiMode = false;
   static const bool defaultPipDanmakuNoEmojiMode = false;
   static const double defaultChatListFontSize = 14.0;
-  static const int defaultChatListFontWeight = 500;
-  static const int defaultChatListNameFontWeight = 700;
+  // The chat list's name boldest and its message thinnest by default.
+  static const int defaultChatListFontWeight = 100;
+  static const int defaultChatListNameFontWeight = 900;
   static const double defaultChatListItemSpacing = 4.0;
   static const int defaultDanmakuMaxVisibleCount = 48;
 
@@ -158,21 +159,11 @@ class DanmakuSettingsController extends GetxController {
   /// How a message's danmaku colour shows in the chat list; a [ChatListColorMode] name.
   final RxString chatListColorMode = hiveString('chatListColorMode', ChatListColorMode.none.name);
 
-  /// Whether the sender's name also takes the danmaku colour; independent of the mode.
-  final RxBool chatListColorName = hiveBool('chatListColorName', false);
-
   /// Whether chat list messages show the sender's avatar (only Bilibili sends one).
   final RxBool chatListShowAvatar = hiveBool('chatListShowAvatar', true);
 
   /// Whether chat list messages show the sender's fan badge (Bilibili, Missevan, LOOK, KuGou).
   final RxBool chatListShowFansBadge = hiveBool('chatListShowFansBadge', true);
-
-  /// 直播间文字亮度: how opaque text inside the live room is (50%-100%). Only
-  /// the room page applies it; the rest of the app keeps full contrast.
-  final RxDouble roomTextOpacity = hiveDouble('roomTextOpacity', 1.0);
-
-  static double normalizeRoomTextOpacity(Object? raw) =>
-      _boundedDouble(raw, fallback: 1.0, min: 0.5, max: 1.0);
 
   ChatListColorMode get resolvedChatListColorMode => ChatListColorMode.fromName(chatListColorMode.v);
   final RxBool noEmojiMode = hiveBool('noEmojiMode', defaultNoEmojiMode);
@@ -211,11 +202,12 @@ class DanmakuSettingsController extends GetxController {
 
   /// Height of one floating-danmaku track: the text plus the 弹幕间距 gap.
   /// Every barrage surface (the room, the multi-view tiles) takes it from
-  /// here, so they all space their tracks alike.
+  /// here, so they all space their tracks alike. No floor above the font
+  /// size: one made every gap below it look the same (with 16 px text, any
+  /// 弹幕间距 under 50 %).
   static double trackHeightFor(double fontSize, double lineSpacing) {
     final height = fontSize * (1 + normalizeLineSpacing(lineSpacing));
-    final minimum = fontSize + 2 > 24.0 ? fontSize + 2 : 24.0;
-    return height.clamp(minimum, 120.0).toDouble();
+    return height.clamp(fontSize, 120.0).toDouble();
   }
   final RxDouble danmakuOpacity = hiveDouble('danmakuOpacity', defaultDanmakuOpacity);
 
@@ -336,17 +328,11 @@ class DanmakuSettingsController extends GetxController {
     fallback: ChatListColorMode.none.name,
     read: ProfiledSpec.text((value) => ChatListColorMode.fromName(value).name),
   );
-  static final _chatColorNameSpec = ProfiledSpec<bool>('chatListColorName', fallback: false, read: ProfiledSpec.flag);
   static final _chatAvatarSpec = ProfiledSpec<bool>('chatListShowAvatar', fallback: true, read: ProfiledSpec.flag);
   static final _chatFansBadgeSpec = ProfiledSpec<bool>(
     'chatListShowFansBadge',
     fallback: true,
     read: ProfiledSpec.flag,
-  );
-  static final _roomTextOpacitySpec = ProfiledSpec<double>(
-    'roomTextOpacity',
-    fallback: 1.0,
-    read: ProfiledSpec.number(min: 0.5, max: 1),
   );
   static final _superChatOpacitySpec = ProfiledSpec<double>(
     'superChatOpacity',
@@ -388,10 +374,8 @@ class DanmakuSettingsController extends GetxController {
     _chatBubbleFillSpec,
     _chatBubbleFillOpacitySpec,
     _chatColorModeSpec,
-    _chatColorNameSpec,
     _chatAvatarSpec,
     _chatFansBadgeSpec,
-    _roomTextOpacitySpec,
     _superChatOpacitySpec,
     _superChatFontScaleSpec,
   ];
@@ -421,10 +405,8 @@ class DanmakuSettingsController extends GetxController {
     _chatBubbleFillSpec.bind(chatListBubbleFill),
     _chatBubbleFillOpacitySpec.bind(chatListBubbleFillOpacity),
     _chatColorModeSpec.bind(chatListColorMode),
-    _chatColorNameSpec.bind(chatListColorName),
     _chatAvatarSpec.bind(chatListShowAvatar),
     _chatFansBadgeSpec.bind(chatListShowFansBadge),
-    _roomTextOpacitySpec.bind(roomTextOpacity),
     _superChatOpacitySpec.bind(superChatOpacity),
     _superChatFontScaleSpec.bind(superChatFontScale),
   ]);
@@ -583,10 +565,8 @@ class DanmakuSettingsController extends GetxController {
         fallback: defaultChatListBubbleFillOpacity,
       ),
       'chatListColorMode': chatListColorMode.v,
-      'chatListColorName': chatListColorName.v,
       'chatListShowAvatar': chatListShowAvatar.v,
       'chatListShowFansBadge': chatListShowFansBadge.v,
-      'roomTextOpacity': normalizeRoomTextOpacity(roomTextOpacity.v),
       'noEmojiMode': noEmojiMode.v,
       'danmakuTopArea': danmakuTopArea.v,
       'danmakuArea': danmakuArea.v,
@@ -663,10 +643,8 @@ class DanmakuSettingsController extends GetxController {
         ),
       ),
       'chatListColorMode': ChatListColorMode.fromName(json['chatListColorMode']).name,
-      'chatListColorName': typed<bool>(json['chatListColorName'] ?? false),
       'chatListShowAvatar': typed<bool>(json['chatListShowAvatar'] ?? true),
       'chatListShowFansBadge': typed<bool>(json['chatListShowFansBadge'] ?? true),
-      'roomTextOpacity': typed<double>(normalizeRoomTextOpacity(json['roomTextOpacity'])),
       'noEmojiMode': typed<bool>(json['noEmojiMode'] ?? defaultNoEmojiMode),
       'danmakuTopArea': typed<double>(
         _boundedDouble(json['danmakuTopArea'], fallback: defaultDanmakuTopArea, min: 0, max: 300),
@@ -795,10 +773,8 @@ class DanmakuSettingsController extends GetxController {
         fallback: defaultChatListBubbleFillOpacity,
       ),
       'chatListColorMode': ChatListColorMode.fromName(danmaku['chatListColorMode']).name,
-      'chatListColorName': danmaku['chatListColorName'] ?? false,
       'chatListShowAvatar': danmaku['chatListShowAvatar'] ?? true,
       'chatListShowFansBadge': danmaku['chatListShowFansBadge'] ?? true,
-      'roomTextOpacity': normalizeRoomTextOpacity(danmaku['roomTextOpacity']),
       'danmakuMaxVisibleCount': _boundedInt(
         danmaku['danmakuMaxVisibleCount'],
         fallback: defaultDanmakuMaxVisibleCount,

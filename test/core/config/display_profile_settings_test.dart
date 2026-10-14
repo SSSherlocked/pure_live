@@ -203,9 +203,9 @@ void main() {
 
     test('导入旧备份：三套都换成备份里的单值', () async {
       final settings = DanmakuSettingsController()..onStart();
-      settings.fromJson({'danmakuSpeed': 300, 'danmakuOpacity': 0.5, 'roomTextOpacity': 0.7});
+      settings.fromJson({'danmakuSpeed': 300, 'danmakuOpacity': 0.5, 'superChatOpacity': 0.7});
       expect(settings.danmakuSpeed.v, 300);
-      expect(settings.roomTextOpacity.v, closeTo(0.7, 1e-9));
+      expect(settings.superChatOpacity.v, closeTo(0.7, 1e-9));
       for (final profile in DisplayProfile.values) {
         final values = settings.profiles.mapFor(profile);
         expect(values['danmakuSpeed'], 300);

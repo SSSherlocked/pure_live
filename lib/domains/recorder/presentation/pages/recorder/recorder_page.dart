@@ -8,7 +8,7 @@ import 'package:pure_live/domains/recorder/domain/models/live_record_task.dart';
 import 'package:pure_live/domains/recorder/domain/models/recorder_task_ordering.dart';
 import 'package:pure_live/domains/recorder/presentation/widgets/recorder_bounded_scroll.dart';
 import 'package:pure_live/domains/recorder/presentation/pages/recorder/recorder_controller.dart';
-import 'package:pure_live/core/consts/platform_ids.dart';
+import 'package:pure_live/core/consts/platform_colors.dart';
 
 class RecorderPage extends GetView<RecorderController> {
   const RecorderPage({super.key});
@@ -169,31 +169,7 @@ class _TaskCard extends GetView<RecorderController> {
     }
   }
 
-  Color _platformColor() {
-    switch (task.platform.toLowerCase()) {
-      case PlatformIds.bilibili:
-        return const Color(0xFFFB7299);
-
-      case PlatformIds.douyu:
-        return const Color(0xFFFF7700);
-
-      case PlatformIds.huya:
-        return const Color(0xFFFFB000);
-
-      case PlatformIds.douyin:
-        return const Color(0xFF000000);
-      case PlatformIds.cc:
-        return const Color.fromARGB(253, 13, 145, 233);
-      case PlatformIds.iptv:
-        return const Color.fromARGB(255, 204, 71, 9);
-      case PlatformIds.twitch:
-        return const Color(0xFF9146FF);
-      case PlatformIds.soop:
-        return const Color(0xFF0675E8);
-      default:
-        return const Color.fromARGB(255, 11, 223, 117);
-    }
-  }
+  Color _platformColor() => PlatformColors.of(task.platform) ?? PlatformColors.fallback;
 
   String _formatDuration(int sec) {
     final d = Duration(seconds: sec);

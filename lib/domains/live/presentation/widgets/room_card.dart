@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/consts/platform_colors.dart';
+import 'package:pure_live/core/theme/theme.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -286,18 +288,23 @@ class RoomCard extends StatelessWidget {
     });
   }
 
+  /// On the cover: filled with the platform's brand colour (dark glass for a
+  /// platform without one), text black or white by contrast.
   Widget _buildCoverPlatformBadge(BuildContext context) {
+    final brand = PlatformColors.of(room.platform);
+    final fill = brand?.withValues(alpha: 0.9) ?? Colors.black.withValues(alpha: 0.55);
+    final textColor = brand == null || ThemeData.estimateBrightnessForColor(brand) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
     return Container(
+      key: const ValueKey('room-card-cover-platform-badge'),
       padding: EdgeInsets.symmetric(horizontal: dense ? 7 : 8, vertical: dense ? 3 : 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(999),
-      ),
+      decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(999)),
       child: Text(
         i18n('site_${room.platform ?? ''}'),
         maxLines: 1,
         style: (dense ? AppText.of(context).tag : AppText.of(context).secondary).copyWith(
-          color: Colors.white,
+          color: textColor,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -337,16 +344,23 @@ class RoomCard extends StatelessWidget {
     );
   }
 
-  /// The platform tag of the compact row, styled like the 关注 panel's tag.
+  /// The platform tag of the compact row (the 关注 lists): text in the
+  /// platform's brand colour, kept readable on the card, over a faint tint of
+  /// it; a platform without a brand colour keeps the neutral tag.
   Widget _buildCompactPlatformBadge(BuildContext context, bool isDark) {
     final colors = Get.theme.colorScheme;
+    final brand = PlatformColors.of(room.platform);
+    final textColor = brand == null ? colors.onSurfaceVariant : readablePrimary(brand.withValues(alpha: 1), colors.surface);
     return Container(
       key: const ValueKey('room-card-platform-badge'),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withValues(alpha: .75),
+        color: brand == null ? colors.surfaceContainerHighest.withValues(alpha: .75) : textColor.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.outline.withValues(alpha: .2), width: .5),
+        border: Border.all(
+          color: brand == null ? colors.outline.withValues(alpha: .2) : textColor.withValues(alpha: .35),
+          width: .5,
+        ),
       ),
       child: Text(
         i18n('site_${room.platform ?? ''}'),
@@ -355,7 +369,7 @@ class RoomCard extends StatelessWidget {
         softWrap: false,
         style: AppText.of(context).tag.copyWith(
           fontWeight: FontWeight.w600,
-          color: colors.onSurfaceVariant,
+          color: textColor,
         ),
       ),
     );

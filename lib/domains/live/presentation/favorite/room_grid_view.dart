@@ -82,6 +82,7 @@ class RoomGridView extends GetView<FavoriteController> {
               statusPendingLabel: isVerifyingFavorites
                   ? i18n('favorite_status_verifying')
                   : i18n('favorite_status_unknown'),
+              longPressDetails: false,
             );
             return CustomScrollView(
               controller: scrollController,

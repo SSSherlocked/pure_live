@@ -27,6 +27,7 @@ class RoomCard extends StatelessWidget {
     this.onSelect,
     this.highlighted = false,
     this.status,
+    this.longPressDetails = true,
   });
   final LiveRoom room;
   final bool dense;
@@ -52,6 +53,10 @@ class RoomCard extends StatelessWidget {
 
   /// Shown in place of the heat (正在观看, or when a 录播 room was watched).
   final String? status;
+
+  /// Whether a long press (or right click) opens the room's details dialog;
+  /// off in the 关注 lists.
+  final bool longPressDetails;
   Widget _buildCover(BuildContext context, bool isDark) {
     final coverUrl = normalizeNetworkImageUrl(room.cover);
 
@@ -591,8 +596,8 @@ class RoomCard extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(radius),
               onTap: !interactive || highlighted ? null : (onSelect ?? () => onTap(context)),
-              onLongPress: interactive ? () => onLongPress(context) : null,
-              onSecondaryTap: interactive ? () => onLongPress(context) : null,
+              onLongPress: interactive && longPressDetails ? () => onLongPress(context) : null,
+              onSecondaryTap: interactive && longPressDetails ? () => onLongPress(context) : null,
               child: config.layout == RoomCardLayout.compact
                   ? _buildCompactLayout(
                       context: context,

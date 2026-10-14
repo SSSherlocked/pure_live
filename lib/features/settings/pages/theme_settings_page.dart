@@ -3,6 +3,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:pure_live/features/settings/widgets/font_family_list.dart';
 import 'package:pure_live/features/settings/widgets/font_typography_section.dart';
@@ -125,6 +126,20 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                     onChanged: (val) => SettingsService.to.theme.livePanelWidth.v = val.roundToDouble(),
                   ),
                 ),
+                Obx(() {
+                  final minutes = SettingsService.to.theme.livePanelFollowRefreshMinutes.v;
+                  return context.buildSliderTile(
+                    context,
+                    icon: Remix.refresh_line,
+                    title: i18n("live_panel_follow_refresh"),
+                    subtitle: i18n("live_panel_follow_refresh_subtitle"),
+                    value: minutes.toDouble(),
+                    min: 0,
+                    max: ThemeSettingsController.maxLivePanelFollowRefreshMinutes.toDouble(),
+                    displayValue: minutes == 0 ? i18n("live_panel_follow_refresh_off") : '$minutes ${i18n("minutes")}',
+                    onChanged: (val) => SettingsService.to.theme.livePanelFollowRefreshMinutes.v = val.round(),
+                  );
+                }),
               ]),
               const SizedBox(height: 20),
               const LivePanelTabOrderSection(),

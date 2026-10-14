@@ -1765,7 +1765,7 @@
   "danmaku_filter_group": "弹幕过滤",
   "danmaku_settings_entry_subtitle": "弹幕列表、浮动弹幕、过滤与字体",
   "font_group_settings_subtitle": "界面字体、各级字号与全局缩放",
-  "live_panel_settings_subtitle": "信息页标签顺序与宽度",
+  "live_panel_settings_subtitle": "信息页标签顺序、宽度与关注刷新间隔",
   "favorite_page_group": "关注页",
   "favorite_show_platform_tabs": "显示平台栏",
   "favorite_show_platform_tabs_subtitle": "关闭后不显示顶部平台栏（包括“全部”），列出所有平台的关注",
@@ -1864,5 +1864,8 @@
   "folder_open_unavailable": "无法打开这个文件夹，它的位置是：",
   "portrait_display_mode_menu": "画面模式",
   "portrait_orientation_menu": "画面方向",
-  "super_chat_font_weight": "留言字体粗细"
+  "super_chat_font_weight": "留言字体粗细",
+  "live_panel_follow_refresh": "关注刷新间隔",
+  "live_panel_follow_refresh_subtitle": "直播间「关注」标签自动刷新关注列表的间隔，0 为不自动刷新",
+  "live_panel_follow_refresh_off": "不自动刷新"
 }

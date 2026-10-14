@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
@@ -73,6 +74,8 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
   StreamSubscription<dynamic>? subscription;
   Worker? _favoritesWorker;
   Worker? _sortWorker;
+  Worker? _autoRefreshWorker;
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
@@ -90,6 +93,25 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       SettingsService.to.roomCard.favoriteSortModeName,
       FavoriteRoomController.to.hotAreasList,
     ], (_) => _updateRooms());
+    _scheduleAutoRefresh();
+    _autoRefreshWorker = ever(SettingsService.to.theme.livePanelFollowRefreshMinutes, (_) => _scheduleAutoRefresh());
+  }
+
+  /// Refreshes the followed rooms every 信息页 › 关注刷新间隔 minutes, if set.
+  void _scheduleAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
+    final minutes = ThemeSettingsController.normalizeLivePanelFollowRefreshMinutes(
+      SettingsService.to.theme.livePanelFollowRefreshMinutes.v,
+    );
+    if (minutes <= 0) return;
+    _autoRefreshTimer = Timer.periodic(Duration(minutes: minutes), (_) => _refresh());
+  }
+
+  void _refresh() {
+    if (!mounted || refreshing.value) return;
+    refreshing.value = true;
+    EventBus.instance.emit('refresh_favorite_rooms', true);
   }
 
   void _updateRooms() {
@@ -114,6 +136,8 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
     subscription?.cancel();
     _favoritesWorker?.dispose();
     _sortWorker?.dispose();
+    _autoRefreshWorker?.dispose();
+    _autoRefreshTimer?.cancel();
     super.dispose();
   }
 
@@ -178,12 +202,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                   key: const ValueKey('room-history-refresh'),
                   tooltip: i18n('refresh'),
                   visualDensity: VisualDensity.compact,
-                  onPressed: refreshing.value
-                      ? null
-                      : () {
-                          refreshing.value = true;
-                          EventBus.instance.emit('refresh_favorite_rooms', true);
-                        },
+                  onPressed: refreshing.value ? null : _refresh,
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                 ),
               ),
@@ -269,6 +288,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                   room: room,
                   dense: dense,
                   forceCompact: true,
+                  longPressDetails: false,
                   highlighted: playing,
                   status: playing
                       ? i18n('now_watching')

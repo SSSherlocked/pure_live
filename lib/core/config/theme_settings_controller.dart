@@ -49,6 +49,17 @@ class ThemeSettingsController extends GetxController {
   /// dragging their edge; separate from the room's own side panel.
   final RxDouble fullscreenPanelWidth = hiveDouble('fullscreenPanelWidth', LivePanelWidth.defaultValue);
 
+  /// Minutes between automatic refreshes of the room's 关注 tab while it is
+  /// shown; 0 refreshes only on demand.
+  final RxInt livePanelFollowRefreshMinutes = hiveInt('livePanelFollowRefreshMinutes', 0);
+
+  static const int maxLivePanelFollowRefreshMinutes = 30;
+
+  static int normalizeLivePanelFollowRefreshMinutes(Object? value) {
+    final parsed = value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
+    return (parsed ?? 0).clamp(0, maxLivePanelFollowRefreshMinutes);
+  }
+
   /// 显示模式: phone, tablet or desktop layout, or follow the screen (default).
   final RxString displayModeName = hiveString('displayMode', DisplayMode.auto.name);
 
@@ -326,6 +337,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelHiddenTabs': normalizeLivePanelHiddenTabs(livePanelHiddenTabs.v),
       'livePanelWidth': LivePanelWidth.normalize(livePanelWidth.v),
       'fullscreenPanelWidth': LivePanelWidth.normalize(fullscreenPanelWidth.v),
+      'livePanelFollowRefreshMinutes': normalizeLivePanelFollowRefreshMinutes(livePanelFollowRefreshMinutes.v),
       'displayMode': displayMode.name,
       // The single keys above carry the active profile's values (what an
       // older build restores); this carries all three profiles.
@@ -352,6 +364,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelHiddenTabs': normalizeLivePanelHiddenTabs((json['livePanelHiddenTabs'] ?? '') as String),
       'livePanelWidth': _parseLivePanelWidth(json['livePanelWidth']),
       'fullscreenPanelWidth': _parseLivePanelWidth(json['fullscreenPanelWidth']),
+      'livePanelFollowRefreshMinutes': normalizeLivePanelFollowRefreshMinutes(json['livePanelFollowRefreshMinutes']),
       'displayMode': DisplayMode.parse(json['displayMode']).name,
     };
     // A backup from before the profiles has only the single values: every
@@ -379,6 +392,7 @@ class ThemeSettingsController extends GetxController {
     languageName.v = parsed['languageName'];
     livePanelTabOrder.v = parsed['livePanelTabOrder'];
     livePanelHiddenTabs.v = parsed['livePanelHiddenTabs'];
+    livePanelFollowRefreshMinutes.v = parsed['livePanelFollowRefreshMinutes'];
     displayModeName.v = parsed['displayMode'];
     // The spacing and panel widths come from the restored active profile.
     profiles.restore(parsed[profilesKey] as Map<String, dynamic>);
@@ -401,6 +415,7 @@ class ThemeSettingsController extends GetxController {
       'livePanelHiddenTabs': parsed['livePanelHiddenTabs'],
       'livePanelWidth': parsed['livePanelWidth'],
       'fullscreenPanelWidth': parsed['fullscreenPanelWidth'],
+      'livePanelFollowRefreshMinutes': parsed['livePanelFollowRefreshMinutes'],
       'displayMode': parsed['displayMode'],
       profilesKey: parsed[profilesKey],
     };

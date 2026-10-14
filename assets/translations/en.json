@@ -1765,7 +1765,7 @@
   "danmaku_filter_group": "Danmaku filters",
   "danmaku_settings_entry_subtitle": "Chat list, floating danmaku, filters and font",
   "font_group_settings_subtitle": "Interface font, text sizes and overall scale",
-  "live_panel_settings_subtitle": "Info page tab order and width",
+  "live_panel_settings_subtitle": "Info page tab order, width and follow refresh interval",
   "favorite_page_group": "Following page",
   "favorite_show_platform_tabs": "Show platform tabs",
   "favorite_show_platform_tabs_subtitle": "Off: no platform tab bar (including All); every platform's rooms are listed",
@@ -1864,5 +1864,8 @@
   "folder_open_unavailable": "The folder could not be opened. It is at:",
   "portrait_display_mode_menu": "Picture mode",
   "portrait_orientation_menu": "Picture orientation",
-  "super_chat_font_weight": "Super chat text weight"
+  "super_chat_font_weight": "Super chat text weight",
+  "live_panel_follow_refresh": "Follow refresh interval",
+  "live_panel_follow_refresh_subtitle": "How often the room's Follow tab refreshes the followed rooms; 0 refreshes only on demand",
+  "live_panel_follow_refresh_off": "Off"
 }

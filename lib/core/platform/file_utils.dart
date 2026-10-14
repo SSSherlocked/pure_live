@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:open_filex/open_filex.dart';
 import 'package:pure_live/core/index.dart';
@@ -112,6 +113,46 @@ class FileUtils {
     }
   }
 
+  /// Opens the folder at [path] in the system file manager. Where that is not
+  /// possible (an app-private folder on Android, a missing folder), shows the
+  /// path in a dialog with a copy button instead, so every "open folder"
+  /// entry ends somewhere useful.
+  static Future<void> openFolder(String path) async {
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) return;
+    if (await openFileOrUrl(trimmed)) return;
+    final context = Get.context;
+    if (context == null || !context.mounted) {
+      ToastUtil.show(trimmed);
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(i18n('folder_open_unavailable_title')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(i18n(Platform.isAndroid ? 'folder_open_unavailable_android' : 'folder_open_unavailable')),
+            const SizedBox(height: 12),
+            SelectableText(trimmed, style: AppText.of(dialogContext).secondary),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: trimmed));
+              ToastUtil.show(i18n('copied_to_clipboard'));
+            },
+            child: Text(i18n('copy')),
+          ),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(i18n('close'))),
+        ],
+      ),
+    );
+  }
+
   static Future<bool> openFileOrUrl(String pathOrUrl) async {
     final trimmedPath = pathOrUrl.trim();
     if (trimmedPath.isEmpty) return false;
@@ -151,6 +192,12 @@ class FileUtils {
     }
 
     if (Platform.isAndroid && isDir) {
+      // A folder only opens in the system file manager when it is in shared
+      // storage. App-private storage - the app's data directory and, since
+      // Android 11, Android/data and Android/obb - cannot be browsed by any
+      // other app; handing such a folder to OpenFilex below treated it as a
+      // file and showed an "invalid" empty viewer. Callers show the path
+      // instead (see [openFolder]).
       try {
         const externalStorage = '/storage/emulated/0/';
 
@@ -163,7 +210,7 @@ class FileUtils {
             .replaceAll('\\', '/')
             .replaceAll(RegExp(r'^/+|/+$'), '');
 
-        if (relativePath.isEmpty) {
+        if (relativePath.isEmpty || RegExp(r'^Android/(data|obb)(/|$)').hasMatch(relativePath)) {
           return false;
         }
 
@@ -187,6 +234,7 @@ class FileUtils {
         await intent.launch();
         return true;
       } catch (_) {}
+      return false;
     }
 
     try {

@@ -91,9 +91,7 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
         ToastUtil.show(i18n('log_dir_not_exist'));
         return;
       }
-      if (!await FileUtils.openFileOrUrl(logDir.path)) {
-        ToastUtil.show(i18n('open_log_dir_failed'));
-      }
+      await FileUtils.openFolder(logDir.path);
     } catch (_) {
       ToastUtil.show(i18n('open_log_dir_failed'));
     }

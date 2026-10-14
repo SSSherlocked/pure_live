@@ -1646,13 +1646,13 @@ class RecorderController extends GetxService {
   bool _containsTask(String taskId) => tasks.any((task) => task.taskId == taskId);
 
   Future<void> openFileDir() async {
-    await FileUtils.openFileOrUrl(await CacheService.to.getDisplayPath());
+    await FileUtils.openFolder(await CacheService.to.getDisplayPath());
   }
 
   Future<void> openTaskDir(LiveRecordTask task) async {
     final dir = task.outputDir;
     if (dir == null || dir.isEmpty) return;
-    await FileUtils.openFileOrUrl(dir);
+    await FileUtils.openFolder(dir);
   }
 
   Future<void> playTaskVideo(LiveRecordTask task) async {

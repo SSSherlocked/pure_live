@@ -85,9 +85,7 @@ class FontFamilyList extends StatelessWidget {
       final path = fontId == null
           ? p.join(downloadPath, AppPathManager.fontDirectoryName)
           : await AppPathManager().getFontFamilyFolderPath(fontId, downloadPath: downloadPath);
-      if (!await FileUtils.openFileOrUrl(path)) {
-        ToastUtil.show(i18n('open_font_dir_failed'));
-      }
+      await FileUtils.openFolder(path);
     } catch (_) {
       ToastUtil.show(i18n('open_font_dir_failed'));
     }

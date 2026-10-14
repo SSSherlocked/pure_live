@@ -1866,5 +1866,8 @@
   "background_guide_samsung_sleeping": "休眠应用",
   "background_guide_samsung_sleeping_how": "设置 → 电池 → 后台使用限制：把 Pure Live 从“休眠应用”“深度休眠应用”里移除，或加进“永不休眠的应用”",
   "background_guide_meizu_background": "后台管理",
-  "background_guide_meizu_background_how": "手机管家 → 后台管理（或应用信息 → 权限管理 → 后台运行），选“允许后台运行”"
+  "background_guide_meizu_background_how": "手机管家 → 后台管理（或应用信息 → 权限管理 → 后台运行），选“允许后台运行”",
+  "folder_open_unavailable_title": "无法直接打开文件夹",
+  "folder_open_unavailable_android": "这个文件夹在应用自己的存储空间里，安卓不允许文件管理器浏览。文件保存在：",
+  "folder_open_unavailable": "无法打开这个文件夹，它的位置是："
 }

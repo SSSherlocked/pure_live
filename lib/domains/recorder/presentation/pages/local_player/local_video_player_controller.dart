@@ -540,7 +540,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   }
 
   Future<void> openFileDir() async {
-    await FileUtils.openFileOrUrl(directory);
+    await FileUtils.openFolder(directory);
   }
 
   Future<void> renameFile(int index, String newName) async {

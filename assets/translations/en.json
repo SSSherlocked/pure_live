@@ -1866,5 +1866,8 @@
   "background_guide_samsung_sleeping": "Sleeping apps",
   "background_guide_samsung_sleeping_how": "Settings → Battery → Background usage limits: remove Pure Live from sleeping and deep sleeping apps, or add it to never sleeping apps",
   "background_guide_meizu_background": "Background management",
-  "background_guide_meizu_background_how": "Phone Manager → Background management (or App info → Permissions → Run in background): allow running in the background"
+  "background_guide_meizu_background_how": "Phone Manager → Background management (or App info → Permissions → Run in background): allow running in the background",
+  "folder_open_unavailable_title": "Cannot open the folder",
+  "folder_open_unavailable_android": "This folder is in the app's own storage, which Android does not let file managers browse. The files are in:",
+  "folder_open_unavailable": "The folder could not be opened. It is at:"
 }

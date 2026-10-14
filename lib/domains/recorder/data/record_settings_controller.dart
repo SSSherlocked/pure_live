@@ -261,7 +261,7 @@ class RecordSettingsController extends GetxService {
       return;
     }
 
-    await FileUtils.openFileOrUrl(path);
+    await FileUtils.openFolder(path);
   }
 
   Future<void> updateDefaultQuality(String v) async {

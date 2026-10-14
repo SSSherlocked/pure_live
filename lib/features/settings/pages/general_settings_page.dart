@@ -62,20 +62,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               subtitle: i18n("danmaku_settings_entry_subtitle"),
               onTap: () => Get.to(() => const _DanmakuSettingsSubpage()),
             ),
-            Obx(() {
-              final mode = SettingsService.to.theme.displayMode;
-              // A wide layout on a phone-sized screen works, but cramped.
-              final cramped =
-                  MediaQuery.sizeOf(context).shortestSide < 600 &&
-                  (mode == DisplayMode.tablet || mode == DisplayMode.desktop);
-              return context.buildTile(
-                icon: Icons.devices_rounded,
-                title: i18n('display_mode'),
-                subtitle: i18n(cramped ? 'display_mode_narrow_warning' : 'display_mode_${mode.name}_desc'),
-                isLong: true,
-                trailing: _DisplayModeMenu(current: mode),
-              );
-            }),
+            const _DisplayModeTile(),
           ]),
           const SizedBox(height: 20),
           context.buildGroupTitle(i18n("refresh_settings")),
@@ -320,14 +307,12 @@ class GeneralSettingsPage extends GetView<SettingsService> {
   }
 }
 
-/// 显示模式 as the tile's trailing text; tapping it opens a floating menu
-/// styled like the player's quality switcher. A new mode rebuilds the whole
-/// app once, so controllers that cached the previous layout (refresh buttons,
-/// room card presets) follow at once.
-class _DisplayModeMenu extends StatelessWidget {
-  const _DisplayModeMenu({required this.current});
-
-  final DisplayMode current;
+/// 显示模式 with its choices as chips under the title, like the chat list's
+/// 弹幕颜色. A new mode rebuilds the whole app once, so controllers that
+/// cached the previous layout (refresh buttons, room card presets) follow at
+/// once.
+class _DisplayModeTile extends StatelessWidget {
+  const _DisplayModeTile();
 
   Future<void> _apply(DisplayMode mode) async {
     final theme = SettingsService.to.theme;
@@ -339,39 +324,50 @@ class _DisplayModeMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final labels = [for (final mode in DisplayMode.values) i18n('display_mode_${mode.name}')];
-    return PopupMenuButton<DisplayMode>(
-      key: const ValueKey('display-mode-menu'),
-      tooltip: i18n('display_mode'),
-      constraints: choiceMenuConstraints(context, labels),
-      offset: const Offset(0.0, 5.0),
-      position: PopupMenuPosition.under,
-      onSelected: (mode) => unawaited(_apply(mode)),
-      itemBuilder: (context) => [
-        for (final mode in DisplayMode.values)
-          choiceMenuItem<DisplayMode>(
-            context,
-            value: mode,
-            label: i18n('display_mode_${mode.name}'),
-            labels: labels,
-            selected: mode == current,
-          ),
-      ],
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Align(
-            widthFactor: 1,
-            child: Text(
-              i18n('display_mode_${current.name}'),
-              maxLines: 1,
-              style: AppText.of(context).secondary.copyWith(color: colors.primary, fontWeight: FontWeight.w600),
+    return Obx(() {
+      final current = SettingsService.to.theme.displayMode;
+      // A wide layout on a phone-sized screen works, but cramped.
+      final cramped =
+          MediaQuery.sizeOf(context).shortestSide < 600 &&
+          (current == DisplayMode.tablet || current == DisplayMode.desktop);
+      return ListTile(
+        horizontalTitleGap: 12,
+        minLeadingWidth: 0,
+        minVerticalPadding: 0,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: const Padding(padding: EdgeInsets.only(top: 2), child: SettingsRowIcon(Icons.devices_rounded)),
+        titleAlignment: ListTileTitleAlignment.top,
+        title: Text(i18n('display_mode'), style: AppText.of(context).sectionTitle),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                i18n(cramped ? 'display_mode_narrow_warning' : 'display_mode_${current.name}_desc'),
+                style: AppText.of(context).secondary.copyWith(color: colors.onSurfaceVariant),
+              ),
             ),
-          ),
+            const SizedBox(height: 10),
+            Wrap(
+              key: const ValueKey('display-mode-choices'),
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final mode in DisplayMode.values)
+                  ChoiceChip(
+                    key: ValueKey('display-mode-${mode.name}'),
+                    label: Text(i18n('display_mode_${mode.name}')),
+                    selected: current == mode,
+                    onSelected: (_) => unawaited(_apply(mode)),
+                  ),
+              ],
+            ),
+          ],
         ),
-      ),
-    );
+      );
+    });
   }
 }
 

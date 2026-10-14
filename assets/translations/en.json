@@ -317,7 +317,6 @@
   "polling_detection": "Polling Detection",
   "popular_title": "Popular",
   "port": "Port",
-  "position": "Position",
   "power_saving_mode": "Power Saving Mode",
   "prefer_best_stream": "Prefer Original Quality Stream",
   "prefer_best_stream_desc": "Force the highest quality stream (0:v:0)",
@@ -506,7 +505,6 @@
   "record_storage_checking": "Checking recording folder",
   "stream_not_live": "The streamer is offline",
   "stroke": "Stroke width",
-  "style": "Style",
   "switch_other_room_hint": "Please switch to another live room",
   "sync_failed": "Sync failed",
   "sync_success": "Sync successful",
@@ -1856,5 +1854,6 @@
   "super_chat_font_weight": "Super chat text weight",
   "live_panel_follow_refresh": "Follow refresh interval",
   "live_panel_follow_refresh_subtitle": "How often the room's Follow tab refreshes the followed rooms; 0 refreshes only on demand",
-  "live_panel_follow_refresh_off": "Off"
+  "live_panel_follow_refresh_off": "Off",
+  "danmaku_display_group": "Danmaku display"
 }

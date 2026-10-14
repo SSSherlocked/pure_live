@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/physics.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
@@ -236,8 +238,12 @@ class _LivePlayDesktopSplitState extends State<_LivePlayDesktopSplit> {
 /// The video sits above a three-stop interaction sheet and is laid out in the
 /// space the sheet leaves, so the whole picture is always visible (letterboxed
 /// as needed) with the ordinary inline controls along its bottom edge. Users
-/// can reveal more danmaku at the cost of a smaller picture, and the drag
-/// handle is isolated from the list's own scroll recognizer.
+/// can reveal more danmaku at the cost of a smaller picture.
+///
+/// The sheet's top part - the drag handle, the info row and the tab bar - is
+/// fixed to the sheet; only the tab content below scrolls. The handle and the
+/// info row move the sheet, and a fling carries on with its velocity before a
+/// spring settles the sheet on the nearest stop.
 class PortraitLiveRoomLayout extends StatefulWidget {
   const PortraitLiveRoomLayout({
     super.key,
@@ -256,31 +262,58 @@ class PortraitLiveRoomLayout extends StatefulWidget {
   State<PortraitLiveRoomLayout> createState() => _PortraitLiveRoomLayoutState();
 }
 
-class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
+class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> with SingleTickerProviderStateMixin {
+  /// Critically damped: the sheet glides onto its stop without bouncing.
+  static const _spring = SpringDescription(mass: 1, stiffness: 400, damping: 40);
+
+  /// How far ahead of its release point a fling is projected, in seconds of
+  /// its release velocity, to pick the stop it settles on.
+  static const _flingProjection = 0.2;
+
+  late final AnimationController _settle;
   double? _panelHeight;
+
+  @override
+  void initState() {
+    super.initState();
+    _settle = AnimationController.unbounded(vsync: this)
+      ..addListener(() => setState(() => _panelHeight = _settle.value));
+  }
 
   @override
   void didUpdateWidget(covariant PortraitLiveRoomLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.mode != widget.mode) _panelHeight = null;
+    if (oldWidget.mode != widget.mode) {
+      _settle.stop();
+      _panelHeight = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _settle.dispose();
+    super.dispose();
   }
 
   void _updatePanelDrag(DragUpdateDetails details, double current, double minimum, double maximum) {
-    final delta = details.delta.dy;
+    final delta = details.primaryDelta ?? details.delta.dy;
     if (delta == 0) return;
     // Dragging down shrinks the sheet, dragging up grows it.
     setState(() => _panelHeight = ((_panelHeight ?? current) - delta).clamp(minimum, maximum).toDouble());
   }
 
-  void _finishPanelDrag(double current, double minimum, double middle, double maximum) {
-    final dragEndHeight = (_panelHeight ?? current).clamp(minimum, maximum).toDouble();
-    final stops = <double>[minimum, middle, maximum];
-    stops.sort((a, b) => (a - dragEndHeight).abs().compareTo((b - dragEndHeight).abs()));
-    setState(() => _panelHeight = stops.first);
+  /// Settles the sheet on the stop nearest to where the release [velocity]
+  /// (downward positive, as the drag reports it) would carry it.
+  void _finishPanelDrag(double velocity, double current, List<double> stops) {
+    final height = _panelHeight ?? current;
+    final heightVelocity = -velocity;
+    final projected = height + heightVelocity * _flingProjection;
+    final target = stops.reduce((a, b) => (a - projected).abs() <= (b - projected).abs() ? a : b);
+    _settleTo(height, target, velocity: heightVelocity);
   }
 
-  void _settlePanelHeight(double panelHeight) {
-    setState(() => _panelHeight = panelHeight);
+  void _settleTo(double from, double to, {double velocity = 0}) {
+    unawaited(_settle.animateWith(SpringSimulation(_spring, from, to, velocity)));
   }
 
   @override
@@ -289,6 +322,8 @@ class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
       builder: (context, constraints) {
         final range = portraitPanelRange(constraints.maxHeight, widget.mode);
         final current = (_panelHeight ?? range.initial).clamp(range.minimum, range.maximum).toDouble();
+        final stops = [range.minimum, range.middle, range.maximum];
+        final colors = Theme.of(context).colorScheme;
         return Stack(
           key: const ValueKey('live-play-portrait-stack'),
           fit: StackFit.expand,
@@ -313,68 +348,63 @@ class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
               height: current,
               child: Material(
                 key: const ValueKey('live-play-portrait-sheet'),
-                color: Theme.of(context).colorScheme.surface,
+                color: colors.surface,
                 elevation: 10,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
                 clipBehavior: Clip.antiAlias,
-                child: SingleChildScrollView(
-                  key: const ValueKey('live-play-portrait-sheet-scroll'),
-                  physics: const ClampingScrollPhysics(),
-                  child: SizedBox(
-                    // Keep controls and the input usable when the keyboard,
-                    // split screen or PiP animation reduces the room bounds.
-                    // This wrapper stays mounted even when no scrolling is
-                    // needed, preserving input focus and the video sibling.
-                    height: current.clamp(240.0, double.infinity),
-                    child: Column(
-                      children: [
-                        Semantics(
-                          label: i18n('portrait_panel_resize'),
-                          value: '${current.round()} px',
-                          hint: i18n('portrait_panel_resize_hint'),
-                          increasedValue: current < range.maximum
-                              ? '${(current < range.middle ? range.middle : range.maximum).round()} px'
-                              : null,
-                          decreasedValue: current > range.minimum
-                              ? '${(current > range.middle ? range.middle : range.minimum).round()} px'
-                              : null,
-                          onIncrease: current < range.maximum
-                              ? () => _settlePanelHeight(current < range.middle ? range.middle : range.maximum)
-                              : null,
-                          onDecrease: current > range.minimum
-                              ? () => _settlePanelHeight(current > range.middle ? range.middle : range.minimum)
-                              : null,
-                          child: GestureDetector(
-                            key: const ValueKey('live-play-portrait-sheet-handle'),
-                            behavior: HitTestBehavior.opaque,
-                            dragStartBehavior: DragStartBehavior.down,
-                            onVerticalDragUpdate: (details) =>
-                                _updatePanelDrag(details, current, range.minimum, range.maximum),
-                            onVerticalDragEnd: (_) =>
-                                _finishPanelDrag(current, range.minimum, range.middle, range.maximum),
-                            onVerticalDragCancel: () =>
-                                _finishPanelDrag(current, range.minimum, range.middle, range.maximum),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      key: const ValueKey('live-play-portrait-sheet-handle'),
+                      behavior: HitTestBehavior.opaque,
+                      dragStartBehavior: DragStartBehavior.down,
+                      onVerticalDragStart: (_) => _settle.stop(),
+                      onVerticalDragUpdate: (details) =>
+                          _updatePanelDrag(details, current, range.minimum, range.maximum),
+                      onVerticalDragEnd: (details) => _finishPanelDrag(details.primaryVelocity ?? 0, current, stops),
+                      onVerticalDragCancel: () => _finishPanelDrag(0, current, stops),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Semantics(
+                            label: i18n('portrait_panel_resize'),
+                            value: '${current.round()} px',
+                            hint: i18n('portrait_panel_resize_hint'),
+                            increasedValue: current < range.maximum
+                                ? '${(current < range.middle ? range.middle : range.maximum).round()} px'
+                                : null,
+                            decreasedValue: current > range.minimum
+                                ? '${(current > range.middle ? range.middle : range.minimum).round()} px'
+                                : null,
+                            onIncrease: current < range.maximum
+                                ? () => _settleTo(current, current < range.middle ? range.middle : range.maximum)
+                                : null,
+                            onDecrease: current > range.minimum
+                                ? () => _settleTo(current, current > range.middle ? range.middle : range.minimum)
+                                : null,
+                            // A slim strip, three times the handle's height:
+                            // the info row below takes the drag as well.
                             child: SizedBox(
-                              height: kMinInteractiveDimension,
+                              height: 12,
                               child: Center(
                                 child: Container(
                                   width: 38,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.30),
+                                    color: colors.onSurfaceVariant.withValues(alpha: 0.30),
                                     borderRadius: BorderRadius.circular(99),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        widget.resolution,
-                        const Divider(height: 1),
-                        Expanded(key: const ValueKey('live-play-portrait-danmaku'), child: widget.danmaku),
-                      ],
+                          widget.resolution,
+                        ],
+                      ),
                     ),
-                  ),
+                    const Divider(height: 1),
+                    Expanded(key: const ValueKey('live-play-portrait-danmaku'), child: widget.danmaku),
+                  ],
                 ),
               ),
             ),

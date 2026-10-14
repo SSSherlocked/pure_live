@@ -1,5 +1,79 @@
 [
   {
+    "version": "3.3.1",
+    "title": "v3.3.1",
+    "date": "2026-10-14",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.3.1",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎨 外观\n\n- **人气数值**：紧凑信息行里的人气图标和数字去掉橙色，改用与卡片其他信息一致的辅助文字色。\n- **获取中**：大图卡片上的「获取中」移到右上角人气的位置，不再与左上角的平台标签重叠；图标改为箭头更细的刷新图标。\n\n#### 🎬 播放\n\n- **画面上的留言**：播放器上的留言卡片贴住画面底边，只为系统手势条和竖屏全屏的屏幕圆角留出避让，不再悬空。\n- **留言金额**：只用人民币（¥）和美元（$）两种币种，国内平台按人民币、国外平台按美元显示。斗鱼留言金额保留到角分，不再舍掉零头；Picarto 打赏不再误标为人民币。留言正文里平台附带的金额文字（如「(来自一元上头条)」）不再显示。",
+    "files": [
+      {
+        "name": "PureLive-3.3.1-4116-android-arm64-v8a",
+        "size": "119.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-android-arm64-v8a-release.apk"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-ios-arm64-trollstore.ipa",
+        "size": "44.81mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-ios-arm64-trollstore.ipa"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-ios-arm64-unsigned-app.zip",
+        "size": "44.54mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-ios-arm64-unsigned-app.zip"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-linux-x64.deb",
+        "size": "41.86mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-linux-x64.tar.gz",
+        "size": "50.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-linux-x64.zip",
+        "size": "50.23mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-macos-arm64.zip",
+        "size": "42.18mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-macos-arm64.zip"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-macos-x64.zip",
+        "size": "44.91mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-macos-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-windows-x64-portable.zip",
+        "size": "60.66mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-windows-x64-portable.zip"
+      },
+      {
+        "name": "PureLive-3.3.1-4116-windows-x64-setup.exe",
+        "size": "45.92mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-windows-x64-setup.exe"
+      }
+    ]
+  },
+  {
     "version": "3.3.0",
     "title": "v3.3.0",
     "date": "2026-10-14",
@@ -14,7 +88,7 @@
       {
         "name": "PureLive-3.3.0-4115-android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.0/PureLive-3.3.0-4115-android-arm64-v8a-release.apk"
       },
       {

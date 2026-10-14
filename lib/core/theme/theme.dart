@@ -244,8 +244,12 @@ class MyTheme {
           borderRadius: const BorderRadius.all(Radius.circular(1.5)),
         ),
         tabAlignment: TabAlignment.center,
-        labelStyle: textTheme.titleMedium?.copyWith(fontWeight: semiBold),
-        unselectedLabelStyle: textTheme.titleMedium?.copyWith(fontWeight: regular),
+        // Bold whether selected or not, as the room panel's tabs: the colour
+        // marks the current tab. A regular-weight unselected label read thin
+        // on phones (bundled single-weight fonts) and the selected one only
+        // faintly heavier, while desktop system fonts hid the difference.
+        labelStyle: textTheme.titleMedium?.copyWith(fontWeight: bold),
+        unselectedLabelStyle: textTheme.titleMedium?.copyWith(fontWeight: bold),
         labelColor: baseTheme.colorScheme.primary,
         unselectedLabelColor: baseTheme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
       ),

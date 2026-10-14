@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,12 +52,21 @@ class MobileManager {
         ),
       );
 
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+      // Not awaited. audio_service can start this engine with no Activity
+      // (the system restarts its media service after the process is killed,
+      // e.g. swiped away while playing), and Android's platform channel drops
+      // SystemChrome calls without replying until an Activity attaches. An
+      // awaited call then never returned, runApp never ran, and the Activity
+      // opened later stayed on the launch screen. All four orientations is the
+      // default anyway, so a dropped call changes nothing.
+      unawaited(
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]).catchError((Object error) => debugPrint('Android orientation setup failed: $error')),
+      );
     } catch (e) {
       debugPrint('Android 初始化失败: $e');
     }

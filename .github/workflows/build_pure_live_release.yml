@@ -39,7 +39,7 @@ on:
         type: boolean
         default: false
       version:
-        description: 版本号，如 3.3.2（留空则沿用当前版本）
+        description: 版本号（留空则沿用当前版本）
         required: false
         type: string
         default: ""

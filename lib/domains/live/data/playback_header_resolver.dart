@@ -52,18 +52,17 @@ class PlaybackHeaderResolver {
 
     switch (normalizedPlatform) {
       case Sites.bilibiliSite:
-        final cookie = _configuredCookie((cookies) => cookies.bilibiliCookie.value);
-        final anonymousCookie = <String>[
-          if (BiliBiliSite.buvid3.isNotEmpty) 'buvid3=${BiliBiliSite.buvid3}',
-          if (BiliBiliSite.buvid4.isNotEmpty) 'buvid4=${BiliBiliSite.buvid4}',
-        ].join(';');
+        // No cookie: the stream URL carries its own signature (sign, sk, mid)
+        // and the CDN does not read cookies, so the account's session token
+        // stayed out of every CDN edge, relay and log line for nothing.
+        // Referer and user agent are what the CDN checks (Simple Live sends
+        // the same two).
         headers = <String, String>{
           'user-agent': BiliBiliSite.kDefaultUserAgent,
           'origin': 'https://live.bilibili.com',
           'referer': normalizedRoomId.isEmpty
               ? BiliBiliSite.kDefaultReferer
               : 'https://live.bilibili.com/$normalizedRoomId',
-          if (cookie.isNotEmpty) 'cookie': cookie else if (anonymousCookie.isNotEmpty) 'cookie': anonymousCookie,
         };
         break;
       case Sites.douyuSite:

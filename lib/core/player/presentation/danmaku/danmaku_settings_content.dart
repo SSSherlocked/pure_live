@@ -84,8 +84,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
 
   Color get labelColor => isEmbedded ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
 
-  Color get secondaryColor => isEmbedded ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurfaceVariant;
-
   Color get primaryColor => theme.colorScheme.primary;
 
   Color get cardColor =>
@@ -179,14 +177,9 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ?widget.header,
-          // The chat list, the position and style of the danmaku on the video
-          // and the super chats on it are kept per display profile; this page
-          // edits the current one.
-          DisplayProfileNote(
-            profile: SettingsService.to.danmaku.profile,
-            color: secondaryColor,
-            padding: const EdgeInsets.only(left: 8, right: 8, bottom: _titleGap),
-          ),
+          // The first group title keeps the same space above it as every
+          // later one (the list's own top padding plus the rest of a gap).
+          const SizedBox(height: _sectionGap - 8),
           // The side panel chat list has its own text size and spacing,
           // separate from the danmaku scrolling over the video below.
           context.buildGroupTitle(i18n('chat_list_display')),

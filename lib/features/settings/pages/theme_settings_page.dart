@@ -80,12 +80,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
             // five typography sizes, the font family list and where fonts are
             // downloaded to.
             ThemeSettingsSection.fonts => [
-              // The text scale and the typography sizes are kept per display
-              // profile; the font list below is shared.
-              DisplayProfileNote(
-                profile: SettingsService.to.font.profile,
-                padding: const EdgeInsets.only(left: 4, bottom: 12),
-              ),
               context.buildModernCard([
                 Obx(
                   () => context.buildSliderTile(
@@ -117,12 +111,6 @@ class ThemeSettingsPage extends GetView<SettingsService> {
               const FontFamilyList(),
             ],
             ThemeSettingsSection.livePanel => [
-              // The panel width is kept per display profile; the sections
-              // below are shared.
-              DisplayProfileNote(
-                profile: SettingsService.to.theme.profile,
-                padding: const EdgeInsets.only(left: 4, bottom: 12),
-              ),
               context.buildModernCard([
                 Obx(
                   () => context.buildSliderTile(

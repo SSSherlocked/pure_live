@@ -67,9 +67,6 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
           physics: const PureLiveScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            // Everything down to the 关注 page group is kept per display
-            // profile; this page edits the current one.
-            DisplayProfileNote(profile: controller.profile, padding: const EdgeInsets.only(bottom: 12)),
             context.buildGroupTitle(i18n('room_card_preview')),
             // Drawn at the width and density the 关注 grid gives a card, so
             // what shows here is what the grid shows.

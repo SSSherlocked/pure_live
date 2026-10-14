@@ -24,10 +24,11 @@ TextStyle homeMenuTextStyle(BuildContext context) => AppText.of(context).body.co
 
 /// The icon of a home menu entry.
 Widget homeMenuIcon(BuildContext context, IconData icon, {Color? color}) =>
-    // Grey, not the theme colour: only a status (a running recording) colours one.
-    Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.onSurfaceVariant);
+    // The text's colour, not the theme colour: only a status (a running
+    // recording) colours one. onSurfaceVariant read dimmer than the label.
+    Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.onSurface);
 
-/// One entry of the home page's two menus: a grey icon and its
+/// One entry of the home page's two menus: an icon and its
 /// name, shared by [MenuButton], [CommonAppBarActions] and the room page's
 /// menu. A submenu entry's arrow hangs in the left padding, so plain entries
 /// need no slot for it.
@@ -50,10 +51,25 @@ Widget homeMenuItem(
 }
 
 /// The button that opens a home menu: the size of an app-bar action
-/// ([kMinInteractiveDimension] square, 24 px icon).
+/// ([kMinInteractiveDimension] square, 24 px icon) and, like the app bar's
+/// icons, as bright as the text (an IconButton outside an app bar defaults to
+/// the dimmer onSurfaceVariant).
 Widget homeMenuToggle(MenuController menu, {required IconData icon, required String tooltip, Key? key}) {
+  return Builder(
+    builder: (context) => _homeMenuToggleButton(context, menu, icon: icon, tooltip: tooltip, key: key),
+  );
+}
+
+Widget _homeMenuToggleButton(
+  BuildContext context,
+  MenuController menu, {
+  required IconData icon,
+  required String tooltip,
+  Key? key,
+}) {
   return IconButton(
     key: key,
+    color: Theme.of(context).colorScheme.onSurface,
     tooltip: tooltip,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints.tightFor(width: kMinInteractiveDimension, height: kMinInteractiveDimension),

@@ -231,6 +231,13 @@ class MyTheme {
       );
     }
 
+    // Floating menus follow 深色模式纯黑背景 too; a hairline outline then
+    // keeps a black menu apart from the black page under it.
+    final menuColor = pureBlack ? Colors.black : floatingMenuColor(baseTheme.colorScheme);
+    final menuShape = pureBlack
+        ? kFloatingMenuShape.copyWith(side: BorderSide(color: baseTheme.colorScheme.outlineVariant, width: 0.5))
+        : kFloatingMenuShape;
+
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
       // A smaller drag halo makes every slider shorter than Material's 48 px;
@@ -323,9 +330,9 @@ class MyTheme {
       // padding). A menu must not set its own colour or shape.
       menuTheme: MenuThemeData(
         style: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(floatingMenuColor(baseTheme.colorScheme)),
+          backgroundColor: WidgetStatePropertyAll(menuColor),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-          shape: const WidgetStatePropertyAll(kFloatingMenuShape),
+          shape: WidgetStatePropertyAll(menuShape),
           padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
           visualDensity: VisualDensity.standard,
         ),
@@ -343,9 +350,9 @@ class MyTheme {
       ),
       popupMenuTheme: PopupMenuThemeData(
         menuPadding: const EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding),
-        color: floatingMenuColor(baseTheme.colorScheme),
+        color: menuColor,
         surfaceTintColor: Colors.transparent,
-        shape: kFloatingMenuShape,
+        shape: menuShape,
       ),
       dialogTheme: DialogThemeData(
         elevation: 0,

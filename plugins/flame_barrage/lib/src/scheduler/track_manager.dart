@@ -11,9 +11,10 @@ class TrackManager {
   void initialize(BarrageConfig config, double screenHeight) {
     if (screenHeight <= 0) return;
 
-    final double safeTrackHeight = config.trackHeight < (config.fontSize + 10)
-        ? (config.fontSize + 10)
-        : config.trackHeight;
+    // The lane count and the lane positions (BarrageDataSystem) must use the
+    // same height: a floor applied here alone froze the count while the
+    // positions kept following trackHeight, so a small gap stopped working.
+    final double safeTrackHeight = config.trackHeight > 1 ? config.trackHeight : 1;
 
     final double usableHeight = screenHeight * config.area;
     int calculatedTracks = (usableHeight / safeTrackHeight).floor();

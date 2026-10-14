@@ -44,14 +44,11 @@ final class CompactDanmakuMetrics {
         .toDouble();
     final fontSize = configuredFontSize * scale;
 
-    // flame_barrage allocates tracks with at least fontSize + 10, but paints
-    // their Y offsets with the configured trackHeight. Supplying that same
-    // minimum keeps allocation and rendering geometry identical. The small
-    // window keeps its slightly looser rows (1.8 x the font at the default
-    // 弹幕间距) and follows the setting in proportion.
+    // The small window keeps its slightly looser rows (1.8 x the font at the
+    // default 弹幕间距) and follows the setting in proportion.
     final spacing = DanmakuSettingsController.normalizeLineSpacing(lineSpacing);
     final looseness = 1.8 / (1 + DanmakuSettingsController.defaultDanmakuLineSpacing);
-    final trackHeight = math.max(fontSize * (1 + spacing) * looseness, fontSize + 10).clamp(18.0, 120.0).toDouble();
+    final trackHeight = math.max(fontSize * (1 + spacing) * looseness, fontSize).clamp(10.0, 120.0).toDouble();
 
     return CompactDanmakuMetrics._(
       scale: scale,

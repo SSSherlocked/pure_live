@@ -1087,6 +1087,9 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         baseSpeed: danmakuSpeed.value * DanmakuSpeedScale.of(danmakuController),
         opacity: danmakuOpacity.value,
         fontWeight: FontWeight(danmakuFontWeight.value),
+        // The surface's own config carries the family too; a push without it
+        // put the default font on screen until the surface pushed again.
+        fontFamily: danmakuFontFamilyName,
         strokeWidth: danmakuFontBorder.value,
         showStroke: enableDanmakuStroke.value,
         noEmojiMode: noEmojiMode.value,

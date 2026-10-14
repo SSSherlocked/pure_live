@@ -170,9 +170,9 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
               const FavoriteSortButton(key: ValueKey('follow-panel-sort')),
               Expanded(
                 // The two tabs share the row equally, each label centred in
-                // its half; the bar is narrowed so the gap between the labels
-                // is half what the full row gave them. A row that scrolls its
-                // tabs keeps the full width.
+                // its half; the bar is narrowed so the labels sit closer than
+                // the full row put them (see _followTabsWidth). A row that
+                // scrolls its tabs keeps the full width.
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final width = textMetrics.scrollTabs
@@ -325,10 +325,12 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
   }
 }
 
-/// The width of the 关注 panel's two tabs within [rowWidth]: the full row
-/// set each label in the middle of its half, [rowWidth] / 2 minus a label
-/// apart; this width halves that gap.
+/// The width of the 关注 panel's two tabs within [rowWidth]. The full row set
+/// each label in the middle of its half, [rowWidth] / 2 minus a label apart;
+/// this width keeps a share of that gap: half on touch layouts, three
+/// quarters with a pointer, where half read crowded.
 double _followTabsWidth(BuildContext context, double rowWidth) {
+  final share = AppLayout.of(context).touch ? 0.5 : 0.75;
   final style = Theme.of(context).textTheme.labelLarge;
   final scaler = MediaQuery.textScalerOf(context);
   double labelWidth(String text) {
@@ -347,7 +349,8 @@ double _followTabsWidth(BuildContext context, double rowWidth) {
   final label = (labelWidth(i18n('online_room_title')) + labelWidth(i18n('recording_room_title'))) / 2;
   // Never so narrow that a tab (label plus 6 padding a side) has to shrink
   // its label.
-  return (rowWidth / 2 + label).clamp(math.min(rowWidth, 2 * (label + 12)), rowWidth).toDouble();
+  final gap = rowWidth / 2 - label;
+  return (2 * label + 2 * share * gap).clamp(math.min(rowWidth, 2 * (label + 12)), rowWidth).toDouble();
 }
 
 class _CompactTab extends StatelessWidget {

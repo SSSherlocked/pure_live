@@ -192,6 +192,13 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   /// so the page's own reload spinner stays hidden (see BasePageView).
   final pullRefreshing = false.obs;
 
+  /// The pull-to-refresh callback for a header, or null while a reload that
+  /// did not come from a pull is running: the page's reload spinner already
+  /// shows it, and a pull would drop a second spinner beside it. Read inside
+  /// an Obx so the header comes back when the reload ends.
+  Future<void> Function()? get pullRefreshCallback =>
+      loadding.value && !pullRefreshing.value ? null : pullToRefresh;
+
   /// The refresh behind every pull-to-refresh header.
   Future<void> pullToRefresh() async {
     pullRefreshing.value = true;

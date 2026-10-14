@@ -10,17 +10,19 @@ extension BasePageViewContentExtension<C extends BasePageScrollAndStateBone<T>, 
       return LayoutBuilder(
         builder: (context, constraints) {
           final indicators = appRefreshIndicators(context, maxWidth: constraints.maxWidth);
-          return EasyRefresh(
-            header: indicators.header,
-            footer: indicators.footer,
-            controller: controller.easyRefreshController,
-            onRefresh: enableRefresh ? controller.pullToRefresh : null,
-            // Always wired: the controller ends the list with
-            // finishLoad(IndicatorResult.noMore). canLoadMore read here, at
-            // layout time, is tracked by no Obx and went stale, leaving the
-            // footer without a load callback after the first page.
-            onLoad: enableLoadMore ? controller.loadMoreData : null,
-            child: contentBuilder(context, controller.list, controller.scrollController),
+          return Obx(
+            () => EasyRefresh(
+              header: indicators.header,
+              footer: indicators.footer,
+              controller: controller.easyRefreshController,
+              onRefresh: enableRefresh ? controller.pullRefreshCallback : null,
+              // Always wired: the controller ends the list with
+              // finishLoad(IndicatorResult.noMore). canLoadMore read here, at
+              // layout time, is tracked by no Obx and went stale, leaving the
+              // footer without a load callback after the first page.
+              onLoad: enableLoadMore ? controller.loadMoreData : null,
+              child: contentBuilder(context, controller.list, controller.scrollController),
+            ),
           );
         },
       );

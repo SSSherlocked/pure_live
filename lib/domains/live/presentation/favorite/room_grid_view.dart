@@ -140,7 +140,7 @@ class RoomGridView extends GetView<FavoriteController> {
             siteId: siteId,
             // A floating ball over the list rather than pulling the list down.
             header: floatingRefreshHeader(),
-            onRefresh: controller.pullToRefresh,
+            onRefresh: controller.pullRefreshCallback,
             childBuilder: (_, physics) => buildScrollable(physics),
           );
         });
@@ -153,7 +153,7 @@ class RoomGridView extends GetView<FavoriteController> {
 Widget buildFavoritePullToRefresh({
   required String siteId,
   required Header header,
-  required Future<void> Function() onRefresh,
+  required Future<void> Function()? onRefresh,
   required ERChildBuilder childBuilder,
 }) {
   return EasyRefresh.builder(

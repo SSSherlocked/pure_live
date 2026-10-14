@@ -228,7 +228,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
       footer: indicators.footer,
       controller: controller.easyRefreshController,
       triggerAxis: Axis.vertical,
-      onRefresh: controller.pullToRefresh,
+      onRefresh: controller.pullRefreshCallback,
       // This scrollable must use the refresh owner's physics; otherwise its
       // explicit overscroll policy consumes the drag before refresh is armed.
       childBuilder: (context, physics) => buildScrollable(physics),

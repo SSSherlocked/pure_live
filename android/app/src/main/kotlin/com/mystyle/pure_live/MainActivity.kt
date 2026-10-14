@@ -189,6 +189,11 @@ class MainActivity : AudioServiceActivity() {
             flutterEngine.plugins.add(NativeLogPlugin())
         }
 
+        // 后台播放设置: the phone's background state and the vendors' pages.
+        if (!flutterEngine.plugins.has(BackgroundGuidePlugin::class.java)) {
+            flutterEngine.plugins.add(BackgroundGuidePlugin())
+        }
+
         displayModeChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             DISPLAY_MODE_CHANNEL,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
@@ -9,6 +11,7 @@ import 'package:pure_live/core/config/app_settings_controller.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/features/settings/pages/portrait_live_settings_page.dart';
 import 'package:pure_live/features/settings/pages/audience_metric_settings_page.dart';
+import 'package:pure_live/features/settings/pages/background_play_settings_page.dart';
 
 typedef SleepTimerConfigurator = Future<void> Function({required bool enabled, required int minutes});
 typedef SleepPermissionRequester = Future<bool> Function();
@@ -202,6 +205,15 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                   final task = _changeBackgroundPlayback(enabled);
                   widget.backgroundPlaybackTaskObserver?.call(task);
                 },
+              ),
+            if (_isAndroid)
+              context.buildTile(
+                icon: Icons.tune_rounded,
+                title: i18n('background_play_settings'),
+                subtitle: i18n('background_play_settings_desc'),
+                isLong: true,
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Get.to(() => const BackgroundPlaySettingsPage()),
               ),
             if (_isAndroid)
               context.buildSwitchTile(
@@ -448,6 +460,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
         return;
       }
       app.enableBackgroundPlay.v = enabled;
+      // Once, on a vendor build that clears apps away: point at the system
+      // switches background play also needs.
+      if (enabled && mounted) unawaited(offerBackgroundPlayGuide(context));
     } catch (_) {
       if (_canCommitBackgroundPlayback(app)) {
         setState(() => _backgroundPlayErrorText = i18n('background_play_apply_failed'));

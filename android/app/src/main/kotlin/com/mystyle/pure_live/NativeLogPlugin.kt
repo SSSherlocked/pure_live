@@ -72,7 +72,13 @@ internal class NativeLogPlugin : FlutterPlugin, EventChannel.StreamHandler {
         sink = events
         val started = try {
             Runtime.getRuntime().exec(
-                (listOf("logcat", "-v", "tag", "--pid=${Process.myPid()}") + FILTER_SPECS).toTypedArray(),
+                // `-T 1`: from the newest line on. Without it logcat first
+                // replays everything this pid ever logged: Android often
+                // keeps the process when the app is closed, so a relaunch
+                // read back the whole previous session and flooded Dart with
+                // it while the app was still starting.
+                (listOf("logcat", "-v", "tag", "-T", "1", "--pid=${Process.myPid()}") + FILTER_SPECS)
+                    .toTypedArray(),
             )
         } catch (error: Exception) {
             events.error("native_log_unavailable", error.message, null)

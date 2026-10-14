@@ -9,6 +9,7 @@ import 'package:pure_live/app/shell/app_shell.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pure_live/app/bootstrap/initialized.dart';
+import 'package:pure_live/core/logging/startup_trace.dart';
 import 'package:material_ui/material_ui.dart' as material;
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/platform/desktop_manager.dart';
@@ -43,6 +44,8 @@ void main(List<String> args) async {
   Log.captureDebugPrint();
   await AppInitializer().initialize(args);
 
+  StartupTrace.mark('runApp');
+  WidgetsBinding.instance.addPostFrameCallback((_) => StartupTrace.mark('first frame'));
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('zh')],

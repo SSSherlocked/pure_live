@@ -48,6 +48,7 @@ import 'package:pure_live/domains/live/presentation/favorite/favorite_controller
 import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
 import 'package:pure_live/domains/live/presentation/areas/areas_controller.dart';
 import 'package:pure_live/core/logging/app_log.dart';
+import 'package:pure_live/core/logging/startup_trace.dart';
 
 class InitialServices {
   static void initGlobalServices() {
@@ -118,14 +119,15 @@ class InitialServices {
   }
 
   static Future<void> init() async {
-    await initDb();
+    await StartupTrace.step('databases', initDb);
     // About and the desktop tray read the installed version synchronously.
-    await VersionUtil.initPackageInfo();
+    await StartupTrace.step('package info', VersionUtil.initPackageInfo);
+    StartupTrace.mark('settings controllers');
     initGlobalServices();
     _bindCorePorts();
     // Load and register the persisted custom font before MyApp builds its
     // first ThemeData. This makes the selection survive a full process restart.
-    await SettingsService.to.font.ensureInitialized();
+    await StartupTrace.step('font', SettingsService.to.font.ensureInitialized);
     await _migrateRoomScopedAudioOnly();
     unawaited(_removeRetiredAppearanceSettings());
     initLazyControllers();

@@ -55,6 +55,9 @@ abstract final class SecureCredentialStore {
   static final Map<String, String> _cache = <String, String>{};
   static Future<void> _tail = Future<void>.value();
 
+  /// The longest startup waits for one secure-store call.
+  static const Duration secureStoreTimeout = Duration(seconds: 5);
+
   /// Whether credentials currently live in the secure store.
   static bool get isAvailable => _backend != null;
 
@@ -65,7 +68,11 @@ abstract final class SecureCredentialStore {
 
     Map<String, String> stored;
     try {
-      stored = await candidate.readAll();
+      // Startup waits for this read, and a system store that never answers
+      // left the app on its launch screen for good. Past the limit the store
+      // counts as unavailable for this run: credentials written now stay in
+      // the settings database and move over on a later start.
+      stored = await candidate.readAll().timeout(secureStoreTimeout);
     } catch (error) {
       _log('Secure storage unavailable; credentials stay in the settings database: $error');
       _backend = null;
@@ -84,9 +91,9 @@ abstract final class SecureCredentialStore {
     if (pending.isNotEmpty) {
       try {
         for (final entry in pending.entries) {
-          await candidate.write(entry.key, entry.value);
+          await candidate.write(entry.key, entry.value).timeout(secureStoreTimeout);
         }
-        final check = await candidate.readAll();
+        final check = await candidate.readAll().timeout(secureStoreTimeout);
         for (final entry in pending.entries) {
           if (check[entry.key] != entry.value) throw StateError('verification failed for ${entry.key}');
         }

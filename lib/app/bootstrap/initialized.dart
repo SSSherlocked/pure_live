@@ -32,6 +32,7 @@ import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
 import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:pure_live/core/config/migrations/settings_upgrade_migration.dart';
 import 'package:pure_live/core/logging/app_log.dart';
+import 'package:pure_live/core/logging/startup_trace.dart';
 
 /// Keep decoded cover/avatar memory bounded independently from the encoded
 /// HTTP/disk cache. A 960x540 RGBA cover is roughly 2 MiB after decoding, so
@@ -62,15 +63,21 @@ class AppInitializer {
     await _initWindowsSingleInstance(args, instanceId);
 
     await AppPathManager().initialize(instanceId: instanceId);
-    await EasyLocalization.ensureInitialized();
+    // From here every step lands in startup.log as it starts and ends, so a
+    // launch stuck on the launch screen shows where on the next launch.
+    await StartupTrace.begin(LogFileWriter.resolveLogDirectory);
+    await StartupTrace.step('localization', EasyLocalization.ensureInitialized);
     final Directory hiveDir = await AppPathManager().getDir(AppPathManager.dirHiveDB);
 
-    await Hive.initFlutter(hiveDir.path);
-    await HivePrefUtil.init();
-    final migrationReport = await SettingsUpgradeMigration.migrate(
-      target: Hive.box('app_settings'),
-      legacyHiveFiles: AppPathManager().legacyHiveFiles,
-      workingDirectory: await AppPathManager().migrationWorkingDir,
+    await StartupTrace.step('hive', () => Hive.initFlutter(hiveDir.path));
+    await StartupTrace.step('settings database', HivePrefUtil.init);
+    final migrationReport = await StartupTrace.step(
+      'settings upgrade',
+      () async => SettingsUpgradeMigration.migrate(
+        target: Hive.box('app_settings'),
+        legacyHiveFiles: AppPathManager().legacyHiveFiles,
+        workingDirectory: await AppPathManager().migrationWorkingDir,
+      ),
     );
     if (migrationReport.changed) {
       Log.dev(
@@ -82,13 +89,16 @@ class AppInitializer {
     // Credentials live in the system's secure store. Load them before any
     // controller reads them, after the upgrade migration (which may still bring
     // older cookies into the settings database for this step to move).
-    await SecureCredentialStore.initialize(keys: CookieSettingsController.secureKeys);
+    await StartupTrace.step(
+      'secure credentials',
+      () => SecureCredentialStore.initialize(keys: CookieSettingsController.secureKeys),
+    );
     // Settings and controller registration is a hard startup dependency for
     // MyApp.build.  Leaving this future detached created a first-launch race:
     // a freshly upgraded install could build the widget tree before
     // SettingsService was registered, then work on a later launch only because
     // the database/cache files had already been created.
-    await InitialServices.init();
+    await StartupTrace.step('services', InitialServices.init);
     unawaited(PlayerKernelService.ensureInitialized());
     // A window opened by WindowsMultiInstanceLauncher starts from the opening
     // window's settings (proxy, cookies, follows) instead of an empty profile.
@@ -124,15 +134,18 @@ class AppInitializer {
         port: proxy.appProxyPort.v,
       );
     });
-    await AppImageCacheManager.initialize(
-      proxyDirectiveProvider: () {
-        final proxy = SettingsService.to.proxy;
-        return buildProxyDirective(
-          enabled: proxy.enableAppProxy.v,
-          host: proxy.appProxyHost.v,
-          port: proxy.appProxyPort.v,
-        );
-      },
+    await StartupTrace.step(
+      'image cache',
+      () => AppImageCacheManager.initialize(
+        proxyDirectiveProvider: () {
+          final proxy = SettingsService.to.proxy;
+          return buildProxyDirective(
+            enabled: proxy.enableAppProxy.v,
+            host: proxy.appProxyHost.v,
+            port: proxy.appProxyPort.v,
+          );
+        },
+      ),
     );
     // Android FFmpegKit must begin native initialization during application
     // startup. Deferring it until after the first frame reintroduced the
@@ -143,9 +156,9 @@ class AppInitializer {
     initRefresh();
 
     if (PlatformUtils.isDesktop) {
-      await DesktopManager.initialize();
+      await StartupTrace.step('desktop window', DesktopManager.initialize);
     } else if (PlatformUtils.isMobile) {
-      await MobileManager.initialize();
+      await StartupTrace.step('mobile system UI', MobileManager.initialize);
     }
 
     if (PlatformUtils.isDesktopNotMac && instanceId.isEmpty) {

@@ -13,7 +13,7 @@ enum TopActionTrailingSlot { datetime, battery }
 /// The bars ask this instead of each control carrying its own condition, so a
 /// new mode or a new control is one edit here and every mode agrees. Two kinds
 /// of input decide: the app layout (phone or wide, touch or pointer — see
-/// [AppLayout]) and what the platform can do (picture-in-picture, rotation,
+/// [AppLayout]) plus the screen's orientation, and what the platform can do (picture-in-picture, rotation,
 /// window fullscreen), which a display mode never changes.
 @immutable
 class PlayerControlPolicy {
@@ -24,6 +24,7 @@ class PlayerControlPolicy {
     required this.windows,
     required this.mobilePlatform,
     this.pip = false,
+    this.portrait = false,
   });
 
   /// The rules for the player as it is now.
@@ -34,6 +35,7 @@ class PlayerControlPolicy {
     windows: PlatformUtils.isWindows,
     mobilePlatform: PlatformUtils.isMobile,
     pip: PlatformUtils.supportsPip,
+    portrait: MediaQuery.orientationOf(context) == Orientation.portrait,
   );
 
   final AppLayout layout;
@@ -45,11 +47,16 @@ class PlayerControlPolicy {
   /// The platform has picture-in-picture ([PlatformUtils.supportsPip]).
   final bool pip;
 
+  /// The screen is upright (taller than wide).
+  final bool portrait;
+
   // --- Size --------------------------------------------------------------
 
   /// Smaller, closer controls: the phone layout's inline player is a strip of
-  /// the page. Fullscreen keeps the full size.
-  bool get compactControls => layout.phone && !fullscreen;
+  /// the page, and an upright phone keeps the same controls in fullscreen
+  /// (the portrait fullscreen of a vertical stream). A landscape fullscreen
+  /// keeps the full size.
+  bool get compactControls => layout.phone && (!fullscreen || portrait);
 
   // --- Interaction -------------------------------------------------------
 

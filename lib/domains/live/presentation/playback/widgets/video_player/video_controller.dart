@@ -1548,11 +1548,11 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     }
   }
 
-  /// Double-tap on the video. A portrait live source that qualifies for the
-  /// portrait panel fullscreen enters (and leaves) that mode, like the
-  /// downward swipe; entering the regular fullscreen squeezed the landscape
+  /// The fullscreen button and a double tap on the video. A portrait live
+  /// source that qualifies for the portrait panel fullscreen enters (and
+  /// leaves) that mode; entering the regular fullscreen squeezed the landscape
   /// control row into the portrait width (upstream #886).
-  Future<void> toggleFullScreenFromGesture() async {
+  Future<void> toggleFullScreenForSource() async {
     if (_livePlayController.state.value.ui.screenMode == VideoMode.portraitFullscreen) {
       return exitPortraitFullScreen();
     }
@@ -1610,10 +1610,9 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     }
   }
 
-  /// Enters the panel-dismiss fullscreen used only by a trusted portrait live
+  /// Enters the portrait panel fullscreen used only by a trusted portrait live
   /// source on Android phones. It bypasses the user's ordinary fullscreen
-  /// orientation preference because the downward gesture explicitly requests
-  /// a portrait presentation rather than the conventional landscape action.
+  /// orientation preference: this mode is a portrait presentation by design.
   Future<void> enterPortraitFullScreen() async {
     final settings = _settingsService.player;
     if (_fullscreenTransitioning ||

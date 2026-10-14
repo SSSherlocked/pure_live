@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 /// icon keeps 6 px either side, so neighbouring icons sit 12 px apart.
 const double compactPlayerActionExtent = 32;
 
+/// Height of a compact control bar: its 32 px buttons need no 56 px band.
+/// A bar at the bottom of the screen adds the system inset below it.
+const double compactPlayerBarHeight = 40;
+
 /// How much the compact layout shrinks icons (24 → 20, 28 → 23).
 const double compactPlayerIconScale = 0.82;
 

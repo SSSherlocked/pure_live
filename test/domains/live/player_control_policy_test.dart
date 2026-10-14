@@ -9,6 +9,7 @@ PlayerControlPolicy _policy({
   bool windows = false,
   bool mobilePlatform = false,
   bool pip = false,
+  bool portrait = false,
 }) => PlayerControlPolicy(
   layout: layout,
   fullscreen: fullscreen,
@@ -16,6 +17,7 @@ PlayerControlPolicy _policy({
   windows: windows,
   mobilePlatform: mobilePlatform,
   pip: pip,
+  portrait: portrait,
 );
 
 void main() {
@@ -29,6 +31,14 @@ void main() {
     expect(inline.streamSelector, isFalse);
     expect(inline.dockedDanmakuPanel, isFalse);
     expect(inline.tapTogglesControls, isTrue);
+  });
+
+  test('an upright phone keeps the compact controls in fullscreen', () {
+    final upright = _policy(layout: phone, fullscreen: true, android: true, mobilePlatform: true, portrait: true);
+    expect(upright.compactControls, isTrue);
+    expect(upright.streamSelector, isTrue);
+    expect(_policy(layout: phone, fullscreen: false, portrait: true).compactControls, isTrue);
+    expect(_policy(layout: tablet, fullscreen: true, portrait: true).compactControls, isFalse);
   });
 
   test('fullscreen restores full size, the quality menu and the docked panel on any layout', () {

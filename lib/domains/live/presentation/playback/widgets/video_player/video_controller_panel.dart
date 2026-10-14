@@ -26,7 +26,6 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/bottom_control_surface.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/iptv_schedule_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
-import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/portrait_playback_picker_dialog.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
@@ -64,8 +63,6 @@ bool startsInSystemHomeGestureZone({required Offset localPosition, required Size
   final zoneHeight = systemHomeGestureZoneHeight.clamp(0.0, surfaceSize.height / 3);
   return localPosition.dy >= surfaceSize.height - zoneHeight;
 }
-
-const double portraitFullscreenBottomBarHeight = portraitFullscreenControlsHeight;
 
 /// The minimum a fullscreen control bar keeps clear of the top edge.
 ///
@@ -107,11 +104,6 @@ String fullscreenActionLabelKey(bool expanded) => expanded ? 'exit_fullscreen' :
 @visibleForTesting
 String playerWindowActionLabelKey(bool expanded) => expanded ? 'collapse_player_window' : 'expand_player_window';
 
-@visibleForTesting
-double resolveBottomActionBarHeight(VideoMode screenMode, {double regularHeight = 56}) {
-  return screenMode == VideoMode.portraitFullscreen ? portraitFullscreenBottomBarHeight : regularHeight;
-}
-
 class VideoControllerPanel extends StatefulWidget {
   final VideoController controller;
 
@@ -123,10 +115,6 @@ class VideoControllerPanel extends StatefulWidget {
 
 class _VideoControllerPanelState extends State<VideoControllerPanel> {
   static const barHeight = 56.0;
-
-  /// The narrow inline player's bars: its 32 px buttons need no 56 px band,
-  /// and a 56 px top bar left the title 18 px below the picture's edge.
-  static const compactBarHeight = 40.0;
   final MenuController _moreMenu = MenuController();
   Offset? _lastTapGlobalPosition;
   Offset? _lastTapLocalPosition;
@@ -171,12 +159,26 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final double currentVolume = controller.currentVolume.value;
           final int percentage = (currentVolume * 100).round();
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
-          // Phones tighten the inline player's floating controls.
-          // Which controls show where: one table (PlayerControlPolicy).
+          // An upright phone tightens the floating controls, inline and in
+          // fullscreen alike (a 56 px top bar left the inline title 18 px
+          // below the picture's edge). Which controls show where: one table
+          // (PlayerControlPolicy).
           final policy = PlayerControlPolicy.of(context);
           final compactControls = policy.compactControls;
-          final topBarHeight = compactControls ? compactBarHeight : barHeight;
-          final bottomBarHeight = resolveBottomActionBarHeight(screenMode, regularHeight: topBarHeight);
+          final topBarHeight = compactControls ? compactPlayerBarHeight : barHeight;
+          // Like the top bar, the bottom one adds the system inset to its own
+          // height, so a fullscreen bar clears the gesture bar.
+          final bottomBarHeight = topBarHeight + playerBarInsets(context).bottom;
+          final manager = GlobalPlayerService.instance.player;
+          final portraitFullscreen = screenMode == VideoMode.portraitFullscreen;
+          final verticalVideo = manager.isVerticalVideo.value;
+          // The portrait source's own ⋯ entries, where its bar buttons were:
+          // 画面方向 for a fullscreen vertical stream, 画面模式 only in the
+          // portrait fullscreen, whose picture it arranges.
+          final orientationEntry =
+              policy.orientationControls &&
+              (portraitFullscreen || (manager.isSystemFullscreen.value && verticalVideo));
+          final displayModeEntry = policy.orientationControls && portraitFullscreen && verticalVideo;
 
           final IconData iconData = currentVolume <= 0
               ? Icons.volume_mute
@@ -258,7 +260,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       }
                       final insets = playerBarInsets(
                         context,
-                        portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                        portraitFullscreen: portraitFullscreen,
                       );
                       return Positioned.fill(
                         child: PlayerSuperChatOverlay(
@@ -268,7 +270,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                             insets.left + (compactControls ? 8 : 12),
                             insets.top + topBarHeight,
                             insets.right,
-                            insets.bottom + bottomBarHeight + 4,
+                            bottomBarHeight + 4,
                           ),
                         ),
                       );
@@ -360,7 +362,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       if (!controller.showLocked.value) {
                         GlobalPlayerService.instance.player.isWindowFullscreen.value
                             ? controller.toggleWindowFullScreen()
-                            : controller.toggleFullScreenFromGesture();
+                            : controller.toggleFullScreenForSource();
                       }
                     },
                     child: PlayerGestureLayer(
@@ -379,7 +381,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                     moreMenu: _moreMenu,
                     // A portrait fullscreen owns the whole screen, so its top bar is
                     // the one that has to clear the notch on its own.
-                    portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                    portraitFullscreen: portraitFullscreen,
                   ),
                   // Fixed anchor for the ⋯ menu at the top-right of the player.
                   // It does not move with the auto-hiding top bar, so an open
@@ -388,7 +390,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                     builder: (context) {
                       final insets = playerBarInsets(
                         context,
-                        portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                        portraitFullscreen: portraitFullscreen,
                       );
                       return Positioned(
                         top: insets.top,
@@ -407,13 +409,18 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                           // 投屏 is a menu entry on Android, inline and fullscreen alike.
                           onCast: policy.castInMoreMenu ? () => _castCurrentRoom(context) : null,
                           onPip: policy.pipInMoreMenu ? () => unawaited(_enterPip()) : null,
-                          // Fullscreen hides the room page and its menu, so 录制
-                          // leads the ⋯ menu and 视频详情 ends it there.
+                          // A portrait source's 画面模式 and 画面方向 lead the ⋯
+                          // menu. Fullscreen hides the room page and its menu,
+                          // so 录制 follows them and 视频详情 ends the menu.
                           leadingEntries: [
+                            if (displayModeEntry) const PortraitDisplayModeMenuEntry(),
+                            if (orientationEntry) PortraitOrientationMenuEntry(controller: controller),
                             if (policy.roomActionsInMoreMenu)
                               LiveRoomRecordMenuEntry(controller: controller.livePlayController),
                           ],
                           hostEntryLabels: [
+                            if (displayModeEntry) i18n('portrait_display_mode_menu'),
+                            if (orientationEntry) i18n('portrait_orientation_menu'),
                             if (policy.roomActionsInMoreMenu) ...[
                               i18n('record'),
                               i18n('recording'),
@@ -439,7 +446,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                   BottomActionBar(
                     controller: controller,
                     barHeight: bottomBarHeight,
-                    portraitFullscreen: screenMode == VideoMode.portraitFullscreen,
+                    portraitFullscreen: portraitFullscreen,
                   ),
                 ],
               ),
@@ -754,106 +761,144 @@ class BackButton extends StatelessWidget {
   }
 }
 
-class PortraitOrientationButton extends StatelessWidget {
-  const PortraitOrientationButton({super.key, required this.controller});
+/// 画面方向 in the ⋯ menu of a fullscreen vertical stream: whether this room's
+/// source counts as portrait (自动识别 / 强制竖屏 / 强制横屏), plus the global
+/// 记住单个直播间方向 switch, which decides whether a choice outlives the
+/// session.
+class PortraitOrientationMenuEntry extends StatelessWidget {
+  const PortraitOrientationMenuEntry({super.key, required this.controller});
 
   final VideoController controller;
+
+  void _select(PortraitOrientationOverride value) {
+    final settings = SettingsService.to.player;
+    settings.setPortraitOverrideForRoom(controller.room, value, remember: settings.rememberPortraitRoomOverride.v);
+    GlobalPlayerService.instance.player.refreshPortraitPresentationPolicy();
+  }
+
+  /// Flips the switch and keeps the room's current choice in step with it,
+  /// as picking that choice again would.
+  void _toggleRemember() {
+    final settings = SettingsService.to.player;
+    final remember = !settings.rememberPortraitRoomOverride.v;
+    settings.rememberPortraitRoomOverride.v = remember;
+    final current = settings.portraitOverrideForRoom(controller.room);
+    if (current != PortraitOrientationOverride.automatic) {
+      settings.setPortraitOverrideForRoom(controller.room, current, remember: remember);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final settings = SettingsService.to.player;
       final selected = settings.portraitOverrideForRoom(controller.room);
-      final icon = switch (selected) {
-        PortraitOrientationOverride.automatic => Icons.screen_rotation_alt_rounded,
-        PortraitOrientationOverride.portrait => Icons.stay_current_portrait_rounded,
-        PortraitOrientationOverride.landscape => Icons.stay_current_landscape_rounded,
-      };
-      return IconButton(
-        key: const ValueKey('portrait-orientation-override'),
-        tooltip: i18n('portrait_room_override'),
-        visualDensity: VisualDensity.standard,
-        constraints: PlayerControlDensity.actionConstraints(context),
-        color: selected == PortraitOrientationOverride.automatic ? Colors.white : const Color(0xFFFFD166),
-        onPressed: () => _showPicker(context, selected),
-        icon: Icon(icon, size: PlayerControlDensity.iconSize(context, 24)),
+      final remember = settings.rememberPortraitRoomOverride.v;
+      final rememberLabel = i18n('portrait_remember_room_override');
+      final labels = [for (final value in PortraitOrientationOverride.values) _overrideLabel(value), rememberLabel];
+      // The switch's check box and its gap.
+      const leadingWidth = 18.0 + 12;
+      return LeftSubmenuButton(
+        key: const ValueKey('player-more-portrait-orientation'),
+        leadingIcon: Icon(switch (selected) {
+          PortraitOrientationOverride.automatic => Icons.screen_rotation_alt_rounded,
+          PortraitOrientationOverride.portrait => Icons.stay_current_portrait_rounded,
+          PortraitOrientationOverride.landscape => Icons.stay_current_landscape_rounded,
+        }, size: 18),
+        labels: labels,
+        entryLeadingWidth: leadingWidth,
+        menuChildren: [
+          for (final value in PortraitOrientationOverride.values)
+            PlayerMenuChoice(
+              key: ValueKey('player-portrait-orientation-${value.name}'),
+              label: _overrideLabel(value),
+              labels: labels,
+              extraWidth: leadingWidth,
+              selected: selected == value,
+              onPressed: () => _select(value),
+            ),
+          const Divider(height: 1),
+          MenuItemButton(
+            key: const ValueKey('player-portrait-orientation-remember'),
+            // A switch: the menu stays open to show its new state.
+            closeOnActivate: false,
+            leadingIcon: Icon(
+              remember ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+              size: 18,
+              color: remember ? Theme.of(context).colorScheme.primary : null,
+            ),
+            onPressed: _toggleRemember,
+            child: Text(
+              rememberLabel,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: playerMenuLabelStyle,
+            ),
+          ),
+        ],
+        child: Text(
+          i18n('portrait_orientation_menu'),
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.ellipsis,
+          style: playerMenuLabelStyle,
+        ),
       );
     });
   }
-
-  Future<void> _showPicker(BuildContext context, PortraitOrientationOverride selected) async {
-    controller.isMenuOpen.value = true;
-    controller.stopHideController();
-    try {
-      final settings = SettingsService.to.player;
-      final result = await showDialog<PortraitOrientationPickerResult>(
-        context: context,
-        builder: (dialogContext) =>
-            PortraitOrientationPickerDialog(selected: selected, remember: settings.rememberPortraitRoomOverride.v),
-      );
-      if (result != null) {
-        settings.rememberPortraitRoomOverride.v = result.remember;
-        settings.setPortraitOverrideForRoom(controller.room, result.orientation, remember: result.remember);
-        GlobalPlayerService.instance.player.refreshPortraitPresentationPolicy();
-      }
-    } finally {
-      if (controller.status != PlayerStatus.disposed) {
-        controller.isMenuOpen.value = false;
-        controller.enableController();
-      }
-    }
-  }
 }
 
-/// A portrait-fullscreen-only display selector. Keeping it beside the existing
-/// orientation override makes the distinction explicit: one decides what the
-/// source is, while this control decides how a confirmed portrait source uses
-/// the remaining phone surface.
-class PortraitFullscreenDisplayModeButton extends StatelessWidget {
-  const PortraitFullscreenDisplayModeButton({super.key, required this.controller});
-
-  final VideoController controller;
+/// 画面模式 in the ⋯ menu of a portrait fullscreen: how a portrait source uses
+/// the upright screen (the setting 竖屏全屏画面模式). The orientation entry
+/// decides what the source is; this one how a confirmed portrait source fills
+/// the phone.
+class PortraitDisplayModeMenuEntry extends StatelessWidget {
+  const PortraitDisplayModeMenuEntry({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final manager = GlobalPlayerService.instance.player;
-      final screenMode = controller.livePlayController.state.value.ui.screenMode;
-      if (screenMode != VideoMode.portraitFullscreen || !manager.isVerticalVideo.value) {
-        return const SizedBox.shrink();
-      }
-      final selected = SettingsService.to.player.portraitFullscreenDisplayMode;
-      return IconButton(
-        key: const ValueKey('portrait-fullscreen-display-mode'),
-        tooltip: i18n('portrait_fullscreen_display_mode'),
-        visualDensity: VisualDensity.standard,
-        constraints: PlayerControlDensity.actionConstraints(context),
-        color: selected == PortraitFullscreenDisplayMode.ambient ? Colors.white : const Color(0xFFFFD166),
-        onPressed: () => _showPicker(context, selected),
-        icon: Icon(portraitFullscreenDisplayModeIcon(selected), size: PlayerControlDensity.iconSize(context, 24)),
+      final settings = SettingsService.to.player;
+      final selected = settings.portraitFullscreenDisplayMode;
+      final labels = [for (final mode in PortraitFullscreenDisplayMode.values) _displayModeLabel(mode)];
+      return LeftSubmenuButton(
+        key: const ValueKey('player-more-portrait-display-mode'),
+        leadingIcon: Icon(switch (selected) {
+          PortraitFullscreenDisplayMode.complete => Icons.crop_free_rounded,
+          PortraitFullscreenDisplayMode.ambient => Icons.blur_on_rounded,
+          PortraitFullscreenDisplayMode.balanced => Icons.fit_screen_rounded,
+          PortraitFullscreenDisplayMode.cover => Icons.fullscreen_rounded,
+        }, size: 18),
+        labels: labels,
+        menuChildren: [
+          for (final mode in PortraitFullscreenDisplayMode.values)
+            PlayerMenuChoice(
+              key: ValueKey('player-portrait-display-mode-${mode.name}'),
+              label: _displayModeLabel(mode),
+              labels: labels,
+              selected: selected == mode,
+              onPressed: () => settings.portraitFullscreenDisplayModeName.v = mode.name,
+            ),
+        ],
+        child: Text(
+          i18n('portrait_display_mode_menu'),
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.ellipsis,
+          style: playerMenuLabelStyle,
+        ),
       );
     });
   }
-
-  Future<void> _showPicker(BuildContext context, PortraitFullscreenDisplayMode selected) async {
-    controller.isMenuOpen.value = true;
-    controller.stopHideController();
-    try {
-      final value = await showDialog<PortraitFullscreenDisplayMode>(
-        context: context,
-        builder: (dialogContext) => PortraitFullscreenDisplayModePickerDialog(selected: selected),
-      );
-      if (value != null) {
-        SettingsService.to.player.portraitFullscreenDisplayModeName.v = value.name;
-      }
-    } finally {
-      if (controller.status != PlayerStatus.disposed) {
-        controller.isMenuOpen.value = false;
-        controller.enableController();
-      }
-    }
-  }
 }
+
+String _displayModeLabel(PortraitFullscreenDisplayMode value) => switch (value) {
+  PortraitFullscreenDisplayMode.complete => i18n('portrait_fullscreen_display_complete'),
+  PortraitFullscreenDisplayMode.ambient => i18n('portrait_fullscreen_display_ambient'),
+  PortraitFullscreenDisplayMode.balanced => i18n('portrait_fullscreen_display_balanced'),
+  PortraitFullscreenDisplayMode.cover => i18n('portrait_fullscreen_display_cover'),
+};
 
 class PortraitStreamDiagnosticsBadge extends StatelessWidget {
   const PortraitStreamDiagnosticsBadge({super.key});
@@ -1063,48 +1108,60 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
         controller.enableController();
       },
       menuChildren: [for (final entry in entries) SizedBox(width: width, child: CompactText(child: entry))],
-      builder: (context, menu, _) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Material(
-          key: key,
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
-          child: InkWell(
+      builder: (context, menu, _) {
+        // The compact bar (an upright phone) takes the compact buttons'
+        // height, icons, spacing and one text role smaller.
+        final dense = PlayerControlDensity.compactOf(context);
+        final spinner = PlayerControlDensity.iconSize(context, 15);
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: dense ? 0 : 2),
+          child: Material(
+            key: key,
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(18),
-            onTap: switching ? null : () => menu.isOpen ? menu.close() : menu.open(),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: kMinInteractiveDimension),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: compact ? 6 : 9),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    switching
-                        ? const SizedBox(
-                            width: 15,
-                            height: 15,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        // The HQ glyph has more inner padding than the line glyph,
-                        // so it is drawn a size larger to read the same.
-                        : Icon(icon, size: icon == Icons.high_quality_rounded ? 20 : 17, color: Colors.white),
-                    const SizedBox(width: 5),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: compact ? 72 : 120),
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: switching ? null : () => menu.isOpen ? menu.close() : menu.open(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: PlayerControlDensity.actionConstraints(context).minHeight),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: dense ? 5 : (compact ? 6 : 9)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      switching
+                          ? SizedBox.square(
+                              dimension: spinner,
+                              child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          // The HQ glyph has more inner padding than the line glyph,
+                          // so it is drawn a size larger to read the same.
+                          : Icon(
+                              icon,
+                              size: PlayerControlDensity.iconSize(context, icon == Icons.high_quality_rounded ? 20 : 17),
+                              color: Colors.white,
+                            ),
+                      SizedBox(width: dense ? 3 : 5),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: compact ? 72 : 120),
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (dense ? AppText.of(context).secondary : AppText.of(context).body).copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -1218,39 +1275,16 @@ class BottomActionBar extends StatelessWidget {
     });
   }
 
+  /// The inline bar's single row, with the quality and line chips before
+  /// the fullscreen button: the room's own quality row is hidden here.
   Widget _buildPortraitFullscreenLayout(PlayerControlPolicy policy) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Column(
-        children: [
-          SizedBox(
-            height: portraitFullscreenComposerHeight,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: FullscreenStreamSelectorButton(controller: controller, compact: true),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 2),
-          SizedBox(
-            height: 48,
-            child: Row(
-              children: [
-                _buildLeftActions(policy),
-                const Spacer(),
-                if (policy.orientationControls) PortraitFullscreenDisplayModeButton(controller: controller),
-                if (policy.orientationControls) PortraitOrientationButton(controller: controller),
-                if (!GlobalPlayerService.instance.player.isWindowFullscreen.value) ExpandButton(controller: controller),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        _buildLeftActions(policy),
+        const Spacer(),
+        FullscreenStreamSelectorButton(controller: controller, compact: true),
+        if (!GlobalPlayerService.instance.player.isWindowFullscreen.value) ExpandButton(controller: controller),
+      ],
     );
   }
 
@@ -1284,10 +1318,6 @@ class BottomActionBar extends StatelessWidget {
   }
 
   Widget _buildRightActions(PlayerControlPolicy policy, {required bool compact, bool includeExpand = true}) {
-    final portraitPinned =
-        GlobalPlayerService.instance.player.isSystemFullscreen.value &&
-        GlobalPlayerService.instance.player.isVerticalVideo.value;
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1295,11 +1325,6 @@ class BottomActionBar extends StatelessWidget {
         // mode, so entering or leaving fullscreen never shifts the controls.
         MuteToggleButton(controller: controller),
         if (policy.streamSelector) FullscreenStreamSelectorButton(controller: controller, compact: compact),
-        // These two belong to the PORTRAIT fullscreen bar. Rendering them in
-        // a landscape room's inline bar is what pushed the fullscreen button
-        // off-screen after the video-fit option landed (v3.15 report).
-        if (policy.orientationControls && portraitPinned) PortraitFullscreenDisplayModeButton(controller: controller),
-        if (policy.orientationControls && portraitPinned) PortraitOrientationButton(controller: controller),
         if (policy.muteButton) RoomMuteButton(controller: controller),
         if (policy.windowFullscreenButton &&
             controller.supportWindowFull &&
@@ -1416,7 +1441,8 @@ class ExpandButton extends StatelessWidget {
         tooltip: i18n(fullscreenActionLabelKey(expanded)),
         visualDensity: VisualDensity.standard,
         constraints: PlayerControlDensity.actionConstraints(context),
-        onPressed: () => controller.toggleFullScreen(),
+        // A vertical stream enters its portrait fullscreen, as a double tap does.
+        onPressed: () => controller.toggleFullScreenForSource(),
         icon: Icon(
           expanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
           color: Colors.white,

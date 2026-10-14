@@ -89,6 +89,10 @@ internal class NativeLogPlugin : FlutterPlugin, EventChannel.StreamHandler {
             isDaemon = true
             start()
         }
+        // The answer Dart waits for: an empty batch at once, so it can tell a
+        // live subscription from one made while this plugin was not
+        // registered (see NativeLogBridge).
+        events.success(emptyList<String>())
     }
 
     override fun onCancel(arguments: Any?) {

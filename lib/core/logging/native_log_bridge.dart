@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart' show Color, Colors;
+import 'package:flutter/material.dart' show AppLifecycleListener, Color, Colors;
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:pure_live/core/logging/app_log.dart';
@@ -18,12 +18,22 @@ abstract final class NativeLogBridge {
 
   static StreamSubscription<dynamic>? _subscription;
 
+  // The host answers a subscription with an empty batch at once. No answer
+  // means nothing was listening: audio_service can start the engine with no
+  // Activity (its media service, restarted by the system), and the host
+  // registers its plugins only with the Activity. The subscription is then
+  // made again once the app comes to the front.
+  static bool _answered = false;
+  static AppLifecycleListener? _lifecycle;
+
   static void start() {
     if (!Platform.isAndroid || _subscription != null) return;
+    _answered = false;
     _subscription = _channel.receiveBroadcastStream().listen(
       _onBatch,
       onError: (Object error) => Log.dev('Native log stream failed: $error', name: 'NativeLog', level: 900),
     );
+    _lifecycle ??= AppLifecycleListener(onResume: _resubscribeIfUnanswered);
   }
 
   static void stop() {
@@ -31,7 +41,19 @@ abstract final class NativeLogBridge {
     _subscription = null;
   }
 
+  // A second's grace: on an ordinary launch the app comes to the front while
+  // the answer is still on its way.
+  static void _resubscribeIfUnanswered() {
+    if (_subscription == null || _answered) return;
+    Timer(const Duration(seconds: 1), () {
+      if (_subscription == null || _answered) return;
+      stop();
+      start();
+    });
+  }
+
   static void _onBatch(dynamic batch) {
+    _answered = true;
     if (batch is! List) return;
     for (final raw in batch) {
       if (raw is! String) continue;

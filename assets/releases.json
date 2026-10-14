@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.3.3",
+    "title": "v3.3.3",
+    "date": "2026-10-14",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.3.3",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### ⬆️ 应用内更新\n\n- **启动时自动检查**：有新版本时弹出更新提示，显示版本号和更新说明。\n- **一键下载**：只有一个「下载」按钮，点击后直接下载对应平台的安装包，并显示进度条和已下载大小；下载失败会自动换用加速线路，无需手动选择。\n- **下载完成后**：Android 直接打开安装程序；电脑端打开安装包所在的文件夹。iOS 无法在应用内安装，按钮改为前往下载页。\n- **关于 › 检查更新**：新增，放在最上方，可随时手动检查。\n- **从旧版本升级**：3.3.2 及更早的版本需要手动下载安装一次 3.3.3，之后即可在应用内一键更新。\n\n#### 🛠 修复\n\n- **局域网同步与备份**：发送或接收配置、从备份文件或 WebDAV 恢复时，「选择项目」页面恢复正常，可以只勾选部分项目，也能返回上一页（之前整页被一个居中的「确认」按钮盖住）。",
+    "files": [
+      {
+        "name": "PureLive-3.3.3-Android-arm64-v8a",
+        "size": "119.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.3.3-iOS-TrollStore.ipa",
+        "size": "44.82mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.3.3-iOS-Unsigned.zip",
+        "size": "44.56mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.3.3-Linux-x64.deb",
+        "size": "41.87mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.3.3-Linux-x64.tar.gz",
+        "size": "50.21mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.3.3-Linux-x64.zip",
+        "size": "50.24mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.3-MacOS-AppleSilicon.zip",
+        "size": "42.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.3.3-MacOS-Intel.zip",
+        "size": "44.93mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.3.3-Windows-x64.zip",
+        "size": "60.67mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.3.2",
     "title": "v3.3.2",
     "date": "2026-10-14",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.3.2-Android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +118,7 @@
       {
         "name": "PureLive-3.3.2-MacOS-AppleSilicon.zip",
         "size": "42.18mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-MacOS-AppleSilicon.zip"
       },
       {
@@ -82,7 +150,7 @@
       {
         "name": "PureLive-3.3.1-4116-android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 1,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-android-arm64-v8a-release.apk"
       },
       {

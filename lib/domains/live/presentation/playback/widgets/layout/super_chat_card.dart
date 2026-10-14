@@ -124,13 +124,17 @@ class _SuperChatCardState extends State<SuperChatCard> {
     final headerSubText = superChatSecondaryText(headerColor);
     final messageText = superChatContrastText(messageColor);
 
+    // Smooth (superellipse) corners, and the hairline outline drawn over the
+    // header and message colours: drawn under them, as before, the coloured
+    // halves were clipped straight at the corner arc and hid the outline,
+    // which left a hard, plain-circle edge.
+    const radius = BorderRadius.all(Radius.circular(14));
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.08), width: 0.8),
-        boxShadow: [
+      decoration: ShapeDecoration(
+        shape: const RoundedSuperellipseBorder(borderRadius: radius),
+        shadows: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.10),
             blurRadius: 10,
@@ -138,6 +142,12 @@ class _SuperChatCardState extends State<SuperChatCard> {
             offset: const Offset(0, 3),
           ),
         ],
+      ),
+      foregroundDecoration: ShapeDecoration(
+        shape: RoundedSuperellipseBorder(
+          borderRadius: radius,
+          side: BorderSide(color: Colors.black.withValues(alpha: 0.08), width: 0.8),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

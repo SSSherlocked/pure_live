@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.3.2",
+    "title": "v3.3.2",
+    "date": "2026-10-14",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.3.2",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎨 外观\n\n- **设置说明文字**：设置项下方的说明文字过长时自动换行完整显示，不再被截断成省略号。\n- **设置条目对齐**：所有设置项（开关、滑块、普通条目及各页自建的条目）的图标与文字间距统一，同一卡片里的文字左边对齐。\n- **设置位置调整**：「竖屏直播适配」移到「设置 › 通用」主题分组的「弹幕设置」之后；「观看数据与排行口径」移到「房间卡片设置」的「显示内容」分组末尾。\n- **直播间「关注」标签**：排序按钮移到左侧，与右侧的刷新按钮对称，中间的「已开播 / 录播」标签居中显示，两个标签之间的距离收紧（手机和平板为原来的四分之三，电脑端为原来的五分之四）。\n- **刷新动画**：手机和平板上，列表自动重新加载（如首页关注启动后的「获取中」）时，改用和下拉刷新相同的加载球：从顶部落下、转动，加载完成后收回。加载中再下拉会接上这次加载，不会出现两个加载图标，也不会重复刷新。电脑端仍直接显示刷新图标。\n\n#### 📦 下载\n\n- **安装包改名**：文件名不再带内部构建号，平台名放在前面，一看就知道下载哪个：\n  - Android：`PureLive-3.3.2-Android-arm64-v8a.apk`\n  - Windows：`PureLive-3.3.2-Windows-x64.zip`\n  - Linux：`PureLive-3.3.2-Linux-x64.deb`（另有 `.tar.gz` 和 `.zip`）\n  - macOS：`PureLive-3.3.2-MacOS-AppleSilicon.zip`（M 系列芯片）、`PureLive-3.3.2-MacOS-Intel.zip`（Intel 芯片）\n  - iOS：`PureLive-3.3.2-iOS-TrollStore.ipa`、`PureLive-3.3.2-iOS-Unsigned.zip`\n- **Windows 只提供免安装版**：不再发布 `setup.exe` 安装程序，解压 zip 后直接运行即可。之前用安装程序装过的，可以在系统「应用」设置里卸载旧版后改用免安装版。",
+    "files": [
+      {
+        "name": "PureLive-3.3.2-Android-arm64-v8a",
+        "size": "119.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.3.2-iOS-TrollStore.ipa",
+        "size": "44.81mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.3.2-iOS-Unsigned.zip",
+        "size": "44.54mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.3.2-Linux-x64.deb",
+        "size": "41.86mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.3.2-Linux-x64.tar.gz",
+        "size": "50.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.3.2-Linux-x64.zip",
+        "size": "50.23mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.2-MacOS-AppleSilicon.zip",
+        "size": "42.18mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.3.2-MacOS-Intel.zip",
+        "size": "44.91mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.3.2-Windows-x64.zip",
+        "size": "60.65mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.2/PureLive-3.3.2-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.3.1",
     "title": "v3.3.1",
     "date": "2026-10-14",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.3.1-4116-android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.1/PureLive-3.3.1-4116-android-arm64-v8a-release.apk"
       },
       {

@@ -85,27 +85,71 @@ class DanmakuSectionTabBar extends StatelessWidget {
   final List<String> tabs;
   final TabController? controller;
 
+  // Space above the labels, the gap between a label and the indicator, the
+  // indicator's thickness and the divider under the row.
+  static const double _labelTopSpace = 10;
+  static const double _indicatorGap = 4;
+  static const double _indicatorThickness = 3;
+  static const double _dividerThickness = 1;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    // One role above the list text: the section names lead the panel.
+    // Bold whether selected or not; the colour marks the current tab.
+    final labelStyle = AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700);
+    // A tab is exactly the tallest label plus the space above it and the gap
+    // below, so the indicator (in the strip TabBar reserves under the tabs)
+    // sits just under the text and the divider just under the indicator.
+    final textScaler = MediaQuery.textScalerOf(context);
+    final textDirection = Directionality.of(context);
+    var labelHeight = 0.0;
+    for (final name in tabs) {
+      final painter = TextPainter(
+        text: TextSpan(text: name, style: labelStyle),
+        textScaler: textScaler,
+        textDirection: textDirection,
+        maxLines: 1,
+      )..layout();
+      if (painter.height > labelHeight) labelHeight = painter.height;
+      painter.dispose();
+    }
+    final tabHeight = _labelTopSpace + labelHeight + _indicatorGap;
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: theme.colorScheme.surface,
       child: ScrollableTabBar(
         key: const ValueKey('live-danmaku-section-tabs'),
         isScrollable: false,
         tabAlignment: TabAlignment.fill,
         physics: const PureLiveBoundedScrollPhysics(),
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-        // One role above the list text: the section names lead the panel.
-        // Bold whether selected or not; the colour marks the current tab.
-        labelStyle: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700),
-        unselectedLabelStyle: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700),
+        labelStyle: labelStyle,
+        unselectedLabelStyle: labelStyle,
+        indicatorWeight: _indicatorThickness + _dividerThickness,
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(width: _indicatorThickness, color: theme.colorScheme.primary),
+          borderRadius: const BorderRadius.all(Radius.circular(1.5)),
+          // Lifted off the divider, so the two never overlap.
+          insets: const EdgeInsets.only(bottom: _dividerThickness),
+        ),
+        dividerColor: theme.colorScheme.outlineVariant,
+        dividerHeight: _dividerThickness,
         controller: controller,
         // Five equal-width sections share a narrow panel: shrink a label that
         // does not fit instead of letting neighbouring labels overlap.
         tabs: tabs
             .map(
               (name) => Tab(
-                child: FittedBox(fit: BoxFit.scaleDown, child: Text(name, maxLines: 1, softWrap: false)),
+                height: tabHeight,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  // As wide as the label, so the indicator matches it.
+                  widthFactor: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: _indicatorGap),
+                    child: FittedBox(fit: BoxFit.scaleDown, child: Text(name, maxLines: 1, softWrap: false)),
+                  ),
+                ),
               ),
             )
             .toList(growable: false),

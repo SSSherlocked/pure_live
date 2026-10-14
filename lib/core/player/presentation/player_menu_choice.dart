@@ -37,7 +37,6 @@ class PlayerMenuChoice extends StatelessWidget {
     required this.labels,
     required this.selected,
     required this.onPressed,
-    this.extraWidth = 0,
   });
 
   final String label;
@@ -46,10 +45,6 @@ class PlayerMenuChoice extends StatelessWidget {
   final List<String> labels;
   final bool selected;
   final VoidCallback? onPressed;
-
-  /// Width the menu's other entries add beside their label (a leading icon
-  /// and its gap), so this label stays centred in the shared width.
-  final double extraWidth;
 
   static TextStyle styleOf(BuildContext context) =>
       (Theme.of(context).textTheme.labelLarge ?? const TextStyle()).copyWith(fontWeight: FontWeight.w800);
@@ -66,7 +61,7 @@ class PlayerMenuChoice extends StatelessWidget {
           ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(floatingMenuSelectedColor(colors)))
           : null,
       child: SizedBox(
-        width: menuLabelWidth(context, labels, bold) + extraWidth,
+        width: menuLabelWidth(context, labels, bold),
         child: Text(
           label,
           maxLines: 1,

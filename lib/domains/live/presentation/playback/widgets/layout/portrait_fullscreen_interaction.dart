@@ -1,7 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
+
+/// The least a portrait fullscreen's control bars keep from the screen's
+/// bottom and side edges. Android reports no inset for a phone's rounded
+/// display corners (and none for the hidden gesture bar in immersive mode), so
+/// a bar at the very edge had its end buttons cut by the corners.
+const double portraitFullscreenCornerBottomInset = 20;
+const double portraitFullscreenCornerSideInset = 16;
 
 bool canEnterPortraitPanelFullscreen({
   required bool isPortraitSource,
@@ -116,11 +124,13 @@ class _PortraitFullscreenEntryHintState extends State<PortraitFullscreenEntryHin
 
   @override
   Widget build(BuildContext context) {
-    // Above the bottom control bar, which adds the system inset to its height.
+    // Above the bottom control bar, which adds the system (or rounded-corner)
+    // inset to its height.
     final inset = MediaQuery.viewPaddingOf(context);
+    final bottom = math.max(inset.bottom, portraitFullscreenCornerBottomInset);
     return IgnorePointer(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(inset.left + 12, 0, inset.right + 12, inset.bottom + compactPlayerBarHeight + 12),
+        padding: EdgeInsets.fromLTRB(inset.left + 12, 0, inset.right + 12, bottom + compactPlayerBarHeight + 12),
         child: Align(
           alignment: Alignment.bottomCenter,
           child: AnimatedOpacity(

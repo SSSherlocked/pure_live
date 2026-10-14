@@ -88,13 +88,17 @@ double playerBarTopInset({required double viewPaddingTop, required bool portrait
 /// `SafeArea` anywhere above a bar *consumes* the padding, and a bar that reads
 /// zero slides back under the status bar or the gesture bar. That is exactly how
 /// the portrait fullscreen bar ended up under the notch.
+///
+/// A portrait fullscreen also keeps clear of the rounded display corners,
+/// which no inset reports.
 EdgeInsets playerBarInsets(BuildContext context, {bool portraitFullscreen = false}) {
   final view = MediaQuery.viewPaddingOf(context);
+  double side(double inset) => portraitFullscreen ? math.max(inset, portraitFullscreenCornerSideInset) : inset;
   return EdgeInsets.fromLTRB(
-    view.left,
+    side(view.left),
     playerBarTopInset(viewPaddingTop: view.top, portraitFullscreen: portraitFullscreen),
-    view.right,
-    view.bottom,
+    side(view.right),
+    portraitFullscreen ? math.max(view.bottom, portraitFullscreenCornerBottomInset) : view.bottom,
   );
 }
 
@@ -168,9 +172,10 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
           final topBarHeight = compactControls ? compactPlayerBarHeight : barHeight;
           // Like the top bar, the bottom one adds the system inset to its own
           // height, so a fullscreen bar clears the gesture bar.
-          final bottomBarHeight = topBarHeight + playerBarInsets(context).bottom;
           final manager = GlobalPlayerService.instance.player;
           final portraitFullscreen = screenMode == VideoMode.portraitFullscreen;
+          final bottomBarHeight =
+              topBarHeight + playerBarInsets(context, portraitFullscreen: portraitFullscreen).bottom;
           final verticalVideo = manager.isVerticalVideo.value;
           // The portrait source's own ⋯ entries, where its bar buttons were:
           // 画面方向 for a fullscreen vertical stream, 画面模式 only in the
@@ -762,9 +767,8 @@ class BackButton extends StatelessWidget {
 }
 
 /// 画面方向 in the ⋯ menu of a fullscreen vertical stream: whether this room's
-/// source counts as portrait (自动识别 / 强制竖屏 / 强制横屏), plus the global
-/// 记住单个直播间方向 switch, which decides whether a choice outlives the
-/// session.
+/// source counts as portrait (自动识别 / 强制竖屏 / 强制横屏). Whether a choice
+/// outlives the session is the setting 记住单个直播间方向 (竖屏直播 settings).
 class PortraitOrientationMenuEntry extends StatelessWidget {
   const PortraitOrientationMenuEntry({super.key, required this.controller});
 
@@ -776,28 +780,12 @@ class PortraitOrientationMenuEntry extends StatelessWidget {
     GlobalPlayerService.instance.player.refreshPortraitPresentationPolicy();
   }
 
-  /// Flips the switch and keeps the room's current choice in step with it,
-  /// as picking that choice again would.
-  void _toggleRemember() {
-    final settings = SettingsService.to.player;
-    final remember = !settings.rememberPortraitRoomOverride.v;
-    settings.rememberPortraitRoomOverride.v = remember;
-    final current = settings.portraitOverrideForRoom(controller.room);
-    if (current != PortraitOrientationOverride.automatic) {
-      settings.setPortraitOverrideForRoom(controller.room, current, remember: remember);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final settings = SettingsService.to.player;
       final selected = settings.portraitOverrideForRoom(controller.room);
-      final remember = settings.rememberPortraitRoomOverride.v;
-      final rememberLabel = i18n('portrait_remember_room_override');
-      final labels = [for (final value in PortraitOrientationOverride.values) _overrideLabel(value), rememberLabel];
-      // The switch's check box and its gap.
-      const leadingWidth = 18.0 + 12;
+      final labels = [for (final value in PortraitOrientationOverride.values) _overrideLabel(value)];
       return LeftSubmenuButton(
         key: const ValueKey('player-more-portrait-orientation'),
         leadingIcon: Icon(switch (selected) {
@@ -806,36 +794,15 @@ class PortraitOrientationMenuEntry extends StatelessWidget {
           PortraitOrientationOverride.landscape => Icons.stay_current_landscape_rounded,
         }, size: 18),
         labels: labels,
-        entryLeadingWidth: leadingWidth,
         menuChildren: [
           for (final value in PortraitOrientationOverride.values)
             PlayerMenuChoice(
               key: ValueKey('player-portrait-orientation-${value.name}'),
               label: _overrideLabel(value),
               labels: labels,
-              extraWidth: leadingWidth,
               selected: selected == value,
               onPressed: () => _select(value),
             ),
-          const Divider(height: 1),
-          MenuItemButton(
-            key: const ValueKey('player-portrait-orientation-remember'),
-            // A switch: the menu stays open to show its new state.
-            closeOnActivate: false,
-            leadingIcon: Icon(
-              remember ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-              size: 18,
-              color: remember ? Theme.of(context).colorScheme.primary : null,
-            ),
-            onPressed: _toggleRemember,
-            child: Text(
-              rememberLabel,
-              maxLines: 1,
-              softWrap: false,
-              overflow: TextOverflow.ellipsis,
-              style: playerMenuLabelStyle,
-            ),
-          ),
         ],
         child: Text(
           i18n('portrait_orientation_menu'),
@@ -1185,7 +1152,7 @@ class BottomActionBar extends StatelessWidget {
     // Same rule as the top bar, at the other edge: the picture stays full-bleed
     // and this bar adds the raw system inset itself so it clears the gesture bar
     // (and a sideways cutout) instead of sitting under them.
-    final padding = playerBarInsets(context);
+    final padding = playerBarInsets(context, portraitFullscreen: portraitFullscreen);
     final compactControls = PlayerControlDensity.compactOf(context);
     final edge = compactControls ? 0.0 : 8.0;
     return Obx(() {

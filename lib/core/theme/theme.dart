@@ -231,12 +231,12 @@ class MyTheme {
       );
     }
 
-    // Floating menus follow 深色模式纯黑背景 too; a hairline outline then
-    // keeps a black menu apart from the black page under it.
-    final menuColor = pureBlack ? Colors.black : floatingMenuColor(baseTheme.colorScheme);
-    final menuShape = pureBlack
-        ? kFloatingMenuShape.copyWith(side: BorderSide(color: baseTheme.colorScheme.outlineVariant, width: 0.5))
-        : kFloatingMenuShape;
+    // Floating menus follow 深色模式纯黑背景 too: a black just lifted off
+    // the page (7 % of the text colour) so a menu still stands apart from
+    // the black under it, without an outline.
+    final menuColor = pureBlack
+        ? Color.alphaBlend(baseTheme.colorScheme.onSurface.withValues(alpha: 0.07), Colors.black)
+        : floatingMenuColor(baseTheme.colorScheme);
 
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
@@ -332,7 +332,7 @@ class MyTheme {
         style: MenuStyle(
           backgroundColor: WidgetStatePropertyAll(menuColor),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-          shape: WidgetStatePropertyAll(menuShape),
+          shape: const WidgetStatePropertyAll(kFloatingMenuShape),
           padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding)),
           visualDensity: VisualDensity.standard,
         ),
@@ -352,7 +352,7 @@ class MyTheme {
         menuPadding: const EdgeInsets.symmetric(vertical: kFloatingMenuVerticalPadding),
         color: menuColor,
         surfaceTintColor: Colors.transparent,
-        shape: menuShape,
+        shape: kFloatingMenuShape,
       ),
       dialogTheme: DialogThemeData(
         elevation: 0,

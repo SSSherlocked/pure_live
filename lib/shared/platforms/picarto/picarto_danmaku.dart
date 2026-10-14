@@ -18,6 +18,10 @@ class PicartoDanmaku extends LiveDanmaku {
 
   static const String _graphql = 'https://ptvintern.picarto.tv/ptvapi';
   static const Duration _tipDuration = Duration(seconds: 60);
+
+  /// US dollars per unit of a tip's amount (`x`). Taken as one dollar per
+  /// unit until the unit is confirmed against a known tip.
+  static const double _usdPerTipUnit = 1;
   static const int _maxTokenRefreshes = 3;
 
   PicartoDanmakuArgs? _args;
@@ -248,7 +252,8 @@ class PicartoDanmaku extends LiveDanmaku {
         userName: _scalar(line['n']),
         face: _scalar(line['i']),
         message: message,
-        price: chips,
+        price: chips * _usdPerTipUnit,
+        currency: SuperChatCurrency.usd,
         startTime: start,
         endTime: start.add(_tipDuration),
         backgroundColor: '',

@@ -34,7 +34,12 @@ Color superChatSecondaryText(Color background) {
 /// The message as shown. The raw text can end in a line break (or an
 /// invisible zero-width character) that a web page hides but a Flutter
 /// text widget draws as one more, empty line at the bottom of the card.
-String superChatDisplayText(String raw) => raw.replaceAll(_edgeInvisibles, '');
+/// A platform's own price note ("(来自一元上头条)") goes too: the card shows
+/// the price itself.
+String superChatDisplayText(String raw) =>
+    raw.replaceAll(_platformPriceNote, '').replaceAll(_edgeInvisibles, '');
+
+final RegExp _platformPriceNote = RegExp(r'[(（]来自[^()（）]*?上头条[)）]');
 
 final RegExp _edgeInvisibles = RegExp(r'^[\s\u200B-\u200D\u2060\uFEFF]+|[\s\u200B-\u200D\u2060\uFEFF]+$');
 
@@ -233,7 +238,7 @@ class _SuperChatCardState extends State<SuperChatCard> {
         const Icon(Remix.money_cny_circle_fill, size: 16, color: Color(0xFFFFC107)),
         const SizedBox(width: 3),
         Text(
-          '￥${message.price}',
+          message.priceLabel,
           style: AppText.of(context).sectionTitle.copyWith(color: textColor,
             fontWeight: FontWeight.w700,
             fontFeatures: const [FontFeature.tabularFigures()]),

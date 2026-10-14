@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'huya_vip_room_id.dart';
 import 'huya_request_params.dart';
 
@@ -81,10 +79,8 @@ List<LiveSuperChatMessage> huyaSuperChatsFromPanel(GameEventMessageBoardPanel pa
 
     final totalSeconds = item.iTotalSec > 0 ? item.iTotalSec : remainSec;
 
-    var price = item.iCost;
-    if (price <= 0 && item.iCostPay > 0) {
-      price = max(1, (item.iCostPay / 100).round());
-    }
+    // iCost in 元; failing that iCostPay in 分.
+    final price = item.iCost > 0 ? item.iCost.toDouble() : item.iCostPay / 100;
 
     final endTime = at.add(Duration(seconds: remainSec));
     final startTime = endTime.subtract(Duration(seconds: totalSeconds));

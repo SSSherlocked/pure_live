@@ -482,7 +482,8 @@ class BiliBiliDanmaku implements LiveDanmaku {
           endTime: DateTime.fromMillisecondsSinceEpoch(obj["data"]["end_time"] * 1000),
           face: "${obj["data"]["user_info"]["face"]}@200w.jpg",
           message: obj["data"]["message"].toString(),
-          price: obj["data"]["price"],
+          // 醒目留言 is priced in 元.
+          price: (obj["data"]["price"] as num? ?? 0).toDouble(),
           startTime: DateTime.fromMillisecondsSinceEpoch(obj["data"]["start_time"] * 1000),
           userName: obj["data"]["user_info"]["uname"].toString(),
         );

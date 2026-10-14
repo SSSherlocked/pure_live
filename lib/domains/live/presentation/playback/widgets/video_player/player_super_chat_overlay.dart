@@ -243,7 +243,7 @@ class _PlayerSuperChatCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '￥${message.price}',
+                    message.priceLabel,
                     style: _scaled(text.body).copyWith(
                       color: headerText,
                       fontWeight: FontWeight.w700,

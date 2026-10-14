@@ -202,6 +202,18 @@ class LiveMessageColor {
   }
 }
 
+/// The two currencies a super chat is shown in: 人民币 for the Chinese
+/// platforms, 美元 for every other. A platform's own coin is converted by its
+/// recharge rate where it is parsed.
+enum SuperChatCurrency {
+  cny('¥'),
+  usd('\$');
+
+  const SuperChatCurrency(this.symbol);
+
+  final String symbol;
+}
+
 class LiveSuperChatMessage {
   /// Stable platform event identity when the protocol exposes one.
   ///
@@ -214,7 +226,10 @@ class LiveSuperChatMessage {
   final String userName;
   final String face;
   final String message;
-  final int price;
+
+  /// The amount in [currency]; fractions are kept (a 斗鱼 price in 分).
+  final double price;
+  final SuperChatCurrency currency;
   final DateTime startTime;
   final DateTime endTime;
   final String backgroundColor;
@@ -228,9 +243,20 @@ class LiveSuperChatMessage {
     required this.face,
     required this.message,
     required this.price,
+    this.currency = SuperChatCurrency.cny,
     required this.startTime,
     required this.userName,
   });
+
+  /// The price as shown on a card: the currency's symbol, whole amounts
+  /// without decimals, others to the cent (¥30, ¥30.5, $4.99).
+  String get priceLabel {
+    final cents = (price * 100).round();
+    final amount = cents % 100 == 0
+        ? '${cents ~/ 100}'
+        : (cents / 100).toStringAsFixed(2).replaceFirst(RegExp(r'0$'), '');
+    return '${currency.symbol}$amount';
+  }
 
   @override
   bool operator ==(Object other) {
@@ -238,9 +264,12 @@ class LiveSuperChatMessage {
     if (messageId.isNotEmpty || other.messageId.isNotEmpty) {
       return messageId.isNotEmpty && other.messageId.isNotEmpty && other.messageId == messageId;
     }
-    return other.userName == userName && other.message == message && other.price == price;
+    return other.userName == userName &&
+        other.message == message &&
+        other.price == price &&
+        other.currency == currency;
   }
 
   @override
-  int get hashCode => messageId.isNotEmpty ? messageId.hashCode : Object.hash(userName, message, price);
+  int get hashCode => messageId.isNotEmpty ? messageId.hashCode : Object.hash(userName, message, price, currency);
 }

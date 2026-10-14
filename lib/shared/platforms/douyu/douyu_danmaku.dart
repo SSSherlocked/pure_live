@@ -183,7 +183,8 @@ class DouyuDanmaku implements LiveDanmaku {
       endTime: startTime.add(Duration(seconds: duration)),
       face: face.isEmpty ? '' : "https://apic.douyucdn.cn/upload/${face}_small.jpg",
       message: chat["txt"]?.toString() ?? '',
-      price: rawPrice ~/ 100,
+      // In 分: kept to the cent rather than cut to whole 元.
+      price: rawPrice / 100,
       startTime: startTime,
       userName: chat["nn"]?.toString() ?? '',
     );
@@ -206,7 +207,8 @@ class DouyuDanmaku implements LiveDanmaku {
       endTime: DateTime.fromMillisecondsSinceEpoch(endSeconds * 1000),
       face: avatar.isEmpty ? '' : "https://$avatar",
       message: scData["content"]?.toString() ?? '',
-      price: rawPrice ~/ 100,
+      // In 分: kept to the cent rather than cut to whole 元.
+      price: rawPrice / 100,
       startTime: DateTime.fromMillisecondsSinceEpoch(startSeconds * 1000),
       userName: scData["un"]?.toString() ?? '',
     );

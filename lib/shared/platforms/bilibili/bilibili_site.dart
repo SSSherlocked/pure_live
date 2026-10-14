@@ -977,7 +977,8 @@ class BiliBiliSite
         endTime: DateTime.fromMillisecondsSinceEpoch(item["end_time"] * 1000),
         face: "${item["user_info"]["face"]}@200w.jpg",
         message: item["message"].toString(),
-        price: item["price"],
+        // 醒目留言 is priced in 元.
+        price: (item["price"] as num? ?? 0).toDouble(),
         startTime: DateTime.fromMillisecondsSinceEpoch(item["start_time"] * 1000),
         userName: item["user_info"]["uname"].toString(),
       );

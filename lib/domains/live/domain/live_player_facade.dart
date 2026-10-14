@@ -148,7 +148,7 @@ final class LivePlayerFacade {
         _lastPlaying = playing;
         _playingSubject.add(playing);
       }
-      _watchForStall(playing);
+      _watchForStall(state.playback);
       // Transitions only: the kernel repeats its state on every tick.
       if (state.playback != _lastLoggedPlayback) {
         _lastLoggedPlayback = state.playback;
@@ -396,27 +396,46 @@ final class LivePlayerFacade {
   /// True while the player says it is playing but its position has stood
   /// still for [stallThreshold]. Live streams run mpv with cache-pause off,
   /// so a starved stream freezes the picture without ever reporting
-  /// buffering; this is how the picture's spinner learns about it.
+  /// buffering; this is how the picture's spinner learns about it. (While the
+  /// player reports buffering, the spinner already shows.)
   final RxBool isStalled = false.obs;
   static const Duration stallThreshold = Duration(milliseconds: 1200);
+
+  /// How long the position may stand still before [onLongStall] fires: a
+  /// stream that stops without an error (mpv keeps "playing" through a dead
+  /// connection) is left to the room to refresh. Buffering gets longer, since
+  /// the engine is at least waiting for data.
+  static const Duration longStallWhilePlaying = Duration(seconds: 10);
+  static const Duration longStallWhileBuffering = Duration(seconds: 30);
+  final _longStallSubject = StreamController<Duration>.broadcast();
+  Stream<Duration> get onLongStall => _longStallSubject.stream;
+
   static const Duration _stallPollInterval = Duration(milliseconds: 300);
   Timer? _stallTimer;
   Duration? _stallLastPosition;
+  PlayerPlaybackState? _stallPlayback;
   final Stopwatch _sinceAdvance = Stopwatch();
-  // Only a position that has moved during this playing spell counts: an
-  // engine that never reports one must not spin forever.
+  // Only a position that has moved since the watch began counts: an engine
+  // that never reports one must not spin, or be refreshed, forever.
   bool _positionAdvanced = false;
+  bool _longStallReported = false;
 
-  void _watchForStall(bool playing) {
-    if (!playing) {
+  /// The watch runs while the player is trying to play (playing or
+  /// buffering) and stops on anything else (paused, opening, stopped, ...).
+  void _watchForStall(PlayerPlaybackState playback) {
+    _stallPlayback = playback;
+    final trying = playback == PlayerPlaybackState.playing || playback == PlayerPlaybackState.buffering;
+    if (!trying) {
       _stallTimer?.cancel();
       _stallTimer = null;
       _setStalled(false);
       return;
     }
+    if (playback != PlayerPlaybackState.playing) _setStalled(false);
     if (_stallTimer != null) return;
     _stallLastPosition = _controller.handle?.position;
     _positionAdvanced = false;
+    _longStallReported = false;
     _sinceAdvance
       ..reset()
       ..start();
@@ -428,13 +447,23 @@ final class LivePlayerFacade {
     if (position != _stallLastPosition) {
       _stallLastPosition = position;
       _positionAdvanced = true;
+      _longStallReported = false;
       _sinceAdvance
         ..reset()
         ..start();
       _setStalled(false);
       return;
     }
-    if (_positionAdvanced && _sinceAdvance.elapsed >= stallThreshold) _setStalled(true);
+    if (!_positionAdvanced) return;
+    final still = _sinceAdvance.elapsed;
+    final playing = _stallPlayback == PlayerPlaybackState.playing;
+    if (playing && still >= stallThreshold) _setStalled(true);
+    final longStall = playing ? longStallWhilePlaying : longStallWhileBuffering;
+    if (!_longStallReported && still >= longStall) {
+      _longStallReported = true;
+      Log.w('player: no progress for ${still.inSeconds} s while ${_stallPlayback?.name}');
+      if (!_longStallSubject.isClosed) _longStallSubject.add(still);
+    }
   }
 
   void _setStalled(bool stalled) {
@@ -918,6 +947,7 @@ final class LivePlayerFacade {
     await _errorSubject.close();
     await _commitSubject.close();
     await _loadingSubject.close();
+    await _longStallSubject.close();
   }
 }
 

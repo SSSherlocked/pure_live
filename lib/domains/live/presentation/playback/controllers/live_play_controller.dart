@@ -164,6 +164,33 @@ class LivePlayController extends GetxController
     }
   }
 
+  // A stream that stops moving without an error is refreshed (as Simple Live
+  // does): at most 3 times in a row and 5 s apart. A long stall reported well
+  // after the last refresh (the 10 s stall plus 30 s of play) starts a fresh
+  // count. The reconnect ladder, when running, owns recovery instead.
+  static const int _maxStallRefreshes = 3;
+  static const Duration _stallRefreshCooldown = Duration(seconds: 5);
+  static const Duration _stallRefreshResetAfter = Duration(seconds: 40);
+  StreamSubscription<Duration>? _longStallSub;
+  int _stallRefreshes = 0;
+  DateTime? _lastStallRefreshAt;
+
+  void _onLongStall(Duration still) {
+    if (isClosed || _ownerClosed || _reconnectStartedAt != null || _reconnecting) return;
+    final videoController = state.value.player.videoController;
+    final player = GlobalPlayerService.instance.player;
+    if (videoController == null || !player.ownsVideoController(videoController)) return;
+    final now = DateTime.now();
+    final last = _lastStallRefreshAt;
+    if (last != null && now.difference(last) > _stallRefreshResetAfter) _stallRefreshes = 0;
+    if (_stallRefreshes >= _maxStallRefreshes) return;
+    if (last != null && now.difference(last) < _stallRefreshCooldown) return;
+    _stallRefreshes++;
+    _lastStallRefreshAt = now;
+    Log.w('Playback stalled for ${still.inSeconds} s; refreshing ($_stallRefreshes/$_maxStallRefreshes)');
+    unawaited(videoController.refresh());
+  }
+
   void _stopReconnect() {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
@@ -249,6 +276,7 @@ class LivePlayController extends GetxController
     currentSite = Sites.of(site);
 
     final manager = GlobalPlayerService.instance.player;
+    _longStallSub = manager.onLongStall.listen(_onLongStall);
     _reentrySession = manager.consumeRoomSessionReentry(room);
     final resumesCurrentSession = _reentrySession != null;
     final autoStartAsmr = Platform.isAndroid && SettingsService.to.app.enableAsmrSleepMode.v;
@@ -1042,8 +1070,11 @@ class LivePlayController extends GetxController
   void clearClosedPlaybackSource() => _restoreQualityAndLines();
 
   Future<void> switchRoom(LiveRoom newRoom) async {
-    // A reconnect ladder belongs to the room it started for.
+    // A reconnect ladder, and a stall-refresh count, belong to the room they
+    // started for.
     _stopReconnect();
+    _stallRefreshes = 0;
+    _lastStallRefreshAt = null;
     // Fence any room-detail/play-quality request that was started before this
     // switch. Its late result must not restore the previous room or socket.
     invalidateRoomLoad();
@@ -1331,6 +1362,8 @@ class LivePlayController extends GetxController
     _nativeFullscreenSync.detach();
     unawaited(LiveAudioFocus.instance.detach());
     _stopReconnect();
+    unawaited(_longStallSub?.cancel());
+    _longStallSub = null;
     _ownerClosed = true;
     _roomLoadEpoch++;
     _iptvPlaybackEpoch++;

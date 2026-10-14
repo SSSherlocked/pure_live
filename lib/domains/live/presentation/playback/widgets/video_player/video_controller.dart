@@ -336,9 +336,11 @@ class DanmakuManager {
 /// later one.
 class FullscreenOrientationRestoreState {
   bool _restorePortrait = false;
+  int _generation = 0;
 
   void begin({required bool restorePortraitOnExit}) {
     _restorePortrait = restorePortraitOnExit;
+    _generation++;
   }
 
   bool takePortraitRestore() {
@@ -346,22 +348,41 @@ class FullscreenOrientationRestoreState {
     _restorePortrait = false;
     return restore;
   }
+
+  /// Bumped by every fullscreen entry: a release still waiting from the last
+  /// exit stands down when the user went fullscreen again meanwhile.
+  int get generation => _generation;
 }
 
+/// Leaves a landscape fullscreen and gives the orientation back.
+///
+/// With auto-rotate on, the phone is upright for [portraitSettleDelay] and
+/// then follows the sensor again. With it off, releasing a forced
+/// orientation hands the screen to the system's locked rotation, which
+/// HyperOS had moved to landscape while the fullscreen turned the screen:
+/// the whole app, and other apps, stayed sideways. The phone is then held
+/// upright for [lockedSettleDelay] - the turn and the system's own rotation
+/// bookkeeping finish first - before it is let go. After wzgrx v4.1.0.
 Future<void> exitFullscreenWithOrientationRestore({
   required FullscreenOrientationRestoreState state,
   required Future<void> Function() exitFullscreen,
   required Future<void> Function() restorePortrait,
   required Future<void> Function() releaseOrientation,
+  Future<bool> Function()? isAutoRotateOn,
   Duration portraitSettleDelay = const Duration(milliseconds: 350),
+  Duration lockedSettleDelay = const Duration(seconds: 3),
 }) async {
   final shouldRestorePortrait = state.takePortraitRestore();
+  final generation = state.generation;
   await exitFullscreen();
   if (!shouldRestorePortrait) return;
   await restorePortrait();
-  if (portraitSettleDelay > Duration.zero) {
-    await Future<void>.delayed(portraitSettleDelay);
+  final autoRotate = isAutoRotateOn == null || await isAutoRotateOn();
+  final settle = autoRotate ? portraitSettleDelay : lockedSettleDelay;
+  if (settle > Duration.zero) {
+    await Future<void>.delayed(settle);
   }
+  if (state.generation != generation) return;
   await releaseOrientation();
 }
 
@@ -1484,6 +1505,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       exitFullscreen: WindowService().doExitFullScreen,
       restorePortrait: WindowService().verticalScreen,
       releaseOrientation: WindowService().followSystemOrientation,
+      isAutoRotateOn: Platform.isAndroid ? DisplayModeService.isAutoRotateOn : null,
     );
     GlobalPlayerService.instance.player.isSystemFullscreen.value = false;
   }

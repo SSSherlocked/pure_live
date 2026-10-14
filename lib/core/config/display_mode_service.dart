@@ -98,6 +98,18 @@ class DisplayModeService {
     info.value = next;
   }
 
+  /// Whether Android's auto-rotate is on; false when it cannot tell (and on
+  /// other platforms).
+  static Future<bool> isAutoRotateOn() async {
+    try {
+      return await _channel.invokeMethod<bool>('isAutoRotateOn') ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
   static Future<DisplayModeInfo?> setHighRefreshRate(bool enabled) async {
     _ensureHandler();
     try {

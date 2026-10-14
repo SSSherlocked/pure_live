@@ -18,12 +18,17 @@ class RoomGridView extends GetView<FavoriteController> {
     required this.scrollController,
     required this.displayList,
     this.emptyBuilder,
+    this.showsPageRefresh = false,
   });
 
   final String siteId;
   final ScrollController scrollController;
   final List<LiveRoom> displayList;
   final WidgetBuilder? emptyBuilder;
+
+  /// Whether this is the page in view: its pull header then also shows the
+  /// page's reloads (see BasePageScrollAndStateBone.reloadInPullHeader).
+  final bool showsPageRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +145,8 @@ class RoomGridView extends GetView<FavoriteController> {
             siteId: siteId,
             // A floating ball over the list rather than pulling the list down.
             header: floatingRefreshHeader(),
-            onRefresh: controller.pullRefreshCallback,
+            refreshController: showsPageRefresh ? controller.easyRefreshController : null,
+            onRefresh: controller.pullToRefresh,
             childBuilder: (_, physics) => buildScrollable(physics),
           );
         });
@@ -153,12 +159,14 @@ class RoomGridView extends GetView<FavoriteController> {
 Widget buildFavoritePullToRefresh({
   required String siteId,
   required Header header,
-  required Future<void> Function()? onRefresh,
+  required Future<void> Function() onRefresh,
   required ERChildBuilder childBuilder,
+  EasyRefreshController? refreshController,
 }) {
   return EasyRefresh.builder(
     key: ValueKey('favorite_pull_to_refresh_$siteId'),
     header: header,
+    controller: refreshController,
     triggerAxis: Axis.vertical,
     onRefresh: onRefresh,
     childBuilder: childBuilder,

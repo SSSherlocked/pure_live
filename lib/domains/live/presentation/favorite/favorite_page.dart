@@ -202,6 +202,7 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
                               : controller.filteredSyncedRoomsForSite(allSite, statusIndex: status),
                           emptyBuilder: (context) =>
                               _FavoriteEmptyState(controller: controller, siteId: allSite, statusIndex: status),
+                          showsPageRefresh: status == activeStatus,
                         ),
                       ),
                   ],
@@ -226,6 +227,7 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
                         scrollController: _scrollControllerFor(site.id),
                         displayList: pageList,
                         emptyBuilder: (context) => _FavoriteEmptyState(controller: controller, siteId: site.id),
+                        showsPageRefresh: isCurrentSite,
                       );
                     },
                   );

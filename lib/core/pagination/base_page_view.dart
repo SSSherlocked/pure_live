@@ -48,6 +48,9 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
 
   @override
   Widget build(BuildContext context) {
+    // Touch layouts show a reload in the pull header; desktop keeps the
+    // page's reload spinner.
+    controller.reloadInPullHeader = AppLayout.of(context).touch;
     // Every layout shows one continuous list that loads more as it scrolls.
     final double bottomPadding = AppLayout.of(context).wide
         ? (wideBottomPadding ?? 20)
@@ -228,7 +231,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
       footer: indicators.footer,
       controller: controller.easyRefreshController,
       triggerAxis: Axis.vertical,
-      onRefresh: controller.pullRefreshCallback,
+      onRefresh: controller.pullToRefresh,
       // This scrollable must use the refresh owner's physics; otherwise its
       // explicit overscroll policy consumes the drag before refresh is armed.
       childBuilder: (context, physics) => buildScrollable(physics),

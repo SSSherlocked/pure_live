@@ -29,6 +29,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
 
   BasePageScrollAndStateBone() {
     _ownedScrollController.addListener(_scrollListener);
+    ever<bool>(loadding, _onLoadingChanged);
     // Content changes the scroll extent without a scroll event; re-evaluate
     // the jump buttons once the new list has been laid out.
     ever<List<T>>(
@@ -188,24 +189,80 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   String? get pageNotice => null;
   Future<void> refreshData();
 
-  /// True while a pull-to-refresh runs: its header is the one spinner shown,
-  /// so the page's own reload spinner stays hidden (see BasePageView).
+  /// True while the pull header shows a refresh, pulled or not: the page's
+  /// reload spinner stays hidden (see BasePageView).
   final pullRefreshing = false.obs;
 
-  /// The pull-to-refresh callback for a header, or null while a reload that
-  /// did not come from a pull is running: the page's reload spinner already
-  /// shows it, and a pull would drop a second spinner beside it. Read inside
-  /// an Obx so the header comes back when the reload ends.
-  Future<void> Function()? get pullRefreshCallback =>
-      loadding.value && !pullRefreshing.value ? null : pullToRefresh;
+  /// Set by the page: on touch layouts a reload that did not come from a
+  /// pull shows in the pull header, dropping in, spinning and retracting
+  /// like a pull; elsewhere the page's reload spinner shows it.
+  bool reloadInPullHeader = false;
 
-  /// The refresh behind every pull-to-refresh header.
+  int _pullsRunning = 0;
+
+  /// A reload asked the header to drop in; its refresh callback then joins
+  /// that reload instead of starting another.
+  bool _headerReloadPending = false;
+
+  bool get _reloadRunning => loadding.value && currentPage <= 1;
+
+  void _onLoadingChanged(bool loading) {
+    if (!loading || isClosed || !reloadInPullHeader || pullRefreshing.value || currentPage > 1) return;
+    final header = easyRefreshController.headerState;
+    if (header == null || header.mode != IndicatorMode.inactive) return;
+    // A header that pulls the list down would scroll a list read part-way
+    // back to the top; the floating ball sits over the list and never does.
+    final atTop = scrollController.hasClients && scrollController.offset <= 0;
+    if (!header.indicator.clamping && !atTop) return;
+    _headerReloadPending = true;
+    pullRefreshing.value = true;
+    unawaited(
+      easyRefreshController.callRefresh().whenComplete(() {
+        if (isClosed || _pullsRunning > 0) return;
+        final mode = easyRefreshController.headerState?.mode;
+        if (mode == IndicatorMode.ready || mode == IndicatorMode.processing) return;
+        // The header could not drop in: the page's spinner shows the reload.
+        _headerReloadPending = false;
+        pullRefreshing.value = false;
+      }),
+    );
+  }
+
+  Future<void> _untilLoaded() {
+    if (!loadding.value) return Future<void>.value();
+    final done = Completer<void>();
+    late final Worker worker;
+    worker = ever<bool>(loadding, (loading) {
+      if (loading || done.isCompleted) return;
+      worker.dispose();
+      done.complete();
+    });
+    return done.future;
+  }
+
+  /// The refresh behind every pull-to-refresh header. A pull during a
+  /// reload joins it: the header spins until that reload ends, then
+  /// retracts; no second refresh starts.
   Future<void> pullToRefresh() async {
+    final joins = _headerReloadPending || _reloadRunning;
+    _headerReloadPending = false;
+    _pullsRunning++;
     pullRefreshing.value = true;
     try {
-      await refreshData();
+      if (joins) {
+        await _untilLoaded();
+      } else {
+        await refreshData();
+      }
     } finally {
-      if (!isClosed) pullRefreshing.value = false;
+      _pullsRunning--;
+      if (!isClosed) {
+        if (_pullsRunning == 0) pullRefreshing.value = false;
+        // Pages whose refresh does not finish the header themselves.
+        if (easyRefreshController.headerState?.mode == IndicatorMode.processing) {
+          easyRefreshController.finishRefresh();
+        }
+      }
     }
   }
 }

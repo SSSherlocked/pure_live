@@ -8,6 +8,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_loading.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/placeholder/not_living_video_widget.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
+import 'package:pure_live/domains/live/domain/global_player_service.dart';
 
 class LivePlayVideo extends StatelessWidget {
   const LivePlayVideo({
@@ -63,15 +64,18 @@ class LivePlayVideo extends StatelessWidget {
                 ),
               ),
               // A spinner in the middle of the picture while the stream is not
-              // playing yet (opening, 刷新, a line change, buffering), so a
-              // black picture never leaves its state unknown. It takes no
-              // pointer; the controls stay usable over it.
+              // playing yet (opening, 刷新, a line change, buffering) or while
+              // it stalls mid-play, so a black or frozen picture never leaves
+              // its state unknown. It takes no pointer; the controls stay
+              // usable over it.
               ListenableBuilder(
                 listenable: videoController,
-                builder: (context, _) {
+                builder: (context, _) => Obx(() {
                   final status = videoController.status;
+                  final stalled = GlobalPlayerService.instance.player.isStalled.value;
                   final waiting =
                       reloading ||
+                      stalled ||
                       status == PlayerStatus.idle ||
                       status == PlayerStatus.loading ||
                       status == PlayerStatus.disposed;
@@ -91,7 +95,7 @@ class LivePlayVideo extends StatelessWidget {
                       ),
                     ),
                   );
-                },
+                }),
               ),
             ],
           );

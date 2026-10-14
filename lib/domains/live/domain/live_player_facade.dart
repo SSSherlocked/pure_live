@@ -148,6 +148,7 @@ final class LivePlayerFacade {
         _lastPlaying = playing;
         _playingSubject.add(playing);
       }
+      _watchForStall(playing);
       // Transitions only: the kernel repeats its state on every tick.
       if (state.playback != _lastLoggedPlayback) {
         _lastLoggedPlayback = state.playback;
@@ -391,6 +392,56 @@ final class LivePlayerFacade {
   final RxBool isDummyVideo = false.obs;
   final _loadingSubject = StreamController<bool>.broadcast();
   bool _lastLoading = false;
+
+  /// True while the player says it is playing but its position has stood
+  /// still for [stallThreshold]. Live streams run mpv with cache-pause off,
+  /// so a starved stream freezes the picture without ever reporting
+  /// buffering; this is how the picture's spinner learns about it.
+  final RxBool isStalled = false.obs;
+  static const Duration stallThreshold = Duration(milliseconds: 1200);
+  static const Duration _stallPollInterval = Duration(milliseconds: 300);
+  Timer? _stallTimer;
+  Duration? _stallLastPosition;
+  final Stopwatch _sinceAdvance = Stopwatch();
+  // Only a position that has moved during this playing spell counts: an
+  // engine that never reports one must not spin forever.
+  bool _positionAdvanced = false;
+
+  void _watchForStall(bool playing) {
+    if (!playing) {
+      _stallTimer?.cancel();
+      _stallTimer = null;
+      _setStalled(false);
+      return;
+    }
+    if (_stallTimer != null) return;
+    _stallLastPosition = _controller.handle?.position;
+    _positionAdvanced = false;
+    _sinceAdvance
+      ..reset()
+      ..start();
+    _stallTimer = Timer.periodic(_stallPollInterval, (_) => _checkStall());
+  }
+
+  void _checkStall() {
+    final position = _controller.handle?.position;
+    if (position != _stallLastPosition) {
+      _stallLastPosition = position;
+      _positionAdvanced = true;
+      _sinceAdvance
+        ..reset()
+        ..start();
+      _setStalled(false);
+      return;
+    }
+    if (_positionAdvanced && _sinceAdvance.elapsed >= stallThreshold) _setStalled(true);
+  }
+
+  void _setStalled(bool stalled) {
+    if (isStalled.value == stalled) return;
+    isStalled.value = stalled;
+    Log.i(stalled ? 'player: stalled at ${_stallLastPosition?.inMilliseconds} ms' : 'player: stall over');
+  }
 
   bool get isAudioOnlyMode => _audioOnlyMode.value;
   bool get desiredAudioOnlyMode => _audioOnlyMode.value;
@@ -855,6 +906,8 @@ final class LivePlayerFacade {
     if (_disposed) return;
     _disposed = true;
     _cancelIdleRelease();
+    _stallTimer?.cancel();
+    _stallTimer = null;
     await _sourceInterceptor?.close();
     await _stateSub?.cancel();
     await _playingSub?.cancel();

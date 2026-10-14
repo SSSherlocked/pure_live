@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:move_to_desktop/move_to_desktop.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_page.dart';
+import 'package:pure_live/features/about/app_update.dart';
 
 /// The home page: 关注, between the top-left and top-right menus. 分区, 热门
 /// and every other page open from those menus as their own routes.
@@ -32,6 +33,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         );
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       }
+      // Once the start-up work has settled, look for a newer release.
+      Future<void>.delayed(const Duration(seconds: 3), AppUpdate.checkOnStartup);
     });
   }
 

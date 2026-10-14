@@ -1855,5 +1855,21 @@
   "live_panel_follow_refresh": "Follow refresh interval",
   "live_panel_follow_refresh_subtitle": "How often the room's Follow tab refreshes the followed rooms; 0 refreshes only on demand",
   "live_panel_follow_refresh_off": "Off",
-  "danmaku_display_group": "Danmaku display"
+  "danmaku_display_group": "Danmaku display",
+  "update_check": "Check for updates",
+  "update_check_desc": "Current version v{version}",
+  "update_checking": "Checking for updates…",
+  "update_latest": "You're on the latest version",
+  "update_check_failed": "Couldn't check for updates. Check the network and try again",
+  "update_available_title": "New version v{version}",
+  "update_later": "Later",
+  "update_download": "Download",
+  "update_open_release": "Open download page",
+  "update_progress": "{received} MB / {total} MB ({percent}%)",
+  "update_progress_unknown": "{received} MB downloaded",
+  "update_downloaded": "Download complete",
+  "update_download_failed": "Download failed. Check the network and try again",
+  "update_install": "Install",
+  "update_open_folder": "Show in folder",
+  "update_install_failed": "Couldn't open the installer. Allow Pure Live to install apps in system settings"
 }

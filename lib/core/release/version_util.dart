@@ -26,4 +26,7 @@ class VersionUtil {
     if (_packageInfo == null) return '0.0.0';
     return _packageInfo!.version;
   }
+
+  /// The installed build number, 0 when unknown.
+  static int get buildNumber => int.tryParse(_packageInfo?.buildNumber ?? '') ?? 0;
 }

@@ -37,6 +37,12 @@ class GitHubMirror {
     'https://g.blfrp.cn/',
   ];
 
+  /// A release file's GitHub download [url] first, then the same file
+  /// through the proxies, for a download that falls through on failure.
+  List<String> downloadMirrors(String url) {
+    return List.unmodifiable({url, for (final prefix in _rawPrefixes) '$prefix$url'});
+  }
+
   List<String> mirrors(String filePath) {
     final raw = rawUrl(filePath);
 

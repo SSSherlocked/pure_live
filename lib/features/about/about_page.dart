@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:pure_live/core/index.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:remixicon/remixicon.dart'; // 🌟 Imported Remix Icons pack
+import 'package:pure_live/features/about/app_update.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -81,6 +82,12 @@ class _AboutPageState extends State<AboutPage> {
           context.buildGroupTitle(i18n("about")),
           const SizedBox(height: 8),
           context.buildModernCard([
+            context.buildTile(
+              icon: Remix.refresh_line,
+              title: i18n('update_check'),
+              subtitle: i18n('update_check_desc', args: {'version': VersionUtil.version}),
+              onTap: () => unawaited(AppUpdate.checkByUser()),
+            ),
             context.buildTile(
               icon: Remix.history_line,
               title: i18n("history"),

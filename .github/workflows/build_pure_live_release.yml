@@ -12,17 +12,17 @@ on:
         description: Build Windows EXE and portable ZIP
         required: true
         type: boolean
-        default: true
+        default: false
       build_linux:
         description: Build Linux x64 DEB and portable archives
         required: true
         type: boolean
-        default: true
+        default: false
       build_macos:
         description: Build macOS Apple Silicon and Intel archives
         required: true
         type: boolean
-        default: true
+        default: false
       build_ios:
         description: Build unsigned iOS app and TrollStore IPA (rarely needed)
         required: true

@@ -17,11 +17,12 @@ void main() {
       // 可能落在某条源打开之后。同一个属性有两个所有者，谁最后生效就是随机的——
       // Twitch 那次复现里，按源写的 force-seekable=no 就被这张表的 yes 盖掉了。
       final properties = MediaKitLiveProperties.build();
-      for (final key in const ['http-proxy', 'demuxer-lavf-format', 'force-seekable', 'cache-pause']) {
+      for (final key in const ['http-proxy', 'demuxer-lavf-format', 'force-seekable']) {
         expect(properties.containsKey(key), isFalse, reason: key);
       }
-      // 与 cache-pause 配套的等待时长是全局的，留在表里。
-      expect(properties.containsKey('cache-pause-wait'), isTrue);
+      // cache-pause 对所有源一样，连同等待时长都只归这张表。
+      expect(properties['cache-pause'], 'yes');
+      expect(properties['cache-pause-wait'], '1');
     });
 
     test('代理出口被 CDN 拒吐流的主机强制直连', () {

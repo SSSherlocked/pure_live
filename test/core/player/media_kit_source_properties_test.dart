@@ -10,28 +10,34 @@ Map<String, String> _properties(String url, {String? declared}) =>
 
 void main() {
   group('按源决定的引擎属性', () {
-    test('上游 HLS 指死解复用器，并撤掉点播那套缓存假设', () {
+    test('上游 HLS 指死解复用器，不可拖动', () {
       expect(_properties('https://cdn.example.com/live/index.m3u8'), {
         'http-proxy': _proxy,
         'demuxer-lavf-format': 'hls',
-        // 直播清单读到边缘就没有更多数据，cache-pause-wait 要的 4 秒永远凑不齐。
         'force-seekable': 'no',
-        'cache-pause': 'no',
       });
     });
 
-    test('远端渐进式源按直播对待——不再 cache-pause', () {
-      // FLV 等远端渐进式直播没有"缓存目标凑齐"的时刻：cache-pause 会让播放
-      // 两秒后停进缓冲再续播（"先播后暂停再加载"）。本机/回环文件是点播，
-      // 那套假设才成立（见"本机输入"用例）。
+    test('远端渐进式源保持可拖动', () {
       expect(_properties('https://cdn.example.com/live/room.flv'), {
         'http-proxy': _proxy,
         'demuxer-lavf-format': '',
         // Seekable on purpose: Android's surface-attach seek must not be
         // refused, or the kernel drops the line (see sourceProperties).
         'force-seekable': 'yes',
-        'cache-pause': 'no',
       });
+    });
+
+    test('cache-pause 不再按源决定', () {
+      // 全局开启、补 1 秒再续播（见 MediaKitLiveProperties.build），
+      // 直播、本机中继和本地文件一视同仁。
+      for (final url in const [
+        'https://cdn.example.com/live/index.m3u8',
+        'https://cdn.example.com/live/room.flv',
+        'http://127.0.0.1:4321/abc/live.flv',
+      ]) {
+        expect(_properties(url).containsKey('cache-pause'), isFalse, reason: url);
+      }
     });
 
     test('平台声明优先于 URL 形状', () {
@@ -58,15 +64,13 @@ void main() {
       expect(_properties('http://127.0.0.1:4321/ingest/index.m3u8'), {
         'http-proxy': '',
         'demuxer-lavf-format': '',
-        // 内容仍然是直播清单，缓存策略照样要撤掉点播那套假设。
+        // 内容仍然是直播清单，照样不可拖动。
         'force-seekable': 'no',
-        'cache-pause': 'no',
       });
       expect(_properties('http://localhost:4321/live.flv'), {
         'http-proxy': '',
         'demuxer-lavf-format': '',
         'force-seekable': 'yes',
-        'cache-pause': 'yes',
       });
       expect(_properties('http://[::1]:4321/index.m3u8')['http-proxy'], '');
       expect(isPrivatePlaybackInput(Uri(scheme: 'owned', path: 'room')), isTrue);

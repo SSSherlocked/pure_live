@@ -394,10 +394,11 @@ final class LivePlayerFacade {
   bool _lastLoading = false;
 
   /// True while the player says it is playing but its position has stood
-  /// still for [stallThreshold]. Live streams run mpv with cache-pause off,
-  /// so a starved stream freezes the picture without ever reporting
-  /// buffering; this is how the picture's spinner learns about it. (While the
-  /// player reports buffering, the spinner already shows.)
+  /// still for [stallThreshold]: a freeze the engine does not report as
+  /// buffering (ijkplayer's adapter reports none mid-play, and mpv reports
+  /// only the dry spells cache-pause catches). This is how the picture's
+  /// spinner learns about it; while the player reports buffering, the
+  /// spinner already shows.
   final RxBool isStalled = false.obs;
   static const Duration stallThreshold = Duration(milliseconds: 1200);
 

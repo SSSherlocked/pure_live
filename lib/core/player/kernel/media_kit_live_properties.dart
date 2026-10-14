@@ -24,7 +24,7 @@ abstract final class MediaKitLiveProperties {
   static const int lowEndBackBytes = 5 * 1024 * 1024;
   static const int readaheadSeconds = 8;
   static const int cacheSeconds = 30;
-  static const int cachePauseWaitSeconds = 4;
+  static const int cachePauseWaitSeconds = 1;
 
   static bool get _lowEnd => _cpuCores <= 4;
 
@@ -69,8 +69,15 @@ abstract final class MediaKitLiveProperties {
       // Past media must not borrow the unused forward reserve.
       'demuxer-donate-buffer': 'no',
       'demuxer-readahead-secs': readaheadSeconds.toString(),
-      // Refill-then-resume: wait for a healthy buffer after a stall. Whether it
-      // is enabled at all is a per-source decision (see [sourceProperties]).
+      // When the stream runs dry, pause and refill 1 s before resuming, for
+      // every source: the pause is what reports buffering (spinner, stall
+      // watch), and the 1 s keeps one hiccup from becoming several. Playback
+      // still starts on the first data (cache-pause-initial stays off).
+      // This was off for live from 2026-10-07 with a 4 s refill, after a
+      // "plays two seconds, then stops to load" start; a 4 s refill is what
+      // made that stop long, and a live HLS edge (or a local relay) could
+      // take that long to reach 4 s at all.
+      'cache-pause': 'yes',
       'cache-pause-wait': cachePauseWaitSeconds.toString(),
       'demuxer-thread': 'yes',
       // Drop late frames instead of stacking lag.
@@ -231,11 +238,6 @@ abstract final class MediaKitLiveProperties {
   }) {
     final bool privateInput = isPrivatePlaybackInput(uri);
     final bool playlist = (declaredFormat ?? (isHlsManifestUri(uri) ? 'hls' : null)) == 'hls';
-    // 远端渐进式流（FLV 等）一律按直播对待：直播数据没有"缓存目标凑齐"的
-    // 那一刻，cache-pause 只会播两秒后停进缓冲再续播——观察到的
-    // "先播后暂停再加载"就是它。本机/回环输入（file、127.0.0.1）是点播，
-    // 保留 cache-pause 那套假设。
-    final bool liveProgressive = !privateInput && !playlist;
     return <String, String>{
       'http-proxy': privateInput || playsDirectBehindProxy(uri) ? '' : proxy,
       'demuxer-lavf-format': playlist && !privateInput ? 'hls' : '',
@@ -247,7 +249,6 @@ abstract final class MediaKitLiveProperties {
       // after a cold start burned every line and engine before one played
       // (28-44 s black). With the seek allowed, the picture appears at once.
       'force-seekable': playlist ? 'no' : 'yes',
-      'cache-pause': playlist || liveProgressive ? 'no' : 'yes',
     };
   }
 

@@ -162,9 +162,12 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       children: [
         Padding(
           // No gap above the tabs: the panel's title row is right above them.
-          padding: const EdgeInsets.fromLTRB(10, 0, 4, 6),
+          // 排序 on the left and refresh on the right, equally wide, keep the
+          // tabs centred.
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
           child: Row(
             children: [
+              const FavoriteSortButton(key: ValueKey('follow-panel-sort')),
               Expanded(
                 child: SizedBox(
                   height: textMetrics.tabBarHeight,
@@ -196,7 +199,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                   ),
                 ),
               ),
-              const FavoriteSortButton(key: ValueKey('follow-panel-sort')),
               Obx(
                 () => IconButton(
                   key: const ValueKey('room-history-refresh'),

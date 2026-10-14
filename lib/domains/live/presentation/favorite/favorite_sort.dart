@@ -95,6 +95,9 @@ class FavoriteSortButton extends StatelessWidget {
     return PopupMenuButton<FavoriteSortMode>(
       tooltip: i18n('favorite_sort'),
       icon: Icon(Icons.filter_list_rounded, size: iconSize, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      // As compact as the panel's refresh button opposite it, so the tabs
+      // between the two sit in the middle.
+      style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
       onSelected: _applySortMode,
       constraints: choiceMenuConstraints(context, [for (final mode in FavoriteSortMode.values) _labelOf(mode)]),
       itemBuilder: _sortItems,

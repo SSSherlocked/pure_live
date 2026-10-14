@@ -239,7 +239,6 @@ class DanmakuSettingsController extends GetxController {
   final RxBool collapseRepeatedDanmaku = hiveBool('collapseRepeatedDanmaku', false);
   final RxInt repeatedDanmakuWindowSeconds = hiveInt('repeatedDanmakuWindowSeconds', 5);
   final RxInt danmakuInteractionMigration = hiveInt('danmakuInteractionMigration', 0);
-  final RxString savedDanmakuTemplate = hiveString('savedDanmakuTemplate', '');
   final RxString danmakuFontFamilyName = hiveString('danmakuFontFamilyName', 'Default');
 
   /// Hive key prefix and backup key of the per-profile settings.
@@ -602,7 +601,6 @@ class DanmakuSettingsController extends GetxController {
       'enableDanmakuLongPressInteraction': enableDanmakuLongPressInteraction.v,
       'collapseRepeatedDanmaku': collapseRepeatedDanmaku.v,
       'repeatedDanmakuWindowSeconds': repeatedDanmakuWindowSeconds.v,
-      'savedDanmakuTemplate': savedDanmakuTemplate.v,
       'pipDanmakuAutoScale': pipDanmakuScaleAuto.v,
       'pipDanmakuScaleValue': pipDanmakuScaleValue.v,
       'filterDouyuSuspectedAutomatedMessages': filterDouyuSuspectedAutomatedMessages.v,
@@ -696,7 +694,6 @@ class DanmakuSettingsController extends GetxController {
       'repeatedDanmakuWindowSeconds': typed<int>(
         (json['repeatedDanmakuWindowSeconds'] ?? 5).toInt().clamp(1, 30).toInt(),
       ),
-      'savedDanmakuTemplate': typed<String>(json['savedDanmakuTemplate']?.toString() ?? ''),
       'pipDanmakuAutoScale': typed<bool>(json['pipDanmakuAutoScale'] ?? true),
       'pipDanmakuScaleValue': typed<double>(
         (json['pipDanmakuScaleValue'] ?? defaultPipDanmakuScaleValue)
@@ -743,7 +740,6 @@ class DanmakuSettingsController extends GetxController {
     enableDanmakuLongPressInteraction.v = parsed['enableDanmakuLongPressInteraction'];
     collapseRepeatedDanmaku.v = parsed['collapseRepeatedDanmaku'];
     repeatedDanmakuWindowSeconds.v = parsed['repeatedDanmakuWindowSeconds'];
-    savedDanmakuTemplate.v = parsed['savedDanmakuTemplate'];
     pipDanmakuScaleAuto.v = parsed['pipDanmakuAutoScale'];
     pipDanmakuScaleValue.v = parsed['pipDanmakuScaleValue'];
     filterDouyuSuspectedAutomatedMessages.v = parsed['filterDouyuSuspectedAutomatedMessages'];
@@ -829,7 +825,6 @@ class DanmakuSettingsController extends GetxController {
       'enableDanmakuLongPressInteraction': danmaku['enableDanmakuLongPressInteraction'] ?? true,
       'collapseRepeatedDanmaku': danmaku['collapseRepeatedDanmaku'] ?? false,
       'repeatedDanmakuWindowSeconds': (danmaku['repeatedDanmakuWindowSeconds'] ?? 5).toInt().clamp(1, 30).toInt(),
-      'savedDanmakuTemplate': danmaku['savedDanmakuTemplate']?.toString() ?? '',
       'pipDanmakuAutoScale': danmaku['pipDanmakuAutoScale'] ?? defaultPipDanmakuAutoScale,
       'pipDanmakuScaleValue': (danmaku['pipDanmakuScaleValue'] ?? defaultPipDanmakuScaleValue)
           .toDouble()

@@ -3,7 +3,6 @@ import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
-import 'package:pure_live/core/player/presentation/danmaku/danmaku_viewing_preset.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 
@@ -105,62 +104,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
 
       return context.buildModernCard(children);
     });
-  }
-
-  Widget _buildTemplateSection(ThemeData theme) {
-    ButtonStyle buttonStyle() => OutlinedButton.styleFrom(
-      foregroundColor: theme.colorScheme.primary,
-      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.45)),
-      visualDensity: VisualDensity.standard,
-      tapTargetSize: MaterialTapTargetSize.padded,
-      minimumSize: const Size(kMinInteractiveDimension, kMinInteractiveDimension),
-      padding: EdgeInsets.symmetric(horizontal: isEmbedded ? 10 : 12),
-    );
-
-    Widget button({required VoidCallback onPressed, required IconData icon, required String label}) {
-      return OutlinedButton.icon(
-        onPressed: onPressed,
-        style: buttonStyle(),
-        icon: Icon(icon, size: isEmbedded ? 16 : 18),
-        label: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(label, maxLines: 1, style: AppText.of(context).secondary),
-        ),
-      );
-    }
-
-    // Two equal halves: the save and restore buttons always sit side by side.
-    final content = Padding(
-      padding: EdgeInsets.all(isEmbedded ? 10 : 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: button(onPressed: _saveTemplate, icon: Icons.save_outlined, label: i18n('save_current_template')),
-          ),
-          SizedBox(width: isEmbedded ? 6 : 8),
-          Expanded(
-            child: button(
-              onPressed: _restoreTemplate,
-              icon: Icons.restore_rounded,
-              label: i18n('restore_saved_template'),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (isEmbedded) {
-      return Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: content,
-      );
-    }
-
-    return context.buildModernCard([content]);
   }
 
   @override
@@ -290,10 +233,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
             ],
           ),
-          const SizedBox(height: _sectionGap),
-          context.buildGroupTitle(i18n('danmaku_templates')),
-          const SizedBox(height: _titleGap),
-          _buildTemplateSection(theme),
           const SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n("position")),
           const SizedBox(height: _titleGap),
@@ -658,59 +597,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
         ],
       ),
     );
-  }
-
-  void _saveTemplate() {
-    final settings = SettingsService.to.danmaku;
-    settings.savedDanmakuTemplate.v = DanmakuViewingTemplate(
-      noEmojiMode: controller.noEmojiMode.v,
-      area: controller.danmakuArea.v,
-      top: controller.danmakuTopArea.v,
-      bottom: controller.danmakuBottomArea.v,
-      speed: controller.danmakuSpeed.v,
-      fontSize: controller.danmakuFontSize.v,
-      fontWeight: controller.danmakuFontWeight.v,
-      fontBorder: controller.danmakuFontBorder.v,
-      opacity: controller.danmakuOpacity.v,
-      stroke: controller.enableDanmakuStroke.v,
-      fps: controller.danmakuFps.v,
-      autoFps: settings.danmakuAutoFps.v,
-    ).encode();
-    ToastUtil.show(i18n('danmaku_template_saved'));
-  }
-
-  void _restoreTemplate() {
-    final raw = SettingsService.to.danmaku.savedDanmakuTemplate.v;
-    if (raw.isEmpty) {
-      ToastUtil.show(i18n('danmaku_template_empty'));
-      return;
-    }
-    final settings = SettingsService.to.danmaku;
-    final template = DanmakuViewingTemplate.tryDecode(
-      raw,
-      fallbackNoEmojiMode: controller.noEmojiMode.v,
-      fallbackFontWeight: controller.danmakuFontWeight.v,
-      fallbackStroke: controller.enableDanmakuStroke.v,
-      fallbackFps: controller.danmakuFps.v,
-      fallbackAutoFps: settings.danmakuAutoFps.v,
-    );
-    if (template == null) {
-      ToastUtil.show(i18n('danmaku_template_invalid'));
-      return;
-    }
-    controller.noEmojiMode.v = template.noEmojiMode;
-    controller.danmakuArea.v = DanmakuSettingsController.normalizeDanmakuArea(template.area);
-    controller.danmakuTopArea.v = template.top;
-    controller.danmakuBottomArea.v = template.bottom;
-    controller.danmakuSpeed.v = template.speed;
-    controller.danmakuFontSize.v = template.fontSize;
-    controller.danmakuFontWeight.v = template.fontWeight;
-    controller.danmakuFontBorder.v = template.fontBorder;
-    controller.danmakuOpacity.v = template.opacity;
-    controller.enableDanmakuStroke.v = template.stroke;
-    controller.danmakuFps.v = template.fps;
-    settings.danmakuAutoFps.v = template.autoFps;
-    ToastUtil.show(i18n('danmaku_template_applied'));
   }
 
   Widget _slider(

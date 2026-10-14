@@ -305,10 +305,13 @@ class RoomCard extends StatelessWidget {
   }
 
   /// The 录播 tag: the platform tag's padding, text and height (on the cover
-  /// or in the compact row), filled with the theme colour.
+  /// or in the compact row), filled with the theme colour. Text and icon take
+  /// onPrimary, black or white by contrast: white was unreadable on a light
+  /// theme colour.
   Widget _buildReplayBadge(BuildContext context, {required bool cover}) {
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
     final style = (cover && !dense ? AppText.of(context).secondary : AppText.of(context).tag).copyWith(
-      color: Colors.white,
+      color: onPrimary,
       fontWeight: FontWeight.w600,
     );
     // The icon no taller than the text line, so it adds no height.
@@ -326,7 +329,7 @@ class RoomCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.videocam_rounded, color: Colors.white, size: iconSize),
+          Icon(Icons.videocam_rounded, color: onPrimary, size: iconSize),
           const SizedBox(width: 3),
           Text(i18n('replay'), maxLines: 1, style: style),
         ],

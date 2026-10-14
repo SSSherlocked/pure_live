@@ -1164,17 +1164,18 @@ class _AudioFocusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: colors.primary, borderRadius: BorderRadius.circular(10)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Remix.volume_up_line, size: 13, color: Colors.white),
+          Icon(Remix.volume_up_line, size: 13, color: colors.onPrimary),
           const SizedBox(width: 4),
           Text(
             i18n('multiview_audio_focus_badge'),
-            style: AppText.of(context).tag.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+            style: AppText.of(context).tag.copyWith(color: colors.onPrimary, fontWeight: FontWeight.w700),
           ),
         ],
       ),

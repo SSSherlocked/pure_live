@@ -634,6 +634,9 @@ class PlayerSettingsController extends GetxController {
       'floatWindowGeometry': player['floatWindowGeometry']?.toString() ?? '',
       'windowsPipAlwaysOnTop': player['windowsPipAlwaysOnTop'] ?? false,
       'windowsPipFreeAspect': player['windowsPipFreeAspect'] ?? false,
+      'windowsPipBaseSize': ((player['windowsPipBaseSize'] ?? 360.0) as num).toDouble().clamp(200.0, 720.0),
+      'windowsPipMinWidth': ((player['windowsPipMinWidth'] ?? 140.0) as num).toDouble().clamp(100.0, 320.0),
+      'windowsPipMinHeight': ((player['windowsPipMinHeight'] ?? 90.0) as num).toDouble().clamp(60.0, 240.0),
       // Compatibility-only input for backups created before the ownership of
       // this setting moved to WindowSizeController. New exports store it in
       // the windowSize section.

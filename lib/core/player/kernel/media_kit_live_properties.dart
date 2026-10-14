@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:media_core/media_core.dart';
 import 'package:media_core_ingest/media_core_ingest.dart' show isHlsManifestUri;
 import 'package:media_core_media_kit/media_core_media_kit.dart';
-import 'package:pure_live/core/player/kernel/player_preset.dart';
+import 'package:pure_live/core/player/kernel/player_engine_output.dart';
 import 'package:pure_live/core/player/core/playback_proxy_policy.dart';
 import 'package:pure_live/core/player/core/playback_source_hints.dart';
 import 'package:pure_live/core/player/super_resolution.dart';
@@ -110,26 +110,8 @@ abstract final class MediaKitLiveProperties {
     return properties;
   }
 
-  /// The effective output segment for the current engine and platform.
-  static PlayerEngineOutput get _output {
-    final settings = SettingsService.to.player;
-    final segment = PlayerEngineOutput(
-      presetId: settings.currentPreset,
-      enableCodec: settings.enableCodec.v,
-      customPlayerOutput: settings.customPlayerOutput.v,
-      videoOutputDriver: settings.videoOutputDriver.v,
-      videoHardwareDecoder: settings.videoHardwareDecoder.v,
-      audioOutputDriver: settings.audioOutputDriver.v,
-    );
-    final detail = segment.presetId.outputOverride;
-
-    return segment.copyWith(
-      enableCodec: detail.enableCodec ?? segment.enableCodec,
-      customPlayerOutput: detail.vo != null ? true : segment.customPlayerOutput,
-      videoOutputDriver: detail.vo ?? segment.videoOutputDriver,
-      videoHardwareDecoder: detail.hwdec ?? segment.videoHardwareDecoder,
-    );
-  }
+  /// The output segment for the current engine and platform.
+  static PlayerEngineOutput get _output => SettingsService.to.player.currentOutput;
 
   /// The native controller configuration the segment spells out.
   ///
@@ -189,11 +171,11 @@ abstract final class MediaKitLiveProperties {
 
   /// The full runtime option list handed to the adapter.
   ///
-  /// The live tuning table first, then the preset's own properties, then
-  /// the segment's audio pick — a later option for the same property wins.
+  /// The live tuning table first, then the segment's advanced picks and its
+  /// audio pick — a later option for the same property wins.
   static Future<List<EngineOption>> engineOptions() async {
     final segment = _output;
-    final properties = <String, String>{...build(), ...segment.presetId.extraProperties};
+    final properties = build();
 
     final options = <EngineOption>[for (final entry in properties.entries) EngineOption(entry.key, entry.value)];
 

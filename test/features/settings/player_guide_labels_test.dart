@@ -31,9 +31,9 @@ void main() {
 
   test('手册表解析得到预期的章节与行', () {
     // 解析失效时后面每条断言都会空对空地通过，所以先把数量钉住。
-    expect(chapters, <String>['concepts', 'presets', 'picture_sync', 'quality', 'audio', 'symptoms']);
-    expect(entries, hasLength(25));
-    expect(entries.toSet(), hasLength(25), reason: '行 id 必须唯一，否则两行共用一段文字');
+    expect(chapters, <String>['concepts', 'picture_sync', 'quality', 'audio', 'symptoms']);
+    expect(entries, hasLength(19));
+    expect(entries.toSet(), hasLength(19), reason: '行 id 必须唯一，否则两行共用一段文字');
     expect(badges, <String>{'hwdec', 'vo', 'ao'});
     expect(platforms, <String>['android', 'windows']);
   });

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
-import 'package:pure_live/core/player/kernel/player_preset.dart';
+import 'package:pure_live/core/player/kernel/player_engine_output.dart';
 import 'package:pure_live/core/player/super_resolution.dart';
 import 'package:pure_live/core/player/kernel/mpv_platform_profile.dart';
 import 'package:pure_live/core/player/kernel/player_consts.dart';
@@ -61,11 +61,6 @@ class PlayerSettingsController extends GetxController {
 
   static const String _engineOutputsKey = 'engineOutputs';
 
-  /// Bumped on every segment write so preset/segment UI can react: the
-  /// segments map itself is a plain in-memory structure, an [Obx] that
-  /// only reads `currentPreset` would never rebuild.
-  final RxInt outputSegmentRevision = 0.obs;
-
   final Map<String, Map<String, PlayerEngineOutput>> _engineOutputs = <String, Map<String, PlayerEngineOutput>>{};
 
   Map<String, PlayerEngineOutput> _segmentsOf(String engineKey) {
@@ -82,7 +77,6 @@ class PlayerSettingsController extends GetxController {
   }
 
   void _persistSegments() {
-    outputSegmentRevision.v++;
     hiveString(_engineOutputsKey, '').v = jsonEncode(<String, dynamic>{
       for (final engine in _engineOutputs.entries)
         engine.key: <String, dynamic>{for (final segment in engine.value.entries) segment.key: segment.value.toJson()},
@@ -147,39 +141,25 @@ class PlayerSettingsController extends GetxController {
     audioExclusive.v = segment.audioExclusive == 'yes';
   }
 
+  /// The view fields as one segment: what is persisted, and what the engine
+  /// is configured from. Every field, so a change to one never resets the
+  /// others (the advanced picks used to fall back to their defaults here).
+  PlayerEngineOutput get currentOutput => PlayerEngineOutput(
+    enableCodec: enableCodec.v,
+    customPlayerOutput: customPlayerOutput.v,
+    videoOutputDriver: videoOutputDriver.v,
+    videoHardwareDecoder: videoHardwareDecoder.v,
+    audioOutputDriver: audioOutputDriver.v,
+    videoSync: videoSync.v,
+    interpolation: interpolation.v ? 'yes' : 'no',
+    scale: scale.v,
+    deinterlace: deinterlace.v,
+    hwdecCodecs: hwdecCodecs.v,
+    audioExclusive: audioExclusive.v ? 'yes' : 'no',
+  );
+
   /// Persists the view fields back into the current segment.
-  void _persistOutputView() {
-    _writeSegment(
-      PlayerEngineOutput(
-        presetId: _segmentForCurrent().presetId,
-        enableCodec: enableCodec.v,
-        customPlayerOutput: customPlayerOutput.v,
-        videoOutputDriver: videoOutputDriver.v,
-        videoHardwareDecoder: videoHardwareDecoder.v,
-        audioOutputDriver: audioOutputDriver.v,
-      ),
-    );
-  }
-
-  /// Applies a one-click preset to the current engine x platform segment.
-  void applyPreset(PlayerPresetId id) {
-    final detail = id.outputOverride;
-    final segment = _segmentForCurrent().copyWith(
-      presetId: id,
-      enableCodec: detail.enableCodec,
-      // A preset that pins hwdec alone (RTX: d3d11va) needs the custom-output
-      // gate armed as well, otherwise the pick never reaches the engine.
-      customPlayerOutput: detail.vo != null || detail.hwdec != null,
-      videoOutputDriver: detail.vo ?? 'auto',
-      videoHardwareDecoder: detail.hwdec ?? 'auto-safe',
-    );
-
-    _writeSegment(segment);
-    reloadOutputView();
-  }
-
-  /// The preset currently active on the current engine x platform.
-  PlayerPresetId get currentPreset => _segmentForCurrent().presetId;
+  void _persistOutputView() => _writeSegment(currentOutput);
 
   // In-memory projection of the current segment; never persisted directly.
   late final RxBool enableCodec = true.obs;

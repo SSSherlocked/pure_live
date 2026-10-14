@@ -150,14 +150,6 @@ const List<_GuideChapter> _guideChapters = [
     _GuideEntry('vo', badge: 'vo', mono: true),
     _GuideEntry('ao', badge: 'ao', mono: true),
   ]),
-  _GuideChapter(Icons.auto_fix_high_rounded, 'presets', [
-    _GuideEntry('preset_default'),
-    _GuideEntry('preset_android_compat', onlyOn: _GuidePlatform.android),
-    _GuideEntry('preset_rtx_sr', onlyOn: _GuidePlatform.windows),
-    _GuideEntry('preset_low_end'),
-    _GuideEntry('preset_weak_network'),
-    _GuideEntry('preset_low_latency'),
-  ]),
   _GuideChapter(Icons.tune_rounded, 'picture_sync', [
     _GuideEntry('video_sync', badge: 'vo', mono: true),
     _GuideEntry('interpolation', mono: true),

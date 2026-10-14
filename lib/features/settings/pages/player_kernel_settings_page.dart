@@ -8,7 +8,6 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/core/network/proxy_routing.dart';
-import 'package:pure_live/core/player/kernel/player_preset.dart';
 import 'package:pure_live/core/player/models/player_engine.dart';
 import 'package:pure_live/core/player/kernel/mpv_option_labels.dart';
 import 'package:pure_live/core/player/kernel/player_consts.dart';
@@ -56,29 +55,6 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 subtitle: i18n("gpu_decode"),
                 value: SettingsService.to.player.enableCodec,
               ),
-              // The presets and the manual are mpv features on every platform
-              // (listed below this card); RTX VSR is the one that needs a
-              // Windows NVIDIA driver.
-              if (engine == PlayerEngine.mediaKit) ...[
-                // The two one-tap actions the guide only describes: a viewer
-                // whose picture is broken should not have to open a manual,
-                // find the recipe, then hunt which of the six presets it is.
-                context.buildTile(
-                  icon: Remix.tools_line,
-                  title: i18n('player_one_click_title'),
-                  subtitle: i18n('player_one_click_subtitle'),
-                  trailing: const Icon(Remix.arrow_right_s_line),
-                  onTap: () => _applyPresetWithConfirm(context, PlayerPresetId.balanced),
-                ),
-                if (Platform.isAndroid)
-                  context.buildTile(
-                    icon: Remix.tools_line,
-                    title: i18n('player_compat_fix_title'),
-                    subtitle: i18n('player_compat_fix_subtitle'),
-                    trailing: const Icon(Remix.arrow_right_s_line),
-                    onTap: () => _applyPresetWithConfirm(context, PlayerPresetId.compat),
-                  ),
-              ],
               context.buildSwitchTile(
                 icon: Remix.shut_down_line,
                 title: i18n('force_destroy_player'),
@@ -94,8 +70,6 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
-                _buildPresetSection(context, theme),
                 if (Platform.isWindows) ...[
                   const SizedBox(height: 20),
                   _buildSuperResolutionSection(context, theme),
@@ -115,64 +89,6 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
 
   String _activePlayerKey() =>
       normalizeVideoPlayerKeyForPlatform(SettingsService.to.player.videoPlayerKey.v, defaultTargetPlatform);
-
-  /// Applies one preset after naming it, so the tap is never a surprise.
-  ///
-  /// Writing the preset goes through the same path the preset page uses: the
-  /// output settings it takes over (surface, hardware decoder) are marked
-  /// locked on the tiles that show them, and the engine rebuild rides the
-  /// existing settings dispatcher rather than a second one here.
-  Future<void> _applyPresetWithConfirm(BuildContext context, PlayerPresetId preset) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(i18n('player_one_click_confirm_title')),
-        content: Text(i18n('player_one_click_confirm_body', args: {'preset': i18n(preset.nameKey)})),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(i18n('cancel'))),
-          FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(i18n('confirm'))),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-    SettingsService.to.player.applyPreset(preset);
-    ToastUtil.show(i18n('player_one_click_applied', args: {'preset': i18n(preset.nameKey)}));
-  }
-
-  /// One-click playback presets, one row per recipe.
-  ///
-  /// A preset is stored per engine and per platform group: applying one
-  /// here changes the segment for the engine and platform this device is
-  /// currently on, and nothing else.
-  Widget _buildPresetSection(BuildContext context, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        context.buildGroupTitle(i18n('player_preset_section')),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-          child: Text(i18n('player_preset_hint'), style: AppText.of(context).secondary.copyWith(color: theme.hintColor)),
-        ),
-        context.buildModernCard([
-          for (final preset in PlayerPresetId.values)
-            if (preset.availableOnCurrentPlatform)
-              ListTile(
-                key: ValueKey('player-preset-${preset.name}'),
-                title: Text(i18n(preset.nameKey), style: AppText.of(context).sectionTitle),
-                subtitle: Text(i18n(preset.descriptionKey), style: AppText.of(context).secondary),
-                trailing: Obx(() {
-                  final _ = SettingsService.to.player.outputSegmentRevision.value;
-                  final active = SettingsService.to.player.currentPreset == preset;
-                  return active
-                      ? Icon(Remix.checkbox_circle_fill, color: theme.colorScheme.primary)
-                      : const Icon(Remix.checkbox_blank_circle_line);
-                }),
-                onTap: () => SettingsService.to.player.applyPreset(preset),
-              ),
-        ]),
-      ],
-    );
-  }
 
   /// Anime4K super-resolution: off / efficiency / quality, one row each.
   ///
@@ -251,28 +167,24 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
             // way the decoder pick disappears with hardware acceleration off.
             if (!player.customPlayerOutput.v) return const SizedBox.shrink();
 
-            final _ = player.outputSegmentRevision.value; // preset application refreshes locked state
             return _optionTile(
               context,
               kind: MpvOptionKind.videoOutput,
               title: i18n("video_output_driver"),
               icon: Remix.movie_line,
               value: player.videoOutputDriver,
-              locked: player.currentPreset.lockedOutputKeys.contains('vo'),
             );
           }),
           Obx(() {
             final player = SettingsService.to.player;
             if (!player.customPlayerOutput.v) return const SizedBox.shrink();
 
-            final _ = player.outputSegmentRevision.value;
             return _optionTile(
               context,
               kind: MpvOptionKind.audioOutput,
               title: i18n("audio_output_driver"),
               icon: Remix.volume_up_line,
               value: player.audioOutputDriver,
-              locked: player.currentPreset.lockedOutputKeys.contains('ao'),
             );
           }),
           Obx(() {
@@ -282,14 +194,12 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
             // separate disabled entry would duplicate it.
             if (!player.enableCodec.v) return const SizedBox.shrink();
 
-            final _ = player.outputSegmentRevision.value;
             return _optionTile(
               context,
               kind: MpvOptionKind.hardwareDecoder,
               title: i18n("hardware_decoder"),
               icon: Remix.cpu_line,
               value: player.videoHardwareDecoder,
-              locked: player.currentPreset.lockedOutputKeys.contains('hwdec'),
             );
           }),
 
@@ -422,15 +332,12 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
     required String title,
     required IconData icon,
     required RxString value,
-    bool locked = false,
   }) {
     return Obx(
       () => context.buildTile(
-        icon: locked ? Remix.lock_line : icon,
+        icon: icon,
         title: title,
-        subtitle:
-            (locked ? '${i18n('player_output_locked_by_preset')} · ' : '') +
-            mpvOptionLabel(kind, normalizedMpvOption(kind, value.value, defaultTargetPlatform)),
+        subtitle: mpvOptionLabel(kind, normalizedMpvOption(kind, value.value, defaultTargetPlatform)),
         trailing: const Icon(Remix.arrow_right_s_line),
         onTap: () => _showMpvOptionDialog(context, kind: kind, title: title, value: value),
       ),

@@ -45,6 +45,31 @@ void main() {
       expect(DisplayProfile.of(const AppLayout(wide: true, pointer: false)), DisplayProfile.tablet);
       expect(DisplayProfile.of(const AppLayout(wide: true, pointer: true)), DisplayProfile.desktop);
     });
+
+    test('跟随屏幕时手机横过来仍是手机档位；平板按最短边；指定模式照旧', () {
+      const wideTouch = AppLayout(wide: true, pointer: false);
+      expect(
+        DisplayProfile.resolve(mode: DisplayMode.auto, layout: wideTouch, shortestSide: 411, mobilePlatform: true),
+        DisplayProfile.phone,
+      );
+      expect(
+        DisplayProfile.resolve(mode: DisplayMode.auto, layout: wideTouch, shortestSide: 800, mobilePlatform: true),
+        DisplayProfile.tablet,
+      );
+      expect(
+        DisplayProfile.resolve(mode: DisplayMode.tablet, layout: wideTouch, shortestSide: 411, mobilePlatform: true),
+        DisplayProfile.tablet,
+      );
+      expect(
+        DisplayProfile.resolve(
+          mode: DisplayMode.auto,
+          layout: const AppLayout(wide: true, pointer: true),
+          shortestSide: 411,
+          mobilePlatform: false,
+        ),
+        DisplayProfile.desktop,
+      );
+    });
   });
 
   group('ProfiledSettings', () {

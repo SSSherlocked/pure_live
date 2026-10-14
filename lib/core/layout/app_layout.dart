@@ -99,6 +99,27 @@ enum DisplayProfile {
     return layout.pointer ? desktop : tablet;
   }
 
+  /// The profile for [layout] on a screen [shortestSide] wide at its
+  /// narrowest.
+  ///
+  /// With [DisplayMode.auto] on a phone or tablet the profile follows the
+  /// device, not the current orientation: a phone turned sideways (a
+  /// landscape fullscreen) is wider than [AppLayout.wideBreakpoint], and
+  /// taking the tablet profile then swapped the danmaku style, text sizes and
+  /// room cards for the tablet's set until the phone turned back. The layout
+  /// itself still follows the width; only the stored settings stay put.
+  static DisplayProfile resolve({
+    required DisplayMode mode,
+    required AppLayout layout,
+    required double shortestSide,
+    required bool mobilePlatform,
+  }) {
+    if (mode == DisplayMode.auto && mobilePlatform) {
+      return shortestSide > AppLayout.wideBreakpoint ? tablet : phone;
+    }
+    return of(layout);
+  }
+
   static DisplayProfile? tryParse(Object? value) {
     for (final profile in values) {
       if (profile.name == value) return profile;

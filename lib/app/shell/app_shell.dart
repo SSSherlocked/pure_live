@@ -43,23 +43,27 @@ class AppShell extends StatelessWidget {
     // The layout every page reads (AppLayout.of): resolved here once from the
     // viewer's 显示模式 and the window width, not re-measured per page.
     final layoutChild = content;
-    final width = MediaQuery.sizeOf(context).width;
+    final size = MediaQuery.sizeOf(context);
+    final width = size.width;
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
       child: Obx(() {
-        final layout = AppLayout.resolve(
-          mode: SettingsService.to.theme.displayMode,
-          width: width,
+        final mode = SettingsService.to.theme.displayMode;
+        final layout = AppLayout.resolve(mode: mode, width: width, mobilePlatform: PlatformUtils.isMobile);
+        AppLayout.current = layout;
+        final profile = DisplayProfile.resolve(
+          mode: mode,
+          layout: layout,
+          shortestSide: size.shortestSide,
           mobilePlatform: PlatformUtils.isMobile,
         );
-        AppLayout.current = layout;
         // Display settings are kept per profile (phone, tablet, desktop).
         // Switch them once this frame is built: their fields are observed by
         // widgets below (and the text scale by the app above), which must not
         // be marked dirty in the middle of this build. A no-op while the
         // profile stays the same.
         WidgetsBinding.instance.addPostFrameCallback(
-          (_) => SettingsService.to.useProfile(DisplayProfile.of(AppLayout.current)),
+          (_) => SettingsService.to.useProfile(profile),
         );
         return AppLayoutScope(layout: layout, child: layoutChild);
       }),

@@ -4,7 +4,7 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
-# Pure Live v3.2.6
+# Pure Live v3.3.0
 
 ## 🎬 播放
 

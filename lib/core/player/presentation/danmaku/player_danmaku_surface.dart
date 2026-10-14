@@ -1,7 +1,6 @@
 import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_speed_scale.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 
@@ -47,14 +46,10 @@ class PlayerDanmakuSurface extends StatelessWidget {
   }
 
   Widget _build(BuildContext context, double surfaceWidth) {
-    // Same crossing time inline as in fullscreen on phones; see
-    // [DanmakuSpeedScale]. Recorded so the controller's own config pushes and
-    // per-message speeds use the same factor.
-    final speedScale = DanmakuSpeedScale.resolve(
-      surfaceWidth: surfaceWidth,
-      screen: MediaQuery.sizeOf(context),
-      mobile: PlatformUtils.isMobile,
-    );
+    // Same crossing time inline as in fullscreen; see [DanmakuSpeedScale].
+    // Recorded so the controller's own config pushes and per-message speeds
+    // use the same factor.
+    final speedScale = DanmakuSpeedScale.resolve(surfaceWidth: surfaceWidth, screen: MediaQuery.sizeOf(context));
     DanmakuSpeedScale.record(controller, speedScale);
     return Obx(() {
       final danmaku = SettingsService.to.danmaku;

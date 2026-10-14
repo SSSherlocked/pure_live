@@ -9,7 +9,7 @@ on:
         type: boolean
         default: true
       build_windows:
-        description: Build Windows EXE and portable ZIP
+        description: Build the Windows x64 portable ZIP
         required: true
         type: boolean
         default: false
@@ -181,7 +181,7 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
           source="build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
-          target="PureLive-${VERSION}-android-arm64-v8a-release.apk"
+          target="PureLive-${VERSION}-Android-arm64-v8a.apk"
           if [[ ! -f "$source" ]]; then
             echo "Missing Android APK: $source"
             exit 1
@@ -193,11 +193,11 @@ jobs:
         with:
           name: pure-live-android
           path: |
-            PureLive-*-android-arm64-v8a-release.apk
+            PureLive-*-Android-arm64-v8a.apk
           if-no-files-found: error
           retention-days: 3
   windows:
-    name: Windows EXE + Portable
+    name: Windows x64
     if: >-
       ${{
         always() &&
@@ -223,27 +223,13 @@ jobs:
           dart run enven `
             --env-files .env,.env.prod `
             --class-name AppConfig
-      - name: Install pinned Windows packagers
-        shell: pwsh
+      # Only the portable archive is published (no installer), so the app is
+      # built with Flutter directly rather than packaged by fastforge.
+      - name: Build Windows release
         run: |
-          $ErrorActionPreference = "Stop"
-          choco install innosetup --version=6.7.1 -y --no-progress
-          dart pub global activate fastforge $env:FASTFORGE_VERSION
-      - name: Copy Chinese language pack
-        shell: pwsh
-        run: |
-          $source = "windows\packaging\exe\ChineseSimplified.isl"
-          $target = "C:\Program Files (x86)\Inno Setup 6\Languages\ChineseSimplified.isl"
-          if (Test-Path $source) {
-            Copy-Item $source $target -Force
-          }
-      - name: Package Windows EXE
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          fastforge package `
-            --platform windows `
-            --targets exe
+          flutter build windows `
+            --release `
+            --dart-define=PURELIVE_BUILD_SOURCE=github-manual
       - name: Locate Windows release bundle
         id: bundle
         shell: pwsh
@@ -260,7 +246,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $version = "${{ steps.version.outputs.version }}"
           $bundle = "${{ steps.bundle.outputs.path }}"
-          $portable = "PureLive-$version-windows-x64-portable.zip"
+          $portable = "PureLive-$version-Windows-x64.zip"
           $temporary = Join-Path $env:RUNNER_TEMP "pure-live-portable"
           Remove-Item $temporary -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path $temporary -Force | Out-Null
@@ -288,7 +274,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $version = "${{ steps.version.outputs.version }}"
-          $portable = "PureLive-$version-windows-x64-portable.zip"
+          $portable = "PureLive-$version-Windows-x64.zip"
           if (!(Test-Path $portable -PathType Leaf)) {
             Write-Error "Portable package not found: $portable"
           }
@@ -296,25 +282,12 @@ jobs:
           if ($entries | Where-Object { $_ -match '(^|/)(AppData|IPTV_CACHE)(/|$)' }) {
             Write-Error "Runtime state was found in the Windows portable package."
           }
-      - name: Rename Windows installers
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $version = "${{ steps.version.outputs.version }}"
-          $distDir = "dist"
-
-          $exeFile = Get-ChildItem $distDir -Recurse -Filter "*.exe" | Select-Object -First 1
-          if (!$exeFile) {
-            Write-Error "Windows EXE package not found."
-          }
-          Copy-Item $exeFile.FullName "PureLive-$version-windows-x64-setup.exe" -Force
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-windows
           path: |
-            PureLive-*-windows-x64-setup.exe
-            PureLive-*-windows-x64-portable.zip
+            PureLive-*-Windows-x64.zip
           if-no-files-found: error
           retention-days: 3
   linux:
@@ -396,8 +369,8 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          tar -C build/linux/x64/release/bundle -czf "PureLive-${VERSION}-linux-x64.tar.gz" .
-          (cd build/linux/x64/release/bundle && zip -qr "$GITHUB_WORKSPACE/PureLive-${VERSION}-linux-x64.zip" .)
+          tar -C build/linux/x64/release/bundle -czf "PureLive-${VERSION}-Linux-x64.tar.gz" .
+          (cd build/linux/x64/release/bundle && zip -qr "$GITHUB_WORKSPACE/PureLive-${VERSION}-Linux-x64.zip" .)
       - name: Install pinned Linux packager
         run: |
           dart pub global activate fastforge "$FASTFORGE_VERSION"
@@ -426,17 +399,17 @@ jobs:
             echo "DEB package not found under dist/." >&2
             exit 1
           fi
-          mv "$deb_source" "PureLive-${VERSION}-linux-x64.deb"
-          dpkg-deb --field "PureLive-${VERSION}-linux-x64.deb" Package Version Architecture Depends
-          ls -lh "PureLive-${VERSION}-linux-x64.tar.gz" "PureLive-${VERSION}-linux-x64.zip" "PureLive-${VERSION}-linux-x64.deb"
+          mv "$deb_source" "PureLive-${VERSION}-Linux-x64.deb"
+          dpkg-deb --field "PureLive-${VERSION}-Linux-x64.deb" Package Version Architecture Depends
+          ls -lh "PureLive-${VERSION}-Linux-x64.tar.gz" "PureLive-${VERSION}-Linux-x64.zip" "PureLive-${VERSION}-Linux-x64.deb"
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pure-live-linux-x64
           path: |
-            PureLive-*-linux-x64.tar.gz
-            PureLive-*-linux-x64.zip
-            PureLive-*-linux-x64.deb
+            PureLive-*-Linux-x64.tar.gz
+            PureLive-*-Linux-x64.zip
+            PureLive-*-Linux-x64.deb
           if-no-files-found: error
           retention-days: 3
   # macOS and iOS build on separate runners: iOS is built rarely and is off
@@ -614,7 +587,7 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
           APP="${{ steps.ios_app.outputs.app_path }}"
-          ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-ios-arm64-unsigned-app.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "PureLive-${VERSION}-iOS-Unsigned.zip"
       - name: Create TrollStore entitlements
         shell: bash
         run: |
@@ -661,13 +634,13 @@ jobs:
           mkdir -p "$WORK_DIR/Payload"
           cp -R "$APP" "$WORK_DIR/Payload/Runner.app"
           cd "$WORK_DIR"
-          zip -r -q "$GITHUB_WORKSPACE/PureLive-${VERSION}-ios-arm64-trollstore.ipa" Payload
+          zip -r -q "$GITHUB_WORKSPACE/PureLive-${VERSION}-iOS-TrollStore.ipa" Payload
       - name: Verify TrollStore IPA
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          IPA="PureLive-${VERSION}-ios-arm64-trollstore.ipa"
+          IPA="PureLive-${VERSION}-iOS-TrollStore.ipa"
           test -f "$IPA"
           unzip -l "$IPA" | grep -qE 'Payload/Runner\.app/$'
           TMPD="$RUNNER_TEMP/ios-ipa-verify"
@@ -680,8 +653,8 @@ jobs:
         with:
           name: pure-live-ios
           path: |
-            PureLive-*-ios-arm64-unsigned-app.zip
-            PureLive-*-ios-arm64-trollstore.ipa
+            PureLive-*-iOS-Unsigned.zip
+            PureLive-*-iOS-TrollStore.ipa
           if-no-files-found: error
           retention-days: 7
   publish-release:

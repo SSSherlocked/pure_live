@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:pure_live/core/widgets/widget_extensions.dart';
 
 /// Holds a settings page body at a fixed content width.
 ///
@@ -109,7 +110,14 @@ class _SettingsContentWidthState extends State<SettingsContentWidth> {
     // ListTile / SwitchListTile rows, which otherwise drew theirs grey.
     final content = KeyedSubtree(
       key: _contentKey,
-      child: ListTileTheme.merge(iconColor: Theme.of(context).colorScheme.primary, child: widget.child),
+      // One icon slot and one gap for every row, hand-built ones included,
+      // so the texts of a card start on one line.
+      child: ListTileTheme.merge(
+        iconColor: Theme.of(context).colorScheme.primary,
+        minLeadingWidth: kSettingsIconSlot,
+        horizontalTitleGap: kSettingsIconGap,
+        child: widget.child,
+      ),
     );
     return LayoutBuilder(
       builder: (context, constraints) {

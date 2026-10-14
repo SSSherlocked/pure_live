@@ -3,6 +3,12 @@ import 'package:pure_live/get/get.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:pure_live/core/theme/app_text.dart';
 
+/// The width every settings row gives its leading icon, and the gap from
+/// there to its text: switch, slider and plain rows alike, so the texts of a
+/// card start on one line.
+const double kSettingsIconSlot = 24;
+const double kSettingsIconGap = 12;
+
 /// The leading icon of a settings row: theme colour, 22 px, as every shared
 /// settings tile draws it. Rows built by hand use this so their icons match.
 class SettingsRowIcon extends StatelessWidget {
@@ -138,6 +144,8 @@ extension AppLayoutFactory on BuildContext {
               }
             : null,
         contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
+        horizontalTitleGap: kSettingsIconGap,
+        minLeadingWidth: kSettingsIconSlot,
       ),
     );
   }
@@ -203,8 +211,8 @@ extension AppLayoutFactory on BuildContext {
         : null;
 
     Widget standardTile() => ListTile(
-      horizontalTitleGap: 12,
-      minLeadingWidth: 0,
+      horizontalTitleGap: kSettingsIconGap,
+      minLeadingWidth: kSettingsIconSlot,
       minVerticalPadding: 0,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: leadingWidget,
@@ -233,8 +241,8 @@ extension AppLayoutFactory on BuildContext {
         final textScale = MediaQuery.textScalerOf(context).scale(1);
         if (constraints.maxWidth >= 360 && textScale <= 1.5) return standardTile();
         return ListTile(
-          horizontalTitleGap: 12,
-          minLeadingWidth: 0,
+          horizontalTitleGap: kSettingsIconGap,
+          minLeadingWidth: kSettingsIconSlot,
           minVerticalPadding: 0,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           leading: leadingWidget,
@@ -361,9 +369,9 @@ extension AppLayoutFactory on BuildContext {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: SizedBox(width: 24, child: SettingsRowIcon(icon)),
+            child: SizedBox(width: kSettingsIconSlot, child: SettingsRowIcon(icon)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: kSettingsIconGap),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,

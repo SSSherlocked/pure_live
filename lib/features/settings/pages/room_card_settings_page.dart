@@ -7,6 +7,7 @@ import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
+import 'package:pure_live/features/settings/pages/audience_metric_settings_page.dart';
 
 class RoomCardSettingsPage extends StatefulWidget {
   const RoomCardSettingsPage({super.key});
@@ -248,6 +249,14 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 subtitle: i18n('room_card_show_replay_subtitle'),
                 value: config.showReplayBadge,
                 onChanged: (value) => controller.updateConfig(config.copyWith(showReplayBadge: value)),
+              ),
+              // Which audience figure the cards show (热度 or real viewers),
+              // and per platform: global, unlike the toggles above.
+              context.buildTile(
+                icon: Icons.groups_2_rounded,
+                title: i18n('audience_metric_settings'),
+                subtitle: i18n('audience_metric_settings_desc'),
+                onTap: () => Get.to(() => const AudienceMetricSettingsPage()),
               ),
             ]),
             const SizedBox(height: 16),

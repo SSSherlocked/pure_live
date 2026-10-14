@@ -9,8 +9,6 @@ import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:pure_live/core/player/core/live_audio_service.dart';
 import 'package:pure_live/core/config/app_settings_controller.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
-import 'package:pure_live/features/settings/pages/portrait_live_settings_page.dart';
-import 'package:pure_live/features/settings/pages/audience_metric_settings_page.dart';
 import 'package:pure_live/features/settings/pages/background_play_settings_page.dart';
 
 typedef SleepTimerConfigurator = Future<void> Function({required bool enabled, required int minutes});
@@ -177,20 +175,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
           context.buildGroupTitle(i18n("playback_behavior_settings")),
           context.buildModernCard([
-            context.buildTile(
-              title: i18n('portrait_live_settings'),
-              subtitle: i18n('portrait_live_settings_desc'),
-              icon: Icons.stay_current_portrait_rounded,
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => Get.to(() => const PortraitLiveSettingsPage()),
-            ),
-            context.buildTile(
-              title: i18n('audience_metric_settings'),
-              subtitle: i18n('audience_metric_settings_desc'),
-              icon: Icons.groups_2_rounded,
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => Get.to(() => const AudienceMetricSettingsPage()),
-            ),
             if (_isAndroid)
               context.buildSwitchTile(
                 icon: Remix.music_2_line,

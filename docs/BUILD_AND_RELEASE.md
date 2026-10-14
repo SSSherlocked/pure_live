@@ -211,7 +211,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/flutterw.ps1 pub run en
 
 ## 版本号
 
-版本号只有一个来源：发布工作流 **PureLive All-Platform Release** 的 `version` 输入（例如 `3.2.2`）。其余全部由 `tool/release_version.py` 派生，不要手改：
+版本号只有一个来源：发布工作流 **发布新版本**（`build_pure_live_release.yml`）的 `version` 输入（例如 `3.2.2`）。其余全部由 `tool/release_version.py` 派生，不要手改：
 
 | 派生项 | 由谁写入 |
 |---|---|

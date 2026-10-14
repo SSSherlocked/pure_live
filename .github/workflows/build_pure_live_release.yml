@@ -1,45 +1,45 @@
 # Manual compatibility entrypoint; stage tags belong to feature-build.yml.
-name: PureLive All-Platform Release
+name: 发布新版本
 on:
   workflow_dispatch:
     inputs:
       build_android:
-        description: Build Android arm64-v8a Release APK
+        description: Android
         required: true
         type: boolean
         default: true
       build_windows:
-        description: Build the Windows x64 portable ZIP
+        description: Windows
         required: true
         type: boolean
         default: false
       build_linux:
-        description: Build Linux x64 DEB and portable archives
+        description: Linux
         required: true
         type: boolean
         default: false
       build_macos:
-        description: Build macOS Apple Silicon and Intel archives
+        description: macOS（Apple Silicon 和 Intel）
         required: true
         type: boolean
         default: false
       build_ios:
-        description: Build unsigned iOS app and TrollStore IPA (rarely needed)
+        description: iOS（一般不需要）
         required: true
         type: boolean
         default: false
       run_quality:
-        description: Run analyze, tests and public interface probes first
+        description: 先做代码分析和测试
         required: true
         type: boolean
         default: false
       create_release:
-        description: Create a GitHub Release and update releases.json
+        description: 发布到 Release 页面并更新版本记录
         required: true
         type: boolean
         default: false
       version:
-        description: Version (empty keeps the pubspec version)
+        description: 版本号，如 3.3.2（留空则沿用当前版本）
         required: false
         type: string
         default: ""
@@ -54,7 +54,7 @@ env:
   FASTFORGE_VERSION: "0.6.12"
 jobs:
   quality:
-    name: Analyze, test and probe
+    name: 分析与测试
     if: ${{ inputs.run_quality }}
     needs: []
     runs-on: ubuntu-24.04
@@ -109,7 +109,7 @@ jobs:
           fi
           exit 0
   android:
-    name: Android arm64-v8a
+    name: Android
     needs: quality
     if: >-
       ${{
@@ -197,7 +197,7 @@ jobs:
           if-no-files-found: error
           retention-days: 3
   windows:
-    name: Windows x64
+    name: Windows
     if: >-
       ${{
         always() &&
@@ -291,7 +291,7 @@ jobs:
           if-no-files-found: error
           retention-days: 3
   linux:
-    name: Linux x64 DEB + portable
+    name: Linux
     if: >-
       ${{
         always() &&
@@ -415,7 +415,7 @@ jobs:
   # macOS and iOS build on separate runners: iOS is built rarely and is off
   # by default, so a regular build does not pay for it.
   macos:
-    name: macOS package
+    name: macOS
     if: >-
       ${{
         always() &&
@@ -531,7 +531,7 @@ jobs:
           if-no-files-found: error
           retention-days: 3
   ios:
-    name: iOS package
+    name: iOS
     if: >-
       ${{
         always() &&
@@ -659,7 +659,7 @@ jobs:
           retention-days: 7
   publish-release:
     timeout-minutes: 15
-    name: Publish GitHub Release
+    name: 发布到 Release 页面
     if: >-
       ${{
         always() &&
@@ -741,7 +741,7 @@ jobs:
             artifacts/**/*
   update-json:
     timeout-minutes: 15
-    name: Write back the version, the update feed and releases.json
+    name: 写回版本记录
     if: ${{ always() && inputs.create_release && needs.publish-release.result == 'success' }}
     needs:
       - publish-release

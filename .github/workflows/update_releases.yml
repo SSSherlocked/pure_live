@@ -1,4 +1,4 @@
-name: 手动更新历史发布数据
+name: 更新发布历史
 
 on:
   workflow_dispatch:
@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   update-json:
+    name: 更新发布历史
     timeout-minutes: 10
     runs-on: ubuntu-24.04
 

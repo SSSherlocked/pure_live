@@ -1,6 +1,6 @@
 # Automatic checks for every push to master and every pull request.
 # Packaging and releases stay manual in build_pure_live_release.yml.
-name: CI
+name: 代码检查
 on:
   push:
     branches: [master]
@@ -15,7 +15,7 @@ jobs:
   # Decides whether the Flutter jobs have anything to check: a push that only
   # touches documentation or GitHub metadata skips them.
   changes:
-    name: Detect changes
+    name: 检测改动
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -50,7 +50,7 @@ jobs:
   # Analyze and test run side by side; each restores the SDK, pub cache and
   # .dart_tool from cache, keyed on the lock file.
   flutter:
-    name: ${{ matrix.task == 'analyze' && 'Analyze' || 'Test' }}
+    name: ${{ matrix.task == 'analyze' && '代码分析' || '测试' }}
     needs: changes
     if: needs.changes.outputs.flutter == 'true'
     runs-on: ubuntu-24.04
@@ -91,7 +91,7 @@ jobs:
         run: flutter test --concurrency=12
 
   repository:
-    name: Repository audit and tool tests
+    name: 仓库审计与工具测试
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:

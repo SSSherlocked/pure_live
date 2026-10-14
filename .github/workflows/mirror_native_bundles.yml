@@ -1,16 +1,16 @@
 # Copies a prebuilt native bundle release (FFmpeg etc.) into this repository's
 # own Releases, so tool/prefetch_*_native scripts download from this repo.
-name: Mirror native bundles
+name: 同步原生库
 on:
   workflow_dispatch:
     inputs:
       source_repository:
-        description: Repository that currently hosts the bundles
+        description: 原生库现在所在的仓库
         required: true
         type: string
         default: wzgrx/pure_live
       tag:
-        description: Release tag to mirror (kept identical here)
+        description: 要同步的发布标签（这里保持同名）
         required: true
         type: string
         default: native-ffmpeg-9.0.2-b1
@@ -18,6 +18,7 @@ permissions:
   contents: write
 jobs:
   mirror:
+    name: 同步原生库
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

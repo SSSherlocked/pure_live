@@ -66,7 +66,20 @@ class PlayerKernelService {
 
     if (PlayerConsts.mobileOnlyEnginesAvailable(defaultTargetPlatform)) {
       kernel
-        ..registerBackend(const FlvLzcPlayerAdapterFactory().registration())
+        ..registerBackend(
+          const FlvLzcPlayerAdapterFactory(
+            // ijkplayer otherwise sits on the resolver's first address (an
+            // IPv6 one on most phones) for the whole open timeout; on a
+            // network where IPv6 to a CDN is black-holed every FLV line
+            // burned the kernel's 10 s window. Try the addresses one at a
+            // time with a short budget so IPv4 gets its turn in time.
+            options: <EngineOption>[
+              EngineOption('addrinfo_one_by_one', 1, domain: 'format'),
+              EngineOption('addrinfo_timeout', 2000000, domain: 'format'),
+              EngineOption('open_timeout', 3000000, domain: 'format'),
+            ],
+          ).registration(),
+        )
         ..registerBackend(const BetterPlayerAdapterFactory().registration());
     }
 

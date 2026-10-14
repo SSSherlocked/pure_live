@@ -3,18 +3,26 @@ import 'package:media_core/media_core.dart';
 import 'package:pure_live/core/player/core/playback_input_lease.dart';
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 
+import 'line_preflight.dart';
 import 'playback_source_transport.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 
 class IngestSourceInterceptor implements PlaybackSourceInterceptor {
-  IngestSourceInterceptor({PlaybackSourceTransport? transport}) : _transport = transport ?? PlaybackSourceTransport();
+  IngestSourceInterceptor({PlaybackSourceTransport? transport, LinePreflight? preflight})
+    : _transport = transport ?? PlaybackSourceTransport(),
+      _preflight = preflight;
 
   final PlaybackSourceTransport _transport;
 
+  /// Reorders the lines by reachability first, when the host installs one.
+  final LinePreflight? _preflight;
+
   @override
   Future<List<PlayerSource>> intercept(PlaybackSourceInterception request) async {
-    final List<PlayerSource> sources = request.sources;
+    List<PlayerSource> sources = request.sources;
     if (sources.isEmpty) return sources;
+    final preflight = _preflight;
+    if (preflight != null) sources = await preflight.order(sources);
     final PlayerSource primary = sources.first;
     if (!const <String>{'http', 'https'}.contains(primary.uri.scheme.toLowerCase())) return sources;
     final String url = primary.uri.toString();

@@ -24,6 +24,7 @@ import 'package:pure_live/core/player/core/playback_proxy_policy.dart';
 import 'package:pure_live/core/player/core/ingest_ffmpeg_registry.dart';
 import 'package:pure_live/domains/recorder/data/services/ffmpeg_ingest_starter.dart';
 import 'package:pure_live/domains/live/data/stream/ingest_source_interceptor.dart';
+import 'package:pure_live/domains/live/data/stream/line_preflight.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/domain/live_input_playback_binder.dart';
 import 'package:pure_live/domains/recorder/data/services/live_input_playback_binding.dart';
@@ -124,7 +125,9 @@ class AppInitializer {
     // them, so a line the engine cannot parse is remuxed over loopback instead of
     // failing. Registered here rather than in the domain: the domain only knows
     // the abstraction, and the FFmpeg runtime above is what makes it work.
-    GlobalPlayerService.sourceInterceptorFactory = IngestSourceInterceptor.new;
+    // Lines are probed for reachability first, so a black-holed address does
+    // not hold the kernel's sweep for its full window before a live one plays.
+    GlobalPlayerService.sourceInterceptorFactory = () => IngestSourceInterceptor(preflight: LinePreflight());
     configureLiveInputPlaybackBinder(bindSiteInputForPlayback);
     configureWebSocketProxyRouting((_) {
       final proxy = SettingsService.to.proxy;

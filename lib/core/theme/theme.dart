@@ -195,14 +195,27 @@ class MyTheme {
       scheme = scheme.copyWith(error: const Color(0xFFFF6347));
     }
 
-    final baseTextTheme = isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme;
+    final resolvedScheme =
+        scheme ??
+        (primaryColor == null
+            // ThemeData's own Material 3 default when no colour is given.
+            ? ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4), brightness: brightness)
+            : seededColorScheme(primaryColor!, brightness));
+    // Text takes the scheme's own onSurface. ThemeData.dark()/light() carry
+    // the default (purple-tinted, dimmer) text colours, and a text theme
+    // passed in explicitly is not recoloured by the scheme, so text sat a
+    // shade grey and off-hue next to the scheme's icons.
+    final baseTextTheme = (isDark ? ThemeData.dark() : ThemeData.light()).textTheme.apply(
+      bodyColor: resolvedScheme.onSurface,
+      displayColor: resolvedScheme.onSurface,
+    );
     final textTheme = _buildTextTheme(base: baseTextTheme, fontFamily: fontFamily);
 
     var baseTheme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
       fontFamily: fontFamily,
-      colorScheme: scheme ?? (primaryColor == null ? null : seededColorScheme(primaryColor!, brightness)),
+      colorScheme: resolvedScheme,
       textTheme: textTheme,
       primaryTextTheme: textTheme,
     );
@@ -233,6 +246,9 @@ class MyTheme {
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         titleTextStyle: textTheme.titleLarge?.copyWith(fontWeight: semiBold),
+        // Bar icons (back, menus) as bright as the bar's text.
+        iconTheme: IconThemeData(color: baseTheme.colorScheme.onSurface),
+        actionsIconTheme: IconThemeData(color: baseTheme.colorScheme.onSurface),
       ),
       tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
@@ -251,7 +267,7 @@ class MyTheme {
         labelStyle: textTheme.titleMedium?.copyWith(fontWeight: bold),
         unselectedLabelStyle: textTheme.titleMedium?.copyWith(fontWeight: bold),
         labelColor: baseTheme.colorScheme.primary,
-        unselectedLabelColor: baseTheme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+        unselectedLabelColor: baseTheme.colorScheme.onSurfaceVariant,
       ),
       cardTheme: CardThemeData(
         elevation: 0,

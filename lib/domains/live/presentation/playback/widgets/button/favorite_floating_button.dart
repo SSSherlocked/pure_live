@@ -101,8 +101,14 @@ class _FavoriteFloatingButtonState extends State<FavoriteFloatingButton> {
         style: ButtonStyle(
           // Same 32 px height as the other header actions and the list toolbars.
           padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 12)),
+          // 已关注 is an opaque tint of the primary colour with full-contrast
+          // text; the former half-transparent primary under onPrimary text
+          // read dimmed.
           backgroundColor: WidgetStateProperty.all(
-            isFavorite ? Get.theme.colorScheme.primary.withAlpha(125) : Get.theme.colorScheme.primary,
+            isFavorite ? Get.theme.colorScheme.primaryContainer : Get.theme.colorScheme.primary,
+          ),
+          foregroundColor: WidgetStateProperty.all(
+            isFavorite ? Get.theme.colorScheme.onPrimaryContainer : Get.theme.colorScheme.onPrimary,
           ),
           shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
           textStyle: WidgetStateProperty.all(AppText.of(context).secondary),

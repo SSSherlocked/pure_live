@@ -254,7 +254,9 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       ),
                     );
                   }),
-                  // 在播放器中显示留言: bottom left, above the bottom bar and
+                  // 在播放器中显示留言: bottom left, flush with the picture's
+                  // bottom edge, keeping only the system's own inset (the
+                  // gesture bar, a portrait fullscreen's rounded corners);
                   // below the top bar. It takes no pointer. The small inline
                   // player of a phone leaves super chats to the 留言 tab below
                   // it, whatever the setting; fullscreen shows them.
@@ -275,7 +277,7 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                             insets.left + (compactControls ? 8 : 12),
                             insets.top + topBarHeight,
                             insets.right,
-                            bottomBarHeight + 4,
+                            insets.bottom,
                           ),
                         ),
                       );

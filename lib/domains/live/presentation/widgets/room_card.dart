@@ -30,6 +30,10 @@ class RoomCard extends StatelessWidget {
     this.status,
     this.longPressDetails = true,
   });
+  /// The 获取中 status icon: a circular arrow with a narrow head (Material's
+  /// sync arrows had wide, heavy tips).
+  static const IconData _pendingIcon = Remix.refresh_line;
+
   final LiveRoom room;
   final bool dense;
   final bool statusPending;
@@ -413,7 +417,7 @@ class RoomCard extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.sync_rounded, size: 14, color: color),
+              Icon(_pendingIcon, size: 14, color: color),
               const SizedBox(width: 4),
               Text(
                 statusPendingLabel ?? i18n('favorite_status_verifying'),
@@ -434,7 +438,7 @@ class RoomCard extends StatelessWidget {
       children.add(
         Tooltip(
           message: statusPendingLabel ?? i18n('favorite_status_verifying'),
-          child: const Icon(Icons.sync_rounded, size: 18),
+          child: const Icon(_pendingIcon, size: 18),
         ),
       );
     }
@@ -686,12 +690,14 @@ class RoomCard extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            // In the heat's place (top-right): the heat it
+                            // stands in for, clear of the platform tag.
                             if (statusPending)
                               Positioned(
-                                left: 8,
+                                right: showDelete ? (dense ? 44 : 48) : 8,
                                 top: 8,
                                 child: CoverMetricBadge(
-                                  icon: Icons.sync_rounded,
+                                  icon: _pendingIcon,
                                   value: statusPendingLabel ?? i18n('favorite_status_verifying'),
                                   semanticLabel: statusPendingLabel ?? i18n('favorite_status_verifying'),
                                   dense: dense,

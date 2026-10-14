@@ -55,6 +55,8 @@ class GlobalPlayerService {
       commitAudioOnlyPowerSaving: () => playerManager.setAudioOnly(true),
       prepareAudioOnlyVideoRestore: () => playerManager.setAudioOnly(false),
     )..start();
+    // The sleep timer (ASMR) pauses the room when it ends.
+    LiveAudioService.configurePlaybackCommands(pause: () => playerManager.pause());
     _initialized = true;
     Log.dev("GlobalPlayerService: kernel facade ready.", name: "GlobalPlayerService");
   }

@@ -297,7 +297,7 @@ class LivePlayController extends GetxController
     _markUserPause();
   }
 
-  /// The user's pause (also headphones unplugged, the room timer): nothing is
+  /// The user's pause (also headphones unplugged, the room or sleep timer): nothing is
   /// kept or started away from the app until the room plays again.
   void _markUserPause() {
     if (isClosed || _ownerClosed) return;
@@ -394,6 +394,7 @@ class LivePlayController extends GetxController
     });
     LiveAudioFocus.instance.pausedByInterruption.addListener(_syncBackgroundHold);
     LiveAudioFocus.instance.onNoisyPause = _markUserPause;
+    LiveAudioService.onSleepTimerPause = _markUserPause;
     BackgroundPlaybackService.setRemotePauseListener(_remotePauseListener);
     _reentrySession = manager.consumeRoomSessionReentry(room);
     final resumesCurrentSession = _reentrySession != null;
@@ -1495,6 +1496,7 @@ class LivePlayController extends GetxController
     _roomStateHoldWorker?.dispose();
     LiveAudioFocus.instance.pausedByInterruption.removeListener(_syncBackgroundHold);
     if (LiveAudioFocus.instance.onNoisyPause == _markUserPause) LiveAudioFocus.instance.onNoisyPause = null;
+    if (LiveAudioService.onSleepTimerPause == _markUserPause) LiveAudioService.onSleepTimerPause = null;
     BackgroundPlaybackService.clearRemotePauseListener(_remotePauseListener);
     _backgroundKeeper.dispose();
     unawaited(BackgroundPlaybackService.setForegroundHold(false));
@@ -1515,6 +1517,13 @@ class LivePlayController extends GetxController
 
     final keepForAppFloating = GlobalPlayerService.instance.player.shouldKeepDanmakuForAppFloating;
     if (!keepForAppFloating) {
+      // The sleep session belongs to this room; a later room must not be
+      // paused by its timer. Handed to the small window, it goes on.
+      if (_asmrSessionActive || LiveAudioService.isSleepSessionActive) {
+        unawaited(
+          LiveAudioService.configureSleepTimer(enabled: false, minutes: SettingsService.to.app.asmrSleepMinutes.v),
+        );
+      }
       unawaited(_disposeNormalRouteResources());
     }
     super.onClose();

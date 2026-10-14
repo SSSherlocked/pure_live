@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/core/background_playback_policy.dart';
 import 'package:pure_live/core/player/core/background_playback_service.dart';
-import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
 import 'package:pure_live/core/config/app_settings_controller.dart';
 
 class LiveAudioService {
@@ -15,6 +16,14 @@ class LiveAudioService {
   static int _sleepMinutes = 60;
   static Future<void> Function()? _pauseCommand;
 
+  /// Schedules the sleep timer (tests pass a fake).
+  @visibleForTesting
+  static Timer Function(Duration delay, void Function() callback) timerFactory = Timer.new;
+
+  /// Told when the sleep timer pauses the room: the user's pause, not one to
+  /// wait out (the room's background keeper lets its hold go).
+  static void Function()? onSleepTimerPause;
+
   static bool get isSleepSessionActive => BackgroundPlaybackService.sleepSessionActive;
 
   static bool get shouldContinueInBackground => BackgroundPlaybackPolicy.shouldContinue(
@@ -23,13 +32,8 @@ class LiveAudioService {
     audioOnlySessionActive: BackgroundPlaybackService.audioOnlySessionActive,
   );
 
-  static void configurePlaybackCommands({
-    required Future<void> Function() play,
-    required Future<void> Function() pause,
-    required Future<void> Function() stop,
-    required Future<PlaybackLifecyclePauseToken?> Function() pauseForInterruption,
-    required Future<bool> Function(PlaybackLifecyclePauseToken token) resumeFromInterruption,
-  }) {
+  /// What the sleep timer runs when it ends (the global player's pause).
+  static void configurePlaybackCommands({required Future<void> Function() pause}) {
     _pauseCommand = pause;
   }
 
@@ -69,8 +73,10 @@ class LiveAudioService {
 
   static void _armSleepTimer() {
     _cancelSleepTimer();
-    _sleepTimer = Timer(Duration(minutes: _sleepMinutes), () {
+    _sleepTimer = timerFactory(Duration(minutes: _sleepMinutes), () {
+      _sleepTimer = null;
       BackgroundPlaybackService.sleepSessionActive = false;
+      onSleepTimerPause?.call();
       unawaited(_pauseCommand?.call());
     });
   }

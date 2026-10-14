@@ -4,6 +4,20 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.3.2
+
+## 📦 下载
+
+- **安装包改名**：文件名不再带内部构建号，平台名放在前面，一看就知道下载哪个：
+  - Android：`PureLive-3.3.2-Android-arm64-v8a.apk`
+  - Windows：`PureLive-3.3.2-Windows-x64.zip`
+  - Linux：`PureLive-3.3.2-Linux-x64.deb`（另有 `.tar.gz` 和 `.zip`）
+  - macOS：`PureLive-3.3.2-MacOS-AppleSilicon.zip`（M 系列芯片）、`PureLive-3.3.2-MacOS-Intel.zip`（Intel 芯片）
+  - iOS：`PureLive-3.3.2-iOS-TrollStore.ipa`、`PureLive-3.3.2-iOS-Unsigned.zip`
+- **Windows 只提供免安装版**：不再发布 `setup.exe` 安装程序，解压 zip 后直接运行即可。之前用安装程序装过的，可以在系统「应用」设置里卸载旧版后改用免安装版。
+
+---
+
 # Pure Live v3.3.1
 
 ## 🎨 外观

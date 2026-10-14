@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
+import 'package:pure_live/core/theme/theme.dart';
 
 /// Each platform's brand colour, so its tag is recognisable at a glance: the
 /// recorder's task tags and the room cards' platform tags share it.
@@ -19,4 +20,12 @@ abstract final class PlatformColors {
     PlatformIds.soop => const Color(0xFF0675E8),
     _ => null,
   };
+
+  /// [platform]'s brand colour as tag text on [surface]: lightened or
+  /// darkened only as far as it must be to stay readable (抖音's black turns
+  /// grey on a dark page). Null when the platform has no brand colour.
+  static Color? readableOn(String? platform, Color surface) {
+    final brand = of(platform);
+    return brand == null ? null : readablePrimary(brand.withValues(alpha: 1), surface);
+  }
 }

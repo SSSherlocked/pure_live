@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/consts/platform_colors.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/button/live_play_menu_button.dart';
@@ -41,6 +42,9 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
             final platform = detail.platform ?? '';
             final theme = Theme.of(context);
             final colors = theme.colorScheme;
+            // In the platform's brand colour over a tint of it, like the room
+            // cards' tags; the neutral tag for a platform without one.
+            final brand = PlatformColors.readableOn(platform, colors.surface);
             // One line beside the avatar: the streamer's name, then the
             // platform as a small filled tag. The name gives way first when
             // space runs out; the category is left out.
@@ -60,7 +64,7 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 6),
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      color: colors.secondaryContainer,
+                      color: brand?.withValues(alpha: .16) ?? colors.secondaryContainer,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Padding(
@@ -69,7 +73,7 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
                         i18n('site_$platform'),
                         maxLines: 1,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: colors.onSecondaryContainer,
+                          color: brand ?? colors.onSecondaryContainer,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

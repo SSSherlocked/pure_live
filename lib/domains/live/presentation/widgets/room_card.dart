@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/platform_colors.dart';
-import 'package:pure_live/core/theme/theme.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
 import 'package:pure_live/core/widgets/common_avatar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -349,8 +348,8 @@ class RoomCard extends StatelessWidget {
   /// it; a platform without a brand colour keeps the neutral tag.
   Widget _buildCompactPlatformBadge(BuildContext context, bool isDark) {
     final colors = Get.theme.colorScheme;
-    final brand = PlatformColors.of(room.platform);
-    final textColor = brand == null ? colors.onSurfaceVariant : readablePrimary(brand.withValues(alpha: 1), colors.surface);
+    final brand = PlatformColors.readableOn(room.platform, colors.surface);
+    final textColor = brand ?? colors.onSurfaceVariant;
     return Container(
       key: const ValueKey('room-card-platform-badge'),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

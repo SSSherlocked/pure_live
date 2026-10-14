@@ -125,6 +125,7 @@ class _PlayerSuperChatOverlayState extends State<PlayerSuperChatOverlay> {
       }
       final opacity = DanmakuSettingsController.normalizeSuperChatOpacity(settings.superChatOpacity.value);
       final fontScale = DanmakuSettingsController.normalizeSuperChatFontScale(settings.superChatFontScale.value);
+      final fontWeight = FontWeight(SettingsService.to.danmaku.superChatFontWeight.v);
       final now = DateTime.now();
       final visible = visiblePlayerSuperChats(_hideAt, now, maxVisible: widget.compact ? 2 : 3);
       if (visible.isEmpty) return const SizedBox.shrink();
@@ -160,6 +161,7 @@ class _PlayerSuperChatOverlayState extends State<PlayerSuperChatOverlay> {
                                     message: message,
                                     secondsLeft: (_hideAt[message]!.difference(now).inMilliseconds / 1000).ceil(),
                                     fontScale: fontScale,
+                                    fontWeight: fontWeight,
                                   ),
                                 ),
                             ],
@@ -186,11 +188,15 @@ class _PlayerSuperChatCard extends StatelessWidget {
     required this.message,
     required this.secondsLeft,
     required this.fontScale,
+    required this.fontWeight,
   });
 
   final LiveSuperChatMessage message;
   final int secondsLeft;
   final double fontScale;
+
+  /// 留言字体粗细, for the message text.
+  final FontWeight fontWeight;
 
   TextStyle _scaled(TextStyle style) {
     final size = style.fontSize;
@@ -214,7 +220,7 @@ class _PlayerSuperChatCard extends StatelessWidget {
 
     // Smooth corners, as the 留言 list's cards.
     return ClipRSuperellipse(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -265,7 +271,7 @@ class _PlayerSuperChatCard extends StatelessWidget {
                   body,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: _scaled(text.body).copyWith(color: messageText, height: 1.3),
+                  style: _scaled(text.body).copyWith(color: messageText, height: 1.3, fontWeight: fontWeight),
                 ),
               ),
             ),

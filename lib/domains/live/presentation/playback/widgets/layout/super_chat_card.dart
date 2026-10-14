@@ -3,6 +3,8 @@ import 'package:pure_live/core/theme/app_text.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pure_live/get/get.dart';
+import 'package:pure_live/core/config/settings_service.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/utils/i18n.dart';
 import 'package:pure_live/core/widgets/toast_util.dart';
@@ -128,7 +130,7 @@ class _SuperChatCardState extends State<SuperChatCard> {
     // header and message colours: drawn under them, as before, the coloured
     // halves were clipped straight at the corner arc and hid the outline,
     // which left a hard, plain-circle edge.
-    const radius = BorderRadius.all(Radius.circular(14));
+    const radius = BorderRadius.all(Radius.circular(12));
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       clipBehavior: Clip.antiAlias,
@@ -322,9 +324,16 @@ class _SuperChatCardState extends State<SuperChatCard> {
       decoration: BoxDecoration(color: backgroundColor),
       child: GestureDetector(
         onDoubleTap: () => clipboard(superChatDisplayText(message.message)),
-        child: SelectableText(
-          superChatDisplayText(message.message),
-          style: AppText.of(context).listPrimary.copyWith(color: textColor, height: 1.5, fontWeight: FontWeight.w400),
+        // 留言字体粗细 applies at once, while the card is on screen.
+        child: Obx(
+          () => SelectableText(
+            superChatDisplayText(message.message),
+            style: AppText.of(context).listPrimary.copyWith(
+              color: textColor,
+              height: 1.5,
+              fontWeight: FontWeight(SettingsService.to.danmaku.superChatFontWeight.v),
+            ),
+          ),
         ),
       ),
     );

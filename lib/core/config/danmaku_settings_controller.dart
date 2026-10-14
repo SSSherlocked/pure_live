@@ -101,10 +101,15 @@ class DanmakuSettingsController extends GetxController {
   /// 80%-160% in 10% steps.
   final RxDouble superChatFontScale = hiveDouble('superChatFontScale', defaultSuperChatFontScale);
 
+  /// 留言字体粗细: weight of a super chat's message text, in the 留言 list and
+  /// on the picture alike.
+  final RxInt superChatFontWeight = hiveInt('superChatFontWeight', defaultSuperChatFontWeight);
+
   /// Simple Live draws its player super chats at 65% opacity.
   static const double defaultSuperChatOpacity = 0.65;
   static const double minSuperChatOpacity = 0.3;
   static const double defaultSuperChatFontScale = 1.0;
+  static const int defaultSuperChatFontWeight = 400;
   static const double minSuperChatFontScale = 0.8;
   static const double maxSuperChatFontScale = 1.6;
 
@@ -339,6 +344,11 @@ class DanmakuSettingsController extends GetxController {
     fallback: defaultSuperChatOpacity,
     read: ProfiledSpec.number(min: minSuperChatOpacity, max: 1, normalize: normalizeSuperChatOpacity),
   );
+  static final _superChatFontWeightSpec = ProfiledSpec<int>(
+    'superChatFontWeight',
+    fallback: defaultSuperChatFontWeight,
+    read: ProfiledSpec.integer((value) => normalizeFontWeight(value, fallback: defaultSuperChatFontWeight)),
+  );
   static final _superChatFontScaleSpec = ProfiledSpec<double>(
     'superChatFontScale',
     fallback: defaultSuperChatFontScale,
@@ -378,6 +388,7 @@ class DanmakuSettingsController extends GetxController {
     _chatFansBadgeSpec,
     _superChatOpacitySpec,
     _superChatFontScaleSpec,
+    _superChatFontWeightSpec,
   ];
 
   /// The per-profile settings above. Their fields ([danmakuSpeed],
@@ -409,6 +420,7 @@ class DanmakuSettingsController extends GetxController {
     _chatFansBadgeSpec.bind(chatListShowFansBadge),
     _superChatOpacitySpec.bind(superChatOpacity),
     _superChatFontScaleSpec.bind(superChatFontScale),
+    _superChatFontWeightSpec.bind(superChatFontWeight),
   ]);
 
   /// The profile the per-profile fields hold.
@@ -480,6 +492,7 @@ class DanmakuSettingsController extends GetxController {
     danmakuArea.v = normalizeDanmakuArea(danmakuArea.v);
     superChatOpacity.v = normalizeSuperChatOpacity(superChatOpacity.v);
     superChatFontScale.v = normalizeSuperChatFontScale(superChatFontScale.v);
+    superChatFontWeight.v = normalizeFontWeight(superChatFontWeight.v, fallback: defaultSuperChatFontWeight);
     danmakuBottomArea.v = _boundedDouble(danmakuBottomArea.v, fallback: defaultDanmakuBottomArea, min: 0, max: 300);
     danmakuSpeed.v = _boundedDouble(danmakuSpeed.v, fallback: defaultDanmakuSpeed, min: 20, max: 400);
     danmakuFontSize.v = _boundedDouble(danmakuFontSize.v, fallback: defaultDanmakuFontSize, min: 10, max: 30);
@@ -553,6 +566,7 @@ class DanmakuSettingsController extends GetxController {
       'superChatPinned': superChatPinned.v,
       'superChatOpacity': normalizeSuperChatOpacity(superChatOpacity.v),
       'superChatFontScale': normalizeSuperChatFontScale(superChatFontScale.v),
+      'superChatFontWeight': normalizeFontWeight(superChatFontWeight.v, fallback: defaultSuperChatFontWeight),
       'chatListFontSize': chatListFontSize.v,
       'chatListFontWeight': chatListFontWeight.v,
       'chatListNameFontWeight': chatListNameFontWeight.v,
@@ -611,6 +625,9 @@ class DanmakuSettingsController extends GetxController {
       'superChatPinned': typed<bool>(json['superChatPinned'] ?? false),
       'superChatOpacity': typed<double>(normalizeSuperChatOpacity(json['superChatOpacity'])),
       'superChatFontScale': typed<double>(normalizeSuperChatFontScale(json['superChatFontScale'])),
+      'superChatFontWeight': typed<int>(
+        normalizeFontWeight(json['superChatFontWeight'], fallback: defaultSuperChatFontWeight),
+      ),
       'chatListFontSize': typed<double>(
         _boundedDouble(json['chatListFontSize'], fallback: defaultChatListFontSize, min: 10, max: 28),
       ),
@@ -745,6 +762,7 @@ class DanmakuSettingsController extends GetxController {
       'superChatPinned': danmaku['superChatPinned'] ?? false,
       'superChatOpacity': normalizeSuperChatOpacity(danmaku['superChatOpacity']),
       'superChatFontScale': normalizeSuperChatFontScale(danmaku['superChatFontScale']),
+      'superChatFontWeight': normalizeFontWeight(danmaku['superChatFontWeight'], fallback: defaultSuperChatFontWeight),
       'chatListFontSize': _boundedDouble(
         danmaku['chatListFontSize'],
         fallback: defaultChatListFontSize,

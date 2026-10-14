@@ -1864,5 +1864,6 @@
   "folder_open_unavailable_android": "This folder is in the app's own storage, which Android does not let file managers browse. The files are in:",
   "folder_open_unavailable": "The folder could not be opened. It is at:",
   "portrait_display_mode_menu": "Picture mode",
-  "portrait_orientation_menu": "Picture orientation"
+  "portrait_orientation_menu": "Picture orientation",
+  "super_chat_font_weight": "Super chat text weight"
 }

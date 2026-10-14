@@ -541,6 +541,24 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = !v,
                 labelColor: labelColor,
               ),
+              // The message text's weight, in the 留言 list and on the picture;
+              // one shared setting, so every open card follows it at once.
+              _slider(
+                theme,
+                title: i18n('super_chat_font_weight'),
+                value: SettingsService.to.danmaku.superChatFontWeight.value.clamp(100, 900).toDouble(),
+                min: 100,
+                max: 900,
+                stepSize: 100,
+                display: i18n(
+                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.superChatFontWeight.value] ??
+                      'font_weight_normal',
+                ),
+                semanticValueBuilder: (value) => i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
+                onChanged: (v) => SettingsService.to.danmaku.superChatFontWeight.value = (v / 100).round() * 100,
+                labelColor: labelColor,
+                digitColor: digitColor,
+              ),
               _switch(
                 theme,
                 title: i18n('show_super_chat_on_player'),

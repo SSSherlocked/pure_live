@@ -1864,5 +1864,6 @@
   "folder_open_unavailable_android": "这个文件夹在应用自己的存储空间里，安卓不允许文件管理器浏览。文件保存在：",
   "folder_open_unavailable": "无法打开这个文件夹，它的位置是：",
   "portrait_display_mode_menu": "画面模式",
-  "portrait_orientation_menu": "画面方向"
+  "portrait_orientation_menu": "画面方向",
+  "super_chat_font_weight": "留言字体粗细"
 }

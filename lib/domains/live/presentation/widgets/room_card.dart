@@ -255,7 +255,8 @@ class RoomCard extends StatelessWidget {
         _ => Icons.whatshot_rounded,
       };
       if (inline) {
-        final color = Colors.orange.shade700;
+        // The row's secondary text colour, like the card's other details.
+        final color = Theme.of(context).colorScheme.onSurfaceVariant;
         return Semantics(
           key: const ValueKey('room-card-audience'),
           label: '${i18n(labelKey)} $displayValue',

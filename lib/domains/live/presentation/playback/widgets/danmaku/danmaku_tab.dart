@@ -85,12 +85,17 @@ class DanmakuSectionTabBar extends StatelessWidget {
   final List<String> tabs;
   final TabController? controller;
 
-  // Space above the labels, the gap between a label and the indicator, the
-  // indicator's thickness and the divider under the row.
-  static const double _labelTopSpace = 10;
+  // The labels sit centred between the divider above the bar and the one
+  // under it, a touch high (1.5 px) for optical balance: the space above a
+  // label is 3 px less than everything below it (the space under the label,
+  // the indicator strip and the divider). The indicator is drawn 4 px under
+  // the text, not at the bottom of the strip.
+  static const double _labelTopSpace = 8;
+  static const double _labelBottomSpace = 7;
   static const double _indicatorGap = 4;
   static const double _indicatorThickness = 3;
   static const double _dividerThickness = 1;
+  static const double _indicatorStrip = _indicatorThickness + _dividerThickness;
 
   @override
   Widget build(BuildContext context) {
@@ -98,9 +103,8 @@ class DanmakuSectionTabBar extends StatelessWidget {
     // One role above the list text: the section names lead the panel.
     // Bold whether selected or not; the colour marks the current tab.
     final labelStyle = AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700);
-    // A tab is exactly the tallest label plus the space above it and the gap
-    // below, so the indicator (in the strip TabBar reserves under the tabs)
-    // sits just under the text and the divider just under the indicator.
+    // A tab is exactly the tallest label plus the space above and below it;
+    // TabBar adds the indicator strip (with the divider) under the tabs.
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);
     var labelHeight = 0.0;
@@ -114,7 +118,7 @@ class DanmakuSectionTabBar extends StatelessWidget {
       if (painter.height > labelHeight) labelHeight = painter.height;
       painter.dispose();
     }
-    final tabHeight = _labelTopSpace + labelHeight + _indicatorGap;
+    final tabHeight = _labelTopSpace + labelHeight + _labelBottomSpace;
     return Container(
       color: theme.colorScheme.surface,
       child: ScrollableTabBar(
@@ -125,12 +129,15 @@ class DanmakuSectionTabBar extends StatelessWidget {
         labelPadding: const EdgeInsets.symmetric(horizontal: 4),
         labelStyle: labelStyle,
         unselectedLabelStyle: labelStyle,
-        indicatorWeight: _indicatorThickness + _dividerThickness,
+        indicatorWeight: _indicatorStrip,
         indicator: UnderlineTabIndicator(
           borderSide: BorderSide(width: _indicatorThickness, color: theme.colorScheme.primary),
           borderRadius: const BorderRadius.all(Radius.circular(1.5)),
-          // Lifted off the divider, so the two never overlap.
-          insets: const EdgeInsets.only(bottom: _dividerThickness),
+          // Raised from the bottom of the bar to [_indicatorGap] under the
+          // text, clear of the divider.
+          insets: const EdgeInsets.only(
+            bottom: _labelBottomSpace + _indicatorStrip - _indicatorGap - _indicatorThickness,
+          ),
         ),
         dividerColor: theme.colorScheme.outlineVariant,
         dividerHeight: _dividerThickness,
@@ -146,7 +153,7 @@ class DanmakuSectionTabBar extends StatelessWidget {
                   // As wide as the label, so the indicator matches it.
                   widthFactor: 1,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: _indicatorGap),
+                    padding: const EdgeInsets.only(bottom: _labelBottomSpace),
                     child: FittedBox(fit: BoxFit.scaleDown, child: Text(name, maxLines: 1, softWrap: false)),
                   ),
                 ),

@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 /// Holds a settings page body at a fixed content width.
 ///
@@ -104,7 +104,13 @@ class _SettingsContentWidthState extends State<SettingsContentWidth> {
 
   @override
   Widget build(BuildContext context) {
-    final content = KeyedSubtree(key: _contentKey, child: widget.child);
+    // Every settings row's leading icon takes the theme colour: the shared
+    // tiles set it themselves, and this default covers a page's own
+    // ListTile / SwitchListTile rows, which otherwise drew theirs grey.
+    final content = KeyedSubtree(
+      key: _contentKey,
+      child: ListTileTheme.merge(iconColor: Theme.of(context).colorScheme.primary, child: widget.child),
+    );
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth <= SettingsContentWidth.width) return content;

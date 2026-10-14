@@ -3,6 +3,17 @@ import 'package:pure_live/get/get.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:pure_live/core/theme/app_text.dart';
 
+/// The leading icon of a settings row: theme colour, 22 px, as every shared
+/// settings tile draws it. Rows built by hand use this so their icons match.
+class SettingsRowIcon extends StatelessWidget {
+  const SettingsRowIcon(this.icon, {super.key});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Icon(icon, size: 22, color: Theme.of(context).colorScheme.primary);
+}
+
 extension AppLayoutFactory on BuildContext {
   Widget buildGroupTitle(String text) {
     final theme = Theme.of(this);
@@ -351,7 +362,7 @@ extension AppLayoutFactory on BuildContext {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: SizedBox(width: 24, child: Icon(icon, size: 22, color: theme.colorScheme.primary)),
+            child: SizedBox(width: 24, child: SettingsRowIcon(icon)),
           ),
           const SizedBox(width: 12),
           Expanded(

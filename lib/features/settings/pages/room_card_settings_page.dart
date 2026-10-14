@@ -188,7 +188,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Icons.filter_list_rounded)),
+                    const Padding(padding: EdgeInsets.only(top: 2), child: SettingsRowIcon(Icons.filter_list_rounded)),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -303,7 +303,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
     required ValueChanged<bool> onChanged,
   }) {
     return SwitchListTile(
-      secondary: Icon(icon),
+      secondary: SettingsRowIcon(icon),
       title: Text(title, style: AppText.of(context).sectionTitle),
       subtitle: Text(subtitle, style: AppText.of(context).secondary),
       value: value,
@@ -318,7 +318,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Remix.layout_grid_line)),
+          const Padding(padding: EdgeInsets.only(top: 2), child: SettingsRowIcon(Remix.layout_grid_line)),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -367,7 +367,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Icons.view_agenda_outlined)),
+          const Padding(padding: EdgeInsets.only(top: 2), child: SettingsRowIcon(Icons.view_agenda_outlined)),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

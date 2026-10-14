@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -6,7 +5,6 @@ import 'package:flutter/gestures.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_tab.dart';
@@ -45,8 +43,6 @@ class LivePlayNormalLayout extends StatelessWidget {
     this.sourceAspectRatio = 16 / 9,
     this.adaptivePortraitHeight = false,
     this.portraitLayoutMode = PortraitLayoutMode.balanced,
-    this.onEnterLandscapeFullscreen,
-    this.onEnterPortraitFullscreen,
     this.panelWidth,
     this.onPanelResized,
   });
@@ -62,8 +58,6 @@ class LivePlayNormalLayout extends StatelessWidget {
   final double sourceAspectRatio;
   final bool adaptivePortraitHeight;
   final PortraitLayoutMode portraitLayoutMode;
-  final VoidCallback? onEnterLandscapeFullscreen;
-  final VoidCallback? onEnterPortraitFullscreen;
 
   /// The side panel's width and where a drag of its edge reports a new one.
   /// Left null, both are the 侧栏宽度 setting.
@@ -90,8 +84,6 @@ class LivePlayNormalLayout extends StatelessWidget {
               resolution: resolution,
               danmaku: danmaku,
               mode: portraitLayoutMode,
-              onEnterLandscapeFullscreen: onEnterLandscapeFullscreen,
-              onEnterPortraitFullscreen: onEnterPortraitFullscreen,
             );
           }
           return Column(
@@ -241,10 +233,11 @@ class _LivePlayDesktopSplitState extends State<_LivePlayDesktopSplit> {
 
 /// Portrait programme presentation for a phone room.
 ///
-/// The video owns the full available canvas while a three-stop interaction
-/// sheet overlays its lower edge. Users can reveal more danmaku without
-/// throwing away the tall video area, and the drag handle is isolated from the
-/// list's own scroll recognizer.
+/// The video sits above a three-stop interaction sheet and is laid out in the
+/// space the sheet leaves, so the whole picture is always visible (letterboxed
+/// as needed) with the ordinary inline controls along its bottom edge. Users
+/// can reveal more danmaku at the cost of a smaller picture, and the drag
+/// handle is isolated from the list's own scroll recognizer.
 class PortraitLiveRoomLayout extends StatefulWidget {
   const PortraitLiveRoomLayout({
     super.key,
@@ -252,16 +245,12 @@ class PortraitLiveRoomLayout extends StatefulWidget {
     required this.resolution,
     required this.danmaku,
     required this.mode,
-    this.onEnterLandscapeFullscreen,
-    this.onEnterPortraitFullscreen,
   });
 
   final Widget video;
   final Widget resolution;
   final Widget danmaku;
   final PortraitLayoutMode mode;
-  final VoidCallback? onEnterLandscapeFullscreen;
-  final VoidCallback? onEnterPortraitFullscreen;
 
   @override
   State<PortraitLiveRoomLayout> createState() => _PortraitLiveRoomLayoutState();
@@ -269,112 +258,29 @@ class PortraitLiveRoomLayout extends StatefulWidget {
 
 class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
   double? _panelHeight;
-  double _dismissOffset = 0;
-  bool _settling = false;
-  bool _entryPending = false;
 
   @override
   void didUpdateWidget(covariant PortraitLiveRoomLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.mode != widget.mode ||
-        (oldWidget.onEnterPortraitFullscreen != null && widget.onEnterPortraitFullscreen == null)) {
-      _panelHeight = null;
-      _dismissOffset = 0;
-      _entryPending = false;
-    }
+    if (oldWidget.mode != widget.mode) _panelHeight = null;
   }
 
   void _updatePanelDrag(DragUpdateDetails details, double current, double minimum, double maximum) {
-    if (_entryPending) return;
     final delta = details.delta.dy;
     if (delta == 0) return;
-    setState(() {
-      _settling = false;
-      final panelHeight = (_panelHeight ?? current).clamp(minimum, maximum).toDouble();
-      if (delta > 0) {
-        final collapsible = (panelHeight - minimum).clamp(0.0, double.infinity).toDouble();
-        final collapseDelta = delta.clamp(0.0, collapsible).toDouble();
-        _panelHeight = panelHeight - collapseDelta;
-        final remaining = delta - collapseDelta;
-        if (widget.onEnterPortraitFullscreen != null && remaining > 0) {
-          // Leave a final animated travel segment for the fullscreen request.
-          // If dragging reaches the animation target, AnimatedSlide has no
-          // transition to finish and its onEnd callback never fires.
-          _dismissOffset = (_dismissOffset + remaining).clamp(0.0, panelHeight).toDouble();
-        }
-        return;
-      }
-
-      var upward = -delta;
-      final revealDelta = upward.clamp(0.0, _dismissOffset).toDouble();
-      _dismissOffset -= revealDelta;
-      upward -= revealDelta;
-      if (upward > 0) {
-        _panelHeight = (panelHeight + upward).clamp(minimum, maximum).toDouble();
-      }
-    });
+    // Dragging down shrinks the sheet, dragging up grows it.
+    setState(() => _panelHeight = ((_panelHeight ?? current) - delta).clamp(minimum, maximum).toDouble());
   }
 
-  void _finishPanelDrag(DragEndDetails details, double current, double minimum, double middle, double maximum) {
-    if (_entryPending) return;
-    final panelHeight = (_panelHeight ?? current).clamp(minimum, maximum).toDouble();
-    final disposition = resolvePortraitPanelDragEnd(
-      entryEnabled: widget.onEnterPortraitFullscreen != null,
-      dismissOffset: _dismissOffset,
-      panelHeight: panelHeight,
-      velocity: details.primaryVelocity ?? 0,
-    );
-    if (disposition == PortraitPanelDragDisposition.enterFullscreen) {
-      _requestPortraitFullscreen(panelHeight);
-      return;
-    }
-
-    final dragEndHeight = panelHeight;
+  void _finishPanelDrag(double current, double minimum, double middle, double maximum) {
+    final dragEndHeight = (_panelHeight ?? current).clamp(minimum, maximum).toDouble();
     final stops = <double>[minimum, middle, maximum];
     stops.sort((a, b) => (a - dragEndHeight).abs().compareTo((b - dragEndHeight).abs()));
-    setState(() {
-      _settling = true;
-      _dismissOffset = 0;
-      _panelHeight = stops.first;
-    });
-  }
-
-  void _requestPortraitFullscreen(double panelHeight) {
-    if (_entryPending || widget.onEnterPortraitFullscreen == null) return;
-    setState(() {
-      _entryPending = true;
-      _settling = true;
-      _dismissOffset = panelHeight + 36;
-    });
+    setState(() => _panelHeight = stops.first);
   }
 
   void _settlePanelHeight(double panelHeight) {
-    if (_entryPending) return;
-    setState(() {
-      _settling = true;
-      _dismissOffset = 0;
-      _panelHeight = panelHeight;
-    });
-  }
-
-  void _completePanelAnimation() {
-    if (!_entryPending || !mounted) return;
-    // The animation, not an independent timer, owns the request. A changed
-    // mode/disabled action clears the pending state in didUpdateWidget.
-    _entryPending = false;
-    try {
-      widget.onEnterPortraitFullscreen?.call();
-    } finally {
-      // The controller may decline entry after its current-source check.
-      // If this layout remains mounted, restore a usable sheet. Accepted
-      // navigation replaces this layout on the same next build.
-      if (mounted) {
-        setState(() {
-          _settling = true;
-          _dismissOffset = 0;
-        });
-      }
-    }
+    setState(() => _panelHeight = panelHeight);
   }
 
   @override
@@ -387,7 +293,13 @@ class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
           key: const ValueKey('live-play-portrait-stack'),
           fit: StackFit.expand,
           children: [
-            Positioned.fill(
+            // Black behind the sheet's rounded corners, as under the picture.
+            const ColoredBox(color: Colors.black),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: current,
               child: ColoredBox(
                 key: const ValueKey('live-play-adaptive-video-frame'),
                 color: Colors.black,
@@ -399,187 +311,78 @@ class _PortraitLiveRoomLayoutState extends State<PortraitLiveRoomLayout> {
               right: 0,
               bottom: 0,
               height: current,
-              child: AnimatedSlide(
-                offset: Offset(0, current <= 0 ? 0 : (_dismissOffset / current).clamp(0.0, 1.2).toDouble()),
-                duration: _settling ? const Duration(milliseconds: 180) : Duration.zero,
-                curve: Curves.easeOutCubic,
-                onEnd: _completePanelAnimation,
-                child: Material(
-                  key: const ValueKey('live-play-portrait-sheet'),
-                  color: Theme.of(context).colorScheme.surface,
-                  elevation: 10,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-                  clipBehavior: Clip.antiAlias,
-                  child: SingleChildScrollView(
-                    key: const ValueKey('live-play-portrait-sheet-scroll'),
-                    physics: const ClampingScrollPhysics(),
-                    child: SizedBox(
-                      // Keep controls and the input usable when the keyboard,
-                      // split screen or PiP animation reduces the room bounds.
-                      // This wrapper stays mounted even when no scrolling is
-                      // needed, preserving input focus and the video sibling.
-                      height: current.clamp(240.0, double.infinity),
-                      child: Column(
-                        children: [
-                          Semantics(
-                            label: i18n('portrait_panel_resize'),
-                            value: '${current.round()} px',
-                            hint: i18n('portrait_panel_resize_hint'),
-                            increasedValue: current < range.maximum
-                                ? '${(current < range.middle ? range.middle : range.maximum).round()} px'
-                                : null,
-                            decreasedValue: current > range.minimum
-                                ? '${(current > range.middle ? range.middle : range.minimum).round()} px'
-                                : widget.onEnterPortraitFullscreen == null
-                                ? null
-                                : i18n('portrait_fullscreen_enter_hint'),
-                            onTap: widget.onEnterPortraitFullscreen == null
-                                ? null
-                                : () => _requestPortraitFullscreen(current),
-                            onIncrease: current < range.maximum
-                                ? () => _settlePanelHeight(current < range.middle ? range.middle : range.maximum)
-                                : null,
-                            onDecrease: current > range.minimum
-                                ? () => _settlePanelHeight(current > range.middle ? range.middle : range.minimum)
-                                : widget.onEnterPortraitFullscreen == null
-                                ? null
-                                : () => _requestPortraitFullscreen(current),
-                            child: GestureDetector(
-                              key: const ValueKey('live-play-portrait-sheet-handle'),
-                              behavior: HitTestBehavior.opaque,
-                              dragStartBehavior: DragStartBehavior.down,
-                              onTap: widget.onEnterPortraitFullscreen == null
-                                  ? null
-                                  : () => _requestPortraitFullscreen(current),
-                              onVerticalDragUpdate: (details) =>
-                                  _updatePanelDrag(details, current, range.minimum, range.maximum),
-                              onVerticalDragEnd: (details) =>
-                                  _finishPanelDrag(details, current, range.minimum, range.middle, range.maximum),
-                              onVerticalDragCancel: () {
-                                setState(() {
-                                  _settling = true;
-                                  _dismissOffset = 0;
-                                });
-                              },
-                              child: SizedBox(
-                                height: kMinInteractiveDimension,
-                                child: Center(
-                                  child: widget.onEnterPortraitFullscreen == null
-                                      ? Container(
-                                          width: 38,
-                                          height: 4,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.onSurfaceVariant
-                                                .withValues(alpha: 0.30),
-                                            borderRadius: BorderRadius.circular(99),
-                                          ),
-                                        )
-                                      : Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.keyboard_arrow_down_rounded,
-                                              size: 20,
-                                              color: Theme.of(context).colorScheme.primary,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                i18n('portrait_fullscreen_enter_hint'),
-                                                key: const ValueKey('portrait-fullscreen-enter-hint'),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: AppText.of(context).secondary.copyWith(color: Theme.of(context).colorScheme.primary,
-                                                  fontWeight: FontWeight.w600),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+              child: Material(
+                key: const ValueKey('live-play-portrait-sheet'),
+                color: Theme.of(context).colorScheme.surface,
+                elevation: 10,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                clipBehavior: Clip.antiAlias,
+                child: SingleChildScrollView(
+                  key: const ValueKey('live-play-portrait-sheet-scroll'),
+                  physics: const ClampingScrollPhysics(),
+                  child: SizedBox(
+                    // Keep controls and the input usable when the keyboard,
+                    // split screen or PiP animation reduces the room bounds.
+                    // This wrapper stays mounted even when no scrolling is
+                    // needed, preserving input focus and the video sibling.
+                    height: current.clamp(240.0, double.infinity),
+                    child: Column(
+                      children: [
+                        Semantics(
+                          label: i18n('portrait_panel_resize'),
+                          value: '${current.round()} px',
+                          hint: i18n('portrait_panel_resize_hint'),
+                          increasedValue: current < range.maximum
+                              ? '${(current < range.middle ? range.middle : range.maximum).round()} px'
+                              : null,
+                          decreasedValue: current > range.minimum
+                              ? '${(current > range.middle ? range.middle : range.minimum).round()} px'
+                              : null,
+                          onIncrease: current < range.maximum
+                              ? () => _settlePanelHeight(current < range.middle ? range.middle : range.maximum)
+                              : null,
+                          onDecrease: current > range.minimum
+                              ? () => _settlePanelHeight(current > range.middle ? range.middle : range.minimum)
+                              : null,
+                          child: GestureDetector(
+                            key: const ValueKey('live-play-portrait-sheet-handle'),
+                            behavior: HitTestBehavior.opaque,
+                            dragStartBehavior: DragStartBehavior.down,
+                            onVerticalDragUpdate: (details) =>
+                                _updatePanelDrag(details, current, range.minimum, range.maximum),
+                            onVerticalDragEnd: (_) =>
+                                _finishPanelDrag(current, range.minimum, range.middle, range.maximum),
+                            onVerticalDragCancel: () =>
+                                _finishPanelDrag(current, range.minimum, range.middle, range.maximum),
+                            child: SizedBox(
+                              height: kMinInteractiveDimension,
+                              child: Center(
+                                child: Container(
+                                  width: 38,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.30),
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                          widget.resolution,
-                          const Divider(height: 1),
-                          Expanded(key: const ValueKey('live-play-portrait-danmaku'), child: widget.danmaku),
-                        ],
-                      ),
+                        ),
+                        widget.resolution,
+                        const Divider(height: 1),
+                        Expanded(key: const ValueKey('live-play-portrait-danmaku'), child: widget.danmaku),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-            if (widget.onEnterLandscapeFullscreen != null && constraints.maxWidth >= 72 && constraints.maxHeight >= 72)
-              Positioned.fill(
-                child: CustomSingleChildLayout(
-                  delegate: _PortraitFullscreenActionLayout(bottom: current + 12 - _dismissOffset),
-                  child: Material(
-                    color: Colors.black.withValues(alpha: 0.68),
-                    borderRadius: BorderRadius.circular(24),
-                    clipBehavior: Clip.antiAlias,
-                    child: Tooltip(
-                      message: i18nOr('enter_landscape_fullscreen', '横屏全屏'),
-                      child: InkWell(
-                        key: const ValueKey('portrait-landscape-fullscreen'),
-                        onTap: widget.onEnterLandscapeFullscreen,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minWidth: kMinInteractiveDimension,
-                            minHeight: kMinInteractiveDimension,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.screen_rotation_rounded, color: Colors.white, size: 20),
-                                if (constraints.maxWidth >= 160) ...[
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      i18nOr('enter_landscape_fullscreen', '横屏全屏'),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
           ],
         );
       },
     );
   }
-}
-
-class _PortraitFullscreenActionLayout extends SingleChildLayoutDelegate {
-  const _PortraitFullscreenActionLayout({required this.bottom});
-
-  final double bottom;
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
-      BoxConstraints.loose(Size((constraints.maxWidth - 24).clamp(48.0, 180.0), constraints.maxHeight));
-
-  @override
-  Offset getPositionForChild(Size size, Size childSize) => Offset(
-    (size.width - childSize.width - 12).clamp(0.0, size.width - childSize.width),
-    // Anchor using the measured height, not a fixed icon-button estimate: large
-    // accessibility text must stay inside the viewport during a PiP resize.
-    (size.height - bottom - childSize.height).clamp(0.0, size.height - childSize.height),
-  );
-
-  @override
-  bool shouldRelayout(_PortraitFullscreenActionLayout oldDelegate) => bottom != oldDelegate.bottom;
 }
 
 @visibleForTesting
@@ -715,16 +518,6 @@ class LivePlayContent extends StatelessWidget {
             sourceAspectRatio: manager.currentPresentationAspectRatio,
             adaptivePortraitHeight: settings.enablePortraitStreamAdaptation.v && settings.portraitAdaptiveHeight.v,
             portraitLayoutMode: settings.portraitLayoutMode,
-            onEnterLandscapeFullscreen: () {
-              final videoController = controller.state.value.player.videoController;
-              if (videoController != null) unawaited(videoController.enterLandscapeFullScreen());
-            },
-            onEnterPortraitFullscreen: PlatformUtils.isAndroid
-                ? () {
-                    final videoController = controller.state.value.player.videoController;
-                    if (videoController != null) unawaited(videoController.enterPortraitFullScreen());
-                  }
-                : null,
           );
         }),
       ),

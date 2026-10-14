@@ -1,30 +1,7 @@
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
-
-enum PortraitPanelDragDisposition { restorePanel, enterFullscreen }
-
-const double portraitFullscreenRestoreGestureZone = 96;
-// Shared by the controls and entry guidance so their layout cannot drift.
-const double portraitFullscreenComposerHeight = 48;
-const double portraitFullscreenControlsHeight = 112;
-
-PortraitPanelDragDisposition resolvePortraitPanelDragEnd({
-  required bool entryEnabled,
-  required double dismissOffset,
-  required double panelHeight,
-  required double velocity,
-}) {
-  if (!entryEnabled || dismissOffset <= 0 || panelHeight <= 0) {
-    return PortraitPanelDragDisposition.restorePanel;
-  }
-  final distanceThreshold = (panelHeight * 0.30).clamp(72.0, 144.0).toDouble();
-  final passedDistance = dismissOffset >= distanceThreshold;
-  final passedFling = velocity >= 900 && dismissOffset >= 28;
-  return passedDistance || passedFling
-      ? PortraitPanelDragDisposition.enterFullscreen
-      : PortraitPanelDragDisposition.restorePanel;
-}
+import 'package:pure_live/core/player/presentation/player_control_density.dart';
 
 bool canEnterPortraitPanelFullscreen({
   required bool isPortraitSource,
@@ -139,9 +116,11 @@ class _PortraitFullscreenEntryHintState extends State<PortraitFullscreenEntryHin
 
   @override
   Widget build(BuildContext context) {
+    // Above the bottom control bar, which adds the system inset to its height.
+    final inset = MediaQuery.viewPaddingOf(context);
     return IgnorePointer(
-      child: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(12, 0, 12, portraitFullscreenControlsHeight + 12),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(inset.left + 12, 0, inset.right + 12, inset.bottom + compactPlayerBarHeight + 12),
         child: Align(
           alignment: Alignment.bottomCenter,
           child: AnimatedOpacity(

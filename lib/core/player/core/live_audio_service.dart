@@ -80,12 +80,16 @@ class LiveAudioService {
     _sleepTimer = null;
   }
 
-  static Future<void> configureBackgroundPlayback({required bool enabled}) {
-    return BackgroundPlaybackService.setKeepAlive(enabled);
+  /// The background play switch changed. The foreground service and the
+  /// locks are taken by the room when the app leaves (its
+  /// `BackgroundPlaybackKeeper`); switching off lets go of anything held.
+  static Future<void> configureBackgroundPlayback({required bool enabled}) async {
+    if (!enabled) await BackgroundPlaybackService.setForegroundHold(false);
   }
 
+  /// Re-applies the locks to the current foreground hold.
   static Future<void> syncKeepAlive() {
-    return configureBackgroundPlayback(enabled: SettingsService.to.app.enableBackgroundPlay.v);
+    return BackgroundPlaybackService.setKeepAlive(BackgroundPlaybackService.foregroundHeld);
   }
 
   static Future<bool> requestPlatformPermissions() async {

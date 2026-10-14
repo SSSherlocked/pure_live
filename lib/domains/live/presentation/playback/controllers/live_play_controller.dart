@@ -14,6 +14,9 @@ import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts;
 import 'package:pure_live/core/models/live_play_quality.dart';
 import 'package:pure_live/core/player/core/playback_source.dart';
 import 'package:pure_live/core/player/core/live_audio_service.dart';
+import 'package:pure_live/core/player/core/background_playback_keeper.dart';
+import 'package:pure_live/core/player/core/background_playback_service.dart';
+import 'package:media_core/media_core.dart' show PlayerPlaybackState;
 import 'package:pure_live/domains/live/domain/live_player_facade.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
@@ -91,18 +94,32 @@ class LivePlayController extends GetxController
   late Site currentSite;
   late TabController tabController;
 
-  // Automatic reconnect after a network-class playback failure: retried at
-  // 5/10/20/30/60 s (the last repeats) for up to 30 minutes, and at once when
-  // the device reports a network again (wzgrx/pure_live G02.3 / O01.3).
-  static const List<int> _reconnectDelaysSeconds = [2, 10, 20, 30, 60];
-  static const Duration _reconnectWindow = Duration(minutes: 30);
+  // Automatic reconnect after a dropped stream (a network-class failure, or
+  // every line failing once the room has played): retried at 2/10/20/30/60 s
+  // (the last repeats) for up to 30 minutes, and at once when the device
+  // reports a network again (wzgrx/pure_live G02.3 / O01.3). Away from the
+  // app it only runs while the room keeps its foreground service
+  // ([BackgroundPlaybackKeeper.mayStartPlayback]).
+  static const ReconnectSchedule _reconnectSchedule = ReconnectSchedule();
   Timer? _reconnectTimer;
   StreamSubscription<List<ConnectivityResult>>? _reconnectConnectivity;
   DateTime? _reconnectStartedAt;
   int _reconnectAttempt = 0;
   bool _reconnecting = false;
 
-  /// A network-class playback failure: keep trying until the room plays again.
+  /// An attempt came due away from the app while the room may not start by
+  /// itself; it runs when the user is back.
+  bool _reconnectDeferred = false;
+
+  /// The current room played at least once since it was opened.
+  bool _roomHasPlayed = false;
+
+  /// Whether a failure that exhausted every line is a dropped stream to
+  /// reconnect (the room played, or is already reconnecting) rather than a
+  /// room that never opened.
+  bool get reconnectsDroppedStream => _roomHasPlayed || _reconnectStartedAt != null;
+
+  /// A dropped stream: keep trying until the room plays again.
   void onPlaybackNetworkError() {
     if (isClosed || _ownerClosed) return;
     final firstFailure = _reconnectStartedAt == null;
@@ -113,14 +130,15 @@ class LivePlayController extends GetxController
         _scheduleReconnect(const Duration(seconds: 1));
       }
     });
-    final index = _reconnectAttempt < _reconnectDelaysSeconds.length
-        ? _reconnectAttempt
-        : _reconnectDelaysSeconds.length - 1;
-    _scheduleReconnect(Duration(seconds: _reconnectDelaysSeconds[index]));
+    _scheduleReconnect(_reconnectSchedule.delayBefore(_reconnectAttempt));
+    _syncBackgroundHold();
   }
 
   /// The room plays again: stop the reconnect ladder.
-  void notifyPlaybackRecovered() => _stopReconnect();
+  void notifyPlaybackRecovered() {
+    _roomHasPlayed = true;
+    _stopReconnect();
+  }
 
   void _scheduleReconnect(Duration delay) {
     if (isClosed || _ownerClosed || _reconnectStartedAt == null) return;
@@ -135,7 +153,17 @@ class LivePlayController extends GetxController
       _stopReconnect();
       return;
     }
-    if (DateTime.now().difference(startedAt) > _reconnectWindow) {
+    if (!_backgroundKeeper.mayStartPlayback) {
+      // Away from the app and nothing is kept: the room was not playing when
+      // the app left, the user paused it, or the wait ran out. It must not
+      // start there by itself (and Android would refuse its foreground
+      // service); the user's return tries again (C01.5).
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+      _reconnectDeferred = true;
+      return;
+    }
+    if (_reconnectSchedule.isExhausted(DateTime.now().difference(startedAt))) {
       _stopReconnect();
       return;
     }
@@ -157,11 +185,18 @@ class LivePlayController extends GetxController
     // Keep the ladder going even when a failed attempt raised no player error
     // (for example the room page itself did not load).
     if (!GlobalPlayerService.instance.player.isPlayingNow) {
-      final index = _reconnectAttempt < _reconnectDelaysSeconds.length
-          ? _reconnectAttempt
-          : _reconnectDelaysSeconds.length - 1;
-      _scheduleReconnect(Duration(seconds: _reconnectDelaysSeconds[index]));
+      _scheduleReconnect(_reconnectSchedule.delayBefore(_reconnectAttempt));
     }
+  }
+
+  /// The user is back: a ladder that waited for them starts afresh, now.
+  void _resumeDeferredReconnect() {
+    if (!_reconnectDeferred || isClosed || _ownerClosed) return;
+    _reconnectDeferred = false;
+    if (_reconnectStartedAt == null) return;
+    _reconnectStartedAt = DateTime.now();
+    _reconnectAttempt = 0;
+    _scheduleReconnect(Duration.zero);
   }
 
   // A stream that stops moving without an error is refreshed (as Simple Live
@@ -198,6 +233,76 @@ class LivePlayController extends GetxController
     _reconnectConnectivity = null;
     _reconnectStartedAt = null;
     _reconnectAttempt = 0;
+    _reconnectDeferred = false;
+    _syncBackgroundHold();
+  }
+
+  // Background play (wzgrx/pure_live O01.3 / C01.5, Android): away from the
+  // app the keeper decides whether the room keeps the media notification's
+  // foreground service and the CPU/Wi-Fi locks, and whether it may start
+  // playing by itself (see BackgroundPlaybackKeeper).
+  late final BackgroundPlaybackKeeper _backgroundKeeper = BackgroundPlaybackKeeper(onChanged: _applyBackgroundHold);
+  late final void Function() _remotePauseListener = _onRemotePause;
+  StreamSubscription<Object?>? _playerPhaseSub;
+  BackgroundPlayerPhase _playerPhase = BackgroundPlayerPhase.idle;
+  BackgroundKeeperInput? _lastKeeperInput;
+  Worker? _roomStateHoldWorker;
+
+  static BackgroundPlayerPhase _phaseOf(PlayerPlaybackState playback) => switch (playback) {
+    PlayerPlaybackState.playing => BackgroundPlayerPhase.playing,
+    PlayerPlaybackState.opening ||
+    PlayerPlaybackState.buffering ||
+    PlayerPlaybackState.seeking => BackgroundPlayerPhase.starting,
+    PlayerPlaybackState.paused => BackgroundPlayerPhase.paused,
+    PlayerPlaybackState.error => BackgroundPlayerPhase.failed,
+    PlayerPlaybackState.idle ||
+    PlayerPlaybackState.stopping ||
+    PlayerPlaybackState.stopped ||
+    PlayerPlaybackState.completed => BackgroundPlayerPhase.idle,
+  };
+
+  /// Out of sight (not picture-in-picture) with background play or a sleep
+  /// session on. Android only: that is where the foreground service lives.
+  bool get _isAwayForBackgroundPlay =>
+      Platform.isAndroid &&
+      _wasBackgrounded &&
+      !GlobalPlayerService.instance.player.isInPip.value &&
+      LiveAudioService.shouldContinueInBackground;
+
+  void _syncBackgroundHold() {
+    if (isClosed || _ownerClosed) return;
+    final input = BackgroundKeeperInput(
+      away: _isAwayForBackgroundPlay,
+      phase: _playerPhase,
+      reconnecting: _reconnectStartedAt != null,
+      roomOffline: !state.value.room.isLiving,
+      interrupted: LiveAudioFocus.instance.pausedByInterruption.value,
+    );
+    if (input == _lastKeeperInput) return;
+    _lastKeeperInput = input;
+    _backgroundKeeper.update(input);
+    _applyBackgroundHold();
+  }
+
+  void _applyBackgroundHold() {
+    if (isClosed || _ownerClosed) return;
+    unawaited(BackgroundPlaybackService.setForegroundHold(_backgroundKeeper.hold != BackgroundHold.none));
+  }
+
+  /// The notification, the lock screen or a headset button paused or
+  /// stopped the room: a call's planned resume is dropped too.
+  void _onRemotePause() {
+    if (isClosed || _ownerClosed) return;
+    LiveAudioFocus.instance.forgetResume();
+    _markUserPause();
+  }
+
+  /// The user's pause (also headphones unplugged, the room timer): nothing is
+  /// kept or started away from the app until the room plays again.
+  void _markUserPause() {
+    if (isClosed || _ownerClosed) return;
+    _backgroundKeeper.markUserPause();
+    _applyBackgroundHold();
   }
 
   /// Keeps the room's fullscreen state in step with the desktop window.
@@ -277,6 +382,19 @@ class LivePlayController extends GetxController
 
     final manager = GlobalPlayerService.instance.player;
     _longStallSub = manager.onLongStall.listen(_onLongStall);
+    _playerPhase = manager.isPlayingNow ? BackgroundPlayerPhase.playing : BackgroundPlayerPhase.idle;
+    // Re-entered from the small window while it plays: no "playing" event
+    // will come for what already plays.
+    _roomHasPlayed = manager.isPlayingNow;
+    _playerPhaseSub = manager.onStateChanged.listen((coreState) {
+      final phase = _phaseOf(coreState.playback);
+      if (phase == _playerPhase) return;
+      _playerPhase = phase;
+      _syncBackgroundHold();
+    });
+    LiveAudioFocus.instance.pausedByInterruption.addListener(_syncBackgroundHold);
+    LiveAudioFocus.instance.onNoisyPause = _markUserPause;
+    BackgroundPlaybackService.setRemotePauseListener(_remotePauseListener);
     _reentrySession = manager.consumeRoomSessionReentry(room);
     final resumesCurrentSession = _reentrySession != null;
     final autoStartAsmr = Platform.isAndroid && SettingsService.to.app.enableAsmrSleepMode.v;
@@ -331,7 +449,10 @@ class LivePlayController extends GetxController
       final returnedFromPip = _wasInSystemPip && !isInPip;
       _wasInSystemPip = isInPip;
       if (returnedFromPip) _restoreDanmakuPresentation();
+      _syncBackgroundHold();
     });
+    // Whether the room is on air is part of what the background keeper reads.
+    _roomStateHoldWorker = ever<LivePlayState>(state, (_) => _syncBackgroundHold());
     _initTab();
     Future.microtask(_initCore);
 
@@ -350,10 +471,13 @@ class LivePlayController extends GetxController
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden || state == AppLifecycleState.detached) {
       _wasBackgrounded = true;
+      _syncBackgroundHold();
       return;
     }
     if (state != AppLifecycleState.resumed || !_wasBackgrounded) return;
     _wasBackgrounded = false;
+    _syncBackgroundHold();
+    _resumeDeferredReconnect();
     if (!GlobalPlayerService.instance.player.isInPip.value) {
       _restoreDanmakuPresentation();
     }
@@ -746,6 +870,7 @@ class LivePlayController extends GetxController
   }
 
   Future<void> _onRoomPlaybackTimerEnded() async {
+    _markUserPause();
     updateUI(closeTimeFlag: false);
     await GlobalPlayerService.instance.player.pause();
     await LiveAudioService.stop();
@@ -1073,6 +1198,7 @@ class LivePlayController extends GetxController
     // A reconnect ladder, and a stall-refresh count, belong to the room they
     // started for.
     _stopReconnect();
+    _roomHasPlayed = false;
     _stallRefreshes = 0;
     _lastStallRefreshAt = null;
     // Fence any room-detail/play-quality request that was started before this
@@ -1364,6 +1490,14 @@ class LivePlayController extends GetxController
     _stopReconnect();
     unawaited(_longStallSub?.cancel());
     _longStallSub = null;
+    unawaited(_playerPhaseSub?.cancel());
+    _playerPhaseSub = null;
+    _roomStateHoldWorker?.dispose();
+    LiveAudioFocus.instance.pausedByInterruption.removeListener(_syncBackgroundHold);
+    if (LiveAudioFocus.instance.onNoisyPause == _markUserPause) LiveAudioFocus.instance.onNoisyPause = null;
+    BackgroundPlaybackService.clearRemotePauseListener(_remotePauseListener);
+    _backgroundKeeper.dispose();
+    unawaited(BackgroundPlaybackService.setForegroundHold(false));
     _ownerClosed = true;
     _roomLoadEpoch++;
     _iptvPlaybackEpoch++;

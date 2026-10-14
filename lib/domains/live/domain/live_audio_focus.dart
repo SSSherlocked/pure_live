@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 
 /// Audio focus for a live room on phones and tablets.
@@ -22,8 +23,23 @@ class LiveAudioFocus {
   StreamSubscription<AudioInterruptionEvent>? _interruptions;
   StreamSubscription<void>? _noisy;
   AudioSession? _session;
-  bool _pausedByInterruption = false;
   bool _attached = false;
+
+  /// Whether a call (or another app) paused the room and the end of the
+  /// interruption resumes it. Away from the app the room keeps its
+  /// foreground service meanwhile (BackgroundPlaybackKeeper).
+  final ValueNotifier<bool> pausedByInterruption = ValueNotifier<bool>(false);
+
+  /// Headphones were unplugged and the room paused: the user's pause, not
+  /// one to wait out.
+  void Function()? onNoisyPause;
+
+  bool get _pausedByInterruption => pausedByInterruption.value;
+  set _pausedByInterruption(bool value) => pausedByInterruption.value = value;
+
+  /// The user paused or stopped during an interruption (notification, lock
+  /// screen): its end leaves the room paused.
+  void forgetResume() => _pausedByInterruption = false;
 
   /// Bumped by every attach and detach, so an attach still awaiting the session
   /// can tell that it was detached (or superseded) in the meantime.
@@ -54,7 +70,10 @@ class LiveAudioFocus {
       _noisy = session.becomingNoisyEventStream.listen((_) {
         _pausedByInterruption = false;
         final player = GlobalPlayerService.instance.player;
-        if (player.isPlayingNow) unawaited(player.pause());
+        if (player.isPlayingNow) {
+          onNoisyPause?.call();
+          unawaited(player.pause());
+        }
       });
     } catch (_) {
       // Audio focus is a courtesy; playback must not depend on it.

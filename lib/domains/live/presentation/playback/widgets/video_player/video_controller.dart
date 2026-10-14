@@ -842,7 +842,15 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     _lastPlayerErrorAt = now;
 
     final category = ErrorClassifier.classify(error.code);
-    if (category == PlayerErrorCategory.network ||
+    // The live sweep reports every failure that exhausted the lines as "no
+    // playable stream", which is also what a stream that dropped (a network
+    // loss, a broadcast that ended) becomes. Once the room has played, or
+    // while it is already reconnecting, that is a drop to recover from, not
+    // a codec problem.
+    final droppedStream =
+        error.code.value == PlayerErrorCode.noPlayableStream.value && _livePlayController.reconnectsDroppedStream;
+    if (droppedStream ||
+        category == PlayerErrorCategory.network ||
         category == PlayerErrorCategory.http ||
         category == PlayerErrorCategory.timeout) {
       // The room reconnects by itself; its first notice replaces the toast.

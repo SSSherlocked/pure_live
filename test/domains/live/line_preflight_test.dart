@@ -22,7 +22,7 @@ void main() {
   );
 
   group('线路预检', () {
-    test('连不上的线路排到最后，两边各自保持原顺序，并记下每台主机的判定', () async {
+    test('完全连不上的线路排到最后；只是首个地址不通的线路留在原位交给中继；并记下每台主机的判定', () async {
       final outcome = await preflight({
         'd1--ov-gotcha07.bilivideo.com': LineReach.firstAddressDead,
         'd1--ov-gotcha07b.bilivideo.com': LineReach.firstAddressDead,
@@ -30,7 +30,7 @@ void main() {
         'd1--ov-gotcha207.bilivideo.com': LineReach.reachable,
       }).order([_source(v6Dead), _source(v6DeadBackup), _source(silent), _source(healthy)]);
 
-      expect(_urls(outcome.sources), [healthy, v6Dead, v6DeadBackup, silent]);
+      expect(_urls(outcome.sources), [v6Dead, v6DeadBackup, healthy, silent]);
       expect(outcome.verdictOf(Uri.parse(v6Dead)), LineReach.firstAddressDead);
       expect(outcome.verdictOf(Uri.parse(silent)), LineReach.dead);
       expect(outcome.verdictOf(Uri.parse(healthy)), LineReach.reachable);

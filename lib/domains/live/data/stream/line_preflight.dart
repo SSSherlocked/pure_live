@@ -44,11 +44,14 @@ class LinePreflightOutcome {
 /// before the next line gets its turn: a cold start on such a network sat
 /// black and silent for 40 s while the one working line waited at the end of
 /// the list. The probe connects from Dart with a short timeout, in parallel
-/// for every line, and moves the lines that fail behind the ones that
-/// answer. No line is dropped: the engine still tries them all, just in a
-/// better order. A line whose host is only reachable past its first address
-/// is reported as such, so the caller can hand it to a Dart relay instead of
-/// a native engine.
+/// for every line, and moves the lines no address of which answers behind
+/// the others. No line is dropped: the engine still tries them all, just in
+/// a better order. A line whose host is only reachable past its first
+/// address keeps its place and is reported as such, so the caller hands it
+/// to a Dart relay instead of a native engine: moving it back instead made
+/// Bilibili, whose FLV lines come first and are the ones that play
+/// smoothly, start on an HLS line, and mpv's live HLS (a new TLS connection
+/// per segment, segments expiring under it) stuttered badly.
 class LinePreflight {
   LinePreflight({LineProbe? probe, this.timeout = const Duration(milliseconds: 1500)})
     : _probe = probe ?? connectProbe;
@@ -66,7 +69,8 @@ class LinePreflight {
   static String hostKey(Uri uri) => '${uri.host.toLowerCase()}:${uri.port}';
 
   /// Probes the http(s) lines of [sources] and returns them with the ones
-  /// that did not answer moved last, relative order kept on both sides.
+  /// no address of which answered moved last, relative order kept on both
+  /// sides.
   Future<LinePreflightOutcome> order(List<PlayerSource> sources) async {
     final probed = <int>[
       for (var index = 0; index < sources.length; index++)
@@ -82,7 +86,7 @@ class LinePreflight {
     };
     final unreachable = <int>{
       for (var position = 0; position < probed.length; position++)
-        if (results[position] != LineReach.reachable) probed[position],
+        if (results[position] == LineReach.dead) probed[position],
     };
     final hosts = unreachable
         .map((index) => '${sources[index].uri.host} (${verdicts[hostKey(sources[index].uri)]!.name})')

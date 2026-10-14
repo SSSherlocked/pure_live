@@ -126,13 +126,27 @@ void main() {
       expect(transport.prepareCalls, 0);
     });
 
-    test('预检把能连上的线路排到前面，首选线路不走中继', () async {
+    test('首地址不通的首选线路留在原位，交给 Dart 中继', () async {
       final transport = _ScriptedTransport();
       final interceptor = IngestSourceInterceptor(
         transport: transport,
         preflight: LinePreflight(
           probe: (uri, _) async =>
               uri.host == 'cdn2.example.com' ? LineReach.reachable : LineReach.firstAddressDead,
+        ),
+      );
+
+      await interceptor.intercept(PlaybackSourceInterception(sources: [_source(primary), _source(backup)]));
+      expect(transport.requestedUrl, primary);
+      expect(transport.requestedRelayPreferred, isTrue);
+    });
+
+    test('完全连不上的首选线路排到后面，能连上的线路直接播放', () async {
+      final transport = _ScriptedTransport();
+      final interceptor = IngestSourceInterceptor(
+        transport: transport,
+        preflight: LinePreflight(
+          probe: (uri, _) async => uri.host == 'cdn2.example.com' ? LineReach.reachable : LineReach.dead,
         ),
       );
 

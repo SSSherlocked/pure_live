@@ -157,8 +157,15 @@ extension AppLayoutFactory on BuildContext {
     bool isLong = false,
     bool stackTrailingOnNarrow = false,
     bool showNavigationChevronWhenStacked = true,
+    bool destructive = false,
   }) {
     final theme = Theme.of(this);
+    // A destructive action (clearing files, a cache) is not a way into
+    // another page: its icon is red and it has no navigation chevron.
+    if (destructive) {
+      iconColor ??= theme.colorScheme.error;
+      showNavigationChevronWhenStacked = false;
+    }
 
     Widget? leadingWidget;
     if (iconWidget != null) {
@@ -217,7 +224,7 @@ extension AppLayoutFactory on BuildContext {
             padding: const EdgeInsets.only(top: 4),
             child:
                 trailing ??
-                (onTap != null
+                (onTap != null && !destructive
                     ? Icon(Icons.chevron_right_rounded, color: theme.hintColor.withValues(alpha: 0.4), size: 20)
                     : null),
           ),

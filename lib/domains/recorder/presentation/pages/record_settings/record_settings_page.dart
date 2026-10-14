@@ -98,6 +98,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
               }),
               context.buildTile(
                 icon: Remix.delete_bin_4_line,
+                destructive: true,
                 title: i18n("clear_all_cache"),
                 subtitle: i18n("clear_all_cache_desc"),
                 trailing: controller.cacheClearPending.value

@@ -165,12 +165,11 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
             Obx(
               () => context.buildTile(
                 icon: Remix.delete_bin_6_line,
+                destructive: true,
                 title: i18n('clear_local_cache'),
                 subtitle: i18n('clear_local_cache_desc'),
                 isLong: true,
-                trailing: SettingsService.to.cache.isClearing.value
-                    ? _progressIndicator(theme.colorScheme.error)
-                    : Icon(Remix.delete_bin_6_line, color: theme.colorScheme.error),
+                trailing: SettingsService.to.cache.isClearing.value ? _progressIndicator(theme.colorScheme.error) : null,
                 onTap: SettingsService.to.cache.isBusy || _clearTransactionBusy
                     ? null
                     : () => _confirmClearCache(theme),

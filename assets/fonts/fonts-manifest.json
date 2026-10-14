@@ -1,16 +1,5 @@
 [
     {
-        "id": "pingfang",
-        "name": "苹方",
-        "files": ["ping-fang/PingFangSC.ttf"],
-        "desc": "苹方（PingFang）是苹果平台使用的系统字体，主要用于简体中文、繁体中文及其他东亚文字的界面显示。",
-        "official": "https://developer.apple.com/fonts/",
-        "license": {
-            "name": "Apple字体许可协议",
-            "url": "https://www.apple.com/legal/sla/"
-        }
-    },
-    {
         "id": "judousansui",
         "name": "句读黑体 UI Hans",
         "files": [

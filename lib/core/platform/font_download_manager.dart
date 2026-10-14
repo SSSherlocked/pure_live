@@ -148,7 +148,9 @@ class FontDownloadManager {
       if (await stagedDir.exists()) await stagedDir.delete(recursive: true);
       await stagedDir.create(recursive: true);
 
-      final mirror = GitHubMirror(owner: 'liuchuancong', repo: 'fonts', branch: 'master');
+      // The project's own copy of the font repository (forked from
+      // SlotSun/fonts); assets/fonts/fonts-manifest.json mirrors its manifest.
+      final mirror = GitHubMirror(owner: 'SSSherlocked', repo: 'fonts', branch: 'master');
       final fileNames = <String>{};
 
       for (final filePath in fontModel.files) {

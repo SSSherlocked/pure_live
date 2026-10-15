@@ -552,10 +552,10 @@ class LiveRoom {
 
   bool get isLiveNow => effectiveLiveStatus == LiveStatus.live;
 
-  bool get isPlayableNow =>
-      effectiveLiveStatus == LiveStatus.live ||
-      effectiveLiveStatus == LiveStatus.replay ||
-      effectiveLiveStatus == LiveStatus.carousel;
+  /// A carousel (轮播: a room replaying old videos while its streamer is
+  /// away) counts as not live: it is listed under 未开播 and opens as 已下播,
+  /// as a broadcast that ended does.
+  bool get isPlayableNow => effectiveLiveStatus == LiveStatus.live || effectiveLiveStatus == LiveStatus.replay;
 
   bool get isCarouselNow => effectiveLiveStatus == LiveStatus.carousel;
 

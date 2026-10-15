@@ -539,8 +539,11 @@ class PlayerController extends GetxController {
       if (!_isLoadCurrent(loadEpoch, room, site)) return;
 
       if (playQualites.isEmpty) {
-        ToastUtil.show(i18n('cannot_read_video_info'));
-        _main.updateRoom(success: false);
+        final message = i18n('cannot_read_video_info');
+        ToastUtil.show(message);
+        // An error, not just "no success": a live room without one keeps its
+        // loading spinner for good (no retry, no long press).
+        _main.updateRoom(success: false, loadError: message);
         return;
       }
 
@@ -559,11 +562,14 @@ class PlayerController extends GetxController {
         name: 'PlayerController',
         stackTrace: stackTrace,
       );
-      ToastUtil.show(i18n(streamMetadataFailureKey(
+      final message = i18n(streamMetadataFailureKey(
         error: error,
         appProxyEnabled: SettingsService.to.proxy.enableAppProxy.v,
-      )));
-      _main.updateRoom(success: false);
+      ));
+      ToastUtil.show(message);
+      // Shown as a failed load (retry, long press for 关注), not as a room
+      // still loading.
+      _main.updateRoom(success: false, loadError: message);
     }
   }
 

@@ -720,9 +720,12 @@ class HuyaSite
           avatar: gameLiveInfo["avatar180"]?.toString() ?? '',
           introduction: gameLiveInfo["introduction"]?.toString() ?? '',
           notice: gameLiveInfo["introduction"]?.toString() ?? '',
-          isRecord: isReplay,
+          // Huya's replays have no stream this site can open (the page lists
+          // streams only while live), so a replay room is 未开播, not 录播:
+          // it opened into a stream read that failed.
+          isRecord: false,
           status: isLiving,
-          liveStatus: isReplay ? LiveStatus.replay : parseHuyaLiveStatus(state),
+          liveStatus: isReplay ? LiveStatus.offline : parseHuyaLiveStatus(state),
           platform: PlatformIds.huya,
           restriction: isPaidRoom ? LiveRestriction.paid : LiveRestriction.none,
           data: HuyaUrlDataModel(
@@ -777,7 +780,8 @@ class HuyaSite
   static LiveStatus parseHuyaLiveStatus(Object? value) {
     return switch (value?.toString().trim().toUpperCase()) {
       'ON' => LiveStatus.live,
-      'REPLAY' => LiveStatus.replay,
+      // A replay cannot be played here (see the room detail): offline.
+      'REPLAY' => LiveStatus.offline,
       'OFF' || 'OFFLINE' || 'CLOSED' => LiveStatus.offline,
       _ => LiveStatus.unknown,
     };

@@ -160,14 +160,6 @@ abstract final class MediaKitLiveProperties {
       // symbols during mpv_render_context_create. videotoolbox-copy still
       // decodes in hardware and hands system-memory frames to that texture.
       enableHardwareAcceleration: segment.enableCodec && !Platform.isMacOS,
-      // Android: render into a SurfaceTexture, not a SurfaceProducer. Under
-      // Impeller the producer is an ImageReader, and every time the app left
-      // the foreground the playback loop stalled and the sound cut out for
-      // about a second (an "Audio device underrun" at each switch, with any
-      // --ao and any quality). Exo, which also renders into a producer, cut
-      // out the same way; IJK, which renders into a SurfaceTexture, did not.
-      // Only Android reads this.
-      enableAndroidSurfaceProducer: false,
     );
   }
 

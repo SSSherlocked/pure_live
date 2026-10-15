@@ -24,13 +24,14 @@ abstract final class PlatformColors {
   /// How a tinted platform tag (the room header's, a compact card's) is
   /// drawn on [colors]' page: the brand colour as text, kept readable, over a
   /// faint tint of it. On a dark page a near-black brand (抖音) fills the tag
-  /// black with white text instead: lightened to a readable grey it barely
-  /// stood out. Null for a platform without a brand colour.
+  /// black with light text instead (lightened to a readable grey it barely
+  /// stood out); the text a touch under white, which glared on the black.
+  /// Null for a platform without a brand colour.
   static ({Color text, Color fill, Color border})? tintedTag(String? platform, ColorScheme colors) {
     final brand = of(platform);
     if (brand == null) return null;
     if (colors.brightness == Brightness.dark && brand.computeLuminance() < 0.05) {
-      return (text: Colors.white, fill: Colors.black, border: Colors.white.withValues(alpha: .3));
+      return (text: const Color(0xFFDDDDDD), fill: Colors.black, border: Colors.white.withValues(alpha: .3));
     }
     final text = readablePrimary(brand.withValues(alpha: 1), colors.surface);
     return (text: text, fill: text.withValues(alpha: .14), border: text.withValues(alpha: .35));

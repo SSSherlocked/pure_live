@@ -12,7 +12,7 @@ import 'package:media_core/media_core.dart' hide PlatformUtils;
 import 'package:media_core_list_playback/media_core_list_playback.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
-import 'package:pure_live/domains/live/domain/global_player_service.dart';
+import 'package:pure_live/core/player/core/live_playback_hooks.dart';
 import 'package:pure_live/core/player/kernel/floating_handle_keeper.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
@@ -164,12 +164,9 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   /// 从直播间进入本页时，直播间的播放器还挂在路由栈下面继续出声、其视频层
   /// 也仍在合成：录像播放开始前把它暂停，返回直播间时由观众自己继续。
   void _pauseLivePlayback() {
-    try {
-      final live = GlobalPlayerService.instance.player;
-      if (live.isPlayingNow) unawaited(live.pause());
-    } catch (_) {
-      // 直播内核未初始化（非直播间路径打开）时无事可做。
-    }
+    // 直播内核未初始化（非直播间路径打开）时没有登记，无事可做。
+    final pause = LivePlaybackHooks.pauseIfPlaying;
+    if (pause != null) unawaited(pause());
   }
 
   @override

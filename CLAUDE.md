@@ -12,7 +12,7 @@
 - 没有 WSL，也不用 Windows PowerShell 工具链、本地打包或设备测试；原项目的这些脚本和文档已删除，不要再加回来。
 - 本机能跑的只有 Python 工具。用一个装了 `pyyaml` 的虚拟环境运行：
   - `tool/audit_repository.py`：仓库审计
-  - `tool/validate_architecture.py`：分层规则（目前有 1 条已知的未批准违规：`domains/recorder -> global_player_service`）
+  - `tool/validate_architecture.py`：分层规则（应为 0 条未批准违规）
   - `tool/check_text_styles.py`：禁止写死字号
   - `tool/check_settings_width.py`：设置页必须限宽
   - `tool/release_version.py check`：版本号与更新源一致

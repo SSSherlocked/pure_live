@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
 import 'package:pure_live/core/player/core/live_audio_service.dart';
+import 'package:pure_live/core/player/core/live_playback_hooks.dart';
 import 'package:pure_live/domains/live/domain/live_player_facade.dart';
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/core/player/models/player_engine.dart';
@@ -59,6 +60,10 @@ class GlobalPlayerService {
       commitAudioOnlyPowerSaving: () => playerManager.setAudioOnly(true),
       prepareAudioOnlyVideoRestore: () => playerManager.setAudioOnly(false),
     )..start();
+    // A recording opened over a live room pauses it first (recorder domain).
+    LivePlaybackHooks.pauseIfPlaying = () async {
+      if (playerManager.isPlayingNow) await playerManager.pause();
+    };
     // The sleep timer (ASMR) pauses the room when it ends.
     LiveAudioService.configurePlaybackCommands(pause: () => playerManager.pause());
     _initialized = true;

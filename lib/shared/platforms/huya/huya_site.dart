@@ -660,8 +660,15 @@ class HuyaSite
         final gameLiveInfo = streamDataJson["gameLiveInfo"] is Map
             ? Map<String, dynamic>.from(streamDataJson["gameLiveInfo"] as Map)
             : <String, dynamic>{};
-        final state = roomDataJson["state"]?.toString() ?? '';
+        var state = roomDataJson["state"]?.toString() ?? '';
         final isReplay = roomDataJson["isReplay"] == true;
+        // The page keeps saying ON for hours after a broadcast ended, and
+        // its streams then answer 404 (a black room). The mobile profile API
+        // already knows: a room it reports as anything but ON has ended.
+        if (state == 'ON' && !isReplay) {
+          final confirmed = await _profileLiveState(roomId);
+          if (confirmed != null && confirmed != 'ON') state = 'OFF';
+        }
         final isLiving = state == 'ON' && !isReplay;
 
         var topSid = 0;
@@ -744,6 +751,26 @@ class HuyaSite
       return currentRoom!.getLiveRoomWithError();
     }
     return LiveRoom(roomId: roomId, platform: platform).getLiveRoomWithError();
+  }
+
+  /// The live state (ON, REPLAY, OFF) Huya's mobile profile API reports for
+  /// [roomId], or null when it cannot be read: the room page's state alone
+  /// is then used.
+  Future<String?> _profileLiveState(String roomId) async {
+    try {
+      final raw = await HttpClient.instance.getJson(
+        "https://mp.huya.com/cache.php",
+        queryParameters: {"m": "Live", "do": "profileRoom", "roomid": roomId, "showSecret": 1},
+        header: {"user-agent": kUserAgent},
+      );
+      final decoded = raw is String ? json.decode(raw) : raw;
+      final data = decoded is Map ? decoded["data"] : null;
+      if (data is! Map) return null;
+      final state = (data["realLiveStatus"] ?? data["liveStatus"])?.toString().trim().toUpperCase() ?? '';
+      return state.isEmpty ? null : state;
+    } catch (_) {
+      return null;
+    }
   }
 
   @visibleForTesting

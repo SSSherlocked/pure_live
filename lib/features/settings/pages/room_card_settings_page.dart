@@ -270,20 +270,29 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             // the same in every display profile.
             context.buildGroupTitle(i18n("menu")),
             context.buildModernCard([
-              for (final (menu, icon, title) in [
-                (HomeMenu.areas, Remix.apps_2_line, i18n("areas_title")),
-                (HomeMenu.popular, Remix.fire_line, i18n("popular_title")),
+              for (final (menu, icon, title, page) in [
+                (HomeMenu.search, Remix.search_line, i18n("search_live"), RoomListPage.search),
+                (HomeMenu.areas, Remix.apps_2_line, i18n("areas_title"), RoomListPage.areaRooms),
+                (HomeMenu.popular, Remix.fire_line, i18n("popular_title"), RoomListPage.popular),
               ])
                 KeyedSubtree(
                   key: ValueKey('menu-entry-${menu.id}'),
                   child: Obx(
-                    () => context.buildSwitchTile(
-                      title: title,
-                      subtitle: i18n("menu_entry_visible_subtitle"),
-                      value: SettingsService.to.app.showsMenu(menu).obs,
-                      icon: icon,
-                      autoCommit: false,
-                      onChanged: (visible) => SettingsService.to.app.toggleMenuVisibility(menu, visible),
+                    () => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        context.buildSwitchTile(
+                          title: title,
+                          subtitle: i18n("menu_entry_visible_subtitle"),
+                          value: SettingsService.to.app.showsMenu(menu).obs,
+                          icon: icon,
+                          autoCommit: false,
+                          onChanged: (visible) => SettingsService.to.app.toggleMenuVisibility(menu, visible),
+                        ),
+                        // The page's rooms as 紧凑信息 or 封面卡片, each with
+                        // the gaps set above for it.
+                        if (SettingsService.to.app.showsMenu(menu)) _pageLayoutChoice(controller, page),
+                      ],
                     ),
                   ),
                 ),
@@ -396,6 +405,33 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _pageLayoutChoice(RoomCardSettingsController controller, RoomListPage page) {
+    final current = controller.layoutFor(page);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16 + kSettingsIconSlot + kSettingsIconGap, 0, 16, 12),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Wrap(
+          key: ValueKey('room-list-layout-${page.name}'),
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (layout, label) in [
+              (RoomCardLayout.compact, i18n('room_card_layout_compact')),
+              (RoomCardLayout.cover, i18n('room_card_layout_cover')),
+            ])
+              ChoiceChip(
+                key: ValueKey('room-list-layout-${page.name}-${layout.name}'),
+                label: Text(label),
+                selected: current == layout,
+                onSelected: (_) => controller.setLayoutFor(page, layout),
+              ),
+          ],
+        ),
       ),
     );
   }

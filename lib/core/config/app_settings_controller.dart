@@ -68,14 +68,29 @@ class AppSettingsController extends GetxController {
     refreshRateModeName.v = mode.storageValue;
   }
 
-  /// The [HomeMenu] pages the top-right menu shows (分区 / 热门).
+  /// The [HomeMenu] pages the top-right menu shows (搜索 / 分区 / 热门).
   late final RxList<String> savedMenuIds = hiveStringList('savedMenuIds', HomeMenu.values.map((e) => e.id).toList());
+
+  /// [savedMenuIds] written before 搜索 could be hidden (version 1) never
+  /// lists it, though it showed: read as showing it.
+  static const int menuIdsVersion = 2;
+  static const String _menuIdsVersionKey = 'menuIdsVersion';
+
+  static List<String> _menuIdsFrom(Object? raw, Object? version) {
+    if (raw == null) return HomeMenu.values.map((menu) => menu.id).toList();
+    final ids = List<String>.from(raw as List);
+    if ((version is int ? version : 1) < menuIdsVersion && !ids.contains(HomeMenu.search.id)) {
+      ids.insert(0, HomeMenu.search.id);
+    }
+    return normalizeMenuIds(ids);
+  }
 
   @override
   void onInit() {
     super.onInit();
-    final normalizedMenus = normalizeMenuIds(savedMenuIds.v);
+    final normalizedMenus = _menuIdsFrom(savedMenuIds.v, HivePrefUtil.getInt(_menuIdsVersionKey));
     if (!listEquals(savedMenuIds.v, normalizedMenus)) savedMenuIds.v = normalizedMenus;
+    unawaited(HivePrefUtil.setInt(_menuIdsVersionKey, menuIdsVersion));
     if (audienceMetricMigration.v < 1) {
       if (!realOnlinePlatforms.contains('twitch')) realOnlinePlatforms.add('twitch');
       audienceMetricMigration.v = 1;
@@ -205,6 +220,7 @@ class AppSettingsController extends GetxController {
       'preferRealOnlineCounts': preferRealOnlineCounts.v,
       'realOnlinePlatforms': resolvedRealOnlinePlatforms,
       'savedMenuIds': savedMenuIds.v,
+      _menuIdsVersionKey: menuIdsVersion,
       'enableMultiView': enableMultiView.v,
       'enableNewWindowPlay': enableNewWindowPlay.v,
     };
@@ -231,9 +247,7 @@ class AppSettingsController extends GetxController {
       'realOnlinePlatforms': typed<List<String>>(
         normalizeRealOnlinePlatforms(List<String>.from(json['realOnlinePlatforms'] ?? defaultRealOnlinePlatforms)),
       ),
-      'savedMenuIds': typed<List<String>>(
-        normalizeMenuIds(List<String>.from(json['savedMenuIds'] ?? HomeMenu.values.map((e) => e.id).toList())),
-      ),
+      'savedMenuIds': typed<List<String>>(_menuIdsFrom(json['savedMenuIds'], json[_menuIdsVersionKey])),
       'enableMultiView': typed<bool>(json['enableMultiView'] ?? true),
       'enableNewWindowPlay': typed<bool>(json['enableNewWindowPlay'] ?? true),
     };
@@ -279,9 +293,8 @@ class AppSettingsController extends GetxController {
       'realOnlinePlatforms': normalizeRealOnlinePlatforms(
         List<String>.from(app['realOnlinePlatforms'] ?? defaultRealOnlinePlatforms),
       ),
-      'savedMenuIds': normalizeMenuIds(
-        List<String>.from(app['savedMenuIds'] ?? HomeMenu.values.map((menu) => menu.id).toList()),
-      ),
+      'savedMenuIds': _menuIdsFrom(app['savedMenuIds'], app[_menuIdsVersionKey]),
+      _menuIdsVersionKey: menuIdsVersion,
       'enableMultiView': app['enableMultiView'] ?? true,
       'enableNewWindowPlay': app['enableNewWindowPlay'] ?? true,
     };

@@ -8,6 +8,10 @@ enum RoomCardPlatformBadgeMode { automatic, always, hidden }
 
 enum RoomCardLayout { cover, compact }
 
+/// The menu pages that list rooms, each with its own card layout (搜索,
+/// an area's rooms in 分区, 热门). 主页关注 uses the card look above.
+enum RoomListPage { search, areaRooms, popular }
+
 enum RoomCardPreset {
   compact('compact'),
   standard('normal'),
@@ -309,7 +313,46 @@ class RoomCardSettingsController extends GetxController {
   /// What the phone, the tablet and the desktop profile keep apart: the card
   /// look, the fixed card width and the column count. The 关注 page's
   /// platform tabs and room order stay shared.
-  static List<ProfiledSpec> get profiledSpecs => [_configSpec, _cardWidthSpec, _columnsSpec];
+  static List<ProfiledSpec> get profiledSpecs => [
+    _configSpec,
+    _cardWidthSpec,
+    _columnsSpec,
+    _searchLayoutSpec,
+    _areaRoomsLayoutSpec,
+    _popularLayoutSpec,
+  ];
+
+  /// A menu page's card layout: a [RoomCardLayout] name, or empty while it
+  /// was never chosen (the card look's layout then).
+  static ProfiledSpec<String> _pageLayoutSpec(String key) => ProfiledSpec<String>(
+    key,
+    fallback: '',
+    read: (raw) => raw is String && (raw.isEmpty || RoomCardLayout.values.any((layout) => layout.name == raw)) ? raw : null,
+  );
+  static final _searchLayoutSpec = _pageLayoutSpec('searchLayout');
+  static final _areaRoomsLayoutSpec = _pageLayoutSpec('areaRoomsLayout');
+  static final _popularLayoutSpec = _pageLayoutSpec('popularLayout');
+
+  final RxString searchLayout = RxString('');
+  final RxString areaRoomsLayout = RxString('');
+  final RxString popularLayout = RxString('');
+
+  RxString _pageLayout(RoomListPage page) => switch (page) {
+    RoomListPage.search => searchLayout,
+    RoomListPage.areaRooms => areaRoomsLayout,
+    RoomListPage.popular => popularLayout,
+  };
+
+  /// The card layout [page] lists its rooms in.
+  RoomCardLayout layoutFor(RoomListPage page) {
+    final name = _pageLayout(page).v;
+    for (final layout in RoomCardLayout.values) {
+      if (layout.name == name) return layout;
+    }
+    return resolve().layout;
+  }
+
+  void setLayoutFor(RoomListPage page, RoomCardLayout layout) => _pageLayout(page).v = layout.name;
 
   /// The per-profile settings above; [config], [cardWidth] and [columns]
   /// always hold the active profile's values (see [ProfiledSettings]).
@@ -317,6 +360,9 @@ class RoomCardSettingsController extends GetxController {
     _configSpec.bind(config),
     _cardWidthSpec.bind(cardWidth),
     _columnsSpec.bind(columns),
+    _searchLayoutSpec.bind(searchLayout),
+    _areaRoomsLayoutSpec.bind(areaRoomsLayout),
+    _popularLayoutSpec.bind(popularLayout),
   ]);
 
   /// The profile [config], [cardWidth] and [columns] hold.

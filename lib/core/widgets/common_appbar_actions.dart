@@ -48,12 +48,13 @@ class CommonAppBarActions extends StatelessWidget {
           style: homeMenuStyle,
           alignmentOffset: const Offset(0, 4),
           menuChildren: [
-            homeMenuItem(
-              context,
-              icon: Remix.search_line,
-              text: i18n("search_live"),
-              onPressed: () => Get.toNamed(RoutePath.kSearch),
-            ),
+            if (app.showsMenu(HomeMenu.search))
+              homeMenuItem(
+                context,
+                icon: Remix.search_line,
+                text: i18n("search_live"),
+                onPressed: () => Get.toNamed(RoutePath.kSearch),
+              ),
             if (app.showsMenu(HomeMenu.areas))
               homeMenuItem(
                 context,

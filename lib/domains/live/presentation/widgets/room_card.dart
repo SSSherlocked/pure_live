@@ -25,6 +25,7 @@ class RoomCard extends StatelessWidget {
     this.deleteTooltip,
     this.interactive = true,
     this.forceCompact = false,
+    this.layout,
     this.onSelect,
     this.highlighted = false,
     this.status,
@@ -35,6 +36,10 @@ class RoomCard extends StatelessWidget {
   static const IconData _pendingIcon = Remix.refresh_line;
 
   final LiveRoom room;
+
+  /// The layout to draw in instead of the card look's own (a menu page's
+  /// choice); the rest of the look is the same.
+  final RoomCardLayout? layout;
   final bool dense;
   final bool statusPending;
   final String? statusPendingLabel;
@@ -589,7 +594,8 @@ class RoomCard extends StatelessWidget {
     // second composited layer per card and keep the cover clip lightweight.
     return Obx(() {
       final resolved = SettingsService.to.roomCard.resolve();
-      final config = forceCompact ? resolved.copyWith(layout: RoomCardLayout.compact) : resolved;
+      final override = forceCompact ? RoomCardLayout.compact : layout;
+      final config = override == null ? resolved : resolved.copyWith(layout: override);
       final radius = config.cornerRadius;
 
       return LayoutBuilder(

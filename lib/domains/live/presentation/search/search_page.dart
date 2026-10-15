@@ -1,5 +1,6 @@
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/search/search_ranking.dart';
 import 'package:pure_live/domains/live/presentation/search/search_controller.dart' as pure_live;
 import 'package:pure_live/domains/live/presentation/search/search_platform_strip.dart';
@@ -101,8 +102,8 @@ class SearchPage extends GetView<pure_live.SearchController> {
               ],
             ),
           ),
-        // The rooms as 主页关注 shows them.
-        RoomCardRows(width: width, rooms: controller.results),
+        // The rooms in the layout chosen for 搜索.
+        RoomCardRows(page: RoomListPage.search, width: width, rooms: controller.results),
         SliverToBoxAdapter(
           child: SafeArea(
             top: false,

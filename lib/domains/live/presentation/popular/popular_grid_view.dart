@@ -1,8 +1,8 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
+import 'package:pure_live/core/config/room_card_settings_controller.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_card_rows.dart';
 
 class PopularGridView extends StatelessWidget {
   final String tag;
@@ -15,7 +15,6 @@ class PopularGridView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraint) {
         final width = constraint.maxWidth;
-        final autoColumns = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
         return BasePageView<BasePageScrollAndStateBone<LiveRoom>, LiveRoom>(
           controller: controller,
           // Desktop's floating refresh sits under the scroll buttons.
@@ -28,72 +27,14 @@ class PopularGridView extends StatelessWidget {
             buttonText: i18n('refresh'),
             onButtonPressed: () => controller.refreshData(),
           ),
-          contentBuilder: (context, list, scrollController) => Obx(() {
-            final compact = SettingsService.to.roomCard.isCompactLayout;
-            final spacing = SettingsService.to.theme.cardCrossSpacing(compact: compact);
-            final rowSpacing = SettingsService.to.theme.cardMainSpacing(compact: compact);
-            final sizing = resolveRoomGridSizing(
-              width: width,
-              autoColumns: autoColumns,
-              spacing: spacing,
-              basePadding: 6,
-              fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
-              columns: SettingsService.to.roomCard.currentColumns,
-            );
-            final crossAxisCount = sizing.columns;
-            final rows = (list.length + crossAxisCount - 1) ~/ crossAxisCount;
-            // RoomCard owns its text metrics. A fixed 72-pixel caption area
-            // clips scaled text; lazy natural-height rows retain the columns
-            // without guessing font heights or suppressing accessibility scale.
-            return CustomScrollView(
-              controller: scrollController,
-              scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
-              semanticChildCount: list.length,
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              slivers: [
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding, vertical: 6),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, row) => Padding(
-                        padding: EdgeInsets.only(
-                          bottom: row + 1 < rows ? rowSpacing : 0,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (var column = 0; column < crossAxisCount; column++) ...[
-                              if (column > 0) SizedBox(width: spacing),
-                              Expanded(
-                                child: row * crossAxisCount + column < list.length
-                                    ? RepaintBoundary(
-                                        child: IndexedSemantics(
-                                          index: row * crossAxisCount + column,
-                                          child: RoomCard(
-                                            key: ValueKey(
-                                              '${list[row * crossAxisCount + column].platform}:${list[row * crossAxisCount + column].roomId}',
-                                            ),
-                                            room: list[row * crossAxisCount + column],
-                                            dense: true,
-                                          ),
-                                        ),
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      childCount: rows,
-                      addAutomaticKeepAlives: false,
-                      addRepaintBoundaries: false,
-                      addSemanticIndexes: false,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }),
+          // The rooms in the layout chosen for 热门.
+          contentBuilder: (context, list, scrollController) => CustomScrollView(
+            controller: scrollController,
+            scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
+            semanticChildCount: list.length,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [RoomCardRows(page: RoomListPage.popular, width: width, rooms: list)],
+          ),
         );
       },
     );

@@ -5,6 +5,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 /// The pages the top-right menu can offer besides 关注, the home page.
 /// [AppSettingsController.savedMenuIds] holds the ids of the shown ones.
 enum HomeMenu {
+  search('search'),
   areas('areas'),
   popular('popular');
 

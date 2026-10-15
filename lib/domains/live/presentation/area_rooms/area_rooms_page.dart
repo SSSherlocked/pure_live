@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/areas/category_artwork.dart';
 import 'package:pure_live/domains/live/presentation/area_rooms/area_rooms_controller.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
@@ -47,15 +48,15 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
           wideBottomPadding: refreshByButton ? FloatingRefreshButton.clearance + 24 + 48 : 110,
           narrowBottomPadding: 85,
           emptyBuilder: (context) => EmptyView(icon: Icons.live_tv_rounded, title: i18n('no_data'), subtitle: ''),
-          // The rooms as 主页关注 shows them; the bottom stays clear of the
-          // follow-area pill.
+          // The rooms in the layout chosen for 分区; the bottom stays clear
+          // of the follow-area pill.
           contentBuilder: (context, list, scrollController) => LayoutBuilder(
             builder: (context, constraint) => CustomScrollView(
               controller: scrollController,
               scrollCacheExtent: ScrollCacheExtent.pixels(constraint.maxWidth > 680 ? 480 : 320),
               semanticChildCount: list.length,
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              slivers: [RoomCardRows(width: constraint.maxWidth, rooms: list, bottomPadding: 80)],
+              slivers: [RoomCardRows(page: RoomListPage.areaRooms, width: constraint.maxWidth, rooms: list, bottomPadding: 80)],
             ),
           ),
         ),

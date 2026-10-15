@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/theme/app_text.dart';
 
 /// The width every settings row gives its leading icon, and the gap from
@@ -436,13 +436,15 @@ extension AppLayoutFactory on BuildContext {
                   offset: const Offset(-4, 0),
                   child: SizedBox(
                     width: double.infinity,
-                    child: SfSlider(
+                    // Only a drag of the thumb changes it: a tap on the
+                    // track, or a finger scrolling the page past it, does not.
+                    child: ThumbOnlySlider(
                       min: min,
                       max: max,
                       value: value,
                       activeColor: theme.colorScheme.primary,
                       inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                      onChanged: (dynamic v) => onChanged(v as double),
+                      onChanged: onChanged,
                     ),
                   ),
                 ),

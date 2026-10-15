@@ -75,7 +75,6 @@ dependencies:
   flutter_smart_dialog: ^5.1.0 # 自定义弹窗
   flex_color_picker: ^4.0.0 # 颜色选择器
   flutter_color: ^2.1.1 # 颜色工具
-  syncfusion_flutter_sliders: ^34.2.9 # 滑块组件
   markdown_widget: ^2.3.2+8 # Markdown渲染
 
   # -------------------------- 图标/字体 --------------------------

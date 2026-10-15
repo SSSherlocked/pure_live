@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.3.5",
+    "title": "v3.3.5",
+    "date": "2026-10-15",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.3.5",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎬 直播间\n\n- **不再闪出上一个直播间的画面**：离开直播间回到主页后再进入任意直播间，或在「关注」里切换直播间，加载期间不会再先显示上一个直播间的最后一帧。离开直播间时会结束它的直播流，播放器本身仍然保留，进下一个直播间照样秒开。\n- **标题**：播放器顶栏的直播间标题加粗一档，看起来不再偏细。\n- **切到后台不卡音频**（Android）：从前台切到后台时，声音不再停顿约一秒。\n\n#### 🏠 首页\n\n- **刷新只转一个圈**：自动刷新（启动、回到前台、定时刷新、关注变化）和手动刷新（下拉、刷新按钮）合并为同一个刷新过程，正在刷新时再次触发只会等它完成，不会同时出现两个加载图标。电脑端由页面顶部的加载图标表示刷新，刷新按钮本身不再转圈。",
+    "files": [
+      {
+        "name": "PureLive-3.3.5-Android-arm64-v8a",
+        "size": "119.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.3.5-iOS-TrollStore.ipa",
+        "size": "44.83mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.3.5-iOS-Unsigned.zip",
+        "size": "44.56mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.3.5-Linux-x64.deb",
+        "size": "41.88mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.3.5-Linux-x64.tar.gz",
+        "size": "50.22mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.3.5-Linux-x64.zip",
+        "size": "50.25mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.5-MacOS-AppleSilicon.zip",
+        "size": "42.2mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.3.5-MacOS-Intel.zip",
+        "size": "44.93mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.3.5-Windows-x64.zip",
+        "size": "60.68mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.5/PureLive-3.3.5-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.3.4",
     "title": "v3.3.4",
     "date": "2026-10-15",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.3.4-Android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +118,7 @@
       {
         "name": "PureLive-3.3.4-MacOS-AppleSilicon.zip",
         "size": "42.2mb",
-        "downloads": 0,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-MacOS-AppleSilicon.zip"
       },
       {
@@ -118,7 +186,7 @@
       {
         "name": "PureLive-3.3.3-MacOS-AppleSilicon.zip",
         "size": "42.19mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-MacOS-AppleSilicon.zip"
       },
       {

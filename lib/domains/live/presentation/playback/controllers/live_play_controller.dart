@@ -199,6 +199,13 @@ class LivePlayController extends GetxController
   /// An offline answer marks the room offline (the picture says 未开播) and
   /// skips this attempt's reload; a live one clears an earlier offline mark
   /// so the reload plays it. Unknown or failed answers change nothing.
+  /// Whether [now] plays, for a room that was [before]. A broadcast that
+  /// ended is 已下播 even when the platform has a replay or a carousel
+  /// running in its place: that is not switched to. A room opened as a
+  /// replay (录播) still plays it.
+  static bool _playableAfter(LiveRoom before, LiveRoom now) =>
+      now.isLiveNow || (now.isPlayableNow && !before.isLiveNow);
+
   Future<bool> _broadcastEnded() async {
     final current = state.value.room.detail;
     if (current == null || currentSite.id == Sites.iptvSite) return false;
@@ -206,7 +213,7 @@ class LivePlayController extends GetxController
       final fetched = await currentSite.liveSite.getRoomDetail(current);
       if (isClosed || _ownerClosed || fetched.isLiveStatusPending) return false;
       final refreshed = fetched.withAudienceFallbackFrom(current);
-      final live = refreshed.isPlayableNow;
+      final live = _playableAfter(current, refreshed);
       if (live == state.value.room.isLiving) return !live;
       updateRoom(liveroom: refreshed, isLiving: live);
       unawaited(live ? _syncDanmakuConnection(refreshed) : danmakuController.stopDanmaku());
@@ -1082,7 +1089,7 @@ class LivePlayController extends GetxController
         return liveRoom;
       }
 
-      final liveStatus = liveRoom.isPlayableNow;
+      final liveStatus = _playableAfter(requestedRoom, liveRoom);
 
       if (liveStatus) {
         unawaited(getSuperChatMessage(liveRoom, loadEpoch: loadEpoch));

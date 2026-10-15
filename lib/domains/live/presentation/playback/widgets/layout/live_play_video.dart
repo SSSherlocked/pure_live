@@ -53,12 +53,17 @@ class LivePlayVideo extends StatelessWidget {
             // A long press shows 关注 here too, as it does on the picture, so
             // a room that cannot play is never a dead end.
             if (kind != LivePlayPlaceholder.loading) {
+              // The page itself, not the variable: the closure below runs
+              // after the reassignment, and reading `placeholder` there
+              // nested the wrapper in itself without end (a frozen grey
+              // video area that took the back gesture with it).
+              final page = placeholder;
               placeholder = Builder(
                 builder: (context) => GestureDetector(
                   key: const ValueKey('room-placeholder-long-press'),
                   behavior: HitTestBehavior.opaque,
                   onLongPress: () => showFollowPanel(context, controller),
-                  child: placeholder,
+                  child: page,
                 ),
               );
             }

@@ -44,7 +44,24 @@ class DanmakuSettingsController extends GetxController {
   // The chat list's name boldest and its message thinnest by default.
   static const int defaultChatListFontWeight = 100;
   static const int defaultChatListNameFontWeight = 900;
-  static const double defaultChatListItemSpacing = 4.0;
+  /// The gap between two chat list messages as a share of the message's
+  /// text line: 0 lays them edge to edge (two bubbles share one outline),
+  /// 1 leaves a line's height between them. 0.4 is the 8 px the list had at
+  /// the default 14 px text.
+  static const double defaultChatListItemGap = 0.4;
+  static const double maxChatListItemGap = 1.5;
+
+  /// The message line height the gap was converted at when it was set in
+  /// pixels (its 0-16 px, half above and half below each message).
+  static const double _legacyGapLineHeight = defaultChatListFontSize * 1.45;
+
+  /// The old pixel setting as a gap: it padded each message by that much,
+  /// so two messages stood twice as far apart.
+  static double? chatListGapFromPixels(Object? pixels) {
+    if (pixels is! num || !pixels.isFinite) return null;
+    final ratio = (pixels.toDouble().clamp(0.0, 16.0) * 2 / _legacyGapLineHeight).clamp(0.0, maxChatListItemGap);
+    return (ratio * 20).round() / 20;
+  }
   static const int defaultDanmakuMaxVisibleCount = 48;
 
   /// Bounds of 最大同屏弹幕数. Lanes already cap how many messages fit; this
@@ -68,6 +85,13 @@ class DanmakuSettingsController extends GetxController {
   static int normalizeFontWeight(Object? value, {int fallback = 500}) {
     final raw = value is num ? value.toInt() : fallback;
     return ((raw.clamp(100, 900) / 100).round() * 100).clamp(100, 900).toInt();
+  }
+
+  /// The chat list gap in a backup: its own value, or one converted from the
+  /// pixel setting an older backup holds.
+  static double _chatListGapIn(Map<dynamic, dynamic> source) {
+    final raw = _chatSpacingSpec.rawIn(source);
+    return _boundedDouble(raw, fallback: defaultChatListItemGap, min: 0, max: maxChatListItemGap);
   }
 
   static double _boundedDouble(Object? value, {required double fallback, required double min, required double max}) {
@@ -140,7 +164,10 @@ class DanmakuSettingsController extends GetxController {
   final RxInt chatListNameFontWeight = hiveInt('chatListNameFontWeight', defaultChatListNameFontWeight);
 
   /// Vertical gap between chat list messages in the room side panel.
-  final RxDouble chatListItemSpacing = hiveDouble('chatListItemSpacing', defaultChatListItemSpacing);
+  final RxDouble chatListItemGap = hiveDouble(
+    'chatListItemGap',
+    chatListGapFromPixels(HivePrefUtil.getDouble('chatListItemSpacing')) ?? defaultChatListItemGap,
+  );
 
   /// Whether chat list messages sit in rounded bubbles.
   final RxBool chatListBubble = hiveBool('chatListBubble', true);
@@ -321,9 +348,11 @@ class DanmakuSettingsController extends GetxController {
     read: ProfiledSpec.integer((value) => normalizeFontWeight(value, fallback: defaultChatListNameFontWeight)),
   );
   static final _chatSpacingSpec = ProfiledSpec<double>(
-    'chatListItemSpacing',
-    fallback: defaultChatListItemSpacing,
-    read: ProfiledSpec.number(min: 0, max: 16),
+    'chatListItemGap',
+    fallback: defaultChatListItemGap,
+    read: ProfiledSpec.number(min: 0, max: maxChatListItemGap),
+    renamedFrom: 'chatListItemSpacing',
+    convertRenamed: chatListGapFromPixels,
   );
   static final _chatBubbleSpec = ProfiledSpec<bool>('chatListBubble', fallback: true, read: ProfiledSpec.flag);
   static final _chatBubbleBorderOpacitySpec = ProfiledSpec<double>(
@@ -424,7 +453,7 @@ class DanmakuSettingsController extends GetxController {
     _chatFontSizeSpec.bind(chatListFontSize),
     _chatFontWeightSpec.bind(chatListFontWeight),
     _chatNameFontWeightSpec.bind(chatListNameFontWeight),
-    _chatSpacingSpec.bind(chatListItemSpacing),
+    _chatSpacingSpec.bind(chatListItemGap),
     _chatBubbleSpec.bind(chatListBubble),
     _chatBubbleBorderOpacitySpec.bind(chatListBubbleBorderOpacity),
     _chatBubbleFillSpec.bind(chatListBubbleFill),
@@ -585,7 +614,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListFontSize': chatListFontSize.v,
       'chatListFontWeight': chatListFontWeight.v,
       'chatListNameFontWeight': chatListNameFontWeight.v,
-      'chatListItemSpacing': chatListItemSpacing.v,
+      'chatListItemGap': chatListItemGap.v,
       'chatListBubble': chatListBubble.v,
       'chatListBubbleBorderOpacity': normalizeBubbleOpacity(chatListBubbleBorderOpacity.v, fallback: 1.0),
       'chatListBubbleFill': chatListBubbleFill.v,
@@ -652,8 +681,7 @@ class DanmakuSettingsController extends GetxController {
       'chatListNameFontWeight': typed<int>(
         normalizeFontWeight(json['chatListNameFontWeight'], fallback: defaultChatListNameFontWeight),
       ),
-      'chatListItemSpacing': typed<double>(
-        _boundedDouble(json['chatListItemSpacing'], fallback: defaultChatListItemSpacing, min: 0, max: 16),
+      'chatListItemGap': typed<double>(_chatListGapIn(json)),
       ),
       'danmakuMaxVisibleCount': typed<int>(
         _boundedInt(
@@ -795,12 +823,7 @@ class DanmakuSettingsController extends GetxController {
         danmaku['chatListNameFontWeight'],
         fallback: defaultChatListNameFontWeight,
       ),
-      'chatListItemSpacing': _boundedDouble(
-        danmaku['chatListItemSpacing'],
-        fallback: defaultChatListItemSpacing,
-        min: 0,
-        max: 16,
-      ),
+      'chatListItemGap': _chatListGapIn(danmaku),
       'chatListBubble': danmaku['chatListBubble'] ?? true,
       'chatListBubbleBorderOpacity': normalizeBubbleOpacity(
         danmaku['chatListBubbleBorderOpacity'] ?? 1.0,

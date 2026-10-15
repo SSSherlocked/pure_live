@@ -178,13 +178,16 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               _slider(
                 theme,
                 title: i18n('chat_list_item_spacing'),
-                value: SettingsService.to.danmaku.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble(),
+                value: SettingsService.to.danmaku.chatListItemGap.v
+                    .clamp(0.0, DanmakuSettingsController.maxChatListItemGap)
+                    .toDouble(),
                 min: 0,
-                max: 16,
-                stepSize: 1,
-                display: SettingsService.to.danmaku.chatListItemSpacing.v.round().toString(),
-                semanticValueBuilder: (value) => value.round().toString(),
-                onChanged: (v) => SettingsService.to.danmaku.chatListItemSpacing.v = v,
+                max: DanmakuSettingsController.maxChatListItemGap,
+                stepSize: 0.05,
+                // In text lines, as the bubble height; 0 shares one edge.
+                display: '${SettingsService.to.danmaku.chatListItemGap.v.toStringAsFixed(2)}×',
+                semanticValueBuilder: (value) => '${value.toStringAsFixed(2)}×',
+                onChanged: (v) => SettingsService.to.danmaku.chatListItemGap.v = (v * 20).round() / 20,
                 labelColor: labelColor,
                 digitColor: digitColor,
               ),

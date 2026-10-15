@@ -480,7 +480,7 @@ class DanmakuItem extends StatelessWidget {
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final nameFontWeight = FontWeight(settings.chatListNameFontWeight.v.clamp(100, 900).toInt());
-      final spacing = settings.chatListItemSpacing.v.clamp(0.0, 16.0).toDouble();
+      final spacing = settings.chatListItemGap.v.clamp(0.0, DanmakuSettingsController.maxChatListItemGap).toDouble();
       final repeats = danmaku.type == LiveMessageType.chat ? controller.danmakuRepeatsOf(danmaku).value : 1;
       return _buildCard(
         context,
@@ -530,6 +530,11 @@ class DanmakuItem extends StatelessWidget {
     // line height is 1.45): the rest is shared above and below the text.
     final lineHeight = MediaQuery.textScalerOf(context).scale(fontSize) * 1.45;
     final bubblePadding = (bubbleHeight - 1) * lineHeight / 2;
+    // [spacing] is the gap between two messages in text lines, half of it
+    // above and half below each. At 0 two outlined bubbles also give up one
+    // outline's width, so the neighbours share a single edge.
+    final gap = spacing * lineHeight;
+    final shareOutline = gap == 0 && bubble && bubbleBorderOpacity > 0;
     final card = DecoratedBox(
       decoration: bubble
           // An outline at its own opacity, and a background fill only when
@@ -645,8 +650,10 @@ class DanmakuItem extends StatelessWidget {
       ),
     );
     return RepaintBoundary(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: spacing),
+      child: _OverlapNext(
+        overlap: shareOutline ? _bubbleOutlineWidth : 0,
+        child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: gap / 2),
         child: repeated
             ? Stack(
                 clipBehavior: Clip.none,
@@ -661,7 +668,49 @@ class DanmakuItem extends StatelessWidget {
               )
             : card,
       ),
+      ),
     );
+  }
+}
+
+/// The width of a chat bubble's outline ([Border.all]'s default).
+const double _bubbleOutlineWidth = 1;
+
+/// Takes [overlap] pixels less height than its child, which still paints in
+/// full: the next row then covers that strip, so two bubbles drawn edge to
+/// edge share one outline instead of showing two side by side.
+class _OverlapNext extends SingleChildRenderObjectWidget {
+  const _OverlapNext({required this.overlap, required super.child});
+
+  final double overlap;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderOverlapNext(overlap);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderOverlapNext renderObject) => renderObject.overlap = overlap;
+}
+
+class _RenderOverlapNext extends RenderProxyBox {
+  _RenderOverlapNext(this._overlap);
+
+  double _overlap;
+  set overlap(double value) {
+    if (value == _overlap) return;
+    _overlap = value;
+    markNeedsLayout();
+  }
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    if (child == null) {
+      size = constraints.smallest;
+      return;
+    }
+    child.layout(constraints, parentUsesSize: true);
+    final height = (child.size.height - _overlap).clamp(0.0, double.infinity).toDouble();
+    size = constraints.constrain(Size(child.size.width, height));
   }
 }
 

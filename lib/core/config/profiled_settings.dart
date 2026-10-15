@@ -13,10 +13,32 @@ import 'package:pure_live/core/storage/hive_pref_util.dart';
 /// finite); [decode] then falls back to the legacy value and finally to
 /// [fallback]. Every value that comes out is bounded like the setting itself.
 class ProfiledSpec<T> {
-  ProfiledSpec(this.key, {required this.fallback, required this.read, Object? Function(T value)? write})
-    : _write = write;
+  ProfiledSpec(
+    this.key, {
+    required this.fallback,
+    required this.read,
+    Object? Function(T value)? write,
+    this.renamedFrom,
+    this.convertRenamed,
+  }) : _write = write;
 
   final String key;
+
+  /// The key this setting was stored under before, with a different meaning
+  /// that [convertRenamed] turns into this one's; read only when [key] is
+  /// missing from a stored map.
+  final String? renamedFrom;
+  final Object? Function(Object? old)? convertRenamed;
+
+  /// This setting's raw value in [source], from [renamedFrom] (converted)
+  /// when [key] is not there.
+  Object? rawIn(Map<dynamic, dynamic> source) {
+    final previous = renamedFrom;
+    if (source.containsKey(key) || previous == null || !source.containsKey(previous)) return source[key];
+    final old = source[previous];
+    final convert = convertRenamed;
+    return convert == null ? old : convert(old);
+  }
   final T fallback;
   final T? Function(Object? raw) read;
   final Object? Function(T value)? _write;
@@ -116,7 +138,7 @@ class ProfiledSettings {
   static Map<String, dynamic> normalizeMap(List<ProfiledSpec> specs, Object? raw, [Object? legacy]) {
     final source = raw is Map ? raw : const <String, dynamic>{};
     final old = legacy is Map ? legacy : const <String, dynamic>{};
-    return {for (final spec in specs) spec.key: spec.normalize(source[spec.key], old[spec.key])};
+    return {for (final spec in specs) spec.key: spec.normalize(spec.rawIn(source), spec.rawIn(old))};
   }
 
   /// Loads (or seeds) the three profiles and makes the observables hold

@@ -7,7 +7,7 @@
 // handle up and releases it exactly as DesktopTrayService now does at startup.
 // The native library only ships inside the built runner, so put the runner
 // debug dir on PATH and run from the repository root:
-//   PATH=build/windows/x64/runner/Debug;%PATH% flutterw test tool/probes/tray_hot_restart_handle_probe_test.dart
+//   PATH=build/windows/x64/runner/Debug;%PATH% flutter test tool/probes/tray_hot_restart_handle_probe_test.dart
 import 'dart:isolate';
 
 import 'package:flutter_test/flutter_test.dart';

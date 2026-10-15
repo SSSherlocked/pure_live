@@ -112,7 +112,4 @@ jobs:
       - name: Version
         run: python tool/release_version.py check
       - name: Tool tests
-        env:
-          # PowerShell device-harness tests target the Windows workstation.
-          PURE_LIVE_SKIP_POWERSHELL_TESTS: "1"
         run: python -m unittest discover -s tool/tests -p 'test_*.py'

@@ -3,9 +3,8 @@
 # Seed the ffmpeg_kit_extended_flutter Native Assets cache for a Linux build.
 #
 # Why this exists: three of the four platforms already seed this cache with a
-# *pinned* archive before Flutter runs (Windows and Android through
-# tool/prefetch_android_native.ps1). Linux
-# did not. The hook would then fetch whatever archive its own default points at —
+# *pinned* archive before Flutter runs (Windows and Android through their
+# own prefetch steps). Linux did not. The hook would then fetch whatever archive its own default points at —
 # a different builder release than the one `tool/verify_ffmpeg_native.py` pins —
 # and the build ended at:
 #

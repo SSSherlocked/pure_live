@@ -1,6 +1,6 @@
 # Claude Code 指引
 
-本仓库是 [SSSherlocked/pure_live](https://github.com/SSSherlocked/pure_live)，从 liuchuancong/pure_live 分叉后独立维护，不接受外部 Issue 或贡献。本文件描述的是这个分叉的实际流程；[AGENTS.md](AGENTS.md)、[BUILD_POLICY.md](BUILD_POLICY.md) 和 `docs/` 里大多数构建、设备、发布说明来自原项目，与这里冲突时以本文件为准。
+本仓库是 [SSSherlocked/pure_live](https://github.com/SSSherlocked/pure_live)，从 liuchuancong/pure_live 分叉后独立维护，不接受外部 Issue 或贡献。本文件描述这个分叉的实际流程；`docs/` 只放仍在使用的参考文档（入口见 [docs/README.md](docs/README.md)），与这里冲突时以本文件为准。
 
 ## 沟通
 
@@ -9,13 +9,15 @@
 ## 环境：本机不跑 Flutter
 
 - 这台 Mac 没有安装 Flutter、Dart、Android SDK，也不要安装。所有分析、测试、编译、打包、发布都在 GitHub Actions 上完成。
-- 没有 WSL，也不使用 Windows PowerShell 工具链。`tool/*.ps1`、`tool/flutterw.ps1`、`tool/local_ci.ps1`、本地打包和设备测试相关的文档都不适用。
+- 没有 WSL，也不用 Windows PowerShell 工具链、本地打包或设备测试；原项目的这些脚本和文档已删除，不要再加回来。
 - 本机能跑的只有 Python 工具。用一个装了 `pyyaml` 的虚拟环境运行：
   - `tool/audit_repository.py`：仓库审计
   - `tool/validate_architecture.py`：分层规则（目前有 1 条已知的未批准违规：`domains/recorder -> global_player_service`）
   - `tool/check_text_styles.py`：禁止写死字号
   - `tool/check_settings_width.py`：设置页必须限宽
-  - `PURE_LIVE_SKIP_POWERSHELL_TESTS=1 python -m unittest discover -s tool/tests -p 'test_*.py'`
+  - `tool/release_version.py check`：版本号与更新源一致
+  - `python -m unittest discover -s tool/tests -p 'test_*.py'`
+- `tool/emoji/` 下是抓取各平台表情包、生成 `assets/emo/` 的脚本，需要更新表情时再运行。
 - 因为不能本地编译，改 Dart 代码时要逐行核对类型、import 和调用方，推送后以 CI 的 `flutter analyze` 和 `flutter test` 为准。
 
 ## 依赖

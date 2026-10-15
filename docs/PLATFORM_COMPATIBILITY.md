@@ -27,7 +27,6 @@ OPENREC / mellow-fan 已接入复合频道身份、公开目录与 HLS 质量；
 猫耳和映客已应用接入；猫耳 Windows 原生短录有独立证据，映客已有公开接口和生产地址解析，并补齐精确 UID/官网链接查询及公开精选昵称筛选。昵称筛选只覆盖当前有限精选，不代表全站主播索引。
 Picarto 已进入 Android 候选并取得部分原生证据。当前源码新增官网动态直播分类与原生分类分页、主播档案原生搜索；这些更新尚未进入原生候选。
 TwitCasting 新增公开目录、顶栏分类、详情/HLS三档、录制输入与恢复；Android 80b7431c已覆盖安装并解除首段401，low出现实际画面，但短录文件严格解码仍失败。当前源码另补官网当前直播搜索与频道根链接精确查询；根链接可返回未开播频道，但电影/归档链接不替换为当前直播。首次high/首帧、完整文件与长录仍待验收，现有 Android/Windows 候选早于这项搜索修订。
-参考项目尚未接入的平台单列于 [平台扩展差距表](PLATFORM_EXPANSION_AUDIT_2026_09_07.md)，不计作本项目已支持。
 
 源码开发中的 AcFun（正式 v3.1.8 发布包不含；当前 af88a032 Android Debug 候选已包含）：已接入官网直播分类与目录、包含未开播作者的
 原生搜索、直播分享链接、游客取流、画质/线路、录制输入和在线人数开关。
@@ -218,4 +217,4 @@ The probe covers categories, recommendations, searches, room metadata, danmaku d
 - Linux：构建 `linux-x64` 便携归档。
 - macOS：先构建 universal 应用，再拆分为 Apple Silicon（arm64）与 Intel（x64）两个单架构应用归档分别发布。
 - iOS：执行 `--no-codesign` 设备编译并归档 `.app`，随后在证书环境签名封装。
-- GitHub Actions：保留五平台手动构建入口；Android/Windows 日常验证优先使用 `tool/build_local_release.ps1`，减少远程构建用量。
+- GitHub Actions：五个平台都由“发布新版本”工作流按勾选打包（见 [构建、测试与发布](BUILD_AND_RELEASE.md)）。

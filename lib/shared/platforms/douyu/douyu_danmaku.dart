@@ -175,6 +175,10 @@ class DouyuDanmaku implements LiveDanmaku {
     final duration = int.tryParse(jsonData["cet"]?.toString() ?? '');
     final rawPrice = int.tryParse(jsonData["cprice"]?.toString() ?? '');
     if (chat is! Map || now == null || duration == null || rawPrice == null) return null;
+    // comm_chatmsg also carries notices that are not paid messages: those
+    // have no price, time or text and would show as an empty ¥0 card.
+    final text = chat["txt"]?.toString() ?? '';
+    if (rawPrice <= 0 || duration <= 0 || text.trim().isEmpty) return null;
     final face = chat["ic"]?.toString() ?? '';
     final startTime = DateTime.fromMillisecondsSinceEpoch(now);
     final superChat = LiveSuperChatMessage(
@@ -182,7 +186,7 @@ class DouyuDanmaku implements LiveDanmaku {
       backgroundColor: "#c1c1ff",
       endTime: startTime.add(Duration(seconds: duration)),
       face: face.isEmpty ? '' : "https://apic.douyucdn.cn/upload/${face}_small.jpg",
-      message: chat["txt"]?.toString() ?? '',
+      message: text,
       // In 分: kept to the cent rather than cut to whole 元.
       price: rawPrice / 100,
       startTime: startTime,
@@ -199,6 +203,8 @@ class DouyuDanmaku implements LiveDanmaku {
     final startSeconds = int.tryParse(scData["acptime"]?.toString() ?? '');
     final rawPrice = int.tryParse(scData["realPrice"]?.toString() ?? '');
     if (endSeconds == null || startSeconds == null || rawPrice == null) return null;
+    final text = scData["content"]?.toString() ?? '';
+    if (rawPrice <= 0 || endSeconds <= startSeconds || text.trim().isEmpty) return null;
     final avatars = scData["uat"];
     final avatar = avatars is List && avatars.length > 1 ? avatars[1].toString() : '';
     final superChat = LiveSuperChatMessage(
@@ -206,7 +212,7 @@ class DouyuDanmaku implements LiveDanmaku {
       backgroundColor: "#ffffff",
       endTime: DateTime.fromMillisecondsSinceEpoch(endSeconds * 1000),
       face: avatar.isEmpty ? '' : "https://$avatar",
-      message: scData["content"]?.toString() ?? '',
+      message: text,
       // In 分: kept to the cent rather than cut to whole 元.
       price: rawPrice / 100,
       startTime: DateTime.fromMillisecondsSinceEpoch(startSeconds * 1000),

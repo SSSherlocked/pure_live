@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'dart:collection';
 
 import 'package:flutter/gestures.dart';
@@ -800,7 +799,10 @@ List<InlineSpan> parseEmojis(String text, double size, Color color, {Map<String,
     spans.add(
       WidgetSpan(
         alignment: PlaceholderAlignment.middle,
-        child: RawImage(image: image, width: emojiSize, height: emojiSize),
+        child: SizedBox.square(
+          dimension: emojiSize,
+          child: CustomPaint(painter: EmojiPainter(info!.id)),
+        ),
       ),
     );
   }
@@ -808,25 +810,32 @@ List<InlineSpan> parseEmojis(String text, double size, Color color, {Map<String,
   return spans;
 }
 
+/// Paints one emoji from the shared atlas, looked up when it paints.
+///
+/// Rows outlive the atlas: switching to another platform's room clears it and
+/// disposes its images, while the rows already built stay on screen. A row
+/// holding the image itself then drew a disposed image, which broke that row
+/// and the rows painted after it (blank text, stray lines). Looking the image
+/// up by id draws nothing once it is gone.
 class EmojiPainter extends CustomPainter {
-  final ui.Image image;
+  final String emojiId;
 
-  EmojiPainter(this.image);
+  EmojiPainter(this.emojiId);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..isAntiAlias = true;
-
+    final image = EmojiAtlas.instance.image(emojiId);
+    if (image == null) return;
     canvas.drawImageRect(
       image,
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
       Offset.zero & size,
-      paint,
+      Paint()
+        ..isAntiAlias = true
+        ..filterQuality = FilterQuality.medium,
     );
   }
 
   @override
-  bool shouldRepaint(covariant EmojiPainter oldDelegate) {
-    return oldDelegate.image != image;
-  }
+  bool shouldRepaint(covariant EmojiPainter oldDelegate) => oldDelegate.emojiId != emojiId;
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:pure_live/core/player/kernel/floating_playback.dart';
 import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
@@ -46,9 +47,16 @@ class GlobalPlayerService {
     playerManager = LivePlayerFacade(defaultEngine: defaultEngine, sourceInterceptor: sourceInterceptorFactory?.call());
     floating = FloatingPlayback(facade: playerManager);
     playerManager.floating = floating;
+    // Without background play, a room the app leaves is paused (after the
+    // coordinator's short delay) and resumed on return. Phones only: on a
+    // desktop, minimizing the window must not pause. media_kit's Video
+    // widget used to do this pause itself; it no longer does (media_core
+    // 96fcde9), because with background play on it paused and the room was
+    // resumed at once, cutting the sound for about a second.
+    final mobile = Platform.isAndroid || Platform.isIOS;
     lifecycle = PlaybackLifecycleCoordinator(
-      pauseForLifecycle: () async => null,
-      resumeFromLifecycle: (_) async => false,
+      pauseForLifecycle: () async => mobile ? await playerManager.pauseForLifecycle() : null,
+      resumeFromLifecycle: (token) async => mobile && await playerManager.resumeFromLifecycle(token),
       shouldContinueInBackground: () => LiveAudioService.shouldContinueInBackground,
       isAudioOnly: () => playerManager.desiredAudioOnlyMode,
       isSleepSessionActive: () => LiveAudioService.isSleepSessionActive,

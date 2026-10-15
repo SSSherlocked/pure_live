@@ -15,6 +15,7 @@ import 'package:pure_live/core/player/models/player_engine.dart';
 import 'package:pure_live/core/stream/hls_source_query_policy.dart';
 import 'package:pure_live/core/player/core/audio_only_mode_policy.dart';
 import 'package:pure_live/core/player/core/dummy_video_policy.dart';
+import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
 import 'package:pure_live/core/player/core/playback_source.dart';
 import 'package:pure_live/core/models/live_play_quality.dart';
 import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts;
@@ -124,6 +125,12 @@ final class LivePlayerFacade {
   bool get isServingRoom => _servingRoom;
   bool _servingRoom = false;
 
+  /// Counts the rooms opened, and the user's own play/pause commands: a
+  /// pause made for the background is only undone on return when neither
+  /// moved since.
+  int _roomSession = 0;
+  int _userIntentRevision = 0;
+
   /// Set when a setting that only a new engine picks up changed while a
   /// room played: [close] then releases the engine instead of keeping it
   /// warm, so the next room starts on the new settings.
@@ -197,7 +204,14 @@ final class LivePlayerFacade {
   }) async {
     if (_disposed) return;
     _sourceResolver = sourceResolver;
-    if (audioOnly) await setAudioOnlyMode(true, stopVideoDecoding: true);
+    // The open says what the room wants, both ways: a 纯音频 left on by the
+    // previous room (or an ASMR start since turned off) must not carry over,
+    // with the picture covered or its decoder still off.
+    if (audioOnly) {
+      await setAudioOnlyMode(true, stopVideoDecoding: true);
+    } else if (_audioOnlyMode.value) {
+      await setAudioOnlyMode(false, stopVideoDecoding: true);
+    }
     final sourceUrl = url.trim();
     if (sourceUrl.isEmpty) throw ArgumentError('Remote playback source is empty');
     PlaybackStartupTiming.instance.mark('urls');
@@ -205,6 +219,7 @@ final class LivePlayerFacade {
     final urls = <String>[sourceUrl, ...playUrls.where((value) => value != sourceUrl)];
     _room = liveroom;
     _servingRoom = true;
+    _roomSession++;
     _lastHeaders = Map<String, String>.unmodifiable(headers);
     _lastLines = List<String>.unmodifiable(urls);
 
@@ -274,9 +289,17 @@ final class LivePlayerFacade {
   }) async {
     if (_disposed) return;
     _sourceResolver = sourceResolver;
-    if (audioOnly) await setAudioOnlyMode(true, stopVideoDecoding: true);
+    // The open says what the room wants, both ways: a 纯音频 left on by the
+    // previous room (or an ASMR start since turned off) must not carry over,
+    // with the picture covered or its decoder still off.
+    if (audioOnly) {
+      await setAudioOnlyMode(true, stopVideoDecoding: true);
+    } else if (_audioOnlyMode.value) {
+      await setAudioOnlyMode(false, stopVideoDecoding: true);
+    }
     _room = liveroom;
     _servingRoom = true;
+    _roomSession++;
     _lastHeaders = const {};
     _lastLines = const [];
     OpenVolume.pending = _openVolumeFor(liveroom);
@@ -348,9 +371,40 @@ final class LivePlayerFacade {
     return _controller.retry();
   }
 
-  Future<void> togglePlayPause() => _controller.togglePlayPause();
-  Future<void> pause() => _controller.pause();
+  Future<void> togglePlayPause() {
+    _userIntentRevision++;
+    return _controller.togglePlayPause();
+  }
+
+  Future<void> pause() {
+    _userIntentRevision++;
+    return _controller.pause();
+  }
+
+  /// Pauses a playing room because the app went to the background without
+  /// background play (mobile only; see GlobalPlayerService). Returns what
+  /// [resumeFromLifecycle] needs to resume it, or null when nothing was
+  /// paused.
+  Future<PlaybackLifecyclePauseToken?> pauseForLifecycle() async {
+    if (!_servingRoom || !_lastPlaying) return null;
+    final token = (sessionId: _roomSession, intentRevision: _userIntentRevision);
+    // Told first, or the kernel's unexpected-pause watchdog takes this pause
+    // for a fault and resumes the room the user cannot see.
+    _controller.noteBackgrounded();
+    await _controller.pause();
+    return token;
+  }
+
+  /// Resumes the room [pauseForLifecycle] paused, unless the room changed or
+  /// the user played or paused since.
+  Future<bool> resumeFromLifecycle(PlaybackLifecyclePauseToken token) async {
+    if (!_servingRoom || token.sessionId != _roomSession || token.intentRevision != _userIntentRevision) return false;
+    await _controller.resume();
+    return true;
+  }
+
   Future<void> resume() {
+    _userIntentRevision++;
     _cancelIdleRelease();
     return _controller.resume();
   }

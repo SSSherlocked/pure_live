@@ -323,6 +323,7 @@ class LivePlayController extends GetxController
   void _onRemotePause() {
     if (isClosed || _ownerClosed) return;
     LiveAudioFocus.instance.forgetResume();
+    _pausedByPipClose = false;
     _markUserPause();
   }
 
@@ -419,6 +420,13 @@ class LivePlayController extends GetxController
       final phase = _phaseOf(coreState.playback);
       if (phase == _playerPhase) return;
       _playerPhase = phase;
+      if (phase == BackgroundPlayerPhase.playing) {
+        // Playing again (the user, the notification, a reconnect): a pause
+        // planned to be undone later - for a closed picture-in-picture window
+        // or a call - is over, and must not resume a later pause of the user.
+        _pausedByPipClose = false;
+        LiveAudioFocus.instance.forgetResume();
+      }
       _syncBackgroundHold();
     });
     LiveAudioFocus.instance.pausedByInterruption.addListener(_syncBackgroundHold);
@@ -548,6 +556,9 @@ class LivePlayController extends GetxController
 
   void _onPipWindowGone() {
     if (!_wasBackgrounded) {
+      // Already back in front: the window was expanded into the app (its
+      // resume arrived first), not closed.
+      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) return;
       _pipJustClosed = true;
       return;
     }

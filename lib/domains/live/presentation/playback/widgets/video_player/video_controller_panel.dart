@@ -26,7 +26,6 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/bottom_control_surface.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/iptv_schedule_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
-import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/player/presentation/left_submenu_button.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/video_details_dialog.dart';
@@ -343,24 +342,9 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                       // (with the menu closed) resumes the held message.
                       controller.pauseDanmakuAt(details.globalPosition);
                       final onDanmaku = controller.handleDanmakuPointer(details.globalPosition, longPress: true);
-                      // A long press anywhere that is not on a barrage shows
-                      // 关注, like Simple Live: outside fullscreen the room's
-                      // info page turns to its 关注 tab. In fullscreen, or when
-                      // that tab is turned off (or the room has no info page,
-                      // IPTV), the 关注 panel opens instead: from the bottom on
-                      // the narrow inline player, from the right elsewhere.
+                      // A long press anywhere that is not on a barrage shows 关注.
                       if (!onDanmaku && !controller.danmakuHeld && !controller.showLocked.value) {
-                        final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
-                        final inPage = !fullscreen && controller.livePlayController.showPanelTab(LivePanelTab.follow);
-                        if (!inPage) {
-                          unawaited(
-                            showPlayerPanel<void>(
-                              context,
-                              asBottomSheet: AppLayout.of(context).phone && !fullscreen,
-                              builder: (_) => CompactText(child: PlayOther(controller: controller.livePlayController)),
-                            ),
-                          );
-                        }
+                        showFollowPanel(context, controller.livePlayController);
                       }
                     },
                     onLongPressEnd: (_) => controller.resumeHeldDanmaku(),

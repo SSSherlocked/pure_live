@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller_panel.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
-import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 
 class NotLivingVideoWidget extends StatelessWidget {
   const NotLivingVideoWidget({super.key, required this.controller});
@@ -16,92 +12,8 @@ class NotLivingVideoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       type: MaterialType.transparency,
-      child: Column(children: [_buildHeader(context), _buildContent()]),
+      child: Column(children: [RoomPlaceholderHeader(controller: controller), _buildContent()]),
     );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final titleStyle = AppText.of(context).listPrimary.copyWith(color: Colors.white, decoration: TextDecoration.none);
-    final titlePainter = TextPainter(
-      text: TextSpan(text: 'Ag', style: titleStyle),
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-      maxLines: 1,
-    )..layout();
-    final scaledContentHeight = titlePainter.height + 8;
-    final headerHeight = scaledContentHeight > 55 ? scaledContentHeight : 55.0;
-
-    return Container(
-      key: const ValueKey('offline-room-header'),
-      height: headerHeight,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [Colors.transparent, Colors.black45],
-        ),
-      ),
-      child: Row(
-        children: [
-          if (GlobalPlayerService.instance.player.fullscreenUI) _buildBackButton(),
-
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                key: const ValueKey('offline-room-title'),
-                _offlineRoomTitle(controller.room),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: titleStyle,
-              ),
-            ),
-          ),
-
-          if (GlobalPlayerService.instance.player.fullscreenUI) ...[
-            IconButton(
-              icon: const Icon(Icons.swap_horiz_outlined),
-              visualDensity: VisualDensity.standard,
-              constraints: const BoxConstraints(
-                minWidth: kMinInteractiveDimension,
-                minHeight: kMinInteractiveDimension,
-              ),
-              color: Colors.white,
-              onPressed: () {
-                unawaited(
-                  showPlayerSidePanel<void>(
-                    context,
-                    builder: (_) => CompactText(child: PlayOther(controller: controller)),
-                  ),
-                );
-              },
-            ),
-            const DatetimeInfo(),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBackButton() {
-    return IconButton(
-      key: const ValueKey('offline-room-exit-fullscreen'),
-      tooltip: i18n('exit_fullscreen'),
-      visualDensity: VisualDensity.standard,
-      constraints: const BoxConstraints(minWidth: kMinInteractiveDimension, minHeight: kMinInteractiveDimension),
-      onPressed: _exitFullscreen,
-      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-    );
-  }
-
-  void _exitFullscreen() {
-    controller.setNormalScreen();
-
-    GlobalPlayerService.instance.player.isSystemFullscreen.value = false;
-
-    GlobalPlayerService.instance.player.isWindowFullscreen.value = false;
   }
 
   Widget _buildContent() {
@@ -132,6 +44,77 @@ class NotLivingVideoWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// The top bar over a room with no player (未开播, 加载失败): the room title,
+/// and in fullscreen a back button and the time.
+class RoomPlaceholderHeader extends StatelessWidget {
+  const RoomPlaceholderHeader({super.key, required this.controller});
+
+  final LivePlayController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
+    final titleStyle = AppText.of(context).listPrimary.copyWith(color: Colors.white, decoration: TextDecoration.none);
+    final titlePainter = TextPainter(
+      text: TextSpan(text: 'Ag', style: titleStyle),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final scaledContentHeight = titlePainter.height + 8;
+    final headerHeight = scaledContentHeight > 55 ? scaledContentHeight : 55.0;
+
+    return Container(
+      key: const ValueKey('offline-room-header'),
+      height: headerHeight,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Colors.transparent, Colors.black45],
+        ),
+      ),
+      child: Row(
+        children: [
+          if (fullscreen)
+            IconButton(
+              key: const ValueKey('offline-room-exit-fullscreen'),
+              tooltip: i18n('exit_fullscreen'),
+              visualDensity: VisualDensity.standard,
+              constraints: const BoxConstraints(
+                minWidth: kMinInteractiveDimension,
+                minHeight: kMinInteractiveDimension,
+              ),
+              onPressed: _exitFullscreen,
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+            ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                key: const ValueKey('offline-room-title'),
+                _offlineRoomTitle(controller.room),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: titleStyle,
+              ),
+            ),
+          ),
+          if (fullscreen) const DatetimeInfo(),
+        ],
+      ),
+    );
+  }
+
+  void _exitFullscreen() {
+    controller.setNormalScreen();
+    GlobalPlayerService.instance.player.isSystemFullscreen.value = false;
+    GlobalPlayerService.instance.player.isWindowFullscreen.value = false;
   }
 }
 

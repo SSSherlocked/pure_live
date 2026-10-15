@@ -5,13 +5,32 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
+import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
+
+/// Shows 关注 for a long press on the video area, like Simple Live: outside
+/// fullscreen the room's info page turns to its 关注 tab. In fullscreen, or
+/// when that tab is turned off (or the room has no info page, IPTV), the 关注
+/// panel opens instead: from the bottom on the narrow inline player, from the
+/// right elsewhere.
+void showFollowPanel(BuildContext context, LivePlayController controller) {
+  final fullscreen = GlobalPlayerService.instance.player.fullscreenUI;
+  if (!fullscreen && controller.showPanelTab(LivePanelTab.follow)) return;
+  unawaited(
+    showPlayerPanel<void>(
+      context,
+      asBottomSheet: AppLayout.of(context).phone && !fullscreen,
+      builder: (_) => CompactText(child: PlayOther(controller: controller)),
+    ),
+  );
+}
 
 /// Fullscreen "关注" panel: the same followed-room switcher as the room
 /// panel's 关注 tab, in the fullscreen [PlayerSidePanel].

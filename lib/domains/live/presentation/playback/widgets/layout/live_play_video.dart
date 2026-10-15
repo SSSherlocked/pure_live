@@ -7,6 +7,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_loading.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/placeholder/not_living_video_widget.dart';
+import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 
@@ -43,11 +44,24 @@ class LivePlayVideo extends StatelessWidget {
           final state = controller.state.value;
           final videoController = state.player.videoController;
           if (videoController == null) {
-            final placeholder = switch (livePlayPlaceholderFor(state.room)) {
+            final kind = livePlayPlaceholderFor(state.room);
+            Widget placeholder = switch (kind) {
               LivePlayPlaceholder.loading => const VideoLoading(),
-              LivePlayPlaceholder.loadFailed => RoomLoadFailedWidget(onRetry: controller.onInitPlayerState),
+              LivePlayPlaceholder.loadFailed => RoomLoadFailedWidget(controller: controller),
               LivePlayPlaceholder.notLiving => NotLivingVideoWidget(controller: controller),
             };
+            // A long press shows 关注 here too, as it does on the picture, so
+            // a room that cannot play is never a dead end.
+            if (kind != LivePlayPlaceholder.loading) {
+              placeholder = Builder(
+                builder: (context) => GestureDetector(
+                  key: const ValueKey('room-placeholder-long-press'),
+                  behavior: HitTestBehavior.opaque,
+                  onLongPress: () => showFollowPanel(context, controller),
+                  child: placeholder,
+                ),
+              );
+            }
             return pageSurface ? ColoredBox(color: Colors.black, child: placeholder) : placeholder;
           }
           final reloading = state.room.isLoading;
@@ -122,12 +136,26 @@ LivePlayPlaceholder livePlayPlaceholderFor(RoomState room) {
 bool shouldFloatAfterLivePlayExit(RoomState room, {required bool hasVideo}) => hasVideo && room.loadError == null;
 
 class RoomLoadFailedWidget extends StatelessWidget {
-  const RoomLoadFailedWidget({super.key, required this.onRetry});
+  const RoomLoadFailedWidget({super.key, required this.controller});
 
-  final Future<Object?> Function() onRetry;
+  final LivePlayController controller;
 
   @override
   Widget build(BuildContext context) {
+    // Fullscreen has no other way out of a failed room: it gets the 未开播
+    // page's top bar (back, title, time).
+    return Material(
+      type: MaterialType.transparency,
+      child: Column(
+        children: [
+          if (GlobalPlayerService.instance.player.fullscreenUI) RoomPlaceholderHeader(controller: controller),
+          Expanded(child: _buildContent()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -144,7 +172,7 @@ class RoomLoadFailedWidget extends StatelessWidget {
             const SizedBox(height: 12),
             FilledButton.tonalIcon(
               key: const ValueKey('room-load-retry'),
-              onPressed: () => unawaited(onRetry()),
+              onPressed: () => unawaited(controller.onInitPlayerState()),
               icon: const Icon(Icons.refresh_rounded),
               label: Text(i18n('retry')),
             ),

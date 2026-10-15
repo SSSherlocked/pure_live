@@ -158,12 +158,6 @@ abstract final class MediaKitLiveProperties {
       // symbols during mpv_render_context_create. videotoolbox-copy still
       // decodes in hardware and hands system-memory frames to that texture.
       enableHardwareAcceleration: segment.enableCodec && !Platform.isMacOS,
-      // Android: a SurfaceProducer gives its Surface up whenever the app goes
-      // to the background, and mpv then tears its video chain down (vo=null)
-      // and builds it again on return, which cut the sound for about a second
-      // each time. A SurfaceTexture keeps its Surface until the player is
-      // disposed. (Only Android reads this.)
-      enableAndroidSurfaceProducer: false,
     );
   }
 

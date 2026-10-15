@@ -25,6 +25,10 @@ Header floatingRefreshHeader() => BuilderHeader(
   position: IndicatorPosition.above,
   processedDuration: const Duration(milliseconds: 200),
   builder: (context, state) {
+    // Nothing once the header is back in: the ball is drawn outside its
+    // zero-height box, and its shadow showed under the tab bar after every
+    // refresh.
+    if (state.offset <= 0 || state.mode == IndicatorMode.inactive) return const SizedBox.shrink();
     const ballSize = 40.0;
     final colors = Theme.of(context).colorScheme;
     final busy = state.mode == IndicatorMode.ready || state.mode == IndicatorMode.processing;

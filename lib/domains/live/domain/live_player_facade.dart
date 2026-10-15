@@ -123,6 +123,12 @@ final class LivePlayerFacade {
   /// page is on screen.
   bool get isServingRoom => _servingRoom;
   bool _servingRoom = false;
+
+  /// Set when a setting that only a new engine picks up changed while a
+  /// room played: [close] then releases the engine instead of keeping it
+  /// warm, so the next room starts on the new settings.
+  bool _retireOnClose = false;
+  void retireEngineOnClose() => _retireOnClose = true;
   PlayerHandle? get handle => _controller.handle;
 
   /// Kernel-side handle lifecycle: emitted when an engine is attached and
@@ -938,7 +944,9 @@ final class LivePlayerFacade {
     _servingRoom = false;
     _cancelIdleRelease();
     await _sourceInterceptor?.release();
-    if (_useHardStopOnExit()) {
+    final retire = _retireOnClose;
+    _retireOnClose = false;
+    if (_useHardStopOnExit() || retire) {
       await _controller.close();
       return;
     }
@@ -958,6 +966,7 @@ final class LivePlayerFacade {
   Future<void> releaseIdleEngine() async {
     if (_servingRoom || _disposed) return;
     _cancelIdleRelease();
+    _retireOnClose = false;
     await _controller.close();
   }
 

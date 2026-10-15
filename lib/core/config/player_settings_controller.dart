@@ -39,6 +39,10 @@ class PlayerSettingsController extends GetxController {
   /// engine must be rebuilt to pick it up.
   static void Function({required bool rebuild})? outputSettingsDispatcher;
 
+  /// Player-layer hook for the mpv settings that only a new engine picks up
+  /// (ao, video-sync, scale, ...), installed by PlayerKernelService.
+  static void Function()? engineSettingsDispatcher;
+
   static const int defaultVideoFitIndex = 0;
 
   final List<Worker> _workers = [];
@@ -190,6 +194,15 @@ class PlayerSettingsController extends GetxController {
     deinterlace.listen((_) => persist());
     hwdecCodecs.listen((_) => persist());
     audioExclusive.listen((_) => persist());
+    // Persisted first (above), then handed to the player layer.
+    void engineChanged() => engineSettingsDispatcher?.call();
+    audioOutputDriver.listen((_) => engineChanged());
+    videoSync.listen((_) => engineChanged());
+    interpolation.listen((_) => engineChanged());
+    scale.listen((_) => engineChanged());
+    deinterlace.listen((_) => engineChanged());
+    hwdecCodecs.listen((_) => engineChanged());
+    audioExclusive.listen((_) => engineChanged());
   }
 
   final RxBool floatPlay = hiveBool('floatPlay', false);

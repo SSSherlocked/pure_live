@@ -134,6 +134,18 @@ class PlayerKernelService {
       }
       unawaited(MediaKitLiveProperties.engineOptions().then((options) => handle.applyEngineOptions(options)));
     };
+    // The rest of the mpv settings are read when an engine is created and
+    // are not applied to a running one: the room on screen keeps playing as
+    // it is. Its engine is not kept warm for the next room (that one would
+    // still run on the old settings); between rooms the warm engine goes now.
+    PlayerSettingsController.engineSettingsDispatcher = () {
+      final player = GlobalPlayerService.instance.player;
+      if (player.isServingRoom) {
+        player.retireEngineOnClose();
+      } else {
+        unawaited(player.releaseIdleEngine());
+      }
+    };
     logRing = mlog.MediaCoreLog.attachMemorySink(capacity: 500);
     // The ring feeds the app log (LogController pumps it); a release build
     // keeps the kernel's info lines (engine, source and candidate changes),

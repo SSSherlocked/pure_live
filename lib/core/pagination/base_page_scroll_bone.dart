@@ -118,6 +118,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
 
   @override
   void onClose() {
+    _headerRetry?.cancel();
     scrollController.removeListener(_scrollListener);
     _boundScrollController = null;
     _ownedScrollController.dispose();
@@ -193,10 +194,18 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   /// reload spinner stays hidden (see BasePageView).
   final pullRefreshing = false.obs;
 
-  /// Set by the page: on touch layouts a reload that did not come from a
-  /// pull shows in the pull header, dropping in, spinning and retracting
-  /// like a pull; elsewhere the page's reload spinner shows it.
+  /// Set by the page: where lists refresh by pulling, every reload shows in
+  /// the pull header, pulled or not, and it is the only indicator. Where a
+  /// floating refresh button takes the pull's place (desktop), the page's
+  /// reload spinner is the only one.
   bool reloadInPullHeader = false;
+
+  /// A refresh already running that a new request joins instead of starting
+  /// a second one: pages whose refreshes run outside [loadding] (silent
+  /// background passes) report theirs here.
+  Future<void>? get runningRefresh => null;
+
+  Timer? _headerRetry;
 
   int _pullsRunning = 0;
 
@@ -207,9 +216,19 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   bool get _reloadRunning => loadding.value && currentPage <= 1;
 
   void _onLoadingChanged(bool loading) {
+    _headerRetry?.cancel();
+    _headerRetry = null;
     if (!loading || isClosed || !reloadInPullHeader || pullRefreshing.value || currentPage > 1) return;
     final header = easyRefreshController.headerState;
-    if (header == null || header.mode != IndicatorMode.inactive) return;
+    if (header == null || header.mode != IndicatorMode.inactive) {
+      // The header is still retracting from a pull, being dragged, or not
+      // attached yet: wait for it rather than showing a second indicator.
+      _headerRetry = Timer(const Duration(milliseconds: 200), () {
+        _headerRetry = null;
+        if (!isClosed && loadding.value) _onLoadingChanged(true);
+      });
+      return;
+    }
     // A header that pulls the list down would scroll a list read part-way
     // back to the top; the floating ball sits over the list and never does.
     final atTop = scrollController.hasClients && scrollController.offset <= 0;
@@ -221,7 +240,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
         if (isClosed || _pullsRunning > 0) return;
         final mode = easyRefreshController.headerState?.mode;
         if (mode == IndicatorMode.ready || mode == IndicatorMode.processing) return;
-        // The header could not drop in: the page's spinner shows the reload.
+        // The header could not drop in; the reload runs without one.
         _headerReloadPending = false;
         pullRefreshing.value = false;
       }),
@@ -244,12 +263,17 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   /// reload joins it: the header spins until that reload ends, then
   /// retracts; no second refresh starts.
   Future<void> pullToRefresh() async {
+    final running = runningRefresh;
     final joins = _headerReloadPending || _reloadRunning;
     _headerReloadPending = false;
     _pullsRunning++;
     pullRefreshing.value = true;
     try {
-      if (joins) {
+      if (running != null) {
+        // One channel: a pull during any refresh, visible or silent, waits
+        // for it instead of queueing another.
+        await running.catchError((Object _) {});
+      } else if (joins) {
         await _untilLoaded();
       } else {
         await refreshData();

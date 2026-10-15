@@ -108,13 +108,11 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
                 children: [
                   // The pill's own bottom padding spaces it from the refresh.
                   FavoriteAreaFloatingButton(area: widget.subCategory),
-                  // Desktop has no pull-to-refresh.
-                  Obx(
-                    () => FloatingRefreshButton(
-                      key: const ValueKey('area-rooms-refresh'),
-                      loading: controller.loadding.value,
-                      onPressed: controller.refreshData,
-                    ),
+                  // Desktop has no pull-to-refresh. The page's reload spinner
+                  // shows the refresh; the button does not spin as well.
+                  FloatingRefreshButton(
+                    key: const ValueKey('area-rooms-refresh'),
+                    onPressed: controller.refreshData,
                   ),
                 ],
               )

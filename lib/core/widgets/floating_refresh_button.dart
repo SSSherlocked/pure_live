@@ -4,7 +4,7 @@ import 'package:pure_live/core/index.dart';
 /// ([AppLayout.refreshByButton]), where pulling the list down is not the natural
 /// way to reload it. It sits in the page's floating action button slot.
 class FloatingRefreshButton extends StatelessWidget {
-  const FloatingRefreshButton({super.key, required this.onPressed, this.loading = false});
+  const FloatingRefreshButton({super.key, required this.onPressed});
 
   /// Bottom offset that puts a list's scroll buttons (see `BasePageView`)
   /// clear above this button: the scaffold's 16 px margin, the 56 px button
@@ -12,9 +12,6 @@ class FloatingRefreshButton extends StatelessWidget {
   static const double clearance = 88;
 
   final VoidCallback onPressed;
-
-  /// Shows a spinner and disables the button while the list reloads.
-  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +23,10 @@ class FloatingRefreshButton extends StatelessWidget {
       tooltip: i18n('refresh'),
       backgroundColor: colors.primary,
       foregroundColor: colors.onPrimary,
-      onPressed: loading ? null : onPressed,
-      child: loading
-          ? SizedBox.square(
-              dimension: 22,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: colors.onPrimary),
-            )
-          : const Icon(Icons.refresh_rounded),
+      // The page's reload spinner shows a refresh in progress; a press
+      // meanwhile joins it (see BasePageScrollAndStateBone.runningRefresh).
+      onPressed: onPressed,
+      child: const Icon(Icons.refresh_rounded),
     );
   }
 }

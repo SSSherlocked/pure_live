@@ -538,6 +538,13 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     }
   }
 
+  /// The pass now running, whatever started it (startup, resume, the auto
+  /// refresh timer, a favourite change, a pull, the refresh button).
+  Future<void>? _inFlightRefresh;
+
+  @override
+  Future<void>? get runningRefresh => _inFlightRefresh;
+
   Future<void> _runRoomRefresh(
     List<LiveRoom> rooms, {
     required bool showLoading,
@@ -547,8 +554,14 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     bool bypassFailureCooldown = false,
   }) {
     if (isClosed) return Future<void>.value();
+    // One refresh channel: every trigger joins the pass already running
+    // instead of queueing a second full pass behind it, so two refreshes -
+    // and two spinners - never overlap.
+    final running = _inFlightRefresh;
+    if (running != null) return running;
     final completion = Completer<void>();
     final operation = completion.future;
+    _inFlightRefresh = operation;
     // One refresh owns the snapshot transaction at a time. The former epoch
     // scheme cancelled whichever pass happened to finish second; a lifecycle
     // resume 450 ms after launch could therefore discard startup verification
@@ -598,9 +611,11 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     unawaited(
       pending.then(
         (_) {
+          if (identical(_inFlightRefresh, operation)) _inFlightRefresh = null;
           completion.complete();
         },
         onError: (Object error, StackTrace stack) {
+          if (identical(_inFlightRefresh, operation)) _inFlightRefresh = null;
           completion.completeError(error, stack);
         },
       ),

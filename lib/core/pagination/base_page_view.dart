@@ -48,9 +48,10 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
 
   @override
   Widget build(BuildContext context) {
-    // Touch layouts show a reload in the pull header; desktop keeps the
-    // page's reload spinner.
-    controller.reloadInPullHeader = AppLayout.of(context).touch;
+    // One indicator per reload: the pull header wherever lists refresh by
+    // pulling; the page's reload spinner where a floating refresh button
+    // takes the pull's place (desktop).
+    controller.reloadInPullHeader = !AppLayout.of(context).refreshByButton;
     // Every layout shows one continuous list that loads more as it scrolls.
     final double bottomPadding = AppLayout.of(context).wide
         ? (wideBottomPadding ?? 20)
@@ -174,7 +175,7 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
               // pull-to-refresh, never a bar across the page. When the pull
               // header is already spinning, or the footer is loading the next
               // page, that indicator is the only one.
-              if (controller.pullRefreshing.value || controller.currentPage > 1) {
+              if (controller.reloadInPullHeader || controller.pullRefreshing.value || controller.currentPage > 1) {
                 return const SizedBox.shrink();
               }
               return const Align(alignment: Alignment.topCenter, child: _ReloadSpinner());

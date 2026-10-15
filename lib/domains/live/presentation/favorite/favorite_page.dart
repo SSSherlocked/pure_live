@@ -37,13 +37,12 @@ class FavoritePage extends GetView<FavoriteController> {
               ),
             ),
             body: _FavoriteSiteTabs(key: siteKey, controller: controller, availableSitesList: availableSitesList),
+            // The page's reload spinner shows the refresh; the button does not
+            // spin as a second indicator.
             floatingActionButton: showRefresh
-                ? Obx(
-                    () => FloatingRefreshButton(
-                      key: const ValueKey('favorite-refresh'),
-                      loading: controller.loadding.value,
-                      onPressed: controller.refreshData,
-                    ),
+                ? FloatingRefreshButton(
+                    key: const ValueKey('favorite-refresh'),
+                    onPressed: controller.refreshData,
                   )
                 : null,
           );

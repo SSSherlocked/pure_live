@@ -118,7 +118,15 @@ class PlayerKernelService {
     // same-backend engine rebuild, which preserves source, position and
     // play intent.
     PlayerSettingsController.outputSettingsDispatcher = ({required bool rebuild}) {
-      final handle = GlobalPlayerService.instance.player.handle;
+      final player = GlobalPlayerService.instance.player;
+      // Between rooms the warm engine still knows the room left: a rebuild
+      // or an option that reloads would play it again behind the home page.
+      // Let the engine go; the next room opens one with these settings.
+      if (!player.isServingRoom) {
+        unawaited(player.releaseIdleEngine());
+        return;
+      }
+      final handle = player.handle;
       if (handle == null) return;
       if (rebuild) {
         unawaited(handle.rebuildEngine(reason: 'video output settings changed'));

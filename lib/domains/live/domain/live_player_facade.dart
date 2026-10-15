@@ -115,6 +115,14 @@ final class LivePlayerFacade {
   int _commitRevision = 0;
 
   LiveRoom? get room => _room;
+
+  /// Whether a room's stream is open: set by the opens, cleared by [close].
+  /// Between rooms the engine stays warm with its last source still known,
+  /// so anything that rebuilds or replays it (an output setting, a kernel
+  /// switch) would bring the room left back, sound and all, over whatever
+  /// page is on screen.
+  bool get isServingRoom => _servingRoom;
+  bool _servingRoom = false;
   PlayerHandle? get handle => _controller.handle;
 
   /// Kernel-side handle lifecycle: emitted when an engine is attached and
@@ -190,6 +198,7 @@ final class LivePlayerFacade {
 
     final urls = <String>[sourceUrl, ...playUrls.where((value) => value != sourceUrl)];
     _room = liveroom;
+    _servingRoom = true;
     _lastHeaders = Map<String, String>.unmodifiable(headers);
     _lastLines = List<String>.unmodifiable(urls);
 
@@ -261,6 +270,7 @@ final class LivePlayerFacade {
     _sourceResolver = sourceResolver;
     if (audioOnly) await setAudioOnlyMode(true, stopVideoDecoding: true);
     _room = liveroom;
+    _servingRoom = true;
     _lastHeaders = const {};
     _lastLines = const [];
     OpenVolume.pending = _openVolumeFor(liveroom);
@@ -354,6 +364,11 @@ final class LivePlayerFacade {
   Future<void> switchEngine(PlayerEngine engine, {bool isManual = false, bool resumeCurrentSource = true}) async {
     preferredEngine = engine;
     onEngineChanged?.call(engine);
+    if (!_servingRoom) {
+      // No room open: the next one starts on the new engine.
+      await releaseIdleEngine();
+      return;
+    }
     final current = commit;
     if (current != null && current.urls.isNotEmpty) {
       // commit.urls is the platform-ordered line list; the playing line stays
@@ -920,6 +935,7 @@ final class LivePlayerFacade {
   }
 
   Future<void> close() async {
+    _servingRoom = false;
     _cancelIdleRelease();
     await _sourceInterceptor?.release();
     if (_useHardStopOnExit()) {
@@ -934,6 +950,15 @@ final class LivePlayerFacade {
       _idleReleaseTimer = null;
       if (!_disposed) unawaited(_controller.close());
     });
+  }
+
+  /// Between rooms, lets the warm engine go now instead of after
+  /// [idleReleaseDelay], so the next room builds one with the current
+  /// settings. Does nothing while a room is open.
+  Future<void> releaseIdleEngine() async {
+    if (_servingRoom || _disposed) return;
+    _cancelIdleRelease();
+    await _controller.close();
   }
 
   Future<void> dispose() async {

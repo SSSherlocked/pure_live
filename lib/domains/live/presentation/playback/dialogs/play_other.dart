@@ -207,7 +207,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                           tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
                           physics: const PureLiveBoundedScrollPhysics(),
                           labelColor: colors.primary,
-                          unselectedLabelColor: colors.onSurfaceVariant,
+                          unselectedLabelColor: colors.onSurface,
                           indicatorSize: TabBarIndicatorSize.label,
                           dividerHeight: 0,
                           splashBorderRadius: BorderRadius.circular(8),

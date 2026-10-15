@@ -274,7 +274,9 @@ class MyTheme {
         labelStyle: textTheme.titleMedium?.copyWith(fontWeight: bold),
         unselectedLabelStyle: textTheme.titleMedium?.copyWith(fontWeight: bold),
         labelColor: baseTheme.colorScheme.primary,
-        unselectedLabelColor: baseTheme.colorScheme.onSurfaceVariant,
+        // Full text colour, as the content under the tabs: onSurfaceVariant
+        // made every unselected tab read greyer than the chat beside it.
+        unselectedLabelColor: baseTheme.colorScheme.onSurface,
       ),
       cardTheme: CardThemeData(
         elevation: 0,

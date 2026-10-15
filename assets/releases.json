@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.3.7",
+    "title": "v3.3.7",
+    "date": "2026-10-15",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.3.7",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎬 直播间\n\n- **搜索、分区、热门各自选显示方式**：「房间卡片设置 › 菜单」里新增「搜索」开关，和分区、热门一样可以在右上角菜单里隐藏。三个页面各自选择用「紧凑信息行」还是「封面卡片」显示直播间，并使用这种模式自己的卡片间距；列数和卡片宽度仍跟随房间卡片设置。分区的种类页面不受影响。\n- **列表弹幕间距**：改为按文字行高计算（0–1.5×，每格 0.05×），和气泡高度同一单位，更细也更好理解；原来的像素值会自动换算。调到 0 时，相邻两个气泡共用同一条边线。\n- **未开播直播间卡死**：打开未开播或加载失败的直播间，不再先转一秒然后卡成灰色画面、连返回手势都失效（3.3.4 起的问题）。\n- **下播即显示已下播**：正在看的直播下播后，不再自动接着播放平台的录播或轮播，直接显示「已下播」。从「录播」列表打开的录播照常播放。\n- **虎牙下播状态**：虎牙主播下播后，网页仍会显示「直播中」好几个小时，打开只有黑屏。现在会再向虎牙的手机端接口核对一次，已下播的直播间正确显示「已下播」，关注列表里也不再误显示为直播中。\n\n#### ⚙️ 设置\n\n- **滑块只认拖动**：设置里的滑块只能按住圆点拖动来调；点一下滑条，或滑动页面时手指划过滑条，都不会再改动数值。\n- **数值写法统一**：长度一律写成「N px」，倍数写成「N×」（弹幕间距、画中画弹幕比例、留言字号、全局字体缩放等），比例和不透明度写成百分比，时长写成「秒 / 分钟 / 小时」（录制设置不再是 30s、5m 这样的写法）；带加减按钮的设置把单位显示在数字后面，不再写在标题里。只改显示，设置的含义和取值不变。\n- **说明更简洁**：进入下一级设置页的条目，说明文字缩短为一句用途提示。\n- **macOS 启动黑窗口**：打开应用时不再先闪出一个带标题栏的小黑窗口，主窗口准备好后直接出现。",
+    "files": [
+      {
+        "name": "PureLive-3.3.7-Android-arm64-v8a",
+        "size": "119.43mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.3.7-iOS-TrollStore.ipa",
+        "size": "44.79mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.3.7-iOS-Unsigned.zip",
+        "size": "44.52mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.3.7-Linux-x64.deb",
+        "size": "41.85mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.3.7-Linux-x64.tar.gz",
+        "size": "50.17mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.3.7-Linux-x64.zip",
+        "size": "50.2mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.7-MacOS-AppleSilicon.zip",
+        "size": "42.16mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.3.7-MacOS-Intel.zip",
+        "size": "44.89mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.3.7-Windows-x64.zip",
+        "size": "60.63mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.7/PureLive-3.3.7-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.3.6",
     "title": "v3.3.6",
     "date": "2026-10-15",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.3.6-Android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.6/PureLive-3.3.6-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +118,7 @@
       {
         "name": "PureLive-3.3.6-MacOS-AppleSilicon.zip",
         "size": "42.19mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.6/PureLive-3.3.6-MacOS-AppleSilicon.zip"
       },
       {

@@ -21,7 +21,6 @@ import 'package:pure_live/core/player/models/player_engine.dart';
 import 'package:pure_live/core/platform/share_command_handler.dart';
 import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
-import 'package:pure_live/core/player/presentation/popup_route_tracker.dart';
 import 'package:pure_live/domains/iptv/data/services/epg_import_manager.dart';
 import 'package:pure_live/domains/live/data/link/shared_live_link_opener.dart';
 import 'package:pure_live/domains/iptv/data/services/iptv_import_manager.dart';
@@ -203,7 +202,7 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
             theme: lightTheme,
             darkTheme: darkTheme,
             locale: context.locale,
-            navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver(), PopupRouteTracker.instance],
+            navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver()],
             builder: FlutterSmartDialog.init(
               // Toasts in the app's text sizes and scale (see AppToast).
               toastBuilder: (message) => AppToast(message),

@@ -1343,8 +1343,15 @@ class LivePlayController extends GetxController
     final manager = GlobalPlayerService.instance.player;
     await manager.close();
 
-    updateRoom(success: false, isLiving: true);
-    await playerController.destroyPlayer();
+    // The previous room's controller stays until the new room's replaces it
+    // (setPlayer tears it down then): its controls, gestures and side panels
+    // keep working through the load; only the title and the quality/line
+    // labels wait, showing a spinner. A switch that ends without a player
+    // (offline, failed) removes it below.
+    final switchEpoch = ++_roomSwitchEpoch;
+    final previousController = state.value.player.videoController;
+    previousController?.danmakuController.clear();
+    updateRoom(success: false, isLiving: true, isLoading: true);
     clearClosedPlaybackSource();
     clearSuperChats();
 
@@ -1376,7 +1383,16 @@ class LivePlayController extends GetxController
     await onInitPlayerState(
       reloadDataType: newRoom.platform == Sites.bilibiliSite ? ReloadDataType.changeLine : ReloadDataType.refresh,
     );
+    if (previousController != null &&
+        switchEpoch == _roomSwitchEpoch &&
+        identical(state.value.player.videoController, previousController)) {
+      await playerController.destroyPlayer();
+    }
   }
+
+  /// Bumped by every [switchRoom], so only the latest switch removes the
+  /// controller it kept.
+  int _roomSwitchEpoch = 0;
 
   Future<void> setResolution(ReloadDataType reloadDataType, int qualityIndex, int lineIndex) async {
     await playerController.switchStreamSelection(

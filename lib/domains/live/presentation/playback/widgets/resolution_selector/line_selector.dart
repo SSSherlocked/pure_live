@@ -18,6 +18,17 @@ class LineSelector extends StatelessWidget {
         return Obx(() {
       final state = controller.state.value;
 
+      // A room being loaded (or switched to) keeps the label's place.
+      if (state.room.isLoading) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SizedBox.square(
+            dimension: 12,
+            child: CircularProgressIndicator(strokeWidth: 1.8, color: Get.theme.colorScheme.primary),
+          ),
+        );
+      }
+
       if (!state.room.success || !state.player.hasPlaybackSource) {
         return const SizedBox.shrink();
       }

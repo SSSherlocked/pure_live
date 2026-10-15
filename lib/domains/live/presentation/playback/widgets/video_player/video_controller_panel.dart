@@ -538,16 +538,32 @@ class TopActionBar extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              _liveRoomTitle(controller.room),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                              // The room on screen, which a switch updates at
+                              // once while the previous player stays.
+                              _liveRoomTitle(controller.livePlayController.state.value.room.detail ?? controller.room),
                               overflow: TextOverflow.ellipsis,
                               style: AppText.of(context).sectionTitle.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.normal,
                                 decoration: TextDecoration.none,
                               ),
+                                  ),
+                                ),
+                                if (controller.livePlayController.state.value.room.isLoading) ...[
+                                  const SizedBox(width: 8),
+                                  const SizedBox.square(
+                                    key: ValueKey('player-title-loading'),
+                                    dimension: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 1.8, color: Colors.white),
+                                  ),
+                                ],
+                              ],
                             ),
-                            if (_liveProgramme(controller.room) case final programme?) ...[
+                            if (_liveProgramme(controller.livePlayController.state.value.room.detail ?? controller.room) case final programme?) ...[
                               const SizedBox(height: 2),
                               Text(
                                 "${i18n('now_playing')}: $programme",
@@ -960,6 +976,8 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
       final live = controller.livePlayController;
       final state = live.state.value.player;
       final status = LiveRoomStatus.of(live);
+      // A room being switched to keeps the chips' place with a spinner.
+      if (live.state.value.room.isLoading) return const _StreamChoiceLoading();
       if (!live.state.value.room.success || !status.hasStream) {
         return const SizedBox.shrink();
       }
@@ -1520,6 +1538,23 @@ class SettingsPanel extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The quality/line chips' place on the bar while a room loads.
+class _StreamChoiceLoading extends StatelessWidget {
+  const _StreamChoiceLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      key: ValueKey('stream-selector-loading'),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: SizedBox.square(
+        dimension: 14,
+        child: CircularProgressIndicator(strokeWidth: 1.8, color: Colors.white),
       ),
     );
   }

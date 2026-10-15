@@ -316,11 +316,14 @@ class RoomCard extends StatelessWidget {
   }
 
   /// The 录播 tag: the platform tag's padding, text and height (on the cover
-  /// or in the compact row), filled with the theme colour. Text and icon take
-  /// onPrimary, black or white by contrast: white was unreadable on a light
-  /// theme colour.
+  /// or in the compact row), filled with the theme colour. In the light
+  /// theme text and icon are white: there the theme colour is kept at least
+  /// 3:1 against the white page (readablePrimary), so white reads on it too.
+  /// In the dark theme they take onPrimary, black or white by contrast, as
+  /// the theme colour there is lifted toward light.
   Widget _buildReplayBadge(BuildContext context, {required bool cover}) {
-    final onPrimary = Theme.of(context).colorScheme.onPrimary;
+    final colors = Theme.of(context).colorScheme;
+    final onPrimary = colors.brightness == Brightness.light ? Colors.white : colors.onPrimary;
     final style = (cover && !dense ? AppText.of(context).secondary : AppText.of(context).tag).copyWith(
       color: onPrimary,
       fontWeight: FontWeight.w600,

@@ -188,6 +188,7 @@ final class LivePlayerFacade {
     PlaybackStartupTiming.instance.mark('urls');
 
     final urls = <String>[sourceUrl, ...playUrls.where((value) => value != sourceUrl)];
+    _beginRoom(liveroom);
     _room = liveroom;
     _lastHeaders = Map<String, String>.unmodifiable(headers);
     _lastLines = List<String>.unmodifiable(urls);
@@ -259,6 +260,7 @@ final class LivePlayerFacade {
     if (_disposed) return;
     _sourceResolver = sourceResolver;
     if (audioOnly) await setAudioOnlyMode(true, stopVideoDecoding: true);
+    _beginRoom(liveroom);
     _room = liveroom;
     _lastHeaders = const {};
     _lastLines = const [];
@@ -390,6 +392,24 @@ final class LivePlayerFacade {
   final RxBool isVerticalVideo = false.obs;
 
   final RxBool isDummyVideo = false.obs;
+
+  /// True once the room now playing has shown a picture of its own (or plays
+  /// sound only). Leaving a room or opening another one clears it: a paused
+  /// (warm) player keeps the previous room's last frame on its texture, and
+  /// the video surface stays black over it until this room's first frame.
+  /// Quality and line changes within a room keep it.
+  final RxBool hasFreshFrame = false.obs;
+  String? _framedRoomKey;
+
+  static String? _roomKey(LiveRoom? room) => room == null ? null : '${room.platform}:${room.roomId}';
+
+  void _beginRoom(LiveRoom? room) {
+    final key = _roomKey(room);
+    if (key != null && key == _framedRoomKey) return;
+    _framedRoomKey = key;
+    hasFreshFrame.value = false;
+  }
+
   final _loadingSubject = StreamController<bool>.broadcast();
   bool _lastLoading = false;
 
@@ -502,7 +522,15 @@ final class LivePlayerFacade {
         // old handle on the stream, and the getter is the only source of truth.
         final handle = _controller.handle;
         if (handle == null) return const SizedBox.expand();
-        return MediaPlayerView(handle: handle, fit: fit);
+        // The surface stays mounted (the texture stays attached); black
+        // covers it until this room has drawn its own first frame.
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            MediaPlayerView(handle: handle, fit: fit),
+            Obx(() => hasFreshFrame.value ? const SizedBox.shrink() : const ColoredBox(color: Colors.black)),
+          ],
+        );
       },
     );
   }
@@ -576,9 +604,14 @@ final class LivePlayerFacade {
     if (size != null && size.width > 0 && size.height > 0) {
       windowsPipDriver.onVideoSize((size.width / size.height * 1000).round(), 1000);
     }
+    final playing = state.playback == PlayerPlaybackState.playing;
+    final hasPicture = size != null && size.width > 0 && size.height > 0 && !dummy;
+    if (!hasFreshFrame.value && playing && (hasPicture || dummy || _audioOnlyMode.value)) {
+      hasFreshFrame.value = true;
+    }
     PlaybackStartupTiming.instance.reportPlaybackState(
-      playing: state.playback == PlayerPlaybackState.playing,
-      hasPicture: size != null && size.width > 0 && size.height > 0 && !dummy,
+      playing: playing,
+      hasPicture: hasPicture,
       audioOnly: dummy || _audioOnlyMode.value,
     );
     videoGeometryState.value = _computeVideoGeometry();
@@ -920,6 +953,8 @@ final class LivePlayerFacade {
 
   Future<void> close() async {
     _cancelIdleRelease();
+    _framedRoomKey = null;
+    hasFreshFrame.value = false;
     await _sourceInterceptor?.release();
     if (_useHardStopOnExit()) {
       await _controller.close();

@@ -92,6 +92,11 @@ class DesktopManager {
       await _initTray();
     } catch (e) {
       debugPrint('桌面端初始化失败: $e');
+      // macOS keeps the window hidden until it is shown here: a failed
+      // set-up must not leave the app without a window.
+      try {
+        await windowManager.show();
+      } catch (_) {}
     }
   }
 

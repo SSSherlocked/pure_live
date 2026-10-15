@@ -1,5 +1,6 @@
 import Cocoa
 import FlutterMacOS
+import window_manager
 
 class MainFlutterWindow: NSWindow {
   override func awakeFromNib() {
@@ -19,6 +20,15 @@ class MainFlutterWindow: NSWindow {
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     super.awakeFromNib()
+  }
+
+  // The window from MainMenu.xib (800x600, with a title bar) would show,
+  // black, until Flutter has started and sized it: it stays hidden instead,
+  // and DesktopManager shows it once it is ready (window_manager's
+  // "hidden at launch").
+  override public func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
+    super.order(place, relativeTo: otherWin)
+    hiddenWindowAtLaunch()
   }
 
   /// Brings an already running instance to the front.

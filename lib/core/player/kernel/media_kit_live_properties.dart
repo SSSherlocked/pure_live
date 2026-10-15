@@ -106,15 +106,6 @@ abstract final class MediaKitLiveProperties {
       // keyframe, about a second. Audio keeps playing instead; the picture
       // syncs to it as it arrives.
       properties['initial-audio-sync'] = 'no';
-      // mpv draws into a Flutter ImageReader that only takes frames while
-      // Flutter draws. Going to (and coming back from) the background stops
-      // that for a moment, and with the default swap interval of 1 mpv's
-      // buffer swap waited for a free buffer: the playback loop stood still,
-      // the audio device ran dry ("Audio device underrun detected" right at
-      // each switch, any --ao) and the sound cut out for about a second.
-      // With 0 a full queue drops the oldest frame instead of waiting;
-      // Flutter shows the newest frame anyway, so nothing is lost on screen.
-      properties['opengl-swapinterval'] = '0';
     }
 
     if (Platform.isMacOS) {
@@ -169,6 +160,14 @@ abstract final class MediaKitLiveProperties {
       // symbols during mpv_render_context_create. videotoolbox-copy still
       // decodes in hardware and hands system-memory frames to that texture.
       enableHardwareAcceleration: segment.enableCodec && !Platform.isMacOS,
+      // Android: render into a SurfaceTexture, not a SurfaceProducer. Under
+      // Impeller the producer is an ImageReader, and every time the app left
+      // the foreground the playback loop stalled and the sound cut out for
+      // about a second (an "Audio device underrun" at each switch, with any
+      // --ao and any quality). Exo, which also renders into a producer, cut
+      // out the same way; IJK, which renders into a SurfaceTexture, did not.
+      // Only Android reads this.
+      enableAndroidSurfaceProducer: false,
     );
   }
 

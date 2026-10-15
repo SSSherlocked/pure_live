@@ -207,7 +207,14 @@ class LogFileWriter {
   Timer? _drainTimer;
   bool _draining = false;
 
-  LogFileWriter() : _fileName = '${Log.fileTimestamp(DateTime.now())}.log';
+  LogFileWriter() : _fileName = launchFileName;
+
+  /// One file per launch, shared with the startup trace (see StartupTrace)
+  /// and kept when logging is switched off and on again.
+  static final String launchFileName = '${Log.fileTimestamp(DateTime.now())}.log';
+
+  /// This launch's log file.
+  static Future<File> launchFile() async => File(p.join((await resolveLogDirectory()).path, launchFileName));
 
   Future<bool> init() async {
     if (_isInitialized) return true;

@@ -4,9 +4,19 @@ import 'package:pure_live/core/theme/app_text.dart';
 
 /// Terminal failure stays actionable without replacing the native video subtree.
 class PlaybackFailureOverlay extends StatefulWidget {
-  const PlaybackFailureOverlay({super.key, required this.hasError, required this.onRetry, required this.child});
+  const PlaybackFailureOverlay({
+    super.key,
+    required this.hasError,
+    required this.onRetry,
+    required this.child,
+    this.offline = false,
+  });
 
   final bool hasError;
+
+  /// The room went offline while playing: the picture says only 未开播,
+  /// centred, in place of the failure card.
+  final bool offline;
   final Future<void> Function() onRetry;
   final Widget child;
 
@@ -46,7 +56,18 @@ class _PlaybackFailureOverlayState extends State<PlaybackFailureOverlay> {
       fit: StackFit.expand,
       children: [
         widget.child,
-        if (widget.hasError || _retryFailed || _retrying) ...[
+        if (widget.offline) ...[
+          const IgnorePointer(child: ColoredBox(color: Color(0x55000000))),
+          IgnorePointer(
+            child: Center(
+              child: Text(
+                i18nOr('offline_room_title', 'Offline'),
+                key: const ValueKey('playback-offline-label'),
+                style: AppText.of(context).sectionTitle.copyWith(color: Colors.white),
+              ),
+            ),
+          ),
+        ] else if (widget.hasError || _retryFailed || _retrying) ...[
           const IgnorePointer(child: ColoredBox(color: Color(0x55000000))),
           LayoutBuilder(
             builder: (context, constraints) => Center(

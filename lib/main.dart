@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:pure_live/core/widgets/app_toast.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 import 'package:pure_live/app/router/app_pages.dart';
@@ -204,6 +205,8 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
             locale: context.locale,
             navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver(), PopupRouteTracker.instance],
             builder: FlutterSmartDialog.init(
+              // Toasts in the app's text sizes and scale (see AppToast).
+              toastBuilder: (message) => AppToast(message),
               // Everything painted around the pages lives in [AppShell], which
               // keeps one widget shape so the Router is never remounted.
               builder: (context, child) => AppShell(textScaleFactor: currentFactor, child: child),

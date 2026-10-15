@@ -170,6 +170,11 @@ class LivePlayController extends GetxController
     _reconnectAttempt++;
     _reconnecting = true;
     try {
+      // A drop can be the end of the broadcast. Ask the platform first: an
+      // offline room shows 未开播 and the ladder keeps checking, so a room
+      // that comes back plays again on its own (the background keeper holds
+      // the service for that wait).
+      if (await _broadcastEnded()) return;
       final videoController = state.value.player.videoController;
       if (videoController != null) {
         await videoController.refresh();
@@ -180,12 +185,36 @@ class LivePlayController extends GetxController
       // A failed attempt is answered by the next step of the ladder.
     } finally {
       _reconnecting = false;
+      if (!isClosed && !_ownerClosed && _reconnectStartedAt != null) {
+        // Keep the ladder going even when a failed attempt raised no player
+        // error (the room page itself did not load), and while the room is
+        // offline.
+        if (!GlobalPlayerService.instance.player.isPlayingNow) {
+          _scheduleReconnect(_reconnectSchedule.delayBefore(_reconnectAttempt));
+        }
+      }
     }
-    if (isClosed || _ownerClosed || _reconnectStartedAt == null) return;
-    // Keep the ladder going even when a failed attempt raised no player error
-    // (for example the room page itself did not load).
-    if (!GlobalPlayerService.instance.player.isPlayingNow) {
-      _scheduleReconnect(_reconnectSchedule.delayBefore(_reconnectAttempt));
+  }
+
+  /// Whether the broadcast is over, asked of the platform during a reconnect.
+  /// An offline answer marks the room offline (the picture says 未开播) and
+  /// skips this attempt's reload; a live one clears an earlier offline mark
+  /// so the reload plays it. Unknown or failed answers change nothing.
+  Future<bool> _broadcastEnded() async {
+    final current = state.value.room.detail;
+    if (current == null || currentSite.id == Sites.iptvSite) return false;
+    try {
+      final fetched = await currentSite.liveSite.getRoomDetail(current);
+      if (isClosed || _ownerClosed || fetched.isLiveStatusPending) return false;
+      final refreshed = fetched.withAudienceFallbackFrom(current);
+      final live = refreshed.isPlayableNow;
+      if (live == state.value.room.isLiving) return !live;
+      updateRoom(liveroom: refreshed, isLiving: live);
+      unawaited(live ? _syncDanmakuConnection(refreshed) : danmakuController.stopDanmaku());
+      _syncBackgroundHold();
+      return !live;
+    } catch (_) {
+      return false;
     }
   }
 

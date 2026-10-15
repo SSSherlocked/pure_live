@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
@@ -15,7 +16,9 @@ class DanmakuTabView extends GetView<LivePlayController> {
     return Obx(() {
       final state = controller.state.value;
       final detail = state.room.detail;
-      final videoController = state.player.videoController;
+      // The player's settings while live; typed as the shared source so the
+      // fallback below unifies with it.
+      final DanmakuSettingsSource? playerSettings = state.player.videoController;
       // The tab bar and every section stay mounted while a room switch
       // reloads: only the sections that need the new room show a loading
       // state, so the 关注 list never blanks out during the switch.
@@ -52,14 +55,13 @@ class DanmakuTabView extends GetView<LivePlayController> {
                         LivePanelTab.superChat => Obx(
                           () => SuperChatPage(messages: controller.superChats.toList(growable: false)),
                         ),
-                        // 屏蔽管理 closes the page as its last section.
-                        LivePanelTab.danmakuSettings =>
-                          videoController == null
-                              ? loading()
-                              : DanmakuSettingsPage(
-                                  controller: videoController,
-                                  footer: const KeywordBlockPage(asSection: true),
-                                ),
+                        // 屏蔽管理 closes the page as its last section. A room
+                        // with no player (not live) edits the same global
+                        // settings directly, so the tab always has content.
+                        LivePanelTab.danmakuSettings => DanmakuSettingsPage(
+                          controller: playerSettings ?? const SettingsDanmakuSource(),
+                          footer: const KeywordBlockPage(asSection: true),
+                        ),
                         LivePanelTab.follow => FollowRoomsPage(
                           key: const ValueKey('live-panel-follow'),
                           controller: controller,

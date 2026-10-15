@@ -32,6 +32,9 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
       return PlaybackFailureOverlay(
         hasError: hasError,
+        // Set when a reconnect finds the broadcast over (see
+        // LivePlayController's reconnect ladder).
+        offline: !controller.livePlayController.state.value.room.isLiving,
         onRetry: controller.refresh,
         child: player.getVideoWidgetCompat(
           SettingsService.to.player.videoFitIndex.v,

@@ -18,8 +18,6 @@ ROOT = Path(__file__).resolve().parent.parent
 ALLOWED = {
     # The text role definitions themselves.
     'lib/core/theme/app_text.dart',
-    # Danmaku template presets: stored danmaku sizes, not UI text.
-    'lib/core/player/presentation/danmaku/danmaku_viewing_preset.dart',
     # Fallbacks for a missing theme slot, never shown in practice.
     'lib/core/widgets/refresh_indicators.dart',
 }

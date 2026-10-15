@@ -87,6 +87,9 @@ HomePageMenuAction favoriteSortMenuAction() => HomePageMenuAction(
 class FavoriteSortButton extends StatelessWidget {
   const FavoriteSortButton({super.key, this.iconSize = 18});
 
+  /// A compact icon button's side: 48 less the compact density's 8.
+  static const double _buttonExtent = kMinInteractiveDimension - 8;
+
   final double iconSize;
 
   @override
@@ -98,6 +101,10 @@ class FavoriteSortButton extends StatelessWidget {
       // As compact as the panel's refresh button opposite it, so the tabs
       // between the two sit in the middle.
       style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
+      // Beside the icon rather than over it, its top level with the icon's:
+      // one compact button (40) to the right, the icon's top inset down.
+      position: PopupMenuPosition.over,
+      offset: Offset(_buttonExtent, (_buttonExtent - iconSize) / 2),
       onSelected: _applySortMode,
       constraints: choiceMenuConstraints(context, [for (final mode in FavoriteSortMode.values) _labelOf(mode)]),
       itemBuilder: _sortItems,

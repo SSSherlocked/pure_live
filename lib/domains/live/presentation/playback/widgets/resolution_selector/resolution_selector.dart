@@ -1,5 +1,6 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
+import 'package:pure_live/domains/live/presentation/playback/widgets/resolution_selector/label_menu_offset.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
@@ -11,7 +12,11 @@ class ResolutionSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
+    // The height the row allows the button, for where its menu opens.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxHeight = constraints.maxHeight;
+        return Obx(() {
       final state = controller.state.value;
 
       if (!state.room.success || state.player.qualites.isEmpty) {
@@ -28,7 +33,7 @@ class ResolutionSelector extends StatelessWidget {
         tooltip: i18n('toolbox_select_quality'),
         // Exactly as wide as the entries (see choiceMenuConstraints).
         constraints: choiceMenuConstraints(context, [for (final quality in state.player.qualites) quality.quality]),
-        offset: const Offset(0.0, 5.0),
+        offset: labelMenuOffset(context, _labelStyle(context), maxHeight),
         onOpened: () {
           controller.updateUI(isMenuOpen: true);
         },
@@ -57,7 +62,7 @@ class ResolutionSelector extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     // Quality and line share one role, the secondary text.
-                    style: AppText.of(context).secondary.copyWith(color: Get.theme.colorScheme.primary, fontWeight: FontWeight.w700),
+                    style: _labelStyle(context),
                   ),
                 ),
               ],
@@ -82,6 +87,12 @@ class ResolutionSelector extends StatelessWidget {
           ];
         },
       );
-    });
+        });
+      },
+    );
   }
 }
+
+/// The label's style, shared with the menu's offset.
+TextStyle _labelStyle(BuildContext context) =>
+    AppText.of(context).secondary.copyWith(color: Get.theme.colorScheme.primary, fontWeight: FontWeight.w700);

@@ -34,6 +34,7 @@ import 'package:pure_live/core/platform/windows_multi_instance_launcher.dart';
 import 'package:pure_live/core/config/migrations/settings_upgrade_migration.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 import 'package:pure_live/core/logging/startup_trace.dart';
+import 'package:pure_live/core/config/log_controller.dart';
 
 /// Keep decoded cover/avatar memory bounded independently from the encoded
 /// HTTP/disk cache. A 960x540 RGBA cover is roughly 2 MiB after decoding, so
@@ -64,14 +65,19 @@ class AppInitializer {
     await _initWindowsSingleInstance(args, instanceId);
 
     await AppPathManager().initialize(instanceId: instanceId);
-    // From here every step lands in startup.log as it starts and ends, so a
-    // launch stuck on the launch screen shows where on the next launch.
-    await StartupTrace.begin(LogFileWriter.resolveLogDirectory);
+    // From here every step is traced as it starts and ends, so a launch stuck
+    // on the launch screen shows where on the next launch. Lines wait in
+    // memory until the log switch can be read (after the settings database).
+    StartupTrace.begin();
     await StartupTrace.step('localization', EasyLocalization.ensureInitialized);
     final Directory hiveDir = await AppPathManager().getDir(AppPathManager.dirHiveDB);
 
     await StartupTrace.step('hive', () => Hive.initFlutter(hiveDir.path));
     await StartupTrace.step('settings database', HivePrefUtil.init);
+    await StartupTrace.attach(
+      enabled: HivePrefUtil.getBool(LogController.enableLocalLogKey) ?? false,
+      file: LogFileWriter.launchFile,
+    );
     final migrationReport = await StartupTrace.step(
       'settings upgrade',
       () async => SettingsUpgradeMigration.migrate(

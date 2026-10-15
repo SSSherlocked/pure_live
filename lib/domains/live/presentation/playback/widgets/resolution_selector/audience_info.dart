@@ -57,7 +57,8 @@ class AudienceInfo extends StatelessWidget {
               '$label ${value.isEmpty ? i18n('audience_waiting') : readableCount(value)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Get.textTheme.bodySmall,
+              // One step heavier than body text, so the figure reads at a glance.
+              style: Get.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
         ],

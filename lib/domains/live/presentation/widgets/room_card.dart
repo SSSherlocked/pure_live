@@ -353,16 +353,16 @@ class RoomCard extends StatelessWidget {
   /// it; a platform without a brand colour keeps the neutral tag.
   Widget _buildCompactPlatformBadge(BuildContext context, bool isDark) {
     final colors = Get.theme.colorScheme;
-    final brand = PlatformColors.readableOn(room.platform, colors.surface);
-    final textColor = brand ?? colors.onSurfaceVariant;
+    final tag = PlatformColors.tintedTag(room.platform, colors);
+    final textColor = tag?.text ?? colors.onSurfaceVariant;
     return Container(
       key: const ValueKey('room-card-platform-badge'),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: brand == null ? colors.surfaceContainerHighest.withValues(alpha: .75) : textColor.withValues(alpha: .14),
+        color: tag?.fill ?? colors.surfaceContainerHighest.withValues(alpha: .75),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: brand == null ? colors.outline.withValues(alpha: .2) : textColor.withValues(alpha: .35),
+          color: tag?.border ?? colors.outline.withValues(alpha: .2),
           width: .5,
         ),
       ),

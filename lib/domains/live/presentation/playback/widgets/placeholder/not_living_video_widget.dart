@@ -115,20 +115,15 @@ class NotLivingVideoWidget extends StatelessWidget {
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                // Just 未开播, as large as the old 无法播放直播 line.
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8),
-                    child: Text(i18n('play_video_failed'), style: AppText.of(context).sectionTitle.copyWith(color: Colors.white)),
-                  ),
-                  Text(
-                    i18n('room_offline'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  Text(
-                    i18n('switch_other_room_hint'),
-                    textAlign: TextAlign.center,
-                    style: AppText.of(context).listPrimary.copyWith(color: Colors.white),
+                    child: Text(
+                      i18n('offline_room_title'),
+                      key: const ValueKey('offline-room-label'),
+                      style: AppText.of(context).sectionTitle.copyWith(color: Colors.white),
+                    ),
                   ),
                 ],
               ),

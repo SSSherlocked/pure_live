@@ -465,32 +465,6 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
   }
 }
 
-class ErrorWidget extends StatelessWidget {
-  const ErrorWidget({super.key, required this.controller});
-
-  final VideoController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(i18n("play_video_failed"), style: AppText.of(context).listPrimary.copyWith(color: Colors.white)),
-          ),
-          ElevatedButton(
-            onPressed: () => controller.refresh(),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.2)),
-            child: Text(i18n("retry"), style: AppText.of(context).sectionTitle.copyWith(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // Top action bar widgets
 class TopActionBar extends StatelessWidget {
   const TopActionBar({
@@ -543,7 +517,11 @@ class TopActionBar extends StatelessWidget {
               padding: EdgeInsets.only(top: padding.top, left: edge + padding.left, right: edge + padding.right),
               child: SizedBox(
                 height: barHeight,
-                child: Row(
+                // The whole row, title and buttons, sits 4 px above the bar's
+                // centre: centred, the title looked far below the top edge.
+                child: Transform.translate(
+                  offset: const Offset(0, -4),
+                  child: Row(
                   children: [
                     for (final slot in PlayerControlPolicy.of(context).leadingSlots)
                       switch (slot) {
@@ -565,7 +543,7 @@ class TopActionBar extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppText.of(context).sectionTitle.copyWith(
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.normal,
                                 decoration: TextDecoration.none,
                               ),
                             ),
@@ -607,6 +585,7 @@ class TopActionBar extends StatelessWidget {
                       LiveRoomRecordingIndicator(controller: controller.livePlayController),
                     PlayerMoreMenuButton(key: const ValueKey('player-top-more-menu'), menu: moreMenu),
                   ],
+                ),
                 ),
               ),
             ),

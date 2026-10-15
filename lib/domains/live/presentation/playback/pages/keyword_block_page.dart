@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/domain/danmaku_block_filter.dart';
@@ -185,8 +187,8 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...sections,
-          Obx(() => _buildBlockedColumn(theme, users: false)),
-          Obx(() => _buildBlockedColumn(theme, users: true)),
+          Obx(() => _buildBlockedSummary(theme, users: false)),
+          Obx(() => _buildBlockedSummary(theme, users: true)),
           ...platformSection,
         ],
       );
@@ -213,28 +215,59 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
     );
   }
 
-  Widget _buildBlockedColumn(ThemeData theme, {required bool users}) {
-    final values = List<String>.from(
-      users ? FavoriteRoomController.to.blockedDanmakuUsers : FavoriteRoomController.to.shieldList,
-    );
-    if (values.isEmpty) return const SizedBox.shrink();
-    final title = users
-        ? i18n('blocked_danmaku_users', args: {'count': '${values.length}'})
-        : i18n('keyword_added_count', args: {'count': '${values.length}'});
+  String _blockedTitle(bool users, int count) => users
+      ? i18n('blocked_danmaku_users', args: {'count': '$count'})
+      : i18n('keyword_added_count', args: {'count': '$count'});
+
+  /// In the room's settings tab the blocked keywords (or users) fold into one
+  /// row with their count; the list opens in a dialog instead of laying every
+  /// entry out on the page.
+  Widget _buildBlockedSummary(ThemeData theme, {required bool users}) {
+    final count = (users ? FavoriteRoomController.to.blockedDanmakuUsers : FavoriteRoomController.to.shieldList).length;
+    if (count == 0) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(theme, title),
-          for (final value in values)
-            _buildItem(
-              theme,
-              text: value,
-              icon: users ? Icons.person_off_rounded : Icons.filter_alt_off_rounded,
-              onRemove: () => _remove(users, value),
+      child: context.buildModernCard([
+        context.buildTile(
+          icon: users ? Icons.person_off_rounded : Icons.filter_alt_off_rounded,
+          title: _blockedTitle(users, count),
+          onTap: () => _showBlocked(users),
+        ),
+      ]),
+    );
+  }
+
+  void _showBlocked(bool users) {
+    final theme = Theme.of(context);
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => Obx(() {
+          final values = List<String>.from(
+            users ? FavoriteRoomController.to.blockedDanmakuUsers : FavoriteRoomController.to.shieldList,
+          );
+          return AlertDialog(
+            title: Text(_blockedTitle(users, values.length)),
+            content: SizedBox(
+              width: 400,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final value in values)
+                    _buildItem(
+                      theme,
+                      text: value,
+                      icon: users ? Icons.person_off_rounded : Icons.filter_alt_off_rounded,
+                      onRemove: () => _remove(users, value),
+                    ),
+                ],
+              ),
             ),
-        ],
+            actions: [
+              TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(i18n('close'))),
+            ],
+          );
+        }),
       ),
     );
   }

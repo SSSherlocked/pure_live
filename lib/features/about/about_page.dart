@@ -49,8 +49,17 @@ class _AboutPageState extends State<AboutPage> {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Image.asset('assets/icons/icon.png', fit: BoxFit.contain),
+                    // The frame is the icon's edge. icon.png keeps a macOS
+                    // margin (its tile spans 412 of 512 px), so it is scaled
+                    // up until the tile meets the frame, clipped to the same
+                    // corners, instead of sitting shrunk inside it.
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Transform.scale(
+                        scale: 512 / 412,
+                        child: Image.asset('assets/icons/icon.png', fit: BoxFit.cover),
+                      ),
+                    ),
                   ),
                 ),
 

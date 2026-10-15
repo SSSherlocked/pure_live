@@ -44,7 +44,7 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
             final colors = theme.colorScheme;
             // In the platform's brand colour over a tint of it, like the room
             // cards' tags; the neutral tag for a platform without one.
-            final brand = PlatformColors.readableOn(platform, colors.surface);
+            final tag = PlatformColors.tintedTag(platform, colors);
             // One line beside the avatar: the streamer's name, then the
             // platform as a small filled tag. The name gives way first when
             // space runs out; the category is left out.
@@ -55,17 +55,18 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
                     detail.nick ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    // The app's title style as is: 字体设置's title size and
-                    // the theme's title weight.
-                    style: theme.textTheme.titleMedium,
+                    // 字体设置's title size, in bold: the room's name leads
+                    // the page.
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (platform.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      color: brand?.withValues(alpha: .16) ?? colors.secondaryContainer,
+                      color: tag?.fill ?? colors.secondaryContainer,
                       borderRadius: BorderRadius.circular(4),
+                      border: tag == null ? null : Border.all(color: tag.border, width: .5),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
@@ -73,7 +74,7 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
                         i18n('site_$platform'),
                         maxLines: 1,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: brand ?? colors.onSecondaryContainer,
+                          color: tag?.text ?? colors.onSecondaryContainer,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

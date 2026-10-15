@@ -143,8 +143,8 @@ class LiveMessage {
     this.sentAt,
     this.style,
     this.emotes = const <LiveEmote>[],
-  }) : userName = stripInvisiblePlaceholders(userName),
-       message = stripInvisiblePlaceholders(message);
+  }) : userName = limitStackedMarks(stripInvisiblePlaceholders(userName)),
+       message = limitStackedMarks(stripInvisiblePlaceholders(message));
 }
 
 class LiveEmote {

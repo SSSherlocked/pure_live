@@ -10,6 +10,8 @@ import 'package:pure_live/core/player/super_resolution.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart' as mkv;
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/logging/app_log.dart';
+import 'package:pure_live/core/config/log_controller.dart';
+import 'package:pure_live/core/storage/hive_pref_util.dart';
 
 /// mpv properties for live rooms, owned by the app.
 ///
@@ -243,9 +245,15 @@ abstract final class MediaKitLiveProperties {
   /// defaults, since passing this object at all means restating them. A release
   /// build keeps mpv's info lines (what it opened, the tracks and outputs it
   /// chose), which the app log needs to explain a slow or failed start.
+  /// With the local log on, mpv speaks at `v` and those lines go to the log
+  /// file too: a stall (an audio underrun, a blocked output) only shows
+  /// there.
   static mkv.PlayerConfiguration playerConfiguration() => mkv.PlayerConfiguration(
-    logLevel: const bool.fromEnvironment('dart.vm.product') ? mkv.MPVLogLevel.info : mkv.MPVLogLevel.v,
+    logLevel: !const bool.fromEnvironment('dart.vm.product') || mpvVerboseLog ? mkv.MPVLogLevel.v : mkv.MPVLogLevel.info,
   );
+
+  /// Whether mpv's `v` lines are wanted: the local log is on.
+  static bool get mpvVerboseLog => HivePrefUtil.getBool(LogController.enableLocalLogKey) ?? false;
 
   static Map<String, String> sourceProperties({
     required Uri uri,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' show Colors;
 import 'package:logger/logger.dart' show Level;
 import 'package:media_core_media_kit/media_core_media_kit.dart' as mk;
 import 'package:pure_live/core/logging/app_log.dart';
+import 'package:pure_live/core/player/kernel/media_kit_live_properties.dart';
 
 final Expando<StreamSubscription<mk.PlayerLog>> _forwarders = Expando<StreamSubscription<mk.PlayerLog>>();
 
@@ -14,6 +15,7 @@ final Expando<StreamSubscription<mk.PlayerLog>> _forwarders = Expando<StreamSubs
 /// reached a release build's log.
 void attachMpvLogForwarder(mk.Player player) {
   if (_forwarders[player] != null) return;
+  final verbose = MediaKitLiveProperties.mpvVerboseLog;
   _forwarders[player] = player.stream.log.listen((entry) {
     developer.log('${entry.prefix}/${entry.level}: ${entry.text}', name: 'mpv');
     final line = '[mpv:${entry.prefix}] ${entry.text}';
@@ -28,8 +30,11 @@ void attachMpvLogForwarder(mk.Player player) {
       case 'info':
         Log.addDebugLog(line, Colors.blue);
         Log.writeLog(line, Level.info);
+      case 'v' when verbose:
+        // The log file only, not the in-app page.
+        Log.writeLog(line, Level.debug);
       default:
-        // v / debug / trace: too chatty for the app log.
+        // debug / trace: too chatty for the app log.
         break;
     }
   });

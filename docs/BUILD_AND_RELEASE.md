@@ -48,14 +48,14 @@ Android 用仓库 Secrets（`KEYSTORE_BASE64`、`STORE_PASSWORD`、`KEY_PASSWORD
 | `pubspec.yaml` 的 `version: 3.2.2+<构建号>` | 每个构建任务在构建前写入自己的工作区；发布成功后由工作流提交回 `master`。版本变化时构建号自动加 1，重复构建同一版本则不变 |
 | 安装包与文件名、Android versionName/Code、iOS/macOS 版本、Windows 版本 | Flutter 与打包工具读取上面写入的 `pubspec.yaml` |
 | 标签与 Release 名 `v3.2.2` | 发布任务 |
-| Release 正文、应用内更新说明 | `RELEASE_NOTES.md` 的 `# Pure Live v3.2.2` 一节；缺少这一节时，发布在构建开始前就会失败 |
+| Release 正文、应用内更新说明 | `RELEASE_NOTES.md` 的 `# Pure Live v3.2.2` 一节；没有这一节时，发布任务按上次发布以来的提交自动生成（新功能、修复、其他改进），并写回 `RELEASE_NOTES.md` |
 | `assets/version.json`（应用内更新源）、`assets/releases.json` | 发布成功后由工作流生成并提交。本次未构建的平台保留原来的条目，不会被提示一个不存在的安装包 |
 
 `version` 留空时沿用 `pubspec.yaml` 当前的版本，适合只出测试包。已经发布过的版本不能再次发布。
 
 ## 发布步骤
 
-1. 在 `RELEASE_NOTES.md` 写好新版本一节，推送到 `master`。
+1. 在 `RELEASE_NOTES.md` 写好新版本一节，推送到 `master`（可省略：没写时按提交记录自动生成）。
 2. 运行“发布新版本”工作流：`version` 填新版本号，勾选要打包的平台和“发布到 Release 页面”。
 3. 在 [Releases](https://github.com/SSSherlocked/pure_live/releases) 核对附件；工作流已把版本号和两个索引文件提交回 `master`。
 

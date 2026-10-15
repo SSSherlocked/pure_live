@@ -131,7 +131,6 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: ${{ inputs.create_release }}
           unreleased: ${{ inputs.create_release }}
       - name: Configure Android signing
         shell: bash
@@ -214,7 +213,6 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: ${{ inputs.create_release }}
           unreleased: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
@@ -348,7 +346,6 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: ${{ inputs.create_release }}
           unreleased: ${{ inputs.create_release }}
       - name: Verify Flutter SDK
         run: flutter --version
@@ -439,7 +436,6 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: ${{ inputs.create_release }}
           unreleased: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
@@ -555,7 +551,6 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: ${{ inputs.create_release }}
           unreleased: ${{ inputs.create_release }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
@@ -691,7 +686,6 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: "true"
       - name: Download all build artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -708,7 +702,9 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
-          python3 tool/release_version.py notes --version "$VERSION" --out release_notes.md
+          # A version without a hand-written section gets one generated from
+          # the commits since the previous release (written back below).
+          python3 tool/release_version.py notes --version "$VERSION" --generate --upto "$GITHUB_SHA" --out release_notes.md
           {
             echo "text<<PURELIVE_NOTES_EOF"
             cat release_notes.md
@@ -760,7 +756,14 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          require_notes: "true"
+      # The same notes the release got: the section in RELEASE_NOTES.md, or
+      # one generated from the released commits, kept in the file from now on.
+      - name: Release notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: python3 tool/release_version.py notes --version "$VERSION" --generate --upto "$TAG" > /dev/null
       - name: Update the update feed (assets/version.json)
         shell: bash
         env:
@@ -781,7 +784,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          files=(pubspec.yaml assets/version.json assets/releases.json)
+          files=(pubspec.yaml RELEASE_NOTES.md assets/version.json assets/releases.json)
           if [[ -z "$(git status --porcelain -- "${files[@]}")" ]]; then
             echo "Version and indexes are already up to date."
             exit 0

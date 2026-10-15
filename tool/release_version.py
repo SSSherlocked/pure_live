@@ -9,8 +9,10 @@ The release workflow's `version` input (e.g. 3.2.2) is the single source:
           every job of one run arrives at the same number. Without an input
           the pubspec version is used as it is.
   notes   Prints the `# Pure Live v<version>` section of RELEASE_NOTES.md,
-          the release body and the update dialog's text. Fails when the
-          section is missing.
+          the release body and the update dialog's text. With --generate a
+          missing section is written from the commits since the previous
+          release first, so a release is never blocked on hand-written
+          notes; a hand-written section always wins.
   feed    Regenerates assets/version.json (the in-app update feed) for a
           published release: the version, build, notes and download link once
           at the top; a platform the release did not build keeps its previous
@@ -28,6 +30,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -99,6 +102,74 @@ def release_notes(root: Path, name: str) -> str:
     return re.sub(r'(?m)^## ', '#### ', body)
 
 
+# Commit types that describe the app, with the notes heading each goes under.
+# Release bookkeeping, CI, docs and tests are not app changes.
+_NOTE_GROUPS = (
+    (('feat',), '新功能'),
+    (('fix',), '修复'),
+    (('perf', 'refactor', 'style', 'build'), '其他改进'),
+)
+_SUBJECT = re.compile(r'^(?P<type>[a-z]+)(?:\((?P<scope>[^)]*)\))?!?:\s*(?P<text>.+)$')
+
+
+def _git(root: Path, *args: str) -> str:
+    return subprocess.run(['git', *args], cwd=root, check=True, capture_output=True, text=True).stdout
+
+
+def previous_tag(root: Path, name: str) -> str | None:
+    """The newest release tag older than [name]."""
+    current = parse_version(name)
+    older = []
+    for tag in _git(root, 'tag', '--list', 'v*').split():
+        try:
+            version = parse_version(tag[1:])
+        except ValueError:
+            continue
+        if version < current:
+            older.append((version, tag))
+    return max(older)[1] if older else None
+
+
+def generated_notes(root: Path, name: str, upto: str = 'HEAD') -> str:
+    """A section for [name] from the commits since the previous release."""
+    since = previous_tag(root, name)
+    span = f'{since}..{upto}' if since else upto
+    groups: dict[str, list[str]] = {heading: [] for _, heading in _NOTE_GROUPS}
+    for subject in _git(root, 'log', '--no-merges', '--format=%s', span).splitlines():
+        match = _SUBJECT.match(subject.strip())
+        if not match:
+            continue
+        heading = next((h for types, h in _NOTE_GROUPS if match['type'] in types), None)
+        if heading is None:
+            continue
+        scope = match['scope']
+        groups[heading].append(f'- {scope}：{match["text"]}' if scope else f'- {match["text"]}')
+    lines = [f'# Pure Live v{name}', '', '> 本节由提交记录自动生成。', '']
+    for heading, items in groups.items():
+        if items:
+            lines += [f'## {heading}', '', *items, '']
+    if len(lines) == 4:
+        lines += ['- 问题修复与改进。', '']
+    return '\n'.join(lines + ['---', ''])
+
+
+def ensure_release_notes(root: Path, name: str, upto: str = 'HEAD') -> bool:
+    """Adds a generated section for [name] to RELEASE_NOTES.md when it has
+    none, above the newest one. Returns whether it added one."""
+    try:
+        release_notes(root, name)
+        return False
+    except ValueError:
+        pass
+    path = root / NOTES
+    text = path.read_text(encoding='utf-8')
+    section = generated_notes(root, name, upto)
+    first = re.search(r'(?m)^# Pure Live v', text)
+    text = text[: first.start()] + section + '\n' + text[first.start():] if first else text.rstrip() + '\n\n' + section
+    path.write_text(text, encoding='utf-8')
+    return True
+
+
 def build_feed(previous: dict, name: str, build: int, notes: str, built: set[str]) -> dict:
     url = f'https://github.com/{REPOSITORY}/releases/tag/v{name}'
     abis = previous.get('android_abis') or ['arm64-v8a']
@@ -167,6 +238,12 @@ def main(argv: list[str] | None = None) -> int:
     notes = commands.add_parser('notes')
     notes.add_argument('--version', required=True)
     notes.add_argument('--out')
+    notes.add_argument(
+        '--generate',
+        action='store_true',
+        help='write a section from the commits since the previous release when the version has none',
+    )
+    notes.add_argument('--upto', default='HEAD', help='last commit of the release (with --generate)')
     feed = commands.add_parser('feed')
     feed.add_argument('--built', default=','.join(PLATFORMS), help='comma-separated platforms in the release')
     commands.add_parser('check')
@@ -179,7 +256,10 @@ def main(argv: list[str] | None = None) -> int:
             write_pubspec(root, name, build)
             _output(version=name, build_number=build, tag=f'v{name}')
         elif args.command == 'notes':
-            text = release_notes(root, normalize_input(args.version) or '')
+            name = normalize_input(args.version) or ''
+            if args.generate and ensure_release_notes(root, name, args.upto):
+                print(f'{NOTES}: generated the v{name} section from the commits', file=sys.stderr)
+            text = release_notes(root, name)
             if args.out:
                 Path(args.out).write_text(text + '\n', encoding='utf-8')
             else:

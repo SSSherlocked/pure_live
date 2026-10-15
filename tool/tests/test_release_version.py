@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -86,6 +87,48 @@ class ReleaseVersionTest(unittest.TestCase):
         self.assertEqual(rv.check(self._root()), [])
         ahead = self._root(feed={'version': '3.2.2', 'build_number': 4111})
         self.assertTrue(rv.check(ahead))
+
+    def _history(self, notes: str) -> Path:
+        root = Path(tempfile.mkdtemp())
+        (root / 'RELEASE_NOTES.md').write_text(notes, encoding='utf-8')
+
+        def git(*args):
+            subprocess.run(['git', *args], cwd=root, check=True, capture_output=True)
+
+        git('init', '-q')
+        git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'feat: old feature')
+        git('tag', 'v3.2.1')
+        for subject in (
+            'feat(room): a new panel',
+            'fix: no crash',
+            'style(player): bolder title',
+            'chore: release v3.2.2 (3.2.2+4111) [skip ci]',
+            'ci: faster checks',
+            'docs: notes',
+            'Merge branch x',
+        ):
+            git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', subject)
+        return root
+
+    def test_a_missing_section_is_generated_from_the_commits_since_the_last_release(self):
+        root = self._history('# 版本说明\n\nintro\n\n# Pure Live v3.2.1\n\nold\n\n---\n')
+        self.assertTrue(rv.ensure_release_notes(root, '3.2.2'))
+        text = (root / 'RELEASE_NOTES.md').read_text(encoding='utf-8')
+        # Above the previous release, below the intro.
+        self.assertLess(text.index('# Pure Live v3.2.2'), text.index('# Pure Live v3.2.1'))
+        self.assertLess(text.index('intro'), text.index('# Pure Live v3.2.2'))
+        notes = rv.release_notes(root, '3.2.2')
+        self.assertIn('- room：a new panel', notes)
+        self.assertIn('- no crash', notes)
+        self.assertIn('- player：bolder title', notes)
+        for left_out in ('old feature', 'release v3.2.2', 'faster checks', 'docs: notes', 'Merge'):
+            self.assertNotIn(left_out, notes)
+        self.assertLess(notes.index('新功能'), notes.index('修复'))
+
+    def test_a_hand_written_section_is_kept(self):
+        root = self._history('# Pure Live v3.2.2\n\n- 手写的说明\n\n---\n')
+        self.assertFalse(rv.ensure_release_notes(root, '3.2.2'))
+        self.assertEqual(rv.release_notes(root, '3.2.2'), '- 手写的说明')
 
     def test_the_repository_agrees(self):
         self.assertEqual(rv.check(), [])

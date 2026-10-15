@@ -38,16 +38,21 @@ class _AboutPageState extends State<AboutPage> {
                   child: Container(
                     width: AppLayout.of(context).phone ? 80 : 96,
                     height: AppLayout.of(context).phone ? 80 : 96,
+                    // The white icon needs a shadow to stand off a light page:
+                    // a tight one draws its edge, a soft one lifts it. On a
+                    // dark page the white is its own edge.
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.08), width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.06),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+                      boxShadow: theme.brightness == Brightness.light
+                          ? [
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 2),
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.10),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : null,
                     ),
                     // The frame is the icon's edge. icon.png keeps a macOS
                     // margin (its tile spans 412 of 512 px), so it is scaled

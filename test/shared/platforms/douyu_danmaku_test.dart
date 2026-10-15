@@ -68,4 +68,35 @@ void main() {
     danmaku.decodeMessage(frame(danmaku, ['type@=chatmsg/rid@=9999/nn@=a/txt@=back/dms@=3/']));
     expect(received.last.message, 'back');
   });
+
+  // STT nests a map in a value by escaping it: '/' as '@S', '@' as '@A'.
+  // Names stay ASCII: the test serializer sizes frames by UTF-16 length.
+  test('a paid comm_chatmsg is a super chat priced to the cent', () {
+    final danmaku = engine();
+    danmaku.decodeMessage(
+      frame(danmaku, [
+        'type@=comm_chatmsg/btype@=voiceDanmu/rid@=9999/now@=1700000000000/cet@=60/cprice@=3050/'
+            'chatmsg@=nn@A=payer@Stxt@A=hello@Sic@A=avatar@S/',
+      ]),
+    );
+    final chat = received.single;
+    expect(chat.type, LiveMessageType.superChat);
+    final data = chat.data as LiveSuperChatMessage;
+    expect(data.price, 30.5);
+    expect(data.message, 'hello');
+    expect(data.userName, 'payer');
+    expect(data.endTime.difference(data.startTime), const Duration(seconds: 60));
+  });
+
+  test('a comm_chatmsg notice without price, duration or text is not a super chat', () {
+    final danmaku = engine();
+    danmaku.decodeMessage(
+      frame(danmaku, [
+        'type@=comm_chatmsg/btype@=other/rid@=9999/now@=1700000000000/cet@=0/cprice@=0/chatmsg@=nn@A=someone@S/',
+        'type@=comm_chatmsg/btype@=voiceDanmu/rid@=9999/now@=1700000000000/cet@=60/cprice@=3000/'
+            'chatmsg@=nn@A=someone@Stxt@A=@S/',
+      ]),
+    );
+    expect(received, isEmpty);
+  });
 }

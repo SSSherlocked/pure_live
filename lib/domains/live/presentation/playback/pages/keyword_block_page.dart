@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/domains/live/domain/danmaku_block_filter.dart';
 import 'package:remixicon/remixicon.dart';
@@ -97,12 +98,9 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               min: 1,
               max: 30,
               stepSize: 1,
-              display: i18n(
-                'danmaku_similarity_cache_seconds',
-                args: {'seconds': '${dm.repeatedDanmakuWindowSeconds.v}'},
-              ),
+              display: formatSeconds(dm.repeatedDanmakuWindowSeconds.v),
               semanticValueBuilder: (value) =>
-                  i18n('danmaku_similarity_cache_seconds', args: {'seconds': '${value.round()}'}),
+                  formatSeconds(value.round()),
               onChanged: (value) => dm.repeatedDanmakuWindowSeconds.v = value.round(),
               labelColor: labelColor,
               digitColor: digitColor,
@@ -135,12 +133,9 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               min: 1,
               max: 60,
               stepSize: 1,
-              display: i18n(
-                'danmaku_similarity_cache_seconds',
-                args: {'seconds': '${dm.danmakuSimilarityCacheDuration.v}'},
-              ),
+              display: formatSeconds(dm.danmakuSimilarityCacheDuration.v),
               semanticValueBuilder: (value) =>
-                  i18n('danmaku_similarity_cache_seconds', args: {'seconds': '${value.round()}'}),
+                  formatSeconds(value.round()),
               onChanged: (value) => dm.danmakuSimilarityCacheDuration.v = value.round(),
               labelColor: labelColor,
               digitColor: digitColor,

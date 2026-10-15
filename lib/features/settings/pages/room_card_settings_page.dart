@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
@@ -111,7 +112,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                   value: controller.currentCardWidth,
                   min: RoomCardSettingsController.minCardWidth,
                   max: RoomCardSettingsController.maxCardWidth,
-                  displayValue: controller.currentCardWidth.toStringAsFixed(0),
+                  displayValue: formatPixels(controller.currentCardWidth.round()),
                   onChanged: (value) => controller.cardWidth.v = value.roundToDouble(),
                 )
               else
@@ -138,7 +139,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 value: config.cornerRadius,
                 min: RoomCardAppearance.minCornerRadius,
                 max: RoomCardAppearance.maxCornerRadius,
-                displayValue: config.cornerRadius.toStringAsFixed(0),
+                displayValue: formatPixels(config.cornerRadius.round()),
                 onChanged: (value) => controller.updateConfig(config.copyWith(cornerRadius: value)),
               ),
               // Gaps between cards in the grids: the same two sliders edit the
@@ -152,7 +153,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 value: SettingsService.to.theme.cardCrossSpacing(compact: compact),
                 min: ThemeSettingsController.minSpacing,
                 max: ThemeSettingsController.maxSpacing,
-                displayValue: SettingsService.to.theme.cardCrossSpacing(compact: compact).round().toString(),
+                displayValue: formatPixels(SettingsService.to.theme.cardCrossSpacing(compact: compact).round()),
                 onChanged: (value) =>
                     SettingsService.to.theme.crossSpacingSetting(compact: compact).v = value.roundToDouble(),
               ),
@@ -164,7 +165,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 value: SettingsService.to.theme.cardMainSpacing(compact: compact),
                 min: ThemeSettingsController.minSpacing,
                 max: ThemeSettingsController.maxSpacing,
-                displayValue: SettingsService.to.theme.cardMainSpacing(compact: compact).round().toString(),
+                displayValue: formatPixels(SettingsService.to.theme.cardMainSpacing(compact: compact).round()),
                 onChanged: (value) =>
                     SettingsService.to.theme.mainSpacingSetting(compact: compact).v = value.roundToDouble(),
               ),

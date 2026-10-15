@@ -1,5 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 
 /// The five typography sliders (body and heading sizes) with their reset,
@@ -41,7 +42,7 @@ class _FontTypographySectionState extends State<FontTypographySection> {
               value: SettingsService.to.font.fontSizeBodySmall.v,
               min: FontSettingsController.minFontSizeBodySmall,
               max: FontSettingsController.maxFontSizeBodySmall,
-              displayValue: "${SettingsService.to.font.fontSizeBodySmall.v.toStringAsFixed(0)}px",
+              displayValue: formatPixels(SettingsService.to.font.fontSizeBodySmall.v.round()),
               onChanged: (newValue) {
                 SettingsService.to.font.fontSizeBodySmall.v = newValue;
               },
@@ -54,7 +55,7 @@ class _FontTypographySectionState extends State<FontTypographySection> {
               value: SettingsService.to.font.fontSizeBodyMedium.v,
               min: FontSettingsController.minFontSizeBodyMedium,
               max: FontSettingsController.maxFontSizeBodyMedium,
-              displayValue: "${SettingsService.to.font.fontSizeBodyMedium.v.toStringAsFixed(0)}px",
+              displayValue: formatPixels(SettingsService.to.font.fontSizeBodyMedium.v.round()),
               onChanged: (newValue) {
                 SettingsService.to.font.fontSizeBodyMedium.v = newValue;
               },
@@ -67,7 +68,7 @@ class _FontTypographySectionState extends State<FontTypographySection> {
               value: SettingsService.to.font.fontSizeBodyLarge.v,
               min: FontSettingsController.minFontSizeBodyLarge,
               max: FontSettingsController.maxFontSizeBodyLarge,
-              displayValue: "${SettingsService.to.font.fontSizeBodyLarge.v.toStringAsFixed(0)}px",
+              displayValue: formatPixels(SettingsService.to.font.fontSizeBodyLarge.v.round()),
               onChanged: (newValue) {
                 SettingsService.to.font.fontSizeBodyLarge.v = newValue;
               },
@@ -84,7 +85,7 @@ class _FontTypographySectionState extends State<FontTypographySection> {
               value: SettingsService.to.font.fontSizeTitleMedium.v,
               min: FontSettingsController.minFontSizeTitleMedium,
               max: FontSettingsController.maxFontSizeTitleMedium,
-              displayValue: "${SettingsService.to.font.fontSizeTitleMedium.v.toStringAsFixed(0)}px",
+              displayValue: formatPixels(SettingsService.to.font.fontSizeTitleMedium.v.round()),
               onChanged: (newValue) {
                 SettingsService.to.font.fontSizeTitleMedium.v = newValue;
               },
@@ -97,7 +98,7 @@ class _FontTypographySectionState extends State<FontTypographySection> {
               value: SettingsService.to.font.fontSizeTitleLarge.v,
               min: FontSettingsController.minFontSizeTitleLarge,
               max: FontSettingsController.maxFontSizeTitleLarge,
-              displayValue: "${SettingsService.to.font.fontSizeTitleLarge.v.toStringAsFixed(0)}px",
+              displayValue: formatPixels(SettingsService.to.font.fontSizeTitleLarge.v.round()),
               onChanged: (newValue) {
                 SettingsService.to.font.fontSizeTitleLarge.v = newValue;
               },

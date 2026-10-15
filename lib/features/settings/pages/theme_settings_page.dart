@@ -1,5 +1,6 @@
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
@@ -90,7 +91,7 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                     value: SettingsService.to.font.textScaleFactor.v,
                     min: FontSettingsController.minTextScaleFactor,
                     max: FontSettingsController.maxTextScaleFactor,
-                    displayValue: SettingsService.to.font.textScaleFactor.v.toStringAsFixed(2),
+                    displayValue: formatTimes(SettingsService.to.font.textScaleFactor.v),
                     onChanged: (val) {
                       SettingsService.to.font.textScaleFactor.v = val;
                     },
@@ -122,7 +123,7 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                     value: LivePanelWidth.normalize(SettingsService.to.theme.livePanelWidth.v),
                     min: LivePanelWidth.min,
                     max: LivePanelWidth.max,
-                    displayValue: '${LivePanelWidth.normalize(SettingsService.to.theme.livePanelWidth.v).round()}',
+                    displayValue: formatPixels(LivePanelWidth.normalize(SettingsService.to.theme.livePanelWidth.v).round()),
                     onChanged: (val) => SettingsService.to.theme.livePanelWidth.v = val.roundToDouble(),
                   ),
                 ),
@@ -136,7 +137,7 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                     value: minutes.toDouble(),
                     min: 0,
                     max: ThemeSettingsController.maxLivePanelFollowRefreshMinutes.toDouble(),
-                    displayValue: minutes == 0 ? i18n("live_panel_follow_refresh_off") : '$minutes ${i18n("minutes")}',
+                    displayValue: minutes == 0 ? i18n("live_panel_follow_refresh_off") : formatMinutes(minutes),
                     onChanged: (val) => SettingsService.to.theme.livePanelFollowRefreshMinutes.v = val.round(),
                   );
                 }),

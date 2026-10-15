@@ -3,24 +3,13 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/core/player/kernel/player_consts.dart';
 import 'package:pure_live/domains/recorder/data/consts/recorder_config.dart';
 import 'package:pure_live/domains/recorder/data/record_settings_controller.dart';
 
 class RecordSettingsPage extends GetView<RecordSettingsController> {
   const RecordSettingsPage({super.key});
-
-  String _formatDuration(int seconds) {
-    if (seconds < 60) {
-      return "${seconds}s";
-    } else if (seconds < 3600) {
-      final minutes = seconds / 60;
-      return "${minutes.toStringAsFixed(minutes.truncateToDouble() == minutes ? 0 : 1)}m";
-    } else {
-      final hours = seconds / 3600;
-      return "${hours.toStringAsFixed(hours.truncateToDouble() == hours ? 0 : 1)}h";
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +113,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
               context.buildTile(
                 icon: Remix.timer_flash_line,
                 title: i18n("rw_timeout"),
-                subtitle: "${controller.rwTimeout.value}s",
+                subtitle: formatSeconds(controller.rwTimeout.value),
                 onTap: () => _showRwTimeoutDialog(context),
               ),
               context.buildTile(
@@ -140,7 +129,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                 value: controller.segmentTime.value.toDouble(),
                 min: RecorderConfig.minSegmentTime.toDouble(),
                 max: RecorderConfig.maxSegmentTime.toDouble(),
-                displayValue: _formatDuration(controller.segmentTime.value),
+                displayValue: formatDurationSeconds(controller.segmentTime.value),
                 onChanged: (v) => controller.updateSegmentTime(v.toInt()),
               ),
               context.buildTile(
@@ -177,7 +166,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                 value: controller.retryDelay.value.toDouble(),
                 min: RecorderConfig.minRetryDelay.toDouble(),
                 max: RecorderConfig.maxRetryDelay.toDouble(),
-                displayValue: "${controller.retryDelay.value}s",
+                displayValue: formatSeconds(controller.retryDelay.value),
                 onChanged: (v) => controller.updateRetryDelay(v.toInt()),
               ),
             ]),
@@ -198,7 +187,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                   value: controller.liveCheckInterval.value.toDouble(),
                   min: RecorderConfig.minLiveCheckInterval.toDouble(),
                   max: RecorderConfig.maxLiveCheckInterval.toDouble(),
-                  displayValue: "${controller.liveCheckInterval.value}s",
+                  displayValue: formatSeconds(controller.liveCheckInterval.value),
                   onChanged: (v) => controller.updateLiveCheckInterval(v.toInt()),
                 ),
                 context.buildSwitchTile(
@@ -215,7 +204,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                     value: controller.maxCheckInterval.value.toDouble(),
                     min: RecorderConfig.minMaxCheckInterval.toDouble(),
                     max: RecorderConfig.maxMaxCheckInterval.toDouble(),
-                    displayValue: _formatDuration(controller.maxCheckInterval.value),
+                    displayValue: formatDurationSeconds(controller.maxCheckInterval.value),
                     onChanged: (v) => controller.updateMaxCheckInterval(v.toInt()),
                   ),
               ],
@@ -337,7 +326,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
       title: i18n("rw_timeout"),
       selected: controller.rwTimeout.value,
       options: timeoutOptions.entries
-          .map((entry) => _RecordOption(value: entry.key, label: '${entry.key}s', description: entry.value))
+          .map((entry) => _RecordOption(value: entry.key, label: formatSeconds(entry.key), description: entry.value))
           .toList(growable: false),
       onSelected: controller.updateRwTimeout,
     );

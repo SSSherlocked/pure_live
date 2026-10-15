@@ -51,13 +51,21 @@ class _AboutPageState extends State<AboutPage> {
                     ),
                     // The frame is the icon's edge. icon.png keeps a macOS
                     // margin (its tile spans 412 of 512 px), so it is scaled
-                    // up until the tile meets the frame, clipped to the same
-                    // corners, instead of sitting shrunk inside it.
+                    // up until the tile fills the frame, clipped to the
+                    // frame's corners. A little past the tile (404 px): its
+                    // own soft edge, its drop shadow and the squircle corners
+                    // (which leave a sliver against the frame's round ones)
+                    // fall outside the clip; white behind it fills whatever
+                    // is left, the tile's own colour, so the edge reads as
+                    // one line on a light page too.
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
-                      child: Transform.scale(
-                        scale: 512 / 412,
-                        child: Image.asset('assets/icons/icon.png', fit: BoxFit.cover),
+                      child: ColoredBox(
+                        color: Colors.white,
+                        child: Transform.scale(
+                          scale: 512 / 404,
+                          child: Image.asset('assets/icons/icon.png', fit: BoxFit.cover),
+                        ),
                       ),
                     ),
                   ),

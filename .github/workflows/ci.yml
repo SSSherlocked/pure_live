@@ -72,7 +72,7 @@ jobs:
       - name: Generate production AppConfig
         run: |
           dart run enven \
-            --env-files .env,.env.prod \
+            --env-files .env \
             --class-name AppConfig
       - name: Analyze
         if: matrix.task == 'analyze'

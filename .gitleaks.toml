@@ -1,8 +1,0 @@
-[extend]
-useDefault = true
-
-[allowlist]
-description = "Generated output"
-paths = [
-  '''(^|[\\/])(\.dart_tool|\.git|\.gradle|\.local-build|build|ephemeral|local-artifacts)([\\/]|$)''',
-]

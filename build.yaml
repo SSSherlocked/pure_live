@@ -7,5 +7,5 @@ targets:
         enabled: false
       drift_dev:drift_dev:
         generate_for:
-          - lib/core/iptv/local/tables.dart
-          - lib/core/iptv/local/database.dart
+          - lib/domains/iptv/data/local/tables.dart
+          - lib/domains/iptv/data/local/database.dart

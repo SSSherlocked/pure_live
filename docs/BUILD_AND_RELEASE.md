@@ -63,7 +63,7 @@ Android 用仓库 Secrets（`KEYSTORE_BASE64`、`STORE_PASSWORD`、`KEY_PASSWORD
 
 - FFmpeg Kit 使用本仓库 [原生依赖资产预发布](https://github.com/SSSherlocked/pure_live/releases/tag/native-ffmpeg-9.0.2-b1) 中的 FFmpeg `n9.0.2`（不是应用版本号），各平台归档的 SHA-256 固定在 `tool/verify_ffmpeg_native.py`（`tool/prefetch_linux_native.sh` 可按它预取并校验 Linux 归档）。
 - libmpv 由 media_kit 的 `media_kit/hook/native_bundles.json` 指定。media_kit 来自本项目的分叉 [SSSherlocked/media-kit](https://github.com/SSSherlocked/media-kit)，经 [SSSherlocked/media_core](https://github.com/SSSherlocked/media_core) 分叉里钉住的提交引入（更新流程见 `CLAUDE.md`）。
-- GitHub 地址从 `.env` / `.env.prod` 派生：`PURELIVE_UPDATE_OWNER`/`PURELIVE_UPDATE_REPOSITORY` 是本仓库自身的发布（`assets/version.json` 的下载地址、`assets/releases.json`、`lib/gen/env.g.dart`），`PURELIVE_NATIVE_OWNER`/`PURELIVE_NATIVE_REPOSITORY` 是原生库所在仓库（`pubspec.yaml` 的 `ffmpeg_kit_extended_config`）。换仓库时三个 `.env` 文件保持一致，并在 CI 上重新生成 `env.g.dart`。
+- GitHub 地址从 `.env` 派生：`PURELIVE_UPDATE_OWNER`/`PURELIVE_UPDATE_REPOSITORY` 是本仓库自身的发布（`assets/version.json` 的下载地址、`assets/releases.json`、`lib/gen/env.g.dart`），`PURELIVE_NATIVE_OWNER`/`PURELIVE_NATIVE_REPOSITORY` 是原生库所在仓库（`pubspec.yaml` 的 `ffmpeg_kit_extended_config`）。换仓库时改 `.env`，并在 CI 上重新生成 `env.g.dart`。
 
 ## 平台说明
 

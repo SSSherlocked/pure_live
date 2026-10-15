@@ -73,7 +73,7 @@ def read_text(path: Path) -> str | None:
     if b"\0" in data[:8192]:
         return None
     if path.suffix.lower() not in TEXT_SUFFIXES and path.name not in {
-        ".env.prod", ".fvmrc", "Dockerfile", "Gemfile", "Podfile",
+        ".env", ".fvmrc", "Dockerfile", "Gemfile", "Podfile",
     }:
         try:
             return data.decode("utf-8")

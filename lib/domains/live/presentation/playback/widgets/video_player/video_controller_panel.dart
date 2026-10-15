@@ -532,7 +532,8 @@ class TopActionBar extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: AppText.of(context).sectionTitle.copyWith(
                                 color: Colors.white,
-                                fontWeight: FontWeight.normal,
+                                // One step above regular, readable over video.
+                                fontWeight: FontWeight.w500,
                                 decoration: TextDecoration.none,
                               ),
                                   ),

@@ -1,5 +1,4 @@
 import 'package:pure_live/core/index.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 import 'package:pure_live/domains/live/presentation/areas/category_artwork.dart';
 import 'package:pure_live/domains/live/presentation/area_rooms/area_rooms_controller.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
@@ -8,8 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pure_live/core/widgets/keep_alive_wrapper.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_card_layout.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_card_rows.dart';
 
 class AreasRoomPage extends StatefulWidget {
   final Site site;
@@ -49,57 +47,17 @@ class _AreasRoomPageState extends State<AreasRoomPage> {
           wideBottomPadding: refreshByButton ? FloatingRefreshButton.clearance + 24 + 48 : 110,
           narrowBottomPadding: 85,
           emptyBuilder: (context) => EmptyView(icon: Icons.live_tv_rounded, title: i18n('no_data'), subtitle: ''),
-          contentBuilder: (context, list, scrollController) {
-            return Obx(() {
-              final roomCardAppearance = SettingsService.to.roomCard.resolve();
-              // Read here, not in the LayoutBuilder below: a read at layout
-              // time is not tracked by this Obx.
-              final compact = SettingsService.to.roomCard.isCompactLayout;
-              final spacing = SettingsService.to.theme.cardCrossSpacing(compact: compact);
-              final rowSpacing = SettingsService.to.theme.cardMainSpacing(compact: compact);
-              final fixedCardWidth = SettingsService.to.roomCard.currentCardWidth;
-              final columns = SettingsService.to.roomCard.currentColumns;
-              return LayoutBuilder(
-                builder: (context, constraint) {
-                  final width = constraint.maxWidth;
-                  final crossAxisCount = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
-                  final sizing = resolveRoomGridSizing(
-                    width: width,
-                    autoColumns: crossAxisCount,
-                    spacing: spacing,
-                    basePadding: 6,
-                    fixedCardWidth: fixedCardWidth,
-                    columns: columns,
-                  );
-                  final itemWidth = sizing.itemWidth;
-                  return GridView.builder(
-                    scrollCacheExtent: ScrollCacheExtent.pixels(width > 680 ? 480 : 320),
-                    addAutomaticKeepAlives: false,
-                    addRepaintBoundaries: true,
-                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: sizing.columns,
-                      crossAxisSpacing: spacing,
-                      mainAxisSpacing: rowSpacing,
-                      mainAxisExtent: RoomCardLayoutMetrics.gridMainAxisExtent(
-                        itemWidth: itemWidth,
-                        appearance: roomCardAppearance,
-                        dense: true,
-                        textScaler: MediaQuery.textScalerOf(context),
-                      ),
-                    ),
-                    padding: EdgeInsets.fromLTRB(sizing.horizontalPadding, 6, sizing.horizontalPadding, 80),
-                    controller: scrollController,
-                    itemCount: list.length,
-                    itemBuilder: (context, index) {
-                      final room = list[index];
-                      return RoomCard(key: ValueKey('${room.platform}:${room.roomId}'), room: room, dense: true);
-                    },
-                  );
-                },
-              );
-            });
-          },
+          // The rooms as 主页关注 shows them; the bottom stays clear of the
+          // follow-area pill.
+          contentBuilder: (context, list, scrollController) => LayoutBuilder(
+            builder: (context, constraint) => CustomScrollView(
+              controller: scrollController,
+              scrollCacheExtent: ScrollCacheExtent.pixels(constraint.maxWidth > 680 ? 480 : 320),
+              semanticChildCount: list.length,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [RoomCardRows(width: constraint.maxWidth, rooms: list, bottomPadding: 80)],
+            ),
+          ),
         ),
         floatingActionButton: refreshByButton
             ? Column(

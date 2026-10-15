@@ -3,7 +3,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/search/search_ranking.dart';
 import 'package:pure_live/domains/live/presentation/search/search_controller.dart' as pure_live;
 import 'package:pure_live/domains/live/presentation/search/search_platform_strip.dart';
-import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
+import 'package:pure_live/domains/live/presentation/widgets/room_card_rows.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 
 ScrollPhysics resolveSearchResultScrollPhysics(TargetPlatform platform) {
@@ -77,9 +77,6 @@ class SearchPage extends GetView<pure_live.SearchController> {
   }
 
   List<Widget> _buildSlivers(BuildContext context, double width) {
-    final columns = width > 1280 ? 5 : (width > 960 ? 4 : (width > 640 ? 3 : 2));
-    const spacing = 8.0;
-
     return [
       // Let all explanatory text scroll instead of consuming a fixed header
       // above an Expanded result region (which can shrink to zero).
@@ -104,44 +101,8 @@ class SearchPage extends GetView<pure_live.SearchController> {
               ],
             ),
           ),
-        SliverPadding(
-          padding: const EdgeInsets.all(8),
-          // Lay out one lazy row at a time. Its natural height follows the
-          // actual RoomCard text metrics, including nonlinear font scaling.
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, row) => Padding(
-                padding: const EdgeInsets.only(bottom: spacing),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var column = 0; column < columns; column++) ...[
-                      if (column > 0) const SizedBox(width: spacing),
-                      Expanded(
-                        child: row * columns + column < controller.results.length
-                            ? IndexedSemantics(
-                                index: row * columns + column,
-                                child: RoomCard(
-                                  key: ValueKey(
-                                    '${controller.results[row * columns + column].platform}:${controller.results[row * columns + column].roomId}',
-                                  ),
-                                  room: controller.results[row * columns + column],
-                                  dense: true,
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              childCount: (controller.results.length + columns - 1) ~/ columns,
-              addSemanticIndexes: false,
-              addAutomaticKeepAlives: false,
-              addRepaintBoundaries: true,
-            ),
-          ),
-        ),
+        // The rooms as 主页关注 shows them.
+        RoomCardRows(width: width, rooms: controller.results),
         SliverToBoxAdapter(
           child: SafeArea(
             top: false,

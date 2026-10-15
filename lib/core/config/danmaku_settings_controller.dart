@@ -682,7 +682,6 @@ class DanmakuSettingsController extends GetxController {
         normalizeFontWeight(json['chatListNameFontWeight'], fallback: defaultChatListNameFontWeight),
       ),
       'chatListItemGap': typed<double>(_chatListGapIn(json)),
-      ),
       'danmakuMaxVisibleCount': typed<int>(
         _boundedInt(
           json['danmakuMaxVisibleCount'],

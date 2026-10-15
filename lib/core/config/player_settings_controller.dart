@@ -205,8 +205,6 @@ class PlayerSettingsController extends GetxController {
     audioExclusive.listen((_) => engineChanged());
   }
 
-  final RxBool floatPlay = hiveBool('floatPlay', false);
-
   final RxString floatWindowGeometry = hiveString('floatWindowGeometry', '');
   final RxBool windowsPipAlwaysOnTop = hiveBool('windowsPipAlwaysOnTop', false);
 
@@ -484,7 +482,6 @@ class PlayerSettingsController extends GetxController {
       'videoOutputDriver': videoOutputDriver.v,
       'audioOutputDriver': audioOutputDriver.v,
       'videoHardwareDecoder': videoHardwareDecoder.v,
-      'floatPlay': floatPlay.v,
       'floatWindowGeometry': floatWindowGeometry.v,
       'windowsPipAlwaysOnTop': windowsPipAlwaysOnTop.v,
       'windowsPipFreeAspect': windowsPipFreeAspect.v,
@@ -538,7 +535,6 @@ class PlayerSettingsController extends GetxController {
         typed<String>(json['videoHardwareDecoder'] ?? 'auto'),
         defaultTargetPlatform,
       ),
-      'floatPlay': typed<bool>(json['floatPlay'] ?? false),
       'floatWindowGeometry': typed<String>(json['floatWindowGeometry']?.toString() ?? ''),
       'windowsPipAlwaysOnTop': typed<bool>(json['windowsPipAlwaysOnTop'] ?? false),
       'windowsPipFreeAspect': typed<bool>(json['windowsPipFreeAspect'] ?? false),
@@ -590,7 +586,6 @@ class PlayerSettingsController extends GetxController {
     videoOutputDriver.v = parsed['videoOutputDriver'];
     audioOutputDriver.v = parsed['audioOutputDriver'];
     videoHardwareDecoder.v = parsed['videoHardwareDecoder'];
-    floatPlay.v = parsed['floatPlay'];
     floatWindowGeometry.v = parsed['floatWindowGeometry'];
     windowsPipAlwaysOnTop.v = parsed['windowsPipAlwaysOnTop'];
     windowsPipFreeAspect.v = parsed['windowsPipFreeAspect'];
@@ -643,7 +638,6 @@ class PlayerSettingsController extends GetxController {
         (player['videoHardwareDecoder'] ?? 'auto') as String,
         defaultTargetPlatform,
       ),
-      'floatPlay': player['floatPlay'] ?? false,
       'floatWindowGeometry': player['floatWindowGeometry']?.toString() ?? '',
       'windowsPipAlwaysOnTop': player['windowsPipAlwaysOnTop'] ?? false,
       'windowsPipFreeAspect': player['windowsPipFreeAspect'] ?? false,

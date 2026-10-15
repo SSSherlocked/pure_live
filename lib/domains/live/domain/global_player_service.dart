@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:pure_live/core/player/kernel/floating_playback.dart';
 import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
 import 'package:pure_live/core/player/core/live_audio_service.dart';
 import 'package:pure_live/domains/live/domain/live_player_facade.dart';
@@ -16,7 +15,6 @@ class GlobalPlayerService {
   static PlaybackSourceInterceptor Function()? sourceInterceptorFactory;
 
   late final LivePlayerFacade playerManager;
-  late final FloatingPlayback floating;
 
   late final PlaybackLifecycleCoordinator lifecycle;
 
@@ -45,8 +43,6 @@ class GlobalPlayerService {
 
   Future<void> _initialize(PlayerEngine defaultEngine) async {
     playerManager = LivePlayerFacade(defaultEngine: defaultEngine, sourceInterceptor: sourceInterceptorFactory?.call());
-    floating = FloatingPlayback(facade: playerManager);
-    playerManager.floating = floating;
     // Without background play, a room the app leaves is paused (after the
     // coordinator's short delay) and resumed on return. Phones only: on a
     // desktop, minimizing the window must not pause. media_kit's Video
@@ -72,7 +68,6 @@ class GlobalPlayerService {
   Future<void> dispose() async {
     if (!_initialized) return;
     await lifecycle.dispose();
-    await floating.closeAppFloating();
     await playerManager.dispose();
     _initialized = false;
     Log.dev("GlobalPlayerService: Disposed.", name: "GlobalPlayerService");

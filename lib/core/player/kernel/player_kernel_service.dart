@@ -98,8 +98,7 @@ class PlayerKernelService {
     // The driver ships with a null presenter, so a `floating` request was
     // silently dropped. Install the host surface so any host that calls
     // kernel.enterFloating (the local video player) actually opens a window for
-    // that handle. The live room's own floating path never reaches the driver,
-    // so this only enables the kernel-driven path.
+    // that handle.
     floatingDriver.updatePresenter(KernelFloatingWindowPresenter(kernel: kernel, driver: floatingDriver));
     return kernel;
   }

@@ -123,7 +123,7 @@ PlayerSource ownedPlanSource(OwnedPlaybackSource source, LiveRoom room) => Playe
 /// The commit a refresh answer turns into.
 ///
 /// Everything outside the kernel reads the playback through this: the line
-/// selector, the engine switch, the floating window and a re-entered room.
+/// selector and the engine switch.
 @immutable
 class RefreshedPlaybackCommit {
   const RefreshedPlaybackCommit({

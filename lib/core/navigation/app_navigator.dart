@@ -6,7 +6,6 @@ import 'package:pure_live/core/widgets/app_prompt_dialogs.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/core/navigation/official_category_policy.dart';
-import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 
 class AppNavigator {
@@ -49,17 +48,6 @@ class AppNavigator {
         : liveRoom.copyWith(platform: platform, roomId: roomId);
     _openingLiveRoom = true;
     try {
-      final manager = GlobalPlayerService.instance.player;
-      if (manager.isAppFloatingActive) {
-        if (manager.currentFloatRoom == normalizedRoom) {
-          manager.prepareRoomSessionReentry(normalizedRoom);
-        } else {
-          manager.cancelRoomSessionReentry();
-        }
-        await manager.closeAppFloating();
-      } else {
-        manager.cancelRoomSessionReentry();
-      }
       await Get.toNamed(RoutePath.kLivePlay, arguments: normalizedRoom, parameters: {"site": platform});
     } catch (error, stackTrace) {
       Log.dev('Open live room route failed', name: 'AppNavigator', error: error, stackTrace: stackTrace);

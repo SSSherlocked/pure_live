@@ -17,7 +17,6 @@ import 'package:pure_live/core/player/core/live_audio_service.dart';
 import 'package:pure_live/core/player/core/background_playback_keeper.dart';
 import 'package:pure_live/core/player/core/background_playback_service.dart';
 import 'package:media_core/media_core.dart' show PlayerPlaybackState;
-import 'package:pure_live/domains/live/domain/live_player_facade.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
 import 'package:pure_live/core/stream/hls_source_query_policy.dart';
@@ -367,12 +366,10 @@ class LivePlayController extends GetxController
     return true;
   }
 
-  bool _floatingResourcesReleased = false;
   bool _ownerClosed = false;
   bool _externalOpenInFlight = false;
   bool _childControllersReleased = false;
   bool _reactiveStateClosed = false;
-  bool _suppressAppFloatingOnNextPop = false;
   int _roomLoadEpoch = 0;
   int _iptvPlaybackEpoch = 0;
   bool _asmrSessionActive = false;
@@ -386,11 +383,6 @@ class LivePlayController extends GetxController
   bool _handlingSystemBackPresentation = false;
   final List<LiveMessage> _pendingDanmakuMessages = <LiveMessage>[];
   late final String _controllerTag;
-  RoomSessionSnapshot? _reentrySession;
-
-  /// Defensive conversion for the reentry snapshot's policies: the snapshot
-  /// stores them as `Map<String, Object?>`, and a blind cast throws
-  /// `_ConstMap is not Map<String, HlsSourceQueryPolicy>` on the hot path.
 
   static const int _maxDanmakuHistory = 500;
   static const int _maxPendingDanmakuBatch = 200;
@@ -413,9 +405,6 @@ class LivePlayController extends GetxController
     final manager = GlobalPlayerService.instance.player;
     _longStallSub = manager.onLongStall.listen(_onLongStall);
     _playerPhase = manager.isPlayingNow ? BackgroundPlayerPhase.playing : BackgroundPlayerPhase.idle;
-    // Re-entered from the small window while it plays: no "playing" event
-    // will come for what already plays.
-    _roomHasPlayed = manager.isPlayingNow;
     _playerPhaseSub = manager.onStateChanged.listen((coreState) {
       final phase = _phaseOf(coreState.playback);
       if (phase == _playerPhase) return;
@@ -433,44 +422,27 @@ class LivePlayController extends GetxController
     LiveAudioFocus.instance.onNoisyPause = _markUserPause;
     LiveAudioService.onSleepTimerPause = _markUserPause;
     BackgroundPlaybackService.setRemotePauseListener(_remotePauseListener);
-    _reentrySession = manager.consumeRoomSessionReentry(room);
-    final resumesCurrentSession = _reentrySession != null;
     final autoStartAsmr = Platform.isAndroid && SettingsService.to.app.enableAsmrSleepMode.v;
-    final initialAudioOnly = resumesCurrentSession ? manager.desiredAudioOnlyMode : autoStartAsmr;
-    _asmrSessionActive = resumesCurrentSession ? LiveAudioService.isSleepSessionActive : autoStartAsmr;
-    final restored = _reentrySession;
+    _asmrSessionActive = autoStartAsmr;
     state.value = LivePlayState(
-      room: RoomState(
-        detail: restored?.room ?? room,
-        isLiving: restored?.isLiving ?? true,
-        success: resumesCurrentSession,
-      ),
+      room: RoomState(detail: room, isLiving: true, success: false),
       // ASMR is the only automatic audio-only entry point. Manual headphone
       // switching is scoped to the current room and is never persisted.
       player: PlayerState(
-        qualites: restored?.qualities ?? const <LivePlayQuality>[],
-        currentQuality: restored?.currentQuality ?? 0,
-        playUrls: restored?.playUrls ?? const <String>[],
-        sourceQueryPolicies: restored?.sourceQueryPolicies ?? const {},
-        streamFacts: restored?.streamFacts ?? const {},
-        ownedSource: restored?.ownedSource as OwnedPlaybackSource?,
-        currentLineIndex: restored?.currentLineIndex ?? 0,
-        isCurrentRoomAudioOnly: initialAudioOnly,
-        hasUseDefaultResolution: restored?.hasUseDefaultResolution ?? false,
+        qualites: const <LivePlayQuality>[],
+        currentQuality: 0,
+        playUrls: const <String>[],
+        sourceQueryPolicies: const {},
+        streamFacts: const {},
+        currentLineIndex: 0,
+        isCurrentRoomAudioOnly: autoStartAsmr,
+        hasUseDefaultResolution: false,
       ),
       ui: UIState(closeTimes: 60, closeTimeFlag: false),
     );
-    // Re-entering from the app floating window continues the same room session.
-    // Resetting the timer here extended an existing sleep session and also
-    // forced a second audio-mode transition during route construction.
-    if (!resumesCurrentSession) {
-      unawaited(
-        LiveAudioService.configureSleepTimer(
-          enabled: autoStartAsmr,
-          minutes: SettingsService.to.app.asmrSleepMinutes.v,
-        ),
-      );
-    }
+    unawaited(
+      LiveAudioService.configureSleepTimer(enabled: autoStartAsmr, minutes: SettingsService.to.app.asmrSleepMinutes.v),
+    );
 
     _initControllers();
     _danmakuPresentationRecovery = DanmakuPresentationRecovery(
@@ -662,14 +634,6 @@ class LivePlayController extends GetxController
   }
 
   Future<void> _initCore() async {
-    final restored = _reentrySession;
-    if (restored != null) {
-      _reentrySession = null;
-      await _resumeCurrentRoomSession(restored);
-      _preloadEmojiInBackground();
-      return;
-    }
-
     // Emoji resources are presentation data. Keeping their disk/network work
     // off the playback critical path makes a cold room start as soon as its
     // detail and play URL are available.
@@ -702,46 +666,6 @@ class LivePlayController extends GetxController
       Sites.danmakuCapability(site)?.parseDanmakuEmoji,
       onAtlasChanged: emojiCache.clear,
     );
-  }
-
-  Future<void> _resumeCurrentRoomSession(RoomSessionSnapshot session) async {
-    final controller = await playerController.attachCurrentSession(session);
-    if (controller == null || isClosed) {
-      // The native player disappeared between the floating-window tap and route
-      // construction. Fall back to the normal bounded room initialization.
-      await onInitPlayerState();
-      return;
-    }
-
-    updateRoom(liveroom: session.room, isLiving: session.isLiving, success: true, isLoading: false, loadError: null);
-    await _syncDanmakuConnection(session.room);
-    unawaited(_refreshResumedRoomMetadata(session.room));
-  }
-
-  Future<void> _refreshResumedRoomMetadata(LiveRoom previous) async {
-    final roomId = previous.roomId;
-    final platform = previous.platform;
-    if (roomId == null || platform == null) return;
-    try {
-      final fetched = await currentSite.liveSite.getRoomDetail(previous);
-      if (isClosed) return;
-      final current = state.value.room.detail;
-      if (current?.roomId != roomId || current?.platform != platform) return;
-      // A request-error fallback is pending, not a newer broadcast state.
-      // Keep the attached player and its last known room while it plays.
-      if (fetched.isLiveStatusPending) return;
-      final refreshed = fetched.withAudienceFallbackFrom(current!);
-      final isLiving = refreshed.isPlayableNow;
-      updateRoom(liveroom: refreshed, isLiving: isLiving, success: true, isLoading: false);
-    } catch (error, stackTrace) {
-      // The already-playing session stays usable when a metadata refresh fails.
-      Log.dev(
-        'Re-entered room metadata refresh failed',
-        name: 'LivePlayController',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
   }
 
   Future<void> getSuperChatMessage(LiveRoom liveroom, {required int loadEpoch}) async {
@@ -816,8 +740,6 @@ class LivePlayController extends GetxController
   }
 
   void addSingleSuperChat(LiveSuperChatMessage item) {
-    // The engine callbacks outlive the room during the floating-window handoff;
-    // the expiry timer is already off by then, so the list would only grow.
     if (isClosed || _ownerClosed) return;
     final next = <LiveSuperChatMessage>{...superChats, item}.toList(growable: false);
     superChats.assignAll(next);
@@ -1531,94 +1453,21 @@ class LivePlayController extends GetxController
     await Get.toNamed(RoutePath.kRecordPage);
   }
 
-  bool takeSuppressAppFloatingOnNextPop() {
-    final suppress = _suppressAppFloatingOnNextPop;
-    _suppressAppFloatingOnNextPop = false;
-    return suppress;
-  }
-
-  /// Whether this room hands the video (and therefore the danmaku session) to
-  /// the in-app small window. Mirrors the facade, which owns the floating
-  /// window's lifetime: while it is prepared or showing, the route's pop must
-  /// not tear the danmaku session down.
-  @override
-  bool get keepsDanmakuForFloating =>
-      _floatingHandoffPrepared || GlobalPlayerService.instance.player.shouldKeepDanmakuForAppFloating;
-
-  /// Sticky record of "this room is being handed to the small window".
-  ///
-  /// The facade's answer is the live truth, but it is read while the route is
-  /// being torn down and GetX deletes this room's controllers in the same turn;
-  /// a keep decision that flips to false for one instant stops the danmaku
-  /// session for good. Prepared once, cleared when the window is closed for
-  /// real, so the answer cannot be missed by ordering.
-  bool _floatingHandoffPrepared = false;
-
-  void prepareAppFloating({Future<void>? routeUnmounted}) {
-    _floatingResourcesReleased = false;
-    _floatingHandoffPrepared = true;
-    final manager = GlobalPlayerService.instance.player;
-    final current = state.value;
-    final detail = current.room.detail;
-    manager.prepareAppFloating(
-      onClose: () async {
-        // A popped route may remain mounted for its reverse transition. Its
-        // Obx widgets must unsubscribe before this controller closes Rx state.
-        if (routeUnmounted != null) await routeUnmounted;
-        await disposeAppFloatingResources();
-      },
-      session: detail == null
-          ? null
-          : RoomSessionSnapshot(
-              room: detail,
-              qualities: List<LivePlayQuality>.unmodifiable(current.player.qualites),
-              currentQuality: current.player.currentQuality,
-              playUrls: List<String>.unmodifiable(current.player.playUrls),
-              sourceQueryPolicies: Map<String, HlsSourceQueryPolicy>.unmodifiable(current.player.sourceQueryPolicies),
-              streamFacts: Map<String, LiveStreamFacts>.unmodifiable(current.player.streamFacts),
-              ownedSource: current.player.ownedSource,
-              currentLineIndex: current.player.currentLineIndex,
-              headers: Map<String, String>.unmodifiable(current.player.videoController?.headers ?? const {}),
-              isAudioOnly: manager.desiredAudioOnlyMode,
-              isLiving: current.room.isLiving,
-              dataSource: current.player.playUrlSafe,
-              hasUseDefaultResolution: current.player.hasUseDefaultResolution,
-            ),
-    );
-  }
-
-  Future<void> disposeAppFloatingResources() async {
-    if (_floatingResourcesReleased) return;
-    _floatingResourcesReleased = true;
-    _floatingHandoffPrepared = false;
-
-    final videoController = state.value.player.videoController;
-    await _disposeAppFloatingResourcesAsync(videoController);
-  }
-
   Future<void> _disposeNormalRouteResources() async {
     try {
-      // A normal route pop is not a floating-player handoff. Explicitly stop
-      // the global source so decoder/network workers do not survive on the
-      // home page. LivePlayerFacade keeps a short reopen grace window and then
-      // releases the native player completely.
+      // Explicitly stop the global source so decoder/network workers do not
+      // survive on the home page. LivePlayerFacade keeps a short reopen grace
+      // window and then releases the native player completely.
       await GlobalPlayerService.instance.player.close();
     } finally {
       try {
-        await disposeAppFloatingResources();
+        final videoController = state.value.player.videoController;
+        await danmakuController.stopDanmaku();
+        videoController?.dispose();
       } finally {
         _releaseChildControllers();
         _closeReactiveState();
       }
-    }
-  }
-
-  Future<void> _disposeAppFloatingResourcesAsync(VideoController? videoController) async {
-    await danmakuController.stopDanmaku();
-    videoController?.dispose();
-    if (_ownerClosed) {
-      _releaseChildControllers();
-      _closeReactiveState();
     }
   }
 
@@ -1674,17 +1523,14 @@ class LivePlayController extends GetxController
     tabController.dispose();
     unawaited(_danmakuRemovals.close());
 
-    final keepForAppFloating = GlobalPlayerService.instance.player.shouldKeepDanmakuForAppFloating;
-    if (!keepForAppFloating) {
-      // The sleep session belongs to this room; a later room must not be
-      // paused by its timer. Handed to the small window, it goes on.
-      if (_asmrSessionActive || LiveAudioService.isSleepSessionActive) {
-        unawaited(
-          LiveAudioService.configureSleepTimer(enabled: false, minutes: SettingsService.to.app.asmrSleepMinutes.v),
-        );
-      }
-      unawaited(_disposeNormalRouteResources());
+    // The sleep session belongs to this room; a later room must not be
+    // paused by its timer.
+    if (_asmrSessionActive || LiveAudioService.isSleepSessionActive) {
+      unawaited(
+        LiveAudioService.configureSleepTimer(enabled: false, minutes: SettingsService.to.app.asmrSleepMinutes.v),
+      );
     }
+    unawaited(_disposeNormalRouteResources());
     super.onClose();
   }
 }

@@ -322,9 +322,8 @@ class PlayerController extends GetxController {
     );
 
     return (request) async {
-      // The native session survives route disposal (app floating). Do not read
-      // route state here or keep requesting the quality captured at first open
-      // after the server has committed a different rate during recovery.
+      // Do not keep requesting the quality captured at first open after the
+      // server has committed a different rate during recovery.
       final requested = request.currentQuality ?? quality;
       final choices = <LivePlayQuality>[
         for (final item in initialChoices)
@@ -511,78 +510,6 @@ class PlayerController extends GetxController {
     }
     if (!_isLoadCurrent(loadEpoch, liveroom, site) || controller.status == PlayerStatus.disposed) return null;
     return controller.status == PlayerStatus.error ? null : controller;
-  }
-
-  /// Attaches a new route-scoped UI controller to the native player retained by
-  /// [PlayerManager] while the app floating window was visible.
-  ///
-  /// No room endpoint or media source is opened here. The previous page's
-  /// controller has already been disposed; only the global native player and
-  /// immutable session metadata cross the route boundary.
-  Future<VideoController?> attachCurrentSession(RoomSessionSnapshot session) async {
-    final manager = GlobalPlayerService.instance.player;
-    if (_main.isClosed || manager.currentPlayer == null || manager.currentFloatRoom != session.room) return null;
-
-    final qualities = session.qualities.isEmpty
-        ? <LivePlayQuality>[LivePlayQuality(quality: '原画')]
-        : List<LivePlayQuality>.unmodifiable(session.qualities);
-    final playUrls = session.playUrls.isEmpty && session.dataSource.isNotEmpty
-        ? <String>[session.dataSource]
-        : List<String>.unmodifiable(session.playUrls);
-    final currentQuality = session.currentQuality.clamp(0, qualities.length - 1);
-    final currentLineIndex = playUrls.isEmpty ? 0 : session.currentLineIndex.clamp(0, playUrls.length - 1);
-
-    _main.updatePlayer(
-      qualites: qualities,
-      currentQuality: currentQuality,
-      playUrls: playUrls,
-      sourceQueryPolicies: session.sourceQueryPolicies,
-      streamFacts: session.streamFacts,
-      ownedSource: session.ownedSource as OwnedPlaybackSource?,
-      currentLineIndex: currentLineIndex,
-      isCurrentRoomAudioOnly: manager.desiredAudioOnlyMode,
-      hasUseDefaultResolution: session.hasUseDefaultResolution,
-    );
-
-    final videoController = VideoController(
-      room: session.room,
-      ownedSource: session.ownedSource as OwnedPlaybackSource?,
-      playUrs: playUrls,
-      datasource: session.dataSource.isNotEmpty
-          ? session.dataSource
-          : (playUrls.isEmpty ? '' : playUrls[currentLineIndex]),
-      allowScreenKeepOn: SettingsService.to.app.enableScreenKeepOn.v,
-      headers: session.headers,
-      qualiteName: qualities[currentQuality].playbackLabel,
-      currentLineIndex: currentLineIndex,
-      currentQuality: currentQuality,
-      isAudioOnly: manager.desiredAudioOnlyMode,
-      reuseCurrentSession: true,
-      sourceResolver: _buildSourceResolver(
-        site: currentSite,
-        liveroom: session.room,
-        quality: qualities[currentQuality],
-      ),
-      sourceRefreshAt: session.ownedSource == null
-          ? _getSourceRefreshAt(
-              site: currentSite,
-              url: session.dataSource.isNotEmpty
-                  ? session.dataSource
-                  : (playUrls.isEmpty ? '' : playUrls[currentLineIndex]),
-            )
-          : null,
-      sourceSelection: PlaybackSourceQualitySelection(
-        qualities: qualities,
-        currentQuality: currentQuality,
-        sourceQueryPolicies: session.sourceQueryPolicies,
-        streamFacts: session.streamFacts,
-      ),
-      livePlayController: _videoSessionController,
-      onSourceCommitted: applySourceCommit,
-      onAudioOnlyChanged: _main.setCurrentRoomAudioOnlyFromUser,
-    );
-    _main.updatePlayer(videoController: videoController);
-    return videoController;
   }
 
   Future<List<LivePlayQuality>> _discoverQualities(Site site, LiveRoom liveroom, CancelToken cancel) async {

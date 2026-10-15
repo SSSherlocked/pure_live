@@ -8,8 +8,6 @@ import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/domains/live/domain/playback_startup_timing.dart';
 import 'package:media_core/media_core.dart';
 import 'package:media_core_live/media_core_live.dart';
-import 'package:flame_barrage/flame_barrage.dart';
-import 'package:pure_live/core/models/live_message.dart';
 import 'package:pure_live/core/models/live_room.dart';
 import 'package:pure_live/core/player/models/player_engine.dart';
 import 'package:pure_live/core/stream/hls_source_query_policy.dart';
@@ -23,7 +21,6 @@ import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/domains/live/domain/playback_source_refresh.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart';
 import 'package:pure_live/core/logging/app_log.dart';
-import 'package:pure_live/core/player/kernel/floating_playback.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
@@ -31,10 +28,6 @@ import 'package:pure_live/core/player/kernel/open_volume.dart';
 import 'package:pure_live/core/player/presentation/fullscreen_window.dart' show fullscreenDriver;
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/compact_danmaku_overlay.dart';
-// media_kit exports its own `VideoController`, so the room's controller needs a
-// prefix to be named at all here.
-import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart'
-    as room_surface;
 import 'package:media_core_better_player/media_core_better_player.dart' show kBetterPlayerBackendId;
 import 'package:media_core_ijk_player/media_core_ijk_player.dart' show kIjkPlayerBackendId;
 
@@ -593,17 +586,17 @@ final class LivePlayerFacade {
   dynamic get currentPlayer => _controller.handle;
 
   /// The live room's [VideoController], when one is attached. Used by the
-  /// floating-window and picture-in-picture overlays to mount the compact
+  /// picture-in-picture overlay to mount the compact
   /// danmaku surface.
   dynamic get activeVideoController => _activeVideoController;
   LiveRoom? get currentFloatRoom => _room;
   bool hasActivePlaybackSession(LiveRoom liveroom) => _room == liveroom && isPlayingNow;
 
   /// True while the video surface is presented compactly — the system/desktop
-  /// picture-in-picture or the in-app small window. The danmaku layer reads
-  /// this per message to decide whether the compact barrage surface is fed;
-  /// a hardcoded false starves both overlays of danmaku entirely.
-  bool get isCompactModeActive => isInPip.value || floating.isAppFloatingActive;
+  /// picture-in-picture. The danmaku layer reads this per message to decide
+  /// whether the compact barrage surface is fed; a hardcoded false starves the
+  /// overlay of danmaku entirely.
+  bool get isCompactModeActive => isInPip.value;
   void refreshPortraitPresentationPolicy() {}
 
   /// The video controller that currently owns playback (volume, status
@@ -734,137 +727,6 @@ final class LivePlayerFacade {
 
   bool get fullscreenUI => isSystemFullscreen.value || isWindowFullscreen.value;
 
-  late final FloatingPlayback floating;
-
-  bool get isAppFloatingActive => floating.isAppFloatingActive;
-  bool get shouldKeepDanmakuForAppFloating => floating.isAppFloatingActive;
-
-  /// The small window's danmaku pool.
-  ///
-  /// The facade owns it, not the room's controller: the window outlives the
-  /// room's route, and a pool that died with the page is exactly why the window
-  /// used to show a picture with no danmaku.
-  final BarrageController floatingDanmaku = BarrageController();
-
-  /// Lines sent while no renderer was attached, in arrival order.
-  ///
-  /// `BarrageController.send` drops a message when no engine is attached (the
-  /// widget attaches it on mount), and the small window's surface mounts after
-  /// the first lines already arrived. Holding them here and flushing once the
-  /// engine exists is the difference between "the window shows danmaku from the
-  /// first message" and "the window is empty until it is reopened".
-  final List<BarrageItem> _floatingDanmakuBacklog = <BarrageItem>[];
-  Timer? _floatingDanmakuFlushTimer;
-  int _floatingDanmakuFlushTicks = 0;
-
-  /// Ten seconds of waiting for the surface to mount, after which the backlog
-  /// is dropped rather than kept polling for the rest of the floating session.
-  static const int _floatingDanmakuFlushTickLimit = 50;
-
-  /// Whether the small window's danmaku surface is hidden: the rule of the
-  /// overlay [buildFloatingDanmaku] mounts (the room's own toggle while its
-  /// controller is alive, else the master switch; the portrait rule is off
-  /// there). A hidden surface never mounts an engine, so there is nothing to
-  /// hold lines for.
-  bool get _floatingDanmakuHidden {
-    final controller = activeVideoController;
-    if (controller is room_surface.VideoController) return controller.hideDanmaku.value;
-    return SettingsService.to.danmaku.hideDanmaku.v;
-  }
-
-  /// Feeds the small window's own pool.
-  ///
-  /// Called for every chat line the session delivers, so the window's danmaku
-  /// never depends on the room's controller still being alive: the pool and the
-  /// feed are both the facade's. The room's full-size surface and PiP keep their
-  /// own pools, so a line is never drawn twice.
-  void sendFloatingDanmaku(LiveMessage msg) {
-    if (!floating.isAppFloatingActive) return;
-    if (msg.message.trim().isEmpty) return;
-    final placement = msg.isLocal ? msg.style?.placement : null;
-    final item = BarrageItem(
-      content: msg.message,
-      type: switch (placement) {
-        LiveMessagePlacement.top => BarrageType.topFixed,
-        LiveMessagePlacement.bottom => BarrageType.bottomFixed,
-        _ => BarrageType.scroll,
-      },
-      userId: msg.userId,
-      userName: msg.userName,
-      id: msg.messageId,
-      textColor: Color.fromARGB(255, msg.color.r, msg.color.g, msg.color.b),
-      fixedDuration: placement == null ? null : const Duration(seconds: 4),
-    );
-    if (floatingDanmaku.engine == null) {
-      if (_floatingDanmakuHidden) return;
-      if (_floatingDanmakuBacklog.length >= 200) _floatingDanmakuBacklog.removeAt(0);
-      _floatingDanmakuBacklog.add(item);
-      if (_floatingDanmakuFlushTimer == null) {
-        _floatingDanmakuFlushTicks = 0;
-        _floatingDanmakuFlushTimer = Timer.periodic(const Duration(milliseconds: 200), (_) => _flushFloatingDanmaku());
-      }
-      return;
-    }
-    floatingDanmaku.send(item);
-  }
-
-  void _flushFloatingDanmaku() {
-    if (floatingDanmaku.engine == null) {
-      if (!floating.isAppFloatingActive ||
-          _floatingDanmakuHidden ||
-          ++_floatingDanmakuFlushTicks >= _floatingDanmakuFlushTickLimit) {
-        _dropFloatingDanmakuBacklog();
-      }
-      return;
-    }
-    for (final item in _floatingDanmakuBacklog) {
-      floatingDanmaku.send(item);
-    }
-    _dropFloatingDanmakuBacklog();
-  }
-
-  void _dropFloatingDanmakuBacklog() {
-    _floatingDanmakuBacklog.clear();
-    _floatingDanmakuFlushTimer?.cancel();
-    _floatingDanmakuFlushTimer = null;
-    _floatingDanmakuFlushTicks = 0;
-  }
-
-  void clearFloatingDanmaku() {
-    _dropFloatingDanmakuBacklog();
-    floatingDanmaku.clear();
-  }
-
-  void prepareAppFloating({Future<void> Function()? onClose, FacadeStreamCommit? session}) =>
-      floating.prepare(onClose: onClose);
-
-  /// The danmaku surface of the in-app small window.
-  ///
-  /// The pool is the facade's, so the surface keeps rendering whether or not the
-  /// room's controller is still alive; the controller is only consulted for the
-  /// room's own style.
-  Widget buildFloatingDanmaku(BuildContext context) {
-    final controller = activeVideoController;
-    return CompactDanmakuOverlay(
-      controller: controller is room_surface.VideoController ? controller : null,
-      barrage: floatingDanmaku,
-      // The window is sized and placed by the viewer; a portrait stream must not
-      // blank it just because the room's own portrait rule hides danmaku there.
-      respectPortraitPolicy: false,
-    );
-  }
-
-  Future<void> showAppFloating({Widget Function(BuildContext)? danmakuBuilder}) =>
-      floating.showAppFloating(danmakuBuilder: danmakuBuilder ?? buildFloatingDanmaku);
-  Future<void> closeAppFloating() => floating.closeAppFloating();
-  void prepareRoomSessionReentry([LiveRoom? liveroom]) => floating.prepare();
-  FacadeStreamCommit? consumeRoomSessionReentry([LiveRoom? liveroom]) {
-    final seed = floating.consumeRoomReentry();
-    if (seed == null || liveroom == null) return seed;
-    return seed.room.roomId == liveroom.roomId ? seed : null;
-  }
-
-  void cancelRoomSessionReentry() => floating.cancelRoomReentry();
   void setVideoPresentationVisible(bool visible) => setPresentationVisible(visible);
 
   Future<void> enablePip() async {
@@ -1114,7 +976,6 @@ class FacadeStreamCommit {
   );
 }
 
-typedef RoomSessionSnapshot = FacadeStreamCommit;
 typedef PlaybackSourceCommitSnapshot = FacadeStreamCommit;
 typedef PlaybackSourceResolver = Future<PlaybackSourceRefreshResult> Function(PlaybackSourceRefreshRequest request);
 

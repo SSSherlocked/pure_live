@@ -18,16 +18,13 @@ import 'package:media_core/media_core.dart'
 /// The driver ships with a null presenter, so a `floating` request was silently
 /// dropped; this installs the real surface: a [FloatingWindowOverlay] inserted
 /// above the app's overlay that renders whichever player the driver names, by
-/// looking its handle up on [kernel]. It stays generic over the player id so the
-/// live room's own floating path (which never goes through the driver) is
-/// untouched, and any host that calls `kernel.enterFloating(playerId)` — the
-/// local video player today — gets a window for that exact handle.
+/// looking its handle up on [kernel]. It stays generic over the player id, so
+/// any host that calls `kernel.enterFloating(playerId)` — the local video
+/// player today — gets a window for that exact handle.
 ///
-/// The window's geometry and its control surface mirror what the live room's
-/// own small window shows, so both windows look and behave the same: every edge
-/// resizes freely, the position is remembered, a tap pins the controls for a
-/// few seconds (hover on desktop), the primary play/pause sits centered, and
-/// the expand/close pair stays in the corner.
+/// Every edge of the window resizes freely, the position is remembered, a tap
+/// pins the controls for a few seconds (hover on desktop), the primary
+/// play/pause sits centered, and the expand/close pair stays in the corner.
 final class KernelFloatingWindowPresenter implements FloatingWindowPresenter {
   KernelFloatingWindowPresenter({required this.kernel, required this.driver});
 
@@ -36,14 +33,14 @@ final class KernelFloatingWindowPresenter implements FloatingWindowPresenter {
 
   OverlayEntry? _entry;
 
-  /// The window's last rect for a picture of this shape, remembered through
-  /// the same settings entry the live room's small window uses.
+  /// The window's last rect for a picture of this shape, remembered in the
+  /// `floatWindowGeometry` setting.
   ///
   /// The shape comes from the player being floated, not from
   /// [CompactSourceOrientation]: that global reads the live room's player, so
   /// a recording would have opened in whatever orientation the last live
   /// stream had — a vertical video in a horizontal window. Portrait and
-  /// landscape keep separate slots, exactly like the room's window.
+  /// landscape keep separate slots.
   Rect? _rememberedRect(bool isPortrait) {
     final geometry = FloatWindowGeometry.decode(SettingsService.to.player.floatWindowGeometry.value);
     return geometry.forPortrait(isPortrait);
@@ -89,9 +86,8 @@ final class KernelFloatingWindowPresenter implements FloatingWindowPresenter {
         // opens a vertical recording as a tall window instead of a wide one.
         videoWidth: width > 0 ? width : null,
         videoHeight: height > 0 ? height : null,
-        // Same placement the live room's window ships with: every edge and
-        // corner resizes freely (the viewer picks width and height), and the
-        // window may use the whole surface.
+        // Every edge and corner resizes freely (the viewer picks width and
+        // height), and the window may use the whole surface.
         placement: const FloatingWindowPlacement(
           config: FloatingPlacementConfig(
             width: 380,
@@ -107,10 +103,9 @@ final class KernelFloatingWindowPresenter implements FloatingWindowPresenter {
         initialRect: _rememberedRect(isPortrait),
         onRectChanged: (rect) => _rememberRect(isPortrait, rect),
         // The corner actions belong to the surface below, not to the library's
-        // own built-in buttons: the live room's small window draws its own
-        // expand/close pair that appears with the rest of the controls, and the
-        // built-ins are always-on text glyphs that made the two windows look
-        // like different features.
+        // own built-in buttons: the surface draws its own expand/close pair that
+        // appears with the rest of the controls, while the built-ins are
+        // always-on text glyphs.
         child: _KernelFloatingSurface(
           kernel: kernel,
           playerId: playerId,
@@ -148,7 +143,7 @@ final class KernelFloatingWindowPresenter implements FloatingWindowPresenter {
 }
 
 /// Renders the video of [playerId] for as long as the kernel still holds it,
-/// with the control surface the live room's small window shows.
+/// with the window's control surface.
 ///
 /// Control visibility splits by input device: a touch screen has no pointer to
 /// leave behind, so a tap pins the controls and a timer releases them, while a
@@ -266,8 +261,7 @@ class _KernelFloatingSurfaceState extends State<_KernelFloatingSurface> {
               ),
             ),
           ),
-          // The same corner pair the live room's small window draws, with the
-          // same reveal: it is one feature seen from two players, not two.
+          // The corner pair, revealed with the rest of the controls.
           Positioned(
             top: 4,
             right: 4,

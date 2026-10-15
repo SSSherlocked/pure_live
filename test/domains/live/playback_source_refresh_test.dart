@@ -250,7 +250,7 @@ void main() {
       expect(seen.single.first.headers?['Referer'], 'https://www.huya.com/');
     });
 
-    test('an owned answer keeps the source the floating window rebuilds from', () async {
+    test('an owned answer keeps the owned source in the commit', () async {
       final committed = _commit(urls: const [], currentUrl: 'owned:fc2live:123', currentLineIndex: 0);
       final owned = OwnedPlaybackSource(identity: 'fc2:123', createInput: _recipe);
 

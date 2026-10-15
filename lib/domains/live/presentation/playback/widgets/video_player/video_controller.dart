@@ -352,7 +352,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   bool get isAudioOnly => audioOnlyState.value;
   bool get hasPlaybackError => _playerManager.hasError.value;
   final AudioOnlyCallback? onAudioOnlyChanged;
-  final bool reuseCurrentSession;
   final PlaybackSourceResolver? sourceResolver;
   final DateTime? sourceRefreshAt;
   final PlaybackSourceQualitySelection? sourceSelection;
@@ -492,7 +491,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     this.sourceSelection,
     this.ownedSource,
     this.onSourceCommitted,
-    this.reuseCurrentSession = false,
     this.allowScreenKeepOn = false,
     this.allowFullScreen = true,
     this.onAudioOnlyChanged,
@@ -519,10 +517,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   void _initControllers() {
     danmakuController = BarrageController();
-    // The small window renders the facade's pool: it outlives this controller, so a
-    // pool created here disappeared with the room's route and left the window with
-    // a picture and no danmaku.
-    pipDanmakuController = _playerManager.floatingDanmaku;
+    pipDanmakuController = BarrageController();
     _danmakuManager = DanmakuManager(
       controller: danmakuController,
       pipController: pipDanmakuController,
@@ -554,17 +549,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     await _initVolumeController();
     if (!_ownsVolume) return;
 
-    if (reuseCurrentSession) {
-      if (_playerManager.currentPlayer == null || _playerManager.currentFloatRoom != room) {
-        throw PlayerException(
-          code: PlayerErrorCode.invalidState,
-          message: 'Retained room session is no longer available',
-        );
-      }
-      audioOnlyState.value = _playerManager.desiredAudioOnlyMode;
-    } else {
-      await _playVideo();
-    }
+    await _playVideo();
     if (_isDisposed) return;
 
     _setupDefaultFullscreen();
@@ -649,7 +634,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     try {
       await _playerManager.setAudioOnlyMode(value);
       // A newer request may have superseded this one while the native command
-      // was pending (for example, returning through the floating window).
+      // was pending (for example, a rapid second toggle).
       if (!_isDisposed) audioOnlyState.value = _playerManager.isAudioOnlyMode;
     } catch (_) {
       if (!_isDisposed) audioOnlyState.value = previous;
@@ -713,12 +698,8 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   void initPlayerListener() {
     if (_playerListenerBound || _isDisposed) return;
     _playerListenerBound = true;
-    _acceptSourceCommits = reuseCurrentSession;
-    // Subscribe before replaying the canonical snapshot: a retained native
-    // session may commit a new source while the old room route is gone.
+    _acceptSourceCommits = false;
     _addSubscription(_playerManager.onSourceCommitted.listen(_handleSourceCommit));
-    final sourceCommit = _playerManager.currentSourceCommit;
-    if (reuseCurrentSession && sourceCommit != null) _handleSourceCommit(sourceCommit);
     final errorSub = _playerManager.onError.listen((error) {
       Log.dev('error: ${error.toString()}', name: 'initPlayerListener');
       _handlePlayerError(error);

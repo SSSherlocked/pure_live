@@ -242,12 +242,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                   onTap: _asmrDialogBusy ? null : _showAsmrSleepTimerDialog,
                 ),
               ),
-            context.buildSwitchTile(
-              title: i18n("exit_float_window"),
-              subtitle: i18n("exit_float_window_subtitle"),
-              value: SettingsService.to.player.floatPlay,
-              icon: Remix.picture_in_picture_2_line,
-            ),
             if (_hasDesktopPip)
               context.buildSwitchTile(
                 title: i18n('windows_pip_always_on_top'),

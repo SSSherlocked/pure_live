@@ -5,7 +5,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/por
 import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 
-/// The compact (picture-in-picture / small-window) danmaku surface.
+/// The compact (picture-in-picture) danmaku surface.
 ///
 /// It renders with the MAIN danmaku configuration — size, weight, speed,
 /// opacity, area, top/bottom insets, the portrait policy and density all come
@@ -16,41 +16,21 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/video_playe
 /// Only the compact-specific pool sizes and admission interval differ from the
 /// room's renderer.
 class CompactDanmakuOverlay extends StatelessWidget {
-  const CompactDanmakuOverlay({super.key, this.controller, this.barrage, this.respectPortraitPolicy = true});
+  const CompactDanmakuOverlay({super.key, required this.controller});
 
-  /// The room's controller, while it is alive: its per-room style (font, stroke,
-  /// the room's own danmaku toggle) wins, exactly as in the full-size player.
-  ///
-  /// Null once the room's route is gone — the small window outlives it, and its
-  /// danmaku must not disappear with the page.
-  final VideoController? controller;
-
-  /// The controller to render. Defaults to the room controller's compact pool;
-  /// the small window passes the facade's own controller so the surface keeps
-  /// rendering after the room's controller is gone.
-  final BarrageController? barrage;
-
-  /// Whether the room's portrait rule may hide this surface.
-  ///
-  /// The room hides danmaku over a portrait video when the viewer asked it to;
-  /// the in-app small window is a deliberate watch surface the viewer sized and
-  /// placed themselves, so it keeps showing danmaku (the master danmaku switch
-  /// still applies) and turns this off.
-  final bool respectPortraitPolicy;
-
-  BarrageController get _barrage => barrage ?? controller!.pipDanmakuController;
+  /// The room's controller: its per-room style (font, stroke, the room's own
+  /// danmaku toggle) wins, exactly as in the full-size player.
+  final VideoController controller;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final settings = SettingsService.to.danmaku;
-      final room = controller;
       final isVerticalVideo = GlobalPlayerService.instance.player.isVerticalVideo.value;
       final portraitMode = SettingsService.to.player.portraitDanmakuMode;
       final hidden =
-          (room?.hideDanmaku.value ?? settings.hideDanmaku.v) ||
-          (respectPortraitPolicy &&
-              PortraitDanmakuPolicy.hidesDanmaku(isVerticalVideo: isVerticalVideo, mode: portraitMode));
+          controller.hideDanmaku.value ||
+          PortraitDanmakuPolicy.hidesDanmaku(isVerticalVideo: isVerticalVideo, mode: portraitMode);
       if (hidden) {
         return const SizedBox.shrink();
       }
@@ -77,11 +57,9 @@ class CompactDanmakuOverlay extends StatelessWidget {
       final opacity = settings.danmakuOpacity.v;
       final fps = settings.resolvedDanmakuFps(pip: true, refreshRateMode: SettingsService.to.app.refreshRateMode);
       final maxVisibleCount = settings.effectiveMaxVisibleCount;
-      final fontFamily = SettingsService.to.font.danmakuFontFamily(
-        room?.roomDanmakuFontFamily.value ?? settings.danmakuFontFamilyName.v,
-      );
-      final showStroke = room?.enableDanmakuStroke.value ?? settings.enableDanmakuStroke.v;
-      final strokeWidth = room?.danmakuFontBorder.value ?? settings.danmakuFontBorder.v;
+      final fontFamily = SettingsService.to.font.danmakuFontFamily(controller.roomDanmakuFontFamily.value);
+      final showStroke = controller.enableDanmakuStroke.value;
+      final strokeWidth = controller.danmakuFontBorder.value;
       final typography = CompactDanmakuTypography.resolve(
         configuredFontWeight: configuredFontWeight,
         configuredFontFamily: fontFamily,
@@ -104,7 +82,7 @@ class CompactDanmakuOverlay extends StatelessWidget {
 
             return RepaintBoundary(
               child: FlameBarrageWidget(
-                controller: _barrage,
+                controller: controller.pipDanmakuController,
                 config: BarrageConfig(
                   fontSize: metrics.fontSize,
                   fontWeight: FontWeight(typography.fontWeight),

@@ -17,7 +17,7 @@ import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku
 
 /// Owns exactly one room-bound danmaku session.
 ///
-/// Room switches, setting changes, player reloads and floating-window teardown
+/// Room switches, setting changes, player reloads and route teardown
 /// can arrive in the same event-loop turn. Every transition is serialized and
 /// every callback carries a session token, so an old socket can never append a
 /// packet to the newly opened room.
@@ -257,11 +257,7 @@ class DanmakuController extends GetxController {
         }
         _main.addDanmakuMessage(msg);
         if (msg.emotes.isNotEmpty) DanmakuEmoteLoader.instance.ensureRegistered(msg.emotes);
-        // The room's surface and PiP render from the room controller's own pools;
-        // the in-app small window renders the facade's pool and is fed here, so it
-        // keeps showing danmaku whether or not the room's controller still exists.
         _state.player.videoController?.sendDanmaku(msg);
-        GlobalPlayerService.instance.player.sendFloatingDanmaku(msg);
       } else if (msg.type == LiveMessageType.online) {
         _main.updateRuntimeAudience(msg.data);
       } else if (msg.type == LiveMessageType.superChat) {
@@ -438,8 +434,6 @@ class DanmakuController extends GetxController {
 
   @override
   void onClose() {
-    // The floating window may keep the session (below); its silence check
-    // goes with this controller either way.
     _stallTimer?.cancel();
     _stallTimer = null;
     _settingsWorker?.dispose();
@@ -448,24 +442,15 @@ class DanmakuController extends GetxController {
     _messageGate.clear();
     _repeatMerger.clear();
     _similarityFilter.clear();
-    // The small window keeps the video running after the room's route is gone,
-    // and GetX deletes this route-bound controller on that pop. Tearing the
-    // session down here — or even only bumping the epochs, which invalidates
-    // every installed engine callback — left the window with a picture and no
-    // danmaku at all. The host asks for the session to be kept here, and
-    // LivePlayController.disposeAppFloatingResources stops it when the window is
-    // closed for real.
-    if (!_main.keepsDanmakuForFloating) {
-      _requestEpoch++;
-      _sessionToken++;
-      final engine = _liveDanmaku;
-      if (engine != null) {
-        _detachCallbacks(engine);
-        unawaited(_stopEngine(engine));
-      }
-      _main.updateDanmakuRoomId(null);
-      _main.clearRenderedDanmaku();
+    _requestEpoch++;
+    _sessionToken++;
+    final engine = _liveDanmaku;
+    if (engine != null) {
+      _detachCallbacks(engine);
+      unawaited(_stopEngine(engine));
     }
+    _main.updateDanmakuRoomId(null);
+    _main.clearRenderedDanmaku();
     super.onClose();
   }
 }

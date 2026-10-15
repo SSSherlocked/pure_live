@@ -43,10 +43,8 @@ LAYERS = ('app', 'core', 'shared', 'domains', 'features')
 # Approved exceptions: exact finding strings ("<source layer> -> <target path>   [<source file>]").
 BASELINE: frozenset[str] = frozenset({
     'core -> domains/live/data/platforms/sites.dart   [core/navigation/app_navigator.dart]',
-    'core -> domains/live/domain/global_player_service.dart   [core/navigation/app_navigator.dart]',
     'core -> domains/live/domain/global_player_service.dart   [core/platform/desktop_manager.dart]',
     'core -> domains/live/domain/global_player_service.dart   [core/player/kernel/player_kernel_service.dart]',
-    'core -> domains/live/domain/live_player_facade.dart   [core/player/kernel/floating_playback.dart]',
     'domains/iptv -> domains/live/data/favorite_room_controller.dart   [domains/iptv/data/iptv_settings_controller.dart]',
     'domains/live -> domains/iptv/data/iptv_settings_controller.dart   [domains/live/data/playback_header_resolver.dart]',
     'domains/live -> domains/iptv/data/iptv_settings_controller.dart   [domains/live/presentation/playback/widgets/video_player/video_controller.dart]',

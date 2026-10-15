@@ -197,10 +197,6 @@ class MultiviewController extends GetxController {
     final service = GlobalPlayerService.instance;
     if (!service.initialized) return;
     final manager = service.player;
-    if (manager.isAppFloatingActive) {
-      await manager.closeAppFloating();
-      return;
-    }
     if (manager.isPlayingNow) {
       await manager.pause();
     }

@@ -188,7 +188,7 @@ class PlaybackSourceTransport {
   }
 
   /// Releases the input handed to the player without closing the owner: playback
-  /// stopped (room left, floating window closed) but a later line still gets one.
+  /// stopped (room left) but a later line still gets one.
   Future<void> release() async {
     if (_closed) return;
     _generation++;

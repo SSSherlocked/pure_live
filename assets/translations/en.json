@@ -1864,5 +1864,6 @@
   "update_download_failed": "Download failed. Check the network and try again",
   "update_install": "Install",
   "update_open_folder": "Show in folder",
-  "update_install_failed": "Couldn't open the installer. Allow Pure Live to install apps in system settings"
+  "update_install_failed": "Couldn't open the installer. Allow Pure Live to install apps in system settings",
+  "chat_list_bubble_height": "Bubble height"
 }

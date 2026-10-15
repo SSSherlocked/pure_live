@@ -199,6 +199,23 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               if (SettingsService.to.danmaku.chatListBubble.v) ...[
                 _slider(
                   theme,
+                  title: i18n('chat_list_bubble_height'),
+                  value: SettingsService.to.danmaku.chatListBubbleHeight.v
+                      .clamp(
+                        DanmakuSettingsController.minChatListBubbleHeight,
+                        DanmakuSettingsController.maxChatListBubbleHeight,
+                      )
+                      .toDouble(),
+                  min: DanmakuSettingsController.minChatListBubbleHeight,
+                  max: DanmakuSettingsController.maxChatListBubbleHeight,
+                  display: '${SettingsService.to.danmaku.chatListBubbleHeight.v.toStringAsFixed(1)}×',
+                  semanticValueBuilder: (value) => '${value.toStringAsFixed(1)}×',
+                  onChanged: (v) => SettingsService.to.danmaku.chatListBubbleHeight.v = (v * 10).round() / 10,
+                  labelColor: labelColor,
+                  digitColor: digitColor,
+                ),
+                _slider(
+                  theme,
                   title: i18n('chat_list_bubble_border_opacity'),
                   value: SettingsService.to.danmaku.chatListBubbleBorderOpacity.v,
                   min: 0,

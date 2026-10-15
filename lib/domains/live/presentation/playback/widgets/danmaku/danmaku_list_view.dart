@@ -494,6 +494,9 @@ class DanmakuItem extends StatelessWidget {
         bubble: settings.chatListBubble.v,
         bubbleBorderOpacity: settings.chatListBubbleBorderOpacity.v,
         bubbleFillOpacity: settings.chatListBubbleFill.v ? settings.chatListBubbleFillOpacity.v : 0,
+        bubbleHeight: settings.chatListBubbleHeight.v
+            .clamp(DanmakuSettingsController.minChatListBubbleHeight, DanmakuSettingsController.maxChatListBubbleHeight)
+            .toDouble(),
         colorMode: settings.resolvedChatListColorMode,
         showAvatar: settings.chatListShowAvatar.v,
         showFansBadge: settings.chatListShowFansBadge.v,
@@ -514,6 +517,7 @@ class DanmakuItem extends StatelessWidget {
     required bool bubble,
     required double bubbleBorderOpacity,
     required double bubbleFillOpacity,
+    required double bubbleHeight,
     required ChatListColorMode colorMode,
     required bool showAvatar,
     required bool showFansBadge,
@@ -522,6 +526,10 @@ class DanmakuItem extends StatelessWidget {
     final base = AppText.of(context).listPrimary.copyWith(fontSize: fontSize, fontWeight: fontWeight);
     final messageColor = colorMode == ChatListColorMode.text ? vibrantColor : textColor;
     final repeated = repeats > 1;
+    // A one-line bubble is [bubbleHeight] message lines tall (the message's
+    // line height is 1.45): the rest is shared above and below the text.
+    final lineHeight = MediaQuery.textScalerOf(context).scale(fontSize) * 1.45;
+    final bubblePadding = (bubbleHeight - 1) * lineHeight / 2;
     final card = DecoratedBox(
       decoration: bubble
           // An outline at its own opacity, and a background fill only when
@@ -542,9 +550,9 @@ class DanmakuItem extends StatelessWidget {
         // A folded line keeps its last words clear of the ×N badge.
         padding: EdgeInsets.fromLTRB(
           bubble ? 12 : 4,
-          bubble ? 8 : 2,
+          bubble ? bubblePadding : 2,
           (bubble ? 12 : 4) + (repeated ? fontSize * 2 + 6 : 0),
-          bubble ? 8 : 2,
+          bubble ? bubblePadding : 2,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -1864,5 +1864,6 @@
   "update_download_failed": "下载失败，请检查网络后重试",
   "update_install": "安装",
   "update_open_folder": "打开所在文件夹",
-  "update_install_failed": "无法打开安装程序，请在系统设置中允许 Pure Live 安装应用"
+  "update_install_failed": "无法打开安装程序，请在系统设置中允许 Pure Live 安装应用",
+  "chat_list_bubble_height": "气泡高度"
 }

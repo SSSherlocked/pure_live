@@ -152,7 +152,17 @@ class DanmakuSettingsController extends GetxController {
   final RxBool chatListBubbleFill = hiveBool('chatListBubbleFill', false);
   final RxDouble chatListBubbleFillOpacity = hiveDouble('chatListBubbleFillOpacity', defaultChatListBubbleFillOpacity);
 
+  /// The bubble's height, in text lines ([defaultChatListBubbleHeight]).
+  final RxDouble chatListBubbleHeight = hiveDouble('chatListBubbleHeight', defaultChatListBubbleHeight);
+
   static const double defaultChatListBubbleFillOpacity = 0.15;
+
+  /// A one-line bubble's height as a multiple of the text line: 1 hugs the
+  /// text, 3 is three lines tall. 1.8 is the 8 px padding the bubble had at
+  /// the default 14 px text.
+  static const double defaultChatListBubbleHeight = 1.8;
+  static const double minChatListBubbleHeight = 1.0;
+  static const double maxChatListBubbleHeight = 3.0;
 
   /// Clamps a bubble opacity to 0-1 in 5 % steps; anything unreadable is [fallback].
   static double normalizeBubbleOpacity(Object? value, {required double fallback}) {
@@ -327,6 +337,11 @@ class DanmakuSettingsController extends GetxController {
     fallback: defaultChatListBubbleFillOpacity,
     read: ProfiledSpec.number(min: 0, max: 1),
   );
+  static final _chatBubbleHeightSpec = ProfiledSpec<double>(
+    'chatListBubbleHeight',
+    fallback: defaultChatListBubbleHeight,
+    read: ProfiledSpec.number(min: minChatListBubbleHeight, max: maxChatListBubbleHeight),
+  );
   static final _chatColorModeSpec = ProfiledSpec<String>(
     'chatListColorMode',
     fallback: ChatListColorMode.none.name,
@@ -414,6 +429,7 @@ class DanmakuSettingsController extends GetxController {
     _chatBubbleBorderOpacitySpec.bind(chatListBubbleBorderOpacity),
     _chatBubbleFillSpec.bind(chatListBubbleFill),
     _chatBubbleFillOpacitySpec.bind(chatListBubbleFillOpacity),
+    _chatBubbleHeightSpec.bind(chatListBubbleHeight),
     _chatColorModeSpec.bind(chatListColorMode),
     _chatAvatarSpec.bind(chatListShowAvatar),
     _chatFansBadgeSpec.bind(chatListShowFansBadge),
@@ -577,6 +593,7 @@ class DanmakuSettingsController extends GetxController {
         chatListBubbleFillOpacity.v,
         fallback: defaultChatListBubbleFillOpacity,
       ),
+      'chatListBubbleHeight': chatListBubbleHeight.v,
       'chatListColorMode': chatListColorMode.v,
       'chatListShowAvatar': chatListShowAvatar.v,
       'chatListShowFansBadge': chatListShowFansBadge.v,
@@ -655,6 +672,14 @@ class DanmakuSettingsController extends GetxController {
         normalizeBubbleOpacity(
           json['chatListBubbleFillOpacity'] ?? defaultChatListBubbleFillOpacity,
           fallback: defaultChatListBubbleFillOpacity,
+        ),
+      ),
+      'chatListBubbleHeight': typed<double>(
+        _boundedDouble(
+          json['chatListBubbleHeight'],
+          fallback: defaultChatListBubbleHeight,
+          min: minChatListBubbleHeight,
+          max: maxChatListBubbleHeight,
         ),
       ),
       'chatListColorMode': ChatListColorMode.fromName(json['chatListColorMode']).name,
@@ -785,6 +810,12 @@ class DanmakuSettingsController extends GetxController {
       'chatListBubbleFillOpacity': normalizeBubbleOpacity(
         danmaku['chatListBubbleFillOpacity'] ?? defaultChatListBubbleFillOpacity,
         fallback: defaultChatListBubbleFillOpacity,
+      ),
+      'chatListBubbleHeight': _boundedDouble(
+        danmaku['chatListBubbleHeight'],
+        fallback: defaultChatListBubbleHeight,
+        min: minChatListBubbleHeight,
+        max: maxChatListBubbleHeight,
       ),
       'chatListColorMode': ChatListColorMode.fromName(danmaku['chatListColorMode']).name,
       'chatListShowAvatar': danmaku['chatListShowAvatar'] ?? true,

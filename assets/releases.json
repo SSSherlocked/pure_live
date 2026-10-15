@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.3.4",
+    "title": "v3.3.4",
+    "date": "2026-10-15",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.3.4",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎬 直播间\n\n- **下播检测**：播放中途断流时，先确认主播是否已下播；已下播就在画面中间只显示「未开播」，并继续定时检查，主播回来后自动恢复播放。未开播的直播间也只显示「未开播」，不再显示一段说明文字。\n- **设置标签**：直播间未开播时，信息页的「设置」标签也能正常显示和修改弹幕设置，不再一直转圈。\n- **屏蔽词**：信息页「设置」里已添加的屏蔽词和屏蔽用户折叠成一行，点开在弹窗里查看和删除，不再整列铺开。\n- **顶部文字**：主播名加粗，热度数字加粗一档；播放器顶栏的标题改为常规字重，整栏略微上移，离顶部更近。\n- **菜单位置**：画质、线路菜单紧贴文字下方弹出；「关注」标签的排序菜单出现在排序图标右侧，顶部与图标对齐，不再盖住图标。\n- **「打开直播间」改名「外部打开」**。\n- **全屏切换直播间**：从侧栏切换到另一个直播间时，加载期间播放器控件、手势和侧栏照常可用，不再整片禁用；只有顶栏标题、画质和线路处显示加载图标，加载完成后更新为新直播间的信息。\n- **未开播 / 加载失败页**：两个页面都能长按调出「关注」，和播放时一样；全屏时加载失败页也有顶栏（返回、标题、时间），不会卡在里面。未开播页右上角的切换按钮已移除。\n\n#### 🎨 外观\n\n- **抖音标签**：深色模式下改为黑底白字，和深色背景对比清晰。\n- **关于页图标**：图标填满外框，不再缩在框里。\n- **浮动提示**：屏幕上弹出的提示文字跟随「字体设置」的字号和缩放。\n\n#### 🧹 其他\n\n- **日志**：所有日志都受「日志」开关控制，启动过程也写进同一个日志文件；关闭开关时不再生成 startup.log 等文件，旧版本留下的 startup.log 会被清理。",
+    "files": [
+      {
+        "name": "PureLive-3.3.4-Android-arm64-v8a",
+        "size": "119.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.3.4-iOS-TrollStore.ipa",
+        "size": "44.83mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.3.4-iOS-Unsigned.zip",
+        "size": "44.56mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.3.4-Linux-x64.deb",
+        "size": "41.87mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.3.4-Linux-x64.tar.gz",
+        "size": "50.21mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.3.4-Linux-x64.zip",
+        "size": "50.24mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.3.4-MacOS-AppleSilicon.zip",
+        "size": "42.2mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.3.4-MacOS-Intel.zip",
+        "size": "44.93mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.3.4-Windows-x64.zip",
+        "size": "60.67mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.4/PureLive-3.3.4-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.3.3",
     "title": "v3.3.3",
     "date": "2026-10-14",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.3.3-Android-arm64-v8a",
         "size": "119.55mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.3/PureLive-3.3.3-Android-arm64-v8a.apk"
       },
       {

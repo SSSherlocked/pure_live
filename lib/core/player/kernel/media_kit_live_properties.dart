@@ -97,6 +97,13 @@ abstract final class MediaKitLiveProperties {
     if (Platform.isAndroid) {
       properties['mediacodec-surface-iostream'] = 'yes';
       properties['mediacodec-embed-surface-landscape'] = 'yes';
+      // Android takes the video surface away when the app goes to the
+      // background (and gives it back on return); mpv then rebuilds its video
+      // chain and, with the default initial-audio-sync, holds the audio until
+      // the rebuilt decoder's first frame - on a live stream, the next
+      // keyframe, about a second. Audio keeps playing instead; the picture
+      // syncs to it as it arrives.
+      properties['initial-audio-sync'] = 'no';
     }
 
     if (Platform.isMacOS) {

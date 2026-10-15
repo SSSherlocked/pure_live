@@ -19,7 +19,7 @@ final LiveRoom _room = LiveRoom(
   avatar: '',
 );
 
-Future<void> _pump(WidgetTester tester, {required Size surface}) async {
+Future<void> _pump(WidgetTester tester, {required Size surface, Widget? child}) async {
   await tester.pumpWidget(
     EasyLocalization(
       supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
@@ -33,7 +33,7 @@ Future<void> _pump(WidgetTester tester, {required Size surface}) async {
             child: SizedBox(
               width: surface.width,
               height: surface.height,
-              child: AudioOnlyPresentation(room: _room),
+              child: child ?? AudioOnlyPresentation(room: _room),
             ),
           ),
         ),
@@ -116,5 +116,51 @@ void main() {
 
     // 手势要能穿过去落到控制层/视频区，这一层自己不吃点击。
     expect(find.descendant(of: find.byType(IgnorePointer), matching: find.byType(ColoredBox)), findsWidgets);
+  });
+
+  testWidgets('纯音频按钮可以点：点了退出纯音频；其余地方不吃点击', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    var exits = 0;
+    var underneath = 0;
+    await _pump(
+      tester,
+      surface: const Size(1280, 720),
+      child: Stack(
+        key: const ValueKey('test-stack'),
+        fit: StackFit.expand,
+        children: [
+          GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => underneath++),
+          AudioOnlyPresentation.foreground(room: _room, onExit: () => exits++),
+        ],
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('audio-only-exit')));
+    expect(exits, 1);
+    expect(underneath, 0);
+
+    // 标题、头像和空白处的点击落到下面的控制层。
+    await tester.tap(find.byKey(const ValueKey('audio-only-title')));
+    await tester.tapAt(tester.getTopLeft(find.byKey(const ValueKey('test-stack'))) + const Offset(20, 20));
+    expect(underneath, 2);
+    expect(exits, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('纯音频按钮在矮尺寸下也不溢出', (tester) async {
+    tester.view.physicalSize = const Size(420, 360);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await _pump(
+      tester,
+      surface: const Size(400, 160),
+      child: AudioOnlyPresentation.foreground(room: _room, onExit: () {}),
+    );
+    expect(find.byKey(const ValueKey('audio-only-exit')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

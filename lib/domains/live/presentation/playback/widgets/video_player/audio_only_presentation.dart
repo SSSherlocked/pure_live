@@ -1,14 +1,41 @@
+import 'dart:math' as math;
+
 import 'package:remixicon/remixicon.dart';
 
 import 'package:pure_live/core/index.dart';
 
+/// What covers the picture in 纯音频: the room's avatar, title and streamer
+/// on black.
+///
+/// It takes no pointer, so gestures reach the player controls on top of it.
+/// The room player instead draws it in two layers: [AudioOnlyPresentation.backdrop]
+/// (the black, under the controls) and [AudioOnlyPresentation.foreground]
+/// (the information, over them), so that the 纯音频 badge can be tapped to
+/// bring the picture back. Everything else in the foreground lets pointers
+/// through.
 class AudioOnlyPresentation extends StatelessWidget {
-  const AudioOnlyPresentation({super.key, required this.room});
+  const AudioOnlyPresentation({super.key, required this.room}) : onExit = null, _layer = _Layer.whole;
+
+  const AudioOnlyPresentation.backdrop({super.key, required this.room}) : onExit = null, _layer = _Layer.backdrop;
+
+  const AudioOnlyPresentation.foreground({super.key, required this.room, required VoidCallback this.onExit})
+    : _layer = _Layer.foreground;
 
   final LiveRoom room;
 
+  /// Leaves 纯音频 (the foreground's badge).
+  final VoidCallback? onExit;
+
+  final _Layer _layer;
+
   @override
   Widget build(BuildContext context) {
+    if (_layer == _Layer.backdrop) {
+      return const IgnorePointer(
+        child: ColoredBox(key: ValueKey('audio-only-presentation'), color: Colors.black),
+      );
+    }
+    if (_layer == _Layer.foreground) return _buildForeground(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxHeight = constraints.maxHeight;
@@ -55,6 +82,112 @@ class AudioOnlyPresentation extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  /// The information over the controls. No scroll view (it would take the
+  /// player's drags): a short area scales the column down instead. Only the
+  /// badge takes a pointer.
+  Widget _buildForeground(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxHeight = constraints.maxHeight;
+        final maxWidth = constraints.maxWidth;
+        final compact = maxHeight < 500;
+        final avatarRadius = compact ? (maxHeight * 0.11).clamp(25.0, 38.0) : 50.0;
+        final horizontal = compact ? 16.0 : 24.0;
+
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: compact ? 4 : 24),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: compact ? math.max(0, maxWidth - horizontal * 2) : 460),
+                child: Column(
+                  key: const ValueKey('audio-only-foreground'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IgnorePointer(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _Avatar(radius: avatarRadius, url: room.avatar, name: room.nick),
+                          SizedBox(height: compact ? 10 : 24),
+                          Text(
+                            key: const ValueKey('audio-only-title'),
+                            _title(room),
+                            textAlign: TextAlign.center,
+                            maxLines: compact ? 1 : 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: (compact ? AppText.of(context).listPrimary : AppText.of(context).sectionTitle)
+                                .copyWith(color: Colors.white, fontWeight: FontWeight.w700, height: 1.25),
+                          ),
+                          const SizedBox(height: 8),
+                          _Badge(compact: compact, text: _nick(room)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: compact ? 8 : 16),
+                    _ExitBadge(compact: compact, onTap: onExit!),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+enum _Layer { whole, backdrop, foreground }
+
+/// The 纯音频 badge that leaves 纯音频: the theme colour, lifted until it
+/// reads on the black cover.
+class _ExitBadge extends StatelessWidget {
+  const _ExitBadge({required this.compact, required this.onTap});
+
+  final bool compact;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = readablePrimary(Theme.of(context).colorScheme.primary, Colors.black);
+    final radius = BorderRadius.circular(30);
+    return Semantics(
+      button: true,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          key: const ValueKey('audio-only-exit'),
+          onTap: onTap,
+          borderRadius: radius,
+          child: Ink(
+            padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14, vertical: compact ? 3 : 6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.16),
+              borderRadius: radius,
+              border: Border.all(color: color.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Remix.headphone_line, color: color, size: compact ? 12 : 16),
+                SizedBox(width: compact ? 4 : 8),
+                Flexible(
+                  child: Text(
+                    i18n('audio_only_mode'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.of(context).secondary.copyWith(color: color, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

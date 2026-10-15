@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
@@ -44,14 +46,32 @@ class _VideoPlayerState extends State<VideoPlayer> {
             audioOnly: controller.audioOnlyState.value,
             dummyVideo: player.isDummyVideo.value,
             room: controller.room,
+            onExitAudioOnly: _exitAudioOnly,
           ),
-          controls: VideoControllerPanel(controller: controller),
+          controls: _withAudioOnlyForeground(VideoControllerPanel(controller: controller)),
           surfaceColor: widget.surfaceColor,
           videoViewportAspectRatio: widget.videoViewportAspectRatio,
           portraitFullscreenDisplayMode: widget.portraitFullscreenDisplayMode,
         ),
       );
     });
+  }
+
+  /// The 纯音频 badge brings the picture back, as the ⋯ menu's switch does.
+  void _exitAudioOnly() {
+    if (controller.isAudioOnly) unawaited(controller.toggleAudioOnly());
+  }
+
+  /// The controls, with the 纯音频 information over them so its badge can
+  /// be tapped; the rest of it lets the controls' gestures through.
+  Widget _withAudioOnlyForeground(Widget controls) {
+    final foreground = audioOnlyForegroundFor(
+      audioOnly: controller.audioOnlyState.value,
+      room: controller.room,
+      onExit: _exitAudioOnly,
+    );
+    if (foreground == null) return controls;
+    return Stack(fit: StackFit.expand, children: [controls, foreground]);
   }
 
   @override

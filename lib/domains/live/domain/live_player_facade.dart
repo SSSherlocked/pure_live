@@ -163,6 +163,13 @@ final class LivePlayerFacade {
         _lastPlaying = playing;
         _playingSubject.add(playing);
       }
+      // No room is open, so nothing may play: a stream that comes back to
+      // life after its room was left (a late reconnect, an open that was
+      // still running) is stopped, not heard behind the home page.
+      if (playing && !_servingRoom && !_disposed) {
+        Log.w('player: playing with no room open; stopped');
+        unawaited(_controller.stop());
+      }
       _watchForStall(state.playback);
       // Transitions only: the kernel repeats its state on every tick.
       if (state.playback != _lastLoggedPlayback) {

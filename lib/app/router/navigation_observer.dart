@@ -11,10 +11,14 @@ import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 
 class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
+  /// A route's path without its query (`/live_play?site=douyin` is the room
+  /// page too).
+  static String? _pathOf(Route<dynamic>? route) => route?.settings.name?.split('?').first;
+
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
-    switch (route.settings.name) {
+    switch (_pathOf(route)) {
       case RoutePath.kLivePlay:
         _onLivePlayEnter();
         break;
@@ -31,13 +35,29 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
-    switch (route.settings.name) {
+    switch (_pathOf(route)) {
       case RoutePath.kLivePlay:
-        _onLivePlayExit();
+        _onLivePlayExit('pop');
         break;
       case RoutePath.kRecordPage:
         _restoreVideoLayerAfterRouteExit(route);
         break;
+    }
+  }
+
+  // A room page can also leave without a pop: removed from under another
+  // route, or replaced. Its player stops then too.
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didRemove(route, previousRoute);
+    if (_pathOf(route) == RoutePath.kLivePlay) _onLivePlayExit('remove');
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    if (_pathOf(oldRoute) == RoutePath.kLivePlay && _pathOf(newRoute) != RoutePath.kLivePlay) {
+      _onLivePlayExit('replace');
     }
   }
 
@@ -67,7 +87,12 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
     state.player.videoController?.clearListener();
   }
 
-  void _onLivePlayExit() {
+  void _onLivePlayExit(String how) {
+    // First, whatever else is found: leaving a room stops its player. It used
+    // to wait for the room's controller to be found, and a room whose
+    // controller was already gone kept playing behind the home page.
+    Log.i('route: room page left ($how)');
+    unawaited(GlobalPlayerService.instance.player.close());
     final controller = _findLivePlayController();
     if (controller == null) return;
 
@@ -76,7 +101,6 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
     controller.updateRoom(success: false);
 
     state.player.videoController?.clearListener();
-    unawaited(GlobalPlayerService.instance.player.close());
 
     if (PlatformUtils.isMobile) {
       WindowService().doExitFullScreen();

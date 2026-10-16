@@ -1,4 +1,4 @@
-package com.mystyle.pure_live
+package com.mystyle.purelive
 
 import android.content.Context
 import android.provider.Settings

@@ -53,12 +53,9 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
     // takes the pull's place (desktop).
     controller.reloadInPullHeader = !AppLayout.of(context).refreshByButton;
     // Every layout shows one continuous list that loads more as it scrolls.
-    // Above the system navigation bar: the page reaches the bottom edge
-    // since the home page lost its bottom bar, and buttons in the gesture
-    // area could not be tapped (a tap there is the system's swipe).
-    final double bottomPadding =
-        (AppLayout.of(context).wide ? (wideBottomPadding ?? 20) : (narrowBottomPadding ?? 20)) +
-        MediaQuery.viewPaddingOf(context).bottom;
+    final double bottomPadding = AppLayout.of(context).wide
+        ? (wideBottomPadding ?? 20)
+        : (narrowBottomPadding ?? 20);
 
     return LayoutBuilder(
       builder: (context, pageConstraints) => Stack(

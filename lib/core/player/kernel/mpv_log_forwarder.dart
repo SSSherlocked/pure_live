@@ -6,6 +6,7 @@ import 'package:logger/logger.dart' show Level;
 import 'package:media_core_media_kit/media_core_media_kit.dart' as mk;
 import 'package:pure_live/core/logging/app_log.dart';
 import 'package:pure_live/core/player/kernel/media_kit_live_properties.dart';
+import 'package:pure_live/core/player/kernel/stream_replay_detector.dart';
 
 final Expando<StreamSubscription<mk.PlayerLog>> _forwarders = Expando<StreamSubscription<mk.PlayerLog>>();
 
@@ -18,6 +19,7 @@ void attachMpvLogForwarder(mk.Player player) {
   final verbose = MediaKitLiveProperties.mpvVerboseLog;
   _forwarders[player] = player.stream.log.listen((entry) {
     developer.log('${entry.prefix}/${entry.level}: ${entry.text}', name: 'mpv');
+    StreamReplayDetector.observe(prefix: entry.prefix, level: entry.level, text: entry.text);
     final line = '[mpv:${entry.prefix}] ${entry.text}';
     switch (entry.level) {
       case 'fatal':

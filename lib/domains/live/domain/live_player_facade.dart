@@ -19,6 +19,8 @@ import 'package:pure_live/core/models/live_play_quality.dart';
 import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts;
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/domains/live/domain/playback_source_refresh.dart';
+import 'package:pure_live/domains/live/domain/stream_replay_policy.dart';
+import 'package:pure_live/core/player/kernel/stream_replay_detector.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
@@ -97,6 +99,7 @@ final class LivePlayerFacade {
   StreamSubscription<PlayerCoreState>? _stateSub;
   StreamSubscription<bool>? _playingSub;
   StreamSubscription<PlayerFailure>? _errorSub;
+  StreamSubscription<StreamReplay>? _replaySub;
   bool _disposed = false;
 
   FacadeStreamCommit? commit;
@@ -180,6 +183,7 @@ final class LivePlayerFacade {
         Log.i('player: ${state.playback.name}');
       }
     });
+    _replaySub = StreamReplayDetector.replays.listen(_onStreamReplay);
     _errorSub = _controller.onError.listen((failure) {
       Log.w('player failure ${failure.code}: ${failure.message}');
       _errorSubject.add(
@@ -226,6 +230,9 @@ final class LivePlayerFacade {
     if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
     _resetPictureWatch();
+    _sinceOpen
+      ..reset()
+      ..start();
     _roomSession++;
     _lastHeaders = Map<String, String>.unmodifiable(headers);
     _lastLines = List<String>.unmodifiable(urls);
@@ -310,6 +317,9 @@ final class LivePlayerFacade {
     if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
     _resetPictureWatch();
+    _sinceOpen
+      ..reset()
+      ..start();
     _roomSession++;
     _lastHeaders = const {};
     _lastLines = const [];
@@ -374,6 +384,9 @@ final class LivePlayerFacade {
 
   Future<void> switchLine(int index) {
     _cancelIdleRelease();
+    _sinceOpen
+      ..reset()
+      ..start();
     return _controller.switchLine(index);
   }
 
@@ -619,6 +632,69 @@ final class LivePlayerFacade {
     _noPictureTimer = null;
     _noPictureReopened = false;
     _pictureSeen = false;
+  }
+
+  /// How long a line must have been open before a replay moves off it: the
+  /// first seconds of a fresh connection are the CDN's cache by design.
+  static const Duration replayGrace = Duration(seconds: 5);
+
+  /// After moving off a replaying line, a further replay within this time
+  /// (the new line's own start, or a room whose every line does it) is left
+  /// to play.
+  static const Duration replaySwitchCooldown = Duration(seconds: 20);
+
+  /// Started by every open and line switch.
+  final Stopwatch _sinceOpen = Stopwatch();
+  DateTime? _lastReplaySwitch;
+
+  /// A line that sent again what it had already sent (see
+  /// [StreamReplayDetector]) is left for the next line at once, instead of
+  /// playing those seconds a second time and then dropping.
+  void _onStreamReplay(StreamReplay replay) {
+    // mpv's reset can put the player into buffering before this line is
+    // read, so buffering counts as playing here.
+    final playback = _lastLoggedPlayback;
+    final active = playback == PlayerPlaybackState.playing || playback == PlayerPlaybackState.buffering;
+    if (_disposed || !_servingRoom || !active || _sinceOpen.elapsed < replayGrace) return;
+    final now = DateTime.now();
+    final last = _lastReplaySwitch;
+    if (last != null && now.difference(last) < replaySwitchCooldown) return;
+    final sources = _controller.sources;
+    final current = _controller.sourceIndex;
+    final next = lineAfterReplay([for (final source in sources) source.uri], current);
+    final from = current >= 0 && current < sources.length ? sources[current].uri.host : '?';
+    final seconds = replay.seconds.toStringAsFixed(1);
+    _lastReplaySwitch = now;
+    if (next == null) {
+      Log.w('player: $from went back $seconds s (a replay); reopening it');
+      _sinceOpen
+        ..reset()
+        ..start();
+      unawaited(_controller.retry());
+      return;
+    }
+    Log.w('player: $from went back $seconds s (a replay); switching to ${sources[next].uri.host}');
+    unawaited(switchLine(next));
+    _commitLineOf(sources[next].uri);
+  }
+
+  /// Points the line label (and a later refresh) at the platform line that
+  /// [played] came from, after the kernel moved to it by itself.
+  void _commitLineOf(Uri played) {
+    final committed = commit;
+    if (committed == null || committed.urls.isEmpty) return;
+    final url = committed.urls.firstWhere((line) {
+      final uri = Uri.tryParse(line);
+      return uri != null && uri.host == played.host && uri.path == played.path;
+    }, orElse: () => '');
+    if (url.isEmpty || url == committed.currentUrl) return;
+    _publishCommit(
+      url,
+      committed.urls,
+      committed.qualities,
+      committed.currentQuality,
+      streamFacts: committed.streamFacts,
+    );
   }
 
   void _setStalled(bool stalled) {
@@ -987,6 +1063,7 @@ final class LivePlayerFacade {
     await _stateSub?.cancel();
     await _playingSub?.cancel();
     await _errorSub?.cancel();
+    await _replaySub?.cancel();
     await _controller.dispose();
     await _stateSubject.close();
     await _playingSubject.close();

@@ -15,8 +15,8 @@ const double kSettingsIconGap = 12;
 /// [AppLayoutFactory.buildModernCard] hands them to its rows through the
 /// list tile theme, so a row only sets what differs (a switch's end edge).
 const double kSettingsRowSidePadding = 16;
-const double kSettingsRowVerticalPadding = 10;
-const double kSettingsRowMinHeight = 56;
+const double kSettingsRowVerticalPadding = 14;
+const double kSettingsRowMinHeight = 64;
 
 /// A switch row's padding: the switch carries its own margin at the end.
 const EdgeInsetsDirectional kSettingsSwitchRowPadding = EdgeInsetsDirectional.only(

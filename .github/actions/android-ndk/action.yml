@@ -1,11 +1,13 @@
 name: Install Flutter's Android NDK
 description: >-
-  Installs the NDK the pinned Flutter asks for before Gradle runs, retrying the
-  download. Left to Gradle, one dropped connection fails the whole build.
+  Restores the NDK the pinned Flutter asks for from the Actions cache, or
+  installs it with retries before Gradle runs. Left to Gradle, the NDK is
+  downloaded on every run and one dropped connection fails the whole build.
 runs:
   using: composite
   steps:
-    - name: Install the NDK (with retries)
+    - name: Read Flutter's NDK version
+      id: ndk
       shell: bash
       run: |
         set -euo pipefail
@@ -14,19 +16,36 @@ runs:
           | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 || true)
         if [[ -z "$ndk" ]]; then
           echo "::warning::Could not read Flutter's NDK version; Gradle will install it."
-          exit 0
         fi
         sdk="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
-        if [[ -f "$sdk/ndk/$ndk/source.properties" ]]; then
-          echo "NDK $ndk is already installed."
+        echo "version=$ndk" >> "$GITHUB_OUTPUT"
+        echo "path=$sdk/ndk/$ndk" >> "$GITHUB_OUTPUT"
+        echo "sdkmanager=$sdk/cmdline-tools/latest/bin/sdkmanager" >> "$GITHUB_OUTPUT"
+    - name: Restore the NDK
+      if: steps.ndk.outputs.version != ''
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+      with:
+        path: ${{ steps.ndk.outputs.path }}
+        key: android-ndk-${{ runner.os }}-${{ steps.ndk.outputs.version }}
+    - name: Install the NDK (with retries)
+      if: steps.ndk.outputs.version != ''
+      shell: bash
+      env:
+        NDK_VERSION: ${{ steps.ndk.outputs.version }}
+        NDK_PATH: ${{ steps.ndk.outputs.path }}
+        SDKMANAGER: ${{ steps.ndk.outputs.sdkmanager }}
+      run: |
+        set -euo pipefail
+        if [[ -f "$NDK_PATH/source.properties" ]]; then
+          echo "NDK $NDK_VERSION is in place."
           exit 0
         fi
         for attempt in 1 2 3 4; do
-          echo "Installing NDK $ndk (attempt $attempt)"
-          if (yes || true) | "$sdk/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$ndk" > /dev/null; then
+          echo "Installing NDK $NDK_VERSION (attempt $attempt)"
+          if (yes || true) | "$SDKMANAGER" --install "ndk;$NDK_VERSION" > /dev/null; then
             exit 0
           fi
           sleep $((attempt * 15))
         done
-        echo "::error::NDK $ndk could not be installed."
+        echo "::error::NDK $NDK_VERSION could not be installed."
         exit 1

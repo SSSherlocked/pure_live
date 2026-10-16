@@ -4,7 +4,7 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
-# Pure Live v3.3.9
+# Pure Live v3.4.0
 
 ## 🎬 直播间
 
@@ -16,7 +16,7 @@
 
 ## 👆 操作
 
-- **切页后马上能操作**：左右滑动切页松手后，新页面的回弹动画缩短到约原来的三分之一，很快就能上下滚动或点击新页面。
+- **切页后马上能操作**：左右滑动切页松手后，新页面的回弹动画大幅缩短且仍然柔和，很快就能上下滚动或点击新页面。
 
 ## 🧹 其他
 

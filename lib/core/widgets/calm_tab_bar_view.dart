@@ -50,5 +50,5 @@ class _SnappyPagePhysics extends ScrollPhysics {
   _SnappyPagePhysics applyTo(ScrollPhysics? ancestor) => _SnappyPagePhysics(parent: buildParent(ancestor));
 
   @override
-  SpringDescription get spring => SpringDescription.withDampingRatio(mass: 0.5, stiffness: 500, ratio: 1.0);
+  SpringDescription get spring => SpringDescription.withDampingRatio(mass: 0.5, stiffness: 450, ratio: 1.0);
 }

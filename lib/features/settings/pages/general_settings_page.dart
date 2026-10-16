@@ -137,7 +137,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                   ),
                   value: startup.enableStartUp.v,
                   onChanged: applying ? null : (value) => unawaited(startup.setStartupEnabled(value)),
-                  contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
                 );
               }),
               context.buildTile(

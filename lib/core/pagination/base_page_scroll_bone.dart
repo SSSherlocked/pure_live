@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/pagination/base_controller.dart';
@@ -131,20 +132,23 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   /// Sets the jump buttons from a vertical list's [metrics].
   void onScrollMetrics(ScrollMetrics metrics) {
     if (isClosed || metrics.axis != Axis.vertical || !metrics.hasContentDimensions) return;
-    final offset = metrics.pixels;
     final maxScroll = metrics.maxScrollExtent;
+    // An overscroll bounce is not a scroll position: it alone used to pass
+    // the distance on a short list, so the button showed only while the
+    // list was pulled hard past its end.
+    final offset = math.max(metrics.minScrollExtent, math.min(metrics.pixels, maxScroll));
     final atEdge = metrics.atEdge;
+    // A list that scrolls less than twice the distance shows the buttons
+    // halfway through instead of never.
+    final reach = math.min(jumpButtonDistance, maxScroll / 2);
+    final showTop = maxScroll > 0 && offset > reach;
 
-    if (offset > jumpButtonDistance && !showBackToTop.value) {
-      showBackToTop.value = true;
-    } else if (offset <= jumpButtonDistance && showBackToTop.value) {
-      showBackToTop.value = false;
-    }
+    if (showTop != showBackToTop.value) showBackToTop.value = showTop;
 
     if (atEdge && offset > 0) {
       showBackToBottom.value = false;
     } else {
-      if (maxScroll - offset > jumpButtonDistance) {
+      if (maxScroll - offset > reach) {
         if (!showBackToBottom.value) showBackToBottom.value = true;
       } else {
         if (showBackToBottom.value) showBackToBottom.value = false;

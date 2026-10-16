@@ -357,9 +357,9 @@ class MainActivity : AudioServiceActivity() {
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         traceLifecycle("onBackPressed", "intercepted=$predictiveBackEnabled")
-        // Hardware Back and `adb input keyevent BACK` may still arrive through
-        // this legacy entry point on Android 13+ vendor builds. Keep the same
-        // live-route arbitration as the predictive gesture callback.
+        // Android 12 and older (the manifest opts 13+ into the back
+        // dispatcher), and vendor builds that still route a hardware Back
+        // here. Keep the same live-route arbitration as the gesture callback.
         if (predictiveBackEnabled) {
             dispatchPresentationBack()
             return

@@ -988,8 +988,6 @@
   "minute": "min",
   "hour": "h",
   "refresh_settings_subtitle": "Auto refresh of follows and thumbnails",
-  "cellular_warning_msg": "You are using mobile data, please mind your traffic consumption.",
-  "never_show": "Don't show again",
   "network_disconnected_msg": "No internet connection, please check your network settings.",
   "rows": "Rows",
   "cloud_backup": "Cloud Backup",

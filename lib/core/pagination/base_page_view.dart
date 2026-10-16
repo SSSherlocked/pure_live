@@ -79,7 +79,6 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
                           padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
                           child: Text(notice, style: Theme.of(context).textTheme.bodySmall),
                         ),
-                      _buildCellularBanner(context),
                       if (preserveContentWhenEmpty)
                         Obx(() {
                           if (controller.list.isNotEmpty || controller.totalCount.value == null) {
@@ -237,54 +236,6 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
       // explicit overscroll policy consumes the drag before refresh is armed.
       childBuilder: (context, physics) => buildScrollable(physics),
     );
-  }
-
-  Widget _buildCellularBanner(BuildContext context) {
-    return Obx(() {
-      if (!controller.showCellularBanner.value || controller.list.isEmpty) return const SizedBox.shrink();
-      final colors = Theme.of(context).colorScheme;
-      return Container(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: colors.primaryContainer.withValues(alpha: 0.25),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colors.primary.withValues(alpha: 0.15)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: colors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                  child: Icon(Icons.signal_cellular_alt_rounded, color: colors.primary, size: 18),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    i18n('cellular_warning_msg'),
-                    style: AppText.of(context).body.copyWith(fontWeight: FontWeight.w500,
-                      color: colors.onSurfaceVariant,
-                      height: 1.3),
-                  ),
-                ),
-              ],
-            ),
-            TextButton(
-              onPressed: () {
-                BaseController.neverShowCellularBanner = true;
-                controller.showCellularBanner.value = false;
-              },
-              child: Text(i18n('never_show'), style: AppText.of(context).body.copyWith(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      );
-    });
   }
 }
 

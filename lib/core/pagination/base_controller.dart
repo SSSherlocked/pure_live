@@ -11,8 +11,6 @@ class BaseController extends GetxController {
   var pageError = false.obs;
   var notLogin = false.obs;
   var errorMsg = "".obs;
-  var showCellularBanner = false.obs;
-  static bool neverShowCellularBanner = false;
 
   /// The native connectivity read is separate from committing visible state.
   /// Desktop requests retain their existing no-preflight policy.
@@ -37,7 +35,6 @@ class BaseController extends GetxController {
         handleError("network_disconnected", showPageError: true);
         return false;
       }
-      showCellularBanner.value = connectivityResult.contains(ConnectivityResult.mobile) && !neverShowCellularBanner;
     } catch (_) {
       // A current plugin failure retains the existing fail-open policy;
       // a stale result must not admit another request or mutate the old view.

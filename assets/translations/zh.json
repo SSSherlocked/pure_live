@@ -988,8 +988,6 @@
   "minute": "分钟",
   "hour": "小时",
   "refresh_settings_subtitle": "关注与缩略图的自动刷新",
-  "cellular_warning_msg": "您当前正在使用移动蜂窝流量，请注意流量消耗。",
-  "never_show": "不再显示",
   "network_disconnected_msg": "当前无网络连接，请检查网络设置",
   "rows": "行",
   "cloud_backup": "云端备份",

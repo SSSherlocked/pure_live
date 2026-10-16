@@ -1859,5 +1859,8 @@
   "fullscreen_auto_rotate": "Rotate fullscreen with rotation lock on",
   "fullscreen_auto_rotate_desc": "Saved to {profile} only",
   "landscape_fullscreen": "Fullscreen in landscape",
-  "landscape_fullscreen_desc": "Needs system auto-rotate; turning back to portrait exits"
+  "landscape_fullscreen_desc": "Needs system auto-rotate; turning back to portrait exits",
+  "hls_system_player": "System player for HLS",
+  "hls_system_player_subtitle_android": "m3u8 lines play on ExoPlayer, falling back to mpv",
+  "hls_system_player_subtitle_apple": "m3u8 lines play on AVPlayer, falling back to mpv"
 }

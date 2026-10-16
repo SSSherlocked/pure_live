@@ -24,6 +24,7 @@ class _ScriptedTransport extends PlaybackSourceTransport {
   LiveStreamFacts? requestedFacts;
   HlsSourceQueryPolicy? requestedPolicy;
   bool? requestedRelayPreferred;
+  bool? requestedRelayCleanManifest;
 
   @override
   Future<PlaybackInputLease?> prepare({
@@ -32,8 +33,10 @@ class _ScriptedTransport extends PlaybackSourceTransport {
     LiveStreamFacts? facts,
     HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
+    bool relayCleanManifest = true,
   }) async {
     prepareCalls++;
+    requestedRelayCleanManifest = relayCleanManifest;
     requestedUrl = url;
     requestedHeaders = headers;
     requestedFacts = facts;
@@ -168,6 +171,16 @@ void main() {
       await interceptor.intercept(PlaybackSourceInterception(sources: [_source(primary), _source(backup)]));
       expect(transport.requestedUrl, primary);
       expect(transport.requestedRelayPreferred, isTrue);
+    });
+
+    test('系统播放器播放时，干净的 HLS 清单不必走中继', () async {
+      final transport = _ScriptedTransport();
+      final interceptor = IngestSourceInterceptor(transport: transport);
+      final source = _source(backup);
+      await interceptor.intercept(PlaybackSourceInterception(sources: [source], relayCleanManifests: false));
+      expect(transport.requestedRelayCleanManifest, isFalse);
+      await interceptor.intercept(PlaybackSourceInterception(sources: [source]));
+      expect(transport.requestedRelayCleanManifest, isTrue);
     });
 
     test('停止与销毁分别释放和关闭中继', () async {

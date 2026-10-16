@@ -17,6 +17,11 @@ class PlayerConsts {
   static bool mobileOnlyEnginesAvailable(TargetPlatform platform) =>
       platform == TargetPlatform.android || platform == TargetPlatform.iOS;
 
+  /// Where HLS lines can play on the system player: ExoPlayer (Android),
+  /// AVPlayer (iOS, macOS).
+  static bool hlsSystemPlayerAvailable(TargetPlatform platform) =>
+      mobileOnlyEnginesAvailable(platform) || platform == TargetPlatform.macOS;
+
   static const List<String> resolutions = ['原画', '蓝光8M', '蓝光4M', '超清', '流畅'];
   static const Map<String, String> resolutionLabelKeys = {
     '原画': 'prefer_resolution_option_original',

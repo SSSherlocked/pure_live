@@ -98,6 +98,7 @@ class MainActivity : AudioServiceActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             object : OnBackAnimationCallback {
                 override fun onBackStarted(backEvent: BackEvent) {
+                    traceLifecycle("backStarted")
                     predictiveBackChannel?.invokeMethod("backStarted", null)
                 }
 
@@ -109,10 +110,12 @@ class MainActivity : AudioServiceActivity() {
                 }
 
                 override fun onBackCancelled() {
+                    traceLifecycle("backCancelled")
                     predictiveBackChannel?.invokeMethod("backCancelled", null)
                 }
 
                 override fun onBackInvoked() {
+                    traceLifecycle("backInvoked")
                     dispatchPresentationBack()
                 }
             }
@@ -291,6 +294,7 @@ class MainActivity : AudioServiceActivity() {
         if (predictiveBackEnabled == enabled) return
 
         predictiveBackEnabled = enabled
+        traceLifecycle("predictiveBack", "enabled=$enabled")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (enabled) {
@@ -443,6 +447,16 @@ class MainActivity : AudioServiceActivity() {
     override fun finish() {
         traceLifecycle("finish")
         super.finish()
+    }
+
+    override fun onTrimMemory(level: Int) {
+        traceLifecycle("onTrimMemory", "level=$level")
+        super.onTrimMemory(level)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        traceLifecycle("onWindowFocusChanged", "hasFocus=$hasFocus")
+        super.onWindowFocusChanged(hasFocus)
     }
 
     override fun moveTaskToBack(nonRoot: Boolean): Boolean {

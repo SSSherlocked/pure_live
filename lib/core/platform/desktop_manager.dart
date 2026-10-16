@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
@@ -832,6 +833,7 @@ mixin DesktopWindowMixin<T extends StatefulWidget> on State<T> implements Window
     // limit. Windows may also deliver it through the engine. Decoded images
     // are reproducible resources, so release both pending and live entries;
     // visible widgets resolve them again on demand.
+    Log.i('app: memory pressure; decoded images released');
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();

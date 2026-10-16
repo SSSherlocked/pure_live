@@ -1541,14 +1541,6 @@ packages:
       relative: true
     source: path
     version: "7.4.0"
-  move_to_desktop:
-    dependency: "direct main"
-    description:
-      name: move_to_desktop
-      sha256: "12de3dbcb4886fe9b90d977165ea52276064164d2562a6091edba81986184536"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.2"
   native_toolchain_c:
     dependency: transitive
     description:

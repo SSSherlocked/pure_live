@@ -368,6 +368,23 @@ class MainActivity : AudioServiceActivity() {
         super.onBackPressed()
     }
 
+    /**
+     * Flutter's `SystemNavigator.pop` at the root route: FlutterActivity would
+     * finish the activity. Back at the home route must leave the app the way
+     * the system's own back-to-home does (Android 12+ moves the task to back
+     * and keeps the activity), so the next launch is a warm return, not a
+     * cold start. Android 13+ with the back dispatcher never comes here for a
+     * gesture Back (the home route is poppable, so the system handles it and
+     * animates the window); this covers Android 12 and older and a hardware
+     * Back that a vendor build still routes through `onBackPressed`.
+     */
+    override fun popSystemNavigator(): Boolean {
+        if (!isTaskRoot) return false
+        traceLifecycle("popSystemNavigator")
+        moveTaskToBack(true)
+        return true
+    }
+
     override fun onStart() {
         super.onStart()
         traceLifecycle("onStart")

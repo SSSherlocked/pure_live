@@ -253,7 +253,6 @@ dependencies:
   flutter_exit_app:
     path: plugins/built_in_kotlin/flutter_exit_app # Local AGP 9 Built‑in Kotlin patch
 
-  move_to_desktop: ^0.0.2
   package_info_plus: ^10.1.0 # 应用包信息
   stop_watch_timer: ^3.2.2 # 计时器
 

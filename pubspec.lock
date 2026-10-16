@@ -1333,8 +1333,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1342,8 +1342,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_better_player"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1351,8 +1351,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_danmaku"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1360,8 +1360,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_feed"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1369,8 +1369,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_floating"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1378,8 +1378,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_fullscreen"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1387,8 +1387,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_ijk_player"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1396,8 +1396,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_ingest"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1405,8 +1405,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_list_playback"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1414,8 +1414,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_live"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1423,8 +1423,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_logging"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1432,8 +1432,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_media_kit"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1441,8 +1441,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_mediasession"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1450,8 +1450,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "packages/media_core_memory"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1459,8 +1459,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_multiview"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1468,8 +1468,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_pip"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1477,8 +1477,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_presentation"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1486,8 +1486,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/media_core_ui"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"
@@ -1495,8 +1495,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "packages/media_core_win32"
-      ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
-      resolved-ref: 57330492fd6b8b3a2ea109c239ca0b9b6fbce658
+      ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
+      resolved-ref: 8cb922d2d24b950ab87538e16c8400ebb54416e5
       url: "https://github.com/SSSherlocked/media_core"
     source: git
     version: "0.1.0"

@@ -610,8 +610,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     final handle = feed?.handle;
     if (feed == null || handle == null || handle.disposed) return;
     await _savePosition();
-    _handedToFloating = true;
-    FloatingHandleKeeper.instance.own(
+    await FloatingHandleKeeper.instance.own(
       handle.id.value,
       () async {
         // 关窗（✕）也要落一次盘：小窗期间没有那条 5 秒定时器在写进度（它随页面
@@ -636,7 +635,17 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
         );
       },
     );
-    await _kernel.enterFloating(handle.id);
+    try {
+      await _kernel.enterFloating(handle.id);
+    } catch (_) {
+      // No window opened: the page keeps its player (and releases it when it
+      // closes), and the keeper lets go without disposing it.
+      FloatingHandleKeeper.instance.disown(handle.id.value);
+      rethrow;
+    }
+    // Only now does the window own the player; until here the page's close
+    // still releases it.
+    _handedToFloating = true;
     if (Get.currentRoute == RoutePath.kLocalVideoPlayer) Navigator.of(Get.context!).pop();
   }
 

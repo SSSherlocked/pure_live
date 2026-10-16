@@ -57,6 +57,14 @@ final class FloatingHandleKeeper {
     await release();
   }
 
+  /// Forgets [playerId] without running its release: the window never opened,
+  /// so the page that handed it over keeps it.
+  void disown(String playerId) {
+    if (_currentId == playerId) _currentId = null;
+    _expanders.remove(playerId);
+    _owners.remove(playerId);
+  }
+
   /// Releases whichever handle the window is showing, if any.
   Future<void> releaseCurrent() async {
     final id = _currentId;

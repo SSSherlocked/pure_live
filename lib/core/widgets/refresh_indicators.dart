@@ -25,19 +25,22 @@ Header floatingRefreshHeader() => BuilderHeader(
   position: IndicatorPosition.above,
   processedDuration: const Duration(milliseconds: 200),
   builder: (context, state) {
-    // Nothing once the header is back in: the ball is drawn outside its
-    // zero-height box, and its shadow showed under the tab bar after every
-    // refresh.
-    if (state.offset <= 0 || state.mode == IndicatorMode.inactive) return const SizedBox.shrink();
     const ballSize = 40.0;
+    // How far the ball's shadow (elevation 3) reaches past its edge.
+    const shadowReach = 12.0;
     final colors = Theme.of(context).colorScheme;
     final busy = state.mode == IndicatorMode.ready || state.mode == IndicatorMode.processing;
     final finishing = state.mode == IndicatorMode.processed || state.mode == IndicatorMode.done;
-    final gap = ((state.offset - ballSize) / 2).clamp(0.0, double.infinity).toDouble();
+    // Pulled further than the ball is tall, the ball sits centred in the
+    // opened strip. Below that it keeps rising past the list's top edge, and
+    // closed it rests a shadow's reach above it: tucked under the app bar,
+    // shadow included, instead of leaving its glow under the tabs.
+    final offset = state.offset.clamp(0.0, double.infinity).toDouble();
+    final gap = offset >= ballSize ? (offset - ballSize) / 2 : -shadowReach * (1 - offset / ballSize);
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        SizedBox(width: double.infinity, height: state.offset),
+        SizedBox(width: double.infinity, height: offset),
         Positioned(
           left: 0,
           right: 0,

@@ -159,6 +159,7 @@ jobs:
           dart run enven \
             --env-files .env \
             --class-name AppConfig
+      - uses: ./.github/actions/android-ndk
       - name: Build Android arm64-v8a release APK
         env:
           # CI runners are ephemeral, so the configuration cache would be

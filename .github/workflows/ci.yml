@@ -114,6 +114,7 @@ jobs:
           dart run enven \
             --env-files .env \
             --class-name AppConfig
+      - uses: ./.github/actions/android-ndk
       # A debug build: no signing secrets, and it compiles the same Kotlin
       # and Java as the release build.
       - name: Build Android debug APK

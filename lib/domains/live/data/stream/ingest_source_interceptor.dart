@@ -41,6 +41,7 @@ class IngestSourceInterceptor implements PlaybackSourceInterceptor {
         // Only its first address is dead: a Dart relay reaches the others.
         relayPreferred: verdict == LineReach.firstAddressDead,
         relayCleanManifest: request.relayCleanManifests,
+        blockTwitchAds: request.blockTwitchAds,
       );
     } catch (error) {
       Log.dev('relay unavailable, playing the upstream directly: $error', name: 'PlaybackIngest');

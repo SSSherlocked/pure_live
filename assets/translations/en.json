@@ -1862,5 +1862,8 @@
   "landscape_fullscreen_desc": "Needs system auto-rotate; turning back to portrait exits",
   "hls_system_player": "System player for HLS",
   "hls_system_player_subtitle_android": "m3u8 lines play on ExoPlayer, falling back to mpv",
-  "hls_system_player_subtitle_apple": "m3u8 lines play on AVPlayer, falling back to mpv"
+  "hls_system_player_subtitle_apple": "m3u8 lines play on AVPlayer, falling back to mpv",
+  "block_twitch_ads": "Block Twitch ads",
+  "block_twitch_ads_subtitle": "Wait out ad breaks instead of playing them",
+  "twitch_ad_break": "Twitch ad break; the stream resumes shortly"
 }

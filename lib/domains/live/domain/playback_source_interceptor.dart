@@ -10,6 +10,7 @@ class PlaybackSourceInterception {
     this.streamFacts = const <String, LiveStreamFacts>{},
     this.sourceQueryPolicies = const <String, HlsSourceQueryPolicy>{},
     this.relayCleanManifests = true,
+    this.blockTwitchAds = false,
   });
 
   final List<PlayerSource> sources;
@@ -22,6 +23,9 @@ class PlaybackSourceInterception {
   /// the Dart relay (for mpv and ijkplayer). A system player reads it
   /// directly.
   final bool relayCleanManifests;
+  /// Whether a Twitch line goes through the Dart relay with its ad segments
+  /// taken out (see TwitchAdBreaks).
+  final bool blockTwitchAds;
 }
 
 /// Whether [url] is an HLS line: as the platform declared it, else by its

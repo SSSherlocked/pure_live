@@ -34,6 +34,7 @@ class _ScriptedTransport extends PlaybackSourceTransport {
     HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
     bool relayCleanManifest = true,
+    bool blockTwitchAds = false,
   }) async {
     prepareCalls++;
     requestedRelayCleanManifest = relayCleanManifest;

@@ -72,6 +72,12 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                   ),
                   value: SettingsService.to.player.hlsSystemPlayer,
                 ),
+              context.buildSwitchTile(
+                icon: Remix.forbid_line,
+                title: i18n('block_twitch_ads'),
+                subtitle: i18n('block_twitch_ads_subtitle'),
+                value: SettingsService.to.player.blockTwitchAds,
+              ),
             ]);
           }),
           Obx(() {

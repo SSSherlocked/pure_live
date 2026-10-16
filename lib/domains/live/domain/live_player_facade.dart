@@ -20,6 +20,9 @@ import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts;
 import 'package:pure_live/domains/live/domain/playback_source_interceptor.dart';
 import 'package:pure_live/domains/live/domain/playback_source_refresh.dart';
 import 'package:pure_live/domains/live/domain/stream_replay_policy.dart';
+import 'package:pure_live/domains/live/domain/twitch_ad_breaks.dart';
+import 'package:pure_live/core/utils/i18n.dart';
+import 'package:pure_live/core/widgets/toast_util.dart';
 import 'package:pure_live/core/player/kernel/stream_replay_detector.dart';
 import 'package:media_core_media_kit/media_core_media_kit.dart';
 import 'package:pure_live/core/logging/app_log.dart';
@@ -40,9 +43,11 @@ final class LivePlayerFacade {
     PlaybackSourceInterceptor? sourceInterceptor,
     bool Function()? useHardStopOnExit,
     bool Function()? hlsSystemPlayer,
+    bool Function()? blockTwitchAds,
   }) : preferredEngine = defaultEngine,
        _useHardStopOnExit = useHardStopOnExit ?? (() => SettingsService.to.player.useHardStopOnExit.v),
-       _hlsSystemPlayer = hlsSystemPlayer ?? (() => SettingsService.to.player.hlsSystemPlayer.v) {
+       _hlsSystemPlayer = hlsSystemPlayer ?? (() => SettingsService.to.player.hlsSystemPlayer.v),
+       _blockTwitchAds = blockTwitchAds ?? (() => SettingsService.to.player.blockTwitchAds.v) {
     _sourceInterceptor = sourceInterceptor;
     // Both refresh questions — "the lines died, give me new ones" and "the
     // engine is changing, give me lines it can use" — have one answer: ask the
@@ -101,6 +106,47 @@ final class LivePlayerFacade {
     if (system == null || preferredEngine != PlayerEngine.mediaKit || !_hlsSystemPlayer()) return engine;
     if (!isHlsLine(firstLine, streamFacts[firstLine])) return engine;
     return system;
+  }
+
+  /// 屏蔽 Twitch 广告 (see [PlayerSettingsController.blockTwitchAds]).
+  final bool Function() _blockTwitchAds;
+
+  /// How long an ad break holds after its last report: the relay reports
+  /// one with every playlist reload (about every 2 s) while it runs.
+  static const Duration adBreakHold = Duration(seconds: 10);
+  StreamSubscription<bool>? _adBreakSub;
+  Timer? _adBreakTimer;
+  bool _inAdBreak = false;
+
+  /// A Twitch ad break taken out of the stream: the player waits on the
+  /// live stream, so its stall watchdogs (the kernel's and [onLongStall])
+  /// hold instead of reopening the line, which would start into the ad.
+  void _onTwitchAdReport(bool ongoing) {
+    if (_disposed || !_servingRoom) return;
+    if (!ongoing) {
+      _endAdBreak();
+      return;
+    }
+    _adBreakTimer?.cancel();
+    _adBreakTimer = Timer(adBreakHold, _endAdBreak);
+    if (_inAdBreak) return;
+    _inAdBreak = true;
+    _controller.watchdogs.stallsHeld = true;
+    Log.i('twitch: ad break taken out of the stream; waiting for the broadcast');
+    ToastUtil.show(i18n('twitch_ad_break'));
+  }
+
+  void _endAdBreak() {
+    _adBreakTimer?.cancel();
+    _adBreakTimer = null;
+    if (!_inAdBreak) return;
+    _inAdBreak = false;
+    _controller.watchdogs.stallsHeld = false;
+    _longStallReported = false;
+    _sinceAdvance
+      ..reset()
+      ..start();
+    Log.i('twitch: ad break over');
   }
   static const Duration idleReleaseDelay = Duration(seconds: 45);
   Timer? _idleReleaseTimer;
@@ -213,6 +259,7 @@ final class LivePlayerFacade {
       }
     });
     _replaySub = StreamReplayDetector.replays.listen(_onStreamReplay);
+    _adBreakSub = TwitchAdBreaks.reports.listen(_onTwitchAdReport);
     _errorSub = _controller.onError.listen((failure) {
       Log.w('player failure ${failure.code}: ${failure.message}');
       _errorSubject.add(
@@ -259,6 +306,7 @@ final class LivePlayerFacade {
     if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
     _resetPictureWatch();
+    _endAdBreak();
     _sinceOpen
       ..reset()
       ..start();
@@ -604,7 +652,7 @@ final class LivePlayerFacade {
     final playing = _stallPlayback == PlayerPlaybackState.playing;
     if (playing && still >= stallThreshold) _setStalled(true);
     final longStall = playing ? longStallWhilePlaying : longStallWhileBuffering;
-    if (!_longStallReported && still >= longStall) {
+    if (!_longStallReported && !_inAdBreak && still >= longStall) {
       _longStallReported = true;
       Log.w('player: no progress for ${still.inSeconds} s while ${_stallPlayback?.name}');
       if (!_longStallSubject.isClosed) _longStallSubject.add(still);
@@ -863,6 +911,7 @@ final class LivePlayerFacade {
         streamFacts: streamFacts,
         sourceQueryPolicies: sourceQueryPolicies,
         relayCleanManifests: _relayCleanManifests,
+        blockTwitchAds: _blockTwitchAds(),
       ),
     );
     return intercepted.isEmpty ? sources : intercepted;
@@ -1061,6 +1110,7 @@ final class LivePlayerFacade {
   Future<void> close() async {
     Log.i('player: close (room left)');
     _servingRoom = false;
+    _endAdBreak();
     _resetPictureWatch();
     _cancelIdleRelease();
     await _sourceInterceptor?.release();
@@ -1102,6 +1152,8 @@ final class LivePlayerFacade {
     await _stateSub?.cancel();
     await _playingSub?.cancel();
     await _errorSub?.cancel();
+    await _adBreakSub?.cancel();
+    _adBreakTimer?.cancel();
     await _replaySub?.cancel();
     await _controller.dispose();
     await _stateSubject.close();

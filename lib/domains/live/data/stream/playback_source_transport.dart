@@ -5,6 +5,7 @@ import 'package:media_core_ingest/media_core_ingest.dart';
 import 'package:pure_live/core/player/core/ingest_ffmpeg_registry.dart';
 import 'package:pure_live/core/player/core/playback_input_lease.dart';
 import 'package:pure_live/core/player/core/playback_proxy_policy.dart';
+import 'package:pure_live/domains/live/domain/twitch_ad_breaks.dart';
 import 'package:pure_live/domains/recorder/data/services/ffmpeg_hls_input_relay.dart';
 import 'package:pure_live/shared/platforms/live_site.dart';
 
@@ -110,6 +111,7 @@ class PlaybackSourceTransport {
     String? rootManifest,
     Uri Function(Uri)? childUriPolicy,
     HlsSourceQueryPolicy? matchesPolicy,
+    bool dropTwitchAds = false,
   }) async {
     final Uri source = Uri.parse(url);
     if (matchesPolicy != null && !matchesPolicy.matchesSource(source)) {
@@ -122,9 +124,21 @@ class PlaybackSourceTransport {
       childUriPolicy: childUriPolicy,
       sessionCookies: true,
       prefetchSegments: prefetchSegments,
+      dropTwitchAds: dropTwitchAds,
+      onTwitchAds: dropTwitchAds ? _reportTwitchAds : null,
       findProxy: _perHostProxy,
     );
     return PlaybackInputLease(relay.inputUri, relay.close, isUsable: () => !relay.isClosed);
+  }
+
+  static void _reportTwitchAds(TwitchAdFilterResult result) =>
+      TwitchAdBreaks.report(ongoing: result.adOngoing);
+
+  /// Whether [source] is a Twitch HLS line (its playlists and segments are
+  /// all served from ttvnw.net).
+  static bool isTwitchLine(Uri source) {
+    final String host = source.host.toLowerCase();
+    return host == 'ttvnw.net' || host.endsWith('.ttvnw.net');
   }
 
   /// Remuxes an upstream the player cannot parse: FFmpeg reads it once and the
@@ -157,6 +171,7 @@ class PlaybackSourceTransport {
     HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
     bool relayCleanManifest = true,
+    bool blockTwitchAds = false,
   }) async {
     if (_closed) return null;
     final int generation = ++_generation;
@@ -172,6 +187,7 @@ class PlaybackSourceTransport {
         policy: policy,
         relayPreferred: relayPreferred,
         relayCleanManifest: relayCleanManifest,
+        blockTwitchAds: blockTwitchAds,
       );
       // The superseded input stays open one more round: the engine may still be
       // reading it while the caller assembles the replacement source list.
@@ -214,11 +230,13 @@ class PlaybackSourceTransport {
     required HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
     bool relayCleanManifest = true,
+    bool blockTwitchAds = false,
   }) async {
     final Uri? source = Uri.tryParse(url);
     if (source == null) return null;
     final Map<String, String> frozen = Map<String, String>.unmodifiable(headers);
     final bool manifest = isDeclaredManifest(facts, source);
+    final bool dropTwitchAds = blockTwitchAds && manifest && isTwitchLine(source);
 
     if (policy != null) {
       // An HLS source with a query-token policy goes through the same ingest
@@ -226,7 +244,13 @@ class PlaybackSourceTransport {
       // child requests, so the player only ever sees absolute loopback URLs.
       final PlaybackInputFactory? legacyFactory = _createInput;
       if (legacyFactory == null && manifest) {
-        return (_) => _createIngestRelay(url, frozen, childUriPolicy: policy.apply, matchesPolicy: policy);
+        return (_) => _createIngestRelay(
+          url,
+          frozen,
+          childUriPolicy: policy.apply,
+          matchesPolicy: policy,
+          dropTwitchAds: dropTwitchAds,
+        );
       }
       return (_) {
         if (!policy.matchesSource(source)) {
@@ -244,7 +268,9 @@ class PlaybackSourceTransport {
       manifest: manifest,
     );
     final IngestPlan plan = resolveIngestPlan(needs: decision.needs, sourceIsManifest: manifest);
-    if (plan.isDirect && manifest && (relayCleanManifest || relayPreferred)) {
+    // A Twitch line with its ads blocked goes through the relay on every
+    // player, the system ones included: the relay is what takes them out.
+    if (plan.isDirect && manifest && (relayCleanManifest || relayPreferred || dropTwitchAds)) {
       // Every HLS line goes through the Dart relay, not only the ones that
       // need a rewrite. mpv's own HLS reader opens a new HTTPS connection
       // for every segment and playlist reload (it disables persistent HTTP
@@ -257,7 +283,7 @@ class PlaybackSourceTransport {
         name: 'PlaybackIngest',
       );
       final String? rootManifest = decision.rootManifest;
-      return (_) => _createIngestRelay(url, frozen, rootManifest: rootManifest);
+      return (_) => _createIngestRelay(url, frozen, rootManifest: rootManifest, dropTwitchAds: dropTwitchAds);
     }
     if (plan.isDirect) {
       if (!relayPreferred) return null;
@@ -276,7 +302,7 @@ class PlaybackSourceTransport {
     Log.dev('${source.host} -> $plan', name: 'PlaybackIngest');
     if (plan.strategy == IngestStrategy.manifestRelay) {
       final String? rootManifest = decision.rootManifest;
-      return (_) => _createIngestRelay(url, frozen, rootManifest: rootManifest);
+      return (_) => _createIngestRelay(url, frozen, rootManifest: rootManifest, dropTwitchAds: dropTwitchAds);
     }
     if (ingestFfmpegAvailable) {
       // The player's own FFmpeg cannot parse this container (codec-id-12 HEVC

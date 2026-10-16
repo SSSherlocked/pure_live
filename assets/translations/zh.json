@@ -1862,5 +1862,8 @@
   "landscape_fullscreen_desc": "需开启系统自动旋转；转回竖屏退出",
   "hls_system_player": "HLS 线路用系统播放器",
   "hls_system_player_subtitle_android": "m3u8 线路交给 ExoPlayer，打不开时退回 mpv",
-  "hls_system_player_subtitle_apple": "m3u8 线路交给 AVPlayer，打不开时退回 mpv"
+  "hls_system_player_subtitle_apple": "m3u8 线路交给 AVPlayer，打不开时退回 mpv",
+  "block_twitch_ads": "屏蔽 Twitch 广告",
+  "block_twitch_ads_subtitle": "广告时段不播广告，等直播回来",
+  "twitch_ad_break": "Twitch 广告时段，直播稍后继续"
 }

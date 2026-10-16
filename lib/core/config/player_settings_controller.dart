@@ -230,6 +230,9 @@ class PlayerSettingsController extends GetxController {
   /// HLS lines play on the system player (ExoPlayer on Android, AVPlayer on
   /// macOS and iOS) while the chosen engine is mpv.
   final RxBool hlsSystemPlayer = hiveBool('hlsSystemPlayer', true);
+  /// Twitch's stitched-in ads are taken out of the stream: the break is
+  /// waited out instead of watched.
+  final RxBool blockTwitchAds = hiveBool('blockTwitchAds', true);
 
   /// Anime4K super-resolution mode (Windows/desktop GPUs only).
   final RxString superResolutionMode = hiveString('superResolutionMode', SuperResolutionMode.off.name);
@@ -527,6 +530,7 @@ class PlayerSettingsController extends GetxController {
       'audioOnly': false,
       'useHardStopOnExit': useHardStopOnExit.v,
       'hlsSystemPlayer': hlsSystemPlayer.v,
+      'blockTwitchAds': blockTwitchAds.v,
       'superResolutionMode': SuperResolutionMode.fromName(superResolutionMode.v).name,
       'enablePortraitStreamAdaptation': enablePortraitStreamAdaptation.v,
       'letterboxPageColor': letterboxPageColor.v,
@@ -585,6 +589,7 @@ class PlayerSettingsController extends GetxController {
       'audioOnly': typed<bool>(false),
       'useHardStopOnExit': typed<bool>(json['useHardStopOnExit'] ?? false),
       'hlsSystemPlayer': typed<bool>(json['hlsSystemPlayer'] ?? true),
+      'blockTwitchAds': typed<bool>(json['blockTwitchAds'] ?? true),
       'superResolutionMode': SuperResolutionMode.fromName(
         typed<String>(json['superResolutionMode'] ?? SuperResolutionMode.off.name),
       ).name,
@@ -642,6 +647,7 @@ class PlayerSettingsController extends GetxController {
     audioOnly.v = parsed['audioOnly'];
     useHardStopOnExit.v = parsed['useHardStopOnExit'];
     hlsSystemPlayer.v = parsed['hlsSystemPlayer'];
+    blockTwitchAds.v = parsed['blockTwitchAds'];
     superResolutionMode.v = parsed['superResolutionMode'];
     enablePortraitStreamAdaptation.v = parsed['enablePortraitStreamAdaptation'];
     letterboxPageColor.v = parsed['letterboxPageColor'];
@@ -702,6 +708,7 @@ class PlayerSettingsController extends GetxController {
       'audioOnly': false,
       'useHardStopOnExit': player['useHardStopOnExit'] ?? false,
       'hlsSystemPlayer': player['hlsSystemPlayer'] ?? true,
+      'blockTwitchAds': player['blockTwitchAds'] ?? true,
       'superResolutionMode': SuperResolutionMode.fromName(player['superResolutionMode']?.toString()).name,
       'enablePortraitStreamAdaptation': player['enablePortraitStreamAdaptation'] ?? true,
       'letterboxPageColor': player['letterboxPageColor'] ?? false,

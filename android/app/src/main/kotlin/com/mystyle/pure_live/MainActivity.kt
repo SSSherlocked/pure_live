@@ -23,6 +23,7 @@ import android.window.OnBackAnimationCallback
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import com.ryanheise.audioservice.AudioServiceActivity
+import io.flutter.embedding.android.RenderMode
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.lang.ref.WeakReference
@@ -372,6 +373,16 @@ class MainActivity : AudioServiceActivity() {
 
         super.onBackPressed()
     }
+
+    /**
+     * Flutter draws into a TextureView instead of its default SurfaceView.
+     * A SurfaceView is a layer of its own that the system's task snapshot
+     * does not refresh: the OnePlus/ColorOS back-to-home animation (and the
+     * recents card) then showed a stale picture - a room left minutes ago -
+     * or, with none, the launcher's icon card. A TextureView is part of the
+     * window, so what leaves the screen is what was on it.
+     */
+    override fun getRenderMode(): RenderMode = RenderMode.texture
 
     /**
      * Flutter's `SystemNavigator.pop` at the root route: FlutterActivity would

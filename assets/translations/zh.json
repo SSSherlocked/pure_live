@@ -919,8 +919,8 @@
   "room_card_show_replay": "显示回放徽章",
   "room_card_show_replay_subtitle": "标记回放和录播房间",
   "room_card_appearance": "外观",
-  "room_card_layout": "卡片布局",
-  "room_card_layout_subtitle": "选择大图封面卡片，或不显示大封面的紧凑主播信息行",
+  "room_card_layout": "设置的样式",
+  "room_card_layout_subtitle": "下面的设置只改所选样式，紧凑信息行和封面卡片各自独立",
   "room_card_layout_cover": "封面卡片",
   "room_card_layout_compact": "紧凑信息行",
   "room_card_corner_radius": "圆角大小",
@@ -1867,5 +1867,6 @@
   "chat_list_bubble_height": "气泡高度",
   "value_seconds": "{n} 秒",
   "value_minutes": "{n} 分钟",
-  "value_hours": "{n} 小时"
+  "value_hours": "{n} 小时",
+  "favorite_page_layout": "主页关注显示"
 }

@@ -919,8 +919,8 @@
   "room_card_show_replay": "Show replay badge",
   "room_card_show_replay_subtitle": "Identify replay and recording cards",
   "room_card_appearance": "Appearance",
-  "room_card_layout": "Card layout",
-  "room_card_layout_subtitle": "Use a visual cover card or a compact identity row without the large cover",
+  "room_card_layout": "Style being set",
+  "room_card_layout_subtitle": "The settings below change only this style; compact rows and cover cards are set apart",
   "room_card_layout_cover": "Cover card",
   "room_card_layout_compact": "Compact row",
   "room_card_corner_radius": "Corner radius",
@@ -1867,5 +1867,6 @@
   "chat_list_bubble_height": "Bubble height",
   "value_seconds": "{n} s",
   "value_minutes": "{n} min",
-  "value_hours": "{n} h"
+  "value_hours": "{n} h",
+  "favorite_page_layout": "Following page shows"
 }

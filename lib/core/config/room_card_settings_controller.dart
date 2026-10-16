@@ -256,19 +256,29 @@ class RoomCardSettingsController extends GetxController {
   static const String profilePrefix = 'roomCardProfile';
   static const String profilesKey = 'roomCardProfiles';
 
-  /// The card look of the active profile.
-  final Rx<RoomCardAppearance> config = Rx<RoomCardAppearance>(RoomCardAppearance.standard);
+  /// The look of each layout in the active profile: 封面卡片 and 紧凑信息行
+  /// each keep their own content, corners, card width and columns (and,
+  /// in the theme settings, their own gaps).
+  final Rx<RoomCardAppearance> coverConfig = Rx<RoomCardAppearance>(RoomCardAppearance.standard);
+  final Rx<RoomCardAppearance> compactConfig = Rx<RoomCardAppearance>(RoomCardAppearance.compact);
 
-  /// Fixed card width for room grids in the active profile. 0 keeps the
-  /// automatic layout (columns by window width, cards stretch to fill); a
-  /// width keeps every card that size and fits as many columns as the window
-  /// allows.
-  final RxDouble cardWidth = RxDouble(autoCardWidth);
+  /// The layout 主页关注 (and 历史) shows, a [RoomCardLayout] name. 搜索,
+  /// 分区 and 热门 pick theirs apart ([layoutFor]).
+  final RxString favoriteLayoutName = RxString(RoomCardLayout.cover.name);
 
-  /// Columns per row when the card width is not fixed, in the active profile.
-  /// 0 keeps the automatic count (by window width); a count keeps that many
-  /// columns and the cards stretch to fill the row.
-  final RxInt columns = RxInt(autoColumns);
+  /// Fixed card width of each layout. 0 keeps the automatic layout (columns
+  /// by window width, cards stretch to fill); a width keeps every card that
+  /// size and fits as many columns as the window allows.
+  final RxDouble coverCardWidth = RxDouble(autoCardWidth);
+  final RxDouble compactCardWidth = RxDouble(autoCardWidth);
+
+  /// Columns per row of each layout when its card width is not fixed. 0
+  /// keeps the automatic count (by window width).
+  final RxInt coverColumns = RxInt(autoColumns);
+  final RxInt compactColumns = RxInt(autoColumns);
+
+  /// The layout 房间卡片设置 is editing. Not stored.
+  final Rx<RoomCardLayout> editingLayout = Rx<RoomCardLayout>(RoomCardLayout.cover);
 
   static const double autoCardWidth = 0;
   static const double minCardWidth = 140;
@@ -286,37 +296,77 @@ class RoomCardSettingsController extends GetxController {
   static int normalizeColumns(num value) =>
       value.isFinite ? value.round().clamp(autoColumns, maxColumns).toInt() : autoColumns;
 
-  static final _configSpec = ProfiledSpec<RoomCardAppearance>(
-    'config',
-    fallback: RoomCardAppearance.standard,
-    read: (raw) {
-      if (raw is! Map) return null;
+  /// A layout's look. Before the two looks were kept apart there was one
+  /// (`config`): both start from it, so nothing changes on the upgrade.
+  static ProfiledSpec<RoomCardAppearance> _appearanceSpec(String key, RoomCardLayout layout) =>
+      ProfiledSpec<RoomCardAppearance>(
+        key,
+        fallback: layout == RoomCardLayout.compact ? RoomCardAppearance.compact : RoomCardAppearance.standard,
+        read: (raw) {
+          if (raw is! Map) return null;
+          try {
+            return _normalizeConfig(RoomCardAppearance.fromJson(Map<String, dynamic>.from(raw)).copyWith(layout: layout));
+          } catch (_) {
+            return null;
+          }
+        },
+        write: (value) => value.toJson(),
+        renamedFrom: 'config',
+      );
+  static final _coverConfigSpec = _appearanceSpec('coverConfig', RoomCardLayout.cover);
+  static final _compactConfigSpec = _appearanceSpec('compactConfig', RoomCardLayout.compact);
+
+  static RoomCardLayout? _layoutNamed(Object? name) {
+    for (final layout in RoomCardLayout.values) {
+      if (layout.name == name) return layout;
+    }
+    return null;
+  }
+
+  static final _favoriteLayoutSpec = ProfiledSpec<String>(
+    'favoriteLayout',
+    fallback: RoomCardLayout.cover.name,
+    read: (raw) => _layoutNamed(raw)?.name,
+    renamedFrom: 'config',
+    convertRenamed: (old) {
+      if (old is! Map) return null;
       try {
-        return _normalizeConfig(RoomCardAppearance.fromJson(Map<String, dynamic>.from(raw)));
+        return RoomCardAppearance.fromJson(Map<String, dynamic>.from(old)).layout.name;
       } catch (_) {
         return null;
       }
     },
-    write: (value) => value.toJson(),
   );
-  static final _cardWidthSpec = ProfiledSpec<double>(
-    'cardWidth',
+
+  static ProfiledSpec<double> _cardWidthSpec(String key) => ProfiledSpec<double>(
+    key,
     fallback: autoCardWidth,
     read: (raw) => raw is num ? normalizeCardWidth(raw.toDouble()) : null,
+    renamedFrom: 'cardWidth',
   );
-  static final _columnsSpec = ProfiledSpec<int>(
-    'columns',
+  static final _coverCardWidthSpec = _cardWidthSpec('coverCardWidth');
+  static final _compactCardWidthSpec = _cardWidthSpec('compactCardWidth');
+
+  static ProfiledSpec<int> _columnsSpec(String key) => ProfiledSpec<int>(
+    key,
     fallback: autoColumns,
     read: ProfiledSpec.integer(normalizeColumns),
+    renamedFrom: 'columns',
   );
+  static final _coverColumnsSpec = _columnsSpec('coverColumns');
+  static final _compactColumnsSpec = _columnsSpec('compactColumns');
 
   /// What the phone, the tablet and the desktop profile keep apart: the card
   /// look, the fixed card width and the column count. The 关注 page's
   /// platform tabs and room order stay shared.
   static List<ProfiledSpec> get profiledSpecs => [
-    _configSpec,
-    _cardWidthSpec,
-    _columnsSpec,
+    _coverConfigSpec,
+    _compactConfigSpec,
+    _favoriteLayoutSpec,
+    _coverCardWidthSpec,
+    _compactCardWidthSpec,
+    _coverColumnsSpec,
+    _compactColumnsSpec,
     _searchLayoutSpec,
     _areaRoomsLayoutSpec,
     _popularLayoutSpec,
@@ -349,32 +399,71 @@ class RoomCardSettingsController extends GetxController {
     for (final layout in RoomCardLayout.values) {
       if (layout.name == name) return layout;
     }
-    return resolve().layout;
+    return favoriteLayout;
   }
 
   void setLayoutFor(RoomListPage page, RoomCardLayout layout) => _pageLayout(page).v = layout.name;
 
-  /// The per-profile settings above; [config], [cardWidth] and [columns]
-  /// always hold the active profile's values (see [ProfiledSettings]).
+  /// The per-profile settings above always hold the active profile's values
+  /// (see [ProfiledSettings]).
   late final ProfiledSettings profiles = ProfiledSettings(profilePrefix, [
-    _configSpec.bind(config),
-    _cardWidthSpec.bind(cardWidth),
-    _columnsSpec.bind(columns),
+    _coverConfigSpec.bind(coverConfig),
+    _compactConfigSpec.bind(compactConfig),
+    _favoriteLayoutSpec.bind(favoriteLayoutName),
+    _coverCardWidthSpec.bind(coverCardWidth),
+    _compactCardWidthSpec.bind(compactCardWidth),
+    _coverColumnsSpec.bind(coverColumns),
+    _compactColumnsSpec.bind(compactColumns),
     _searchLayoutSpec.bind(searchLayout),
     _areaRoomsLayoutSpec.bind(areaRoomsLayout),
     _popularLayoutSpec.bind(popularLayout),
   ]);
 
-  /// The profile [config], [cardWidth] and [columns] hold.
+  /// The profile the settings above hold.
   Rx<DisplayProfile> get profile => profiles.profile;
 
-  void useProfile(DisplayProfile profile) => profiles.use(profile);
+  void useProfile(DisplayProfile profile) {
+    profiles.use(profile);
+    _settlePageLayouts();
+  }
 
-  /// The fixed card width for the current profile, or 0 for automatic.
-  double get currentCardWidth => normalizeCardWidth(cardWidth.v);
+  /// The layout 主页关注 shows.
+  RoomCardLayout get favoriteLayout => _layoutNamed(favoriteLayoutName.v) ?? RoomCardLayout.cover;
 
-  /// The chosen column count for the current profile, or 0 for automatic.
-  int get currentColumns => normalizeColumns(columns.v);
+  void setFavoriteLayout(RoomCardLayout layout) => favoriteLayoutName.v = layout.name;
+
+  /// [layout]'s look.
+  RoomCardAppearance appearanceFor(RoomCardLayout layout) =>
+      layout == RoomCardLayout.compact ? compactConfig.value : coverConfig.value;
+
+  /// [layout]'s fixed card width, or 0 for automatic.
+  double cardWidthFor(RoomCardLayout layout) =>
+      normalizeCardWidth((layout == RoomCardLayout.compact ? compactCardWidth : coverCardWidth).v);
+
+  void setCardWidth(RoomCardLayout layout, double value) =>
+      (layout == RoomCardLayout.compact ? compactCardWidth : coverCardWidth).v = normalizeCardWidth(value);
+
+  /// [layout]'s column count, or 0 for automatic.
+  int columnsFor(RoomCardLayout layout) =>
+      normalizeColumns((layout == RoomCardLayout.compact ? compactColumns : coverColumns).v);
+
+  void setColumns(RoomCardLayout layout, int value) =>
+      (layout == RoomCardLayout.compact ? compactColumns : coverColumns).v = normalizeColumns(value);
+
+  /// The fixed card width of 主页关注's layout, or 0 for automatic.
+  double get currentCardWidth => cardWidthFor(favoriteLayout);
+
+  /// The column count of 主页关注's layout, or 0 for automatic.
+  int get currentColumns => columnsFor(favoriteLayout);
+
+  /// A menu page that never had its layout chosen takes 主页关注's, once:
+  /// from then on it keeps it, whatever 主页关注 changes to.
+  void _settlePageLayouts() {
+    for (final page in RoomListPage.values) {
+      final stored = _pageLayout(page);
+      if (_layoutNamed(stored.v) == null) stored.v = favoriteLayout.name;
+    }
+  }
 
   /// Whether the home 关注 page shows its platform tab bar; without it the
   /// page lists every platform's rooms.
@@ -430,6 +519,8 @@ class RoomCardSettingsController extends GetxController {
   void onInit() {
     super.onInit();
     profiles.init(seed: _legacySeed);
+    _settlePageLayouts();
+    editingLayout.value = favoriteLayout;
   }
 
   @override
@@ -438,16 +529,26 @@ class RoomCardSettingsController extends GetxController {
     super.onClose();
   }
 
-  RoomCardAppearance resolve() => config.value;
+  /// 主页关注's look.
+  RoomCardAppearance resolve() => appearanceFor(favoriteLayout);
 
-  /// Whether the current profile shows the compact rows (紧凑信息行), whose
-  /// card gaps are kept apart from the cover cards'.
-  bool get isCompactLayout => resolve().layout == RoomCardLayout.compact;
+  /// Whether 主页关注 shows the compact rows (紧凑信息行), whose card gaps are
+  /// kept apart from the cover cards'.
+  bool get isCompactLayout => favoriteLayout == RoomCardLayout.compact;
 
-  void updateConfig(RoomCardAppearance value) => config.value = _normalizeConfig(value);
+  /// Stores [value] as the look of its own layout.
+  void updateConfig(RoomCardAppearance value) {
+    final normalized = _normalizeConfig(value);
+    (value.layout == RoomCardLayout.compact ? compactConfig : coverConfig).value = normalized;
+  }
 
-  /// Puts the current profile back to its default preset.
-  void reset() => config.value = RoomCardAppearance.fromPreset(defaultPresetFor(profile.value));
+  /// Puts the current profile's looks and 主页关注's layout back to their
+  /// defaults.
+  void reset() {
+    coverConfig.value = RoomCardAppearance.standard;
+    compactConfig.value = RoomCardAppearance.compact;
+    setFavoriteLayout(RoomCardAppearance.fromPreset(defaultPresetFor(profile.value)).layout);
+  }
 
   static RoomCardAppearance _normalizeConfig(RoomCardAppearance value) {
     var normalized = value.copyWith(cornerRadius: value.cornerRadius);
@@ -464,6 +565,19 @@ class RoomCardSettingsController extends GetxController {
     return RoomCardPreset.custom;
   }
 
+  /// A profile map's 主页关注 layout name (cover or compact).
+  static String _favoriteName(Map<String, dynamic> map) => _favoriteLayoutSpec.decode(map['favoriteLayout']);
+
+  /// The key of [setting] (CardWidth, Columns) for a profile map's 主页关注
+  /// layout.
+  static String _favoriteKey(Map<String, dynamic> map, String setting) => '${_favoriteName(map)}$setting';
+
+  /// A profile map's 主页关注 look: what an older build, with one look,
+  /// restores.
+  static RoomCardAppearance _favoriteLook(Map<String, dynamic> map) => _favoriteName(map) == RoomCardLayout.compact.name
+      ? _compactConfigSpec.decode(map['compactConfig'])
+      : _coverConfigSpec.decode(map['coverConfig']);
+
   Map<String, dynamic> toJson() {
     // The mobile/desktop keys are what an older build restores (its narrow
     // and wide layout): the phone profile, and the tablet profile when that
@@ -472,17 +586,17 @@ class RoomCardSettingsController extends GetxController {
     final desktop = profiles.mapFor(
       profile.value == DisplayProfile.tablet ? DisplayProfile.tablet : DisplayProfile.desktop,
     );
-    final mobileConfig = _configSpec.decode(mobile['config']);
-    final desktopConfig = _configSpec.decode(desktop['config']);
+    final mobileConfig = _favoriteLook(mobile);
+    final desktopConfig = _favoriteLook(desktop);
     return {
       'mobilePreset': _matchingPreset(mobileConfig).storageKey,
       'desktopPreset': _matchingPreset(desktopConfig).storageKey,
       'mobileConfig': mobileConfig.toJson(),
       'desktopConfig': desktopConfig.toJson(),
-      'mobileCardWidth': mobile['cardWidth'],
-      'desktopCardWidth': desktop['cardWidth'],
-      'mobileColumns': mobile['columns'],
-      'desktopColumns': desktop['columns'],
+      'mobileCardWidth': mobile[_favoriteKey(mobile, 'CardWidth')],
+      'desktopCardWidth': desktop[_favoriteKey(desktop, 'CardWidth')],
+      'mobileColumns': mobile[_favoriteKey(mobile, 'Columns')],
+      'desktopColumns': desktop[_favoriteKey(desktop, 'Columns')],
       'showFavoritePlatformTabs': showFavoritePlatformTabs.v,
       'favoriteSortMode': favoriteSortMode.name,
       profilesKey: profiles.export(),

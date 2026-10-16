@@ -211,6 +211,22 @@ class DanmakuController extends GetxController {
     });
   }
 
+  /// Lets nothing more of the current room's danmaku through, at once (a
+  /// room switch): its callbacks go and the filters forget what they saw.
+  /// [stopDanmaku] then closes the socket, which can wait behind a connect
+  /// in progress; until it does, a message must not reach the new room.
+  void cutOff() {
+    _sessionToken++;
+    _sessionKey = null;
+    _connectingKey = null;
+    final engine = _liveDanmaku;
+    if (engine != null) _detachCallbacks(engine);
+    _messageGate.clear();
+    _repeatMerger.clear();
+    _similarityFilter.clear();
+    _gateRoomKey = null;
+  }
+
   Future<void> stopDanmaku({bool clearRenderer = true}) {
     final request = ++_requestEpoch;
     return _serialize(() async {

@@ -294,7 +294,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
           // rows, as on the home 关注 page in that layout.
           final spacing = SettingsService.to.theme.cardMainSpacing(compact: true);
           final rowExtent = RoomCardLayoutMetrics.compactHeight(
-            appearance: SettingsService.to.roomCard.resolve().copyWith(layout: RoomCardLayout.compact),
+            appearance: SettingsService.to.roomCard.appearanceFor(RoomCardLayout.compact),
             dense: dense,
             textScaler: MediaQuery.textScalerOf(context),
           );

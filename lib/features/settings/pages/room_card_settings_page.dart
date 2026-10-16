@@ -30,17 +30,18 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
     liveStatus: LiveStatus.live,
   );
 
-  /// Width a card gets in the 关注 grid: the fixed width when set, otherwise
-  /// the automatic column width for this window.
+  /// Width a card of the layout being edited gets in a grid: its fixed width
+  /// when set, otherwise its column width for this window.
   double _previewCardWidth(BuildContext context, RoomCardSettingsController controller) {
     final width = MediaQuery.sizeOf(context).width;
+    final layout = controller.editingLayout.value;
     final sizing = resolveRoomGridSizing(
       width: width,
       autoColumns: roomGridAutoColumns(width, dense: SettingsService.to.app.enableDenseFavorites.v),
-      spacing: SettingsService.to.theme.cardCrossSpacing(compact: controller.isCompactLayout),
+      spacing: SettingsService.to.theme.cardCrossSpacing(compact: layout == RoomCardLayout.compact),
       basePadding: 12,
-      fixedCardWidth: controller.currentCardWidth,
-      columns: controller.currentColumns,
+      fixedCardWidth: controller.cardWidthFor(layout),
+      columns: controller.columnsFor(layout),
     );
     return sizing.itemWidth;
   }
@@ -61,7 +62,9 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
         ],
       ),
       body: SettingsContentWidth(child: Obx(() {
-        final config = controller.config.value;
+        // Everything below edits the look of one layout: the one picked at
+        // the top of 外观 (紧凑信息行 or 封面卡片).
+        final config = controller.appearanceFor(controller.editingLayout.value);
         final compact = config.layout == RoomCardLayout.compact;
         final profile = controller.profile.value;
         return ListView(
@@ -80,6 +83,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                   child: RoomCard(
                     key: ValueKey('room-card-preview-${profile.name}'),
                     room: _previewRoom,
+                    layout: config.layout,
                     dense: SettingsService.to.app.enableDenseFavorites.v,
                     interactive: false,
                   ),
@@ -98,22 +102,23 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 subtitle: i18n('room_card_fixed_width_subtitle'),
                 trailing: Switch(
                   key: ValueKey('room-card-fixed-width-${profile.name}'),
-                  value: controller.currentCardWidth > 0,
-                  onChanged: (on) => controller.cardWidth.v = on
-                      ? RoomCardSettingsController.defaultFixedCardWidth
-                      : RoomCardSettingsController.autoCardWidth,
+                  value: controller.cardWidthFor(config.layout) > 0,
+                  onChanged: (on) => controller.setCardWidth(
+                    config.layout,
+                    on ? RoomCardSettingsController.defaultFixedCardWidth : RoomCardSettingsController.autoCardWidth,
+                  ),
                 ),
               ),
-              if (controller.currentCardWidth > 0)
+              if (controller.cardWidthFor(config.layout) > 0)
                 context.buildSliderTile(
                   context,
                   icon: Remix.ruler_line,
                   title: i18n('room_card_width'),
-                  value: controller.currentCardWidth,
+                  value: controller.cardWidthFor(config.layout),
                   min: RoomCardSettingsController.minCardWidth,
                   max: RoomCardSettingsController.maxCardWidth,
-                  displayValue: formatPixels(controller.currentCardWidth.round()),
-                  onChanged: (value) => controller.cardWidth.v = value.roundToDouble(),
+                  displayValue: formatPixels(controller.cardWidthFor(config.layout).round()),
+                  onChanged: (value) => controller.setCardWidth(config.layout, value.roundToDouble()),
                 )
               else
                 // Without a fixed width the cards stretch to fill each row;
@@ -123,13 +128,14 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                   icon: Remix.layout_column_line,
                   title: i18n('room_card_columns'),
                   subtitle: i18n('room_card_columns_subtitle'),
-                  value: controller.currentColumns.toDouble(),
+                  value: controller.columnsFor(config.layout).toDouble(),
                   min: RoomCardSettingsController.autoColumns.toDouble(),
                   max: RoomCardSettingsController.maxColumns.toDouble(),
-                  displayValue: controller.currentColumns == RoomCardSettingsController.autoColumns
+                  displayValue: controller.columnsFor(config.layout) == RoomCardSettingsController.autoColumns
                       ? i18n('room_card_columns_auto')
-                      : '${controller.currentColumns}',
-                  onChanged: (value) => controller.columns.v = RoomCardSettingsController.normalizeColumns(value),
+                      : '${controller.columnsFor(config.layout)}',
+                  onChanged: (value) =>
+                      controller.setColumns(config.layout, RoomCardSettingsController.normalizeColumns(value)),
                 ),
               context.buildSliderTile(
                 context,
@@ -175,6 +181,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
             // order is also the 排序 button on that page).
             context.buildGroupTitle(i18n('favorite_page_group')),
             context.buildModernCard([
+              _favoriteLayoutChoice(controller),
               _toggle(
                 icon: Remix.apps_2_line,
                 title: i18n('favorite_show_platform_tabs'),
@@ -410,6 +417,47 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
     );
   }
 
+  /// Which layout 主页关注 shows (each layout keeps its own look).
+  Widget _favoriteLayoutChoice(RoomCardSettingsController controller) {
+    final current = controller.favoriteLayout;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(padding: EdgeInsets.only(top: 2), child: SettingsRowIcon(Icons.favorite_border_rounded)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(i18n('favorite_page_layout'), style: AppText.of(context).sectionTitle),
+                const SizedBox(height: 10),
+                Wrap(
+                  key: const ValueKey('favorite-page-layout'),
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final (layout, label) in [
+                      (RoomCardLayout.compact, i18n('room_card_layout_compact')),
+                      (RoomCardLayout.cover, i18n('room_card_layout_cover')),
+                    ])
+                      ChoiceChip(
+                        key: ValueKey('favorite-page-layout-${layout.name}'),
+                        label: Text(label),
+                        selected: current == layout,
+                        onSelected: (_) => controller.setFavoriteLayout(layout),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _pageLayoutChoice(RoomCardSettingsController controller, RoomListPage page) {
     final current = controller.layoutFor(page);
     return Padding(
@@ -447,7 +495,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       key: ValueKey('room-card-layout-${layout.name}'),
       label: Text(label),
       selected: config.layout == layout,
-      onSelected: (_) => controller.updateConfig(config.copyWith(layout: layout)),
+      onSelected: (_) => controller.editingLayout.value = layout,
     );
   }
 

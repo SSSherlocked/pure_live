@@ -37,8 +37,8 @@ class RoomCard extends StatelessWidget {
 
   final LiveRoom room;
 
-  /// The layout to draw in instead of the card look's own (a menu page's
-  /// choice); the rest of the look is the same.
+  /// The layout to draw in instead of 主页关注's (a menu page's choice),
+  /// with that layout's own look.
   final RoomCardLayout? layout;
   final bool dense;
   final bool statusPending;
@@ -593,9 +593,10 @@ class RoomCard extends StatelessWidget {
     // GridView already inserts a RepaintBoundary around every child. Avoid a
     // second composited layer per card and keep the cover clip lightweight.
     return Obx(() {
-      final resolved = SettingsService.to.roomCard.resolve();
+      final cards = SettingsService.to.roomCard;
       final override = forceCompact ? RoomCardLayout.compact : layout;
-      final config = override == null ? resolved : resolved.copyWith(layout: override);
+      // Each layout has its own look; without an override, 主页关注's.
+      final config = override == null ? cards.resolve() : cards.appearanceFor(override);
       final radius = config.cornerRadius;
 
       return LayoutBuilder(

@@ -1276,6 +1276,10 @@ class LivePlayController extends GetxController
         state.value.room.detail?.roomId == newRoom.roomId && state.value.room.detail?.platform == newRoom.platform;
 
     if (!sameRoom) {
+      // At once, before anything is awaited: the previous room's danmaku
+      // leaves the screen, the chat list and the filters, and no more of it
+      // gets in.
+      danmakuController.cutOff();
       clearDanmakuMessages();
       await danmakuController.stopDanmaku();
     }

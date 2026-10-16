@@ -4,8 +4,8 @@ import 'package:pure_live/domains/live/presentation/widgets/room_card.dart';
 import 'package:pure_live/domains/live/presentation/widgets/room_grid_sizing.dart';
 
 /// A menu page's rooms (搜索, an area's rooms, 热门): in the layout chosen for
-/// the page in 房间卡片设置 (紧凑信息 or 封面卡片, each with its own gaps),
-/// with the 房间卡片设置 columns or card width, rows as tall as their cards.
+/// the page in 房间卡片设置 (紧凑信息 or 封面卡片, each with its own look,
+/// gaps, columns or card width), rows as tall as their cards.
 ///
 /// A sliver, for a [CustomScrollView].
 class RoomCardRows extends StatelessWidget {
@@ -39,8 +39,8 @@ class RoomCardRows extends StatelessWidget {
         autoColumns: roomGridAutoColumns(width, dense: true),
         spacing: spacing,
         basePadding: 6,
-        fixedCardWidth: SettingsService.to.roomCard.currentCardWidth,
-        columns: SettingsService.to.roomCard.currentColumns,
+        fixedCardWidth: SettingsService.to.roomCard.cardWidthFor(layout),
+        columns: SettingsService.to.roomCard.columnsFor(layout),
       );
       final columns = sizing.columns;
       final rows = (rooms.length + columns - 1) ~/ columns;

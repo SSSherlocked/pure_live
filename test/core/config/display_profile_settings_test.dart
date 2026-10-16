@@ -266,15 +266,21 @@ void main() {
         'mobileColumns': 2,
         'desktopCardWidth': 300,
       });
+      // The one look of an old backup starts both layouts' looks; the
+      // layout it had is the one 主页关注 shows.
       final phone = _profileOf(parsed, key, DisplayProfile.phone);
-      expect(phone['config'], RoomCardAppearance.compact.toJson());
-      expect(phone['columns'], 2);
-      expect(phone['cardWidth'], RoomCardSettingsController.autoCardWidth);
+      expect(phone['favoriteLayout'], 'compact');
+      expect(phone['compactConfig'], RoomCardAppearance.compact.toJson());
+      expect(phone['compactColumns'], 2);
+      expect(phone['coverColumns'], 2);
+      expect(phone['compactCardWidth'], RoomCardSettingsController.autoCardWidth);
       for (final profile in [DisplayProfile.tablet, DisplayProfile.desktop]) {
         final values = _profileOf(parsed, key, profile);
-        expect(values['config'], RoomCardAppearance.detailed.toJson());
-        expect(values['cardWidth'], 300);
-        expect(values['columns'], RoomCardSettingsController.autoColumns);
+        expect(values['favoriteLayout'], 'cover');
+        expect(values['coverConfig'], RoomCardAppearance.detailed.toJson());
+        expect(values['coverCardWidth'], 300);
+        expect(values['compactCardWidth'], 300);
+        expect(values['coverColumns'], RoomCardSettingsController.autoColumns);
       }
     });
 
@@ -285,9 +291,10 @@ void main() {
         },
       });
       final tablet = _profileOf(parsed, key, DisplayProfile.tablet);
-      expect(tablet['config'], RoomCardAppearance.compact.toJson());
-      expect(tablet['columns'], RoomCardSettingsController.maxColumns);
-      expect(_profileOf(parsed, key, DisplayProfile.desktop)['config'], RoomCardAppearance.standard.toJson());
+      expect(tablet['favoriteLayout'], 'compact');
+      expect(tablet['compactConfig'], RoomCardAppearance.compact.toJson());
+      expect(tablet['compactColumns'], RoomCardSettingsController.maxColumns);
+      expect(_profileOf(parsed, key, DisplayProfile.desktop)['coverConfig'], RoomCardAppearance.standard.toJson());
       final extracted = RoomCardSettingsController.extractConfig({
         'roomCard': {
           key: {
@@ -296,7 +303,7 @@ void main() {
         },
       });
       expect(() => jsonEncode(extracted), returnsNormally);
-      expect(_profileOf(extracted, key, DisplayProfile.desktop)['cardWidth'], RoomCardSettingsController.minCardWidth);
+      expect(_profileOf(extracted, key, DisplayProfile.desktop)['coverCardWidth'], RoomCardSettingsController.minCardWidth);
     });
 
     test('首次运行从旧的窄屏/宽屏设置播种；编辑只改当前档位', () async {
@@ -310,10 +317,13 @@ void main() {
       expect(settings.resolve(), RoomCardAppearance.detailed);
       expect(settings.currentColumns, 3);
       settings.updateConfig(RoomCardAppearance.detailed.copyWith(cornerRadius: 8));
-      settings.columns.v = 5;
+      settings.setColumns(RoomCardLayout.cover, 5);
       await _settle();
-      expect(settings.profiles.mapFor(DisplayProfile.tablet)['config'], RoomCardAppearance.detailed.toJson());
-      expect(settings.profiles.mapFor(DisplayProfile.tablet)['columns'], 3);
+      expect(settings.profiles.mapFor(DisplayProfile.tablet)['coverConfig'], RoomCardAppearance.detailed.toJson());
+      expect(settings.profiles.mapFor(DisplayProfile.tablet)['coverColumns'], 3);
+      // The other layout keeps its own look.
+      expect(settings.appearanceFor(RoomCardLayout.compact).layout, RoomCardLayout.compact);
+      expect(settings.columnsFor(RoomCardLayout.compact), 3);
 
       settings.reset();
       expect(settings.resolve(), RoomCardAppearance.standard);

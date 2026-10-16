@@ -449,7 +449,9 @@ class DanmakuItem extends StatelessWidget {
   const DanmakuItem({super.key, required this.danmaku, required this.controller});
 
   Future<void> _copyMessage() async {
-    await Clipboard.setData(ClipboardData(text: "${danmaku.userName}: ${danmaku.message}"));
+    await Clipboard.setData(
+      ClipboardData(text: danmaku.isSystem ? danmaku.message : "${danmaku.userName}: ${danmaku.message}"),
+    );
     ToastUtil.show(i18n('copied_to_clipboard'));
   }
 
@@ -619,27 +621,36 @@ class DanmakuItem extends StatelessWidget {
                             ),
                           ),
                         ),
-                      TextSpan(
-                        text: "${danmaku.userName}: ",
-                        style: base.copyWith(
-                          fontWeight: nameFontWeight,
-                          color: nameColor,
+                      // A system notice is its text alone, in the sender name's
+                      // style (and weight setting): no "系统消息:" prefix.
+                      if (danmaku.isSystem)
+                        TextSpan(
+                          text: danmaku.message,
+                          style: base.copyWith(height: 1.45, fontWeight: nameFontWeight, color: nameColor),
+                        )
+                      else ...[
+                        TextSpan(
+                          text: "${danmaku.userName}: ",
+                          style: base.copyWith(
+                            fontWeight: nameFontWeight,
+                            color: nameColor,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        children: parseEmojis(
-                          danmaku.message,
-                          fontSize,
-                          messageColor,
-                          emoteUrls: danmaku.emotes.isEmpty
-                              ? null
-                              : {for (final emote in danmaku.emotes) emote.code: emote.url},
+                        TextSpan(
+                          children: parseEmojis(
+                            danmaku.message,
+                            fontSize,
+                            messageColor,
+                            emoteUrls: danmaku.emotes.isEmpty
+                                ? null
+                                : {for (final emote in danmaku.emotes) emote.code: emote.url},
+                          ),
+                          style: base.copyWith(
+                            height: 1.45,
+                            color: messageColor,
+                          ),
                         ),
-                        style: base.copyWith(
-                          height: 1.45,
-                          color: messageColor,
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

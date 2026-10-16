@@ -115,6 +115,10 @@ class LiveMessage {
   final String avatar;
   final bool isLocal;
 
+  /// A notice from the app or the platform (reconnects, room notices), not a
+  /// viewer's message: the chat list shows its text alone, in the name style.
+  final bool isSystem;
+
   /// Stable identifier supplied by the platform when available. It is used to
   /// suppress replayed packets after a WebSocket reconnect without treating
   /// two genuine messages with the same text as one message.
@@ -139,6 +143,7 @@ class LiveMessage {
     this.fansName = "",
     this.avatar = "",
     this.isLocal = false,
+    this.isSystem = false,
     this.messageId = "",
     this.sentAt,
     this.style,

@@ -669,7 +669,6 @@
   "cancel_mute": "Unmute",
   "mute": "Mute",
   "no_storage": "No storage permission, unable to save recorded file",
-  "system_message": "System Message",
   "path_or_permission_error": "Recording failed: The save path does not exist, contains invalid characters, or the app lacks storage permissions. Please update the download directory in settings.",
   "recorder_storage_full": "Recording stopped: Storage is full. Free some space or choose another recording folder.",
   "param_error": "Parameter error. Please contact the developer for assistance.",

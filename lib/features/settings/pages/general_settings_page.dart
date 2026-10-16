@@ -120,6 +120,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                     ? statusKey
                     : 'startup_subtitle';
                 return SwitchListTile(
+                  contentPadding: kSettingsSwitchRowPadding,
                   key: const ValueKey('windows-startup-switch'),
                   secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
                   title: Text(i18n('startup'), style: AppText.of(context).sectionTitle),
@@ -330,10 +331,6 @@ class _DisplayModeTile extends StatelessWidget {
           MediaQuery.sizeOf(context).shortestSide < 600 &&
           (current == DisplayMode.tablet || current == DisplayMode.desktop);
       return ListTile(
-        horizontalTitleGap: kSettingsIconGap,
-        minLeadingWidth: kSettingsIconSlot,
-        minVerticalPadding: 0,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: const Padding(padding: EdgeInsets.only(top: 2), child: SettingsRowIcon(Icons.devices_rounded)),
         titleAlignment: ListTileTitleAlignment.top,
         title: Text(i18n('display_mode'), style: AppText.of(context).sectionTitle),

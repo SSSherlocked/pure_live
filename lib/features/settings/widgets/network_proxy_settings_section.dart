@@ -140,6 +140,7 @@ class _NetworkProxySettingsSectionState extends State<NetworkProxySettingsSectio
           context.buildGroupTitle(i18n("custom_network_proxy")),
           context.buildModernCard([
             SwitchListTile(
+              contentPadding: kSettingsSwitchRowPadding,
               secondary: Icon(Remix.apps_line, color: theme.colorScheme.primary),
               title: Text(i18n("enable_app_proxy")),
               subtitle: Text(i18n("enable_app_proxy_desc")),
@@ -157,6 +158,7 @@ class _NetworkProxySettingsSectionState extends State<NetworkProxySettingsSectio
                 portHint: '7890',
               ),
             SwitchListTile(
+              contentPadding: kSettingsSwitchRowPadding,
               secondary: Icon(Remix.video_line, color: theme.colorScheme.primary),
               title: Text(i18n("enable_player_proxy")),
               subtitle: Text(i18n("enable_player_proxy_desc")),

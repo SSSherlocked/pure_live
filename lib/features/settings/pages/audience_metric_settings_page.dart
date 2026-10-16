@@ -140,6 +140,7 @@ class _AudiencePlatformTile extends StatelessWidget {
         final detail = Text('$sourceLabel\n${i18n(detailKey)}', key: ValueKey('audience-platform-detail-$id'));
         final stackText = constraints.maxWidth < 360 || MediaQuery.textScalerOf(context).scale(1) > 1.5;
         return SwitchListTile(
+          contentPadding: kSettingsSwitchRowPadding,
           key: ValueKey('audience-platform-$id'),
           secondary: SettingsRowIcon(supported ? Icons.people_alt_rounded : Icons.whatshot_rounded),
           title: stackText

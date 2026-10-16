@@ -331,7 +331,7 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
       subtitle: Text(subtitle, style: AppText.of(context).secondary),
       value: value,
       onChanged: onChanged,
-      contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
+      contentPadding: kSettingsSwitchRowPadding,
     );
   }
 

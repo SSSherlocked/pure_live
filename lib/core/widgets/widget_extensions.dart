@@ -9,6 +9,21 @@ import 'package:pure_live/core/theme/app_text.dart';
 const double kSettingsIconSlot = 24;
 const double kSettingsIconGap = 12;
 
+/// Row metrics shared by every row of a settings card: the same side
+/// padding, the same space above and below the text and the same minimum
+/// height, whether the row is a plain, switch, slider or hand-built one.
+/// [AppLayoutFactory.buildModernCard] hands them to its rows through the
+/// list tile theme, so a row only sets what differs (a switch's end edge).
+const double kSettingsRowSidePadding = 16;
+const double kSettingsRowVerticalPadding = 10;
+const double kSettingsRowMinHeight = 56;
+
+/// A switch row's padding: the switch carries its own margin at the end.
+const EdgeInsetsDirectional kSettingsSwitchRowPadding = EdgeInsetsDirectional.only(
+  start: kSettingsRowSidePadding,
+  end: 8,
+);
+
 /// The leading icon of a settings row: theme colour, 22 px, as every shared
 /// settings tile draws it. Rows built by hand use this so their icons match.
 class SettingsRowIcon extends StatelessWidget {
@@ -107,7 +122,14 @@ extension AppLayoutFactory on BuildContext {
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.05), width: 0.5),
       ),
-      child: Column(children: autoShapedChildren),
+      child: ListTileTheme.merge(
+        contentPadding: const EdgeInsets.symmetric(horizontal: kSettingsRowSidePadding),
+        minVerticalPadding: kSettingsRowVerticalPadding,
+        minTileHeight: kSettingsRowMinHeight,
+        horizontalTitleGap: kSettingsIconGap,
+        minLeadingWidth: kSettingsIconSlot,
+        child: Column(children: autoShapedChildren),
+      ),
     );
   }
 
@@ -143,9 +165,7 @@ extension AppLayoutFactory on BuildContext {
                 onChanged?.call(val);
               }
             : null,
-        contentPadding: const EdgeInsets.only(left: 16, top: 2, bottom: 2, right: 8),
-        horizontalTitleGap: kSettingsIconGap,
-        minLeadingWidth: kSettingsIconSlot,
+        contentPadding: kSettingsSwitchRowPadding,
       ),
     );
   }
@@ -211,10 +231,6 @@ extension AppLayoutFactory on BuildContext {
         : null;
 
     Widget standardTile() => ListTile(
-      horizontalTitleGap: kSettingsIconGap,
-      minLeadingWidth: kSettingsIconSlot,
-      minVerticalPadding: 0,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: leadingWidget,
       title: titleWidget,
       subtitle: subtitleWidget,
@@ -241,10 +257,6 @@ extension AppLayoutFactory on BuildContext {
         final textScale = MediaQuery.textScalerOf(context).scale(1);
         if (constraints.maxWidth >= 360 && textScale <= 1.5) return standardTile();
         return ListTile(
-          horizontalTitleGap: kSettingsIconGap,
-          minLeadingWidth: kSettingsIconSlot,
-          minVerticalPadding: 0,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           leading: leadingWidget,
           title: Column(
             mainAxisSize: MainAxisSize.min,
@@ -363,7 +375,10 @@ extension AppLayoutFactory on BuildContext {
   }) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: kSettingsRowSidePadding,
+        vertical: kSettingsRowVerticalPadding,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

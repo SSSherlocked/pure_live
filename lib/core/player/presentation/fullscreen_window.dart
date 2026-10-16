@@ -74,6 +74,10 @@ class WindowService {
   /// a large screen (no orientation lock of its own) has to release on exit.
   bool _sensorLandscape = false;
 
+  /// Whether this screen locks a room to portrait and fullscreen to
+  /// landscape (phones; a tablet's layout follows the system rotation).
+  bool get locksMobileOrientation => (Platform.isAndroid || Platform.isIOS) && _canApplyMobileOrientationLock();
+
   bool _canApplyMobileOrientationLock() {
     if (!Platform.isAndroid) return true;
     final views = WidgetsBinding.instance.platformDispatcher.views;

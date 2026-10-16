@@ -300,10 +300,16 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
 
             context.buildSwitchTile(
               title: i18n('enable_fullscreen_default'),
-              subtitle: i18n('enable_fullscreen_default_subtitle'),
               value: SettingsService.to.app.enableFullScreenDefault,
               icon: Remix.fullscreen_line,
             ),
+            if (_isAndroid)
+              context.buildSwitchTile(
+                icon: Icons.stay_current_landscape_rounded,
+                title: i18n('landscape_fullscreen'),
+                subtitle: i18n('landscape_fullscreen_desc'),
+                value: SettingsService.to.app.enableLandscapeFullscreen,
+              ),
             if (_isAndroid)
               Obx(
                 () => context.buildSwitchTile(

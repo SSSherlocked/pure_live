@@ -47,7 +47,9 @@ class AppSettingsController extends GetxController {
   final RxBool backgroundAudioOnly = hiveBool('backgroundAudioOnly', false);
   final RxBool backgroundPauseDanmaku = hiveBool('backgroundPauseDanmaku', false);
   final RxBool pauseOnPipClose = hiveBool('pauseOnPipClose', false);
-  final RxBool enableRotateScreen = hiveBool('enableRotateScreen', false);
+  /// Android: with the system's auto-rotate on, turning the phone to
+  /// landscape in a room enters fullscreen, and turning it back leaves it.
+  final RxBool enableLandscapeFullscreen = hiveBool('enableLandscapeFullscreen', false);
   final RxBool enableScreenKeepOn = hiveBool('enableScreenKeepOn', true);
   final RxBool enableFullScreenDefault = hiveBool('enableFullScreenDefault', false);
   late final RxString refreshRateModeName = hiveString('refreshRateMode', _initialRefreshRateMode());
@@ -208,7 +210,7 @@ class AppSettingsController extends GetxController {
       'backgroundAudioOnly': backgroundAudioOnly.v,
       'backgroundPauseDanmaku': backgroundPauseDanmaku.v,
       'pauseOnPipClose': pauseOnPipClose.v,
-      'enableRotateScreen': enableRotateScreen.v,
+      'enableLandscapeFullscreen': enableLandscapeFullscreen.v,
       'enableScreenKeepOn': enableScreenKeepOn.v,
       'enableFullScreenDefault': enableFullScreenDefault.v,
       'refreshRateMode': refreshRateMode.storageValue,
@@ -232,7 +234,7 @@ class AppSettingsController extends GetxController {
       'backgroundAudioOnly': typed<bool>(json['backgroundAudioOnly'] ?? false),
       'backgroundPauseDanmaku': typed<bool>(json['backgroundPauseDanmaku'] ?? false),
       'pauseOnPipClose': typed<bool>(json['pauseOnPipClose'] ?? false),
-      'enableRotateScreen': typed<bool>(json['enableRotateScreen'] ?? false),
+      'enableLandscapeFullscreen': typed<bool>(json['enableLandscapeFullscreen'] ?? false),
       'enableScreenKeepOn': typed<bool>(json['enableScreenKeepOn'] ?? true),
       'enableFullScreenDefault': typed<bool>(json['enableFullScreenDefault'] ?? false),
       'preferRealOnlineCounts': typed<bool>(json['preferRealOnlineCounts'] ?? false),
@@ -252,7 +254,7 @@ class AppSettingsController extends GetxController {
     backgroundAudioOnly.v = parsed['backgroundAudioOnly'];
     backgroundPauseDanmaku.v = parsed['backgroundPauseDanmaku'];
     pauseOnPipClose.v = parsed['pauseOnPipClose'];
-    enableRotateScreen.v = parsed['enableRotateScreen'];
+    enableLandscapeFullscreen.v = parsed['enableLandscapeFullscreen'];
     enableScreenKeepOn.v = parsed['enableScreenKeepOn'];
     enableFullScreenDefault.v = parsed['enableFullScreenDefault'];
     setRefreshRateMode(parsed['refreshRateMode']);
@@ -272,7 +274,7 @@ class AppSettingsController extends GetxController {
       'backgroundAudioOnly': app['backgroundAudioOnly'] ?? false,
       'backgroundPauseDanmaku': app['backgroundPauseDanmaku'] ?? false,
       'pauseOnPipClose': app['pauseOnPipClose'] ?? false,
-      'enableRotateScreen': app['enableRotateScreen'] ?? false,
+      'enableLandscapeFullscreen': app['enableLandscapeFullscreen'] ?? false,
       'enableScreenKeepOn': app['enableScreenKeepOn'] ?? true,
       'enableFullScreenDefault': app['enableFullScreenDefault'] ?? false,
       'refreshRateMode': refreshRateModeFromConfig(app).storageValue,

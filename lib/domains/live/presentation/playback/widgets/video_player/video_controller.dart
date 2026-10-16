@@ -31,6 +31,7 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/dan
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/danmaku_settings_source.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/portrait_fullscreen_interaction.dart';
 import 'package:pure_live/core/logging/app_log.dart';
+import 'package:pure_live/core/platform/device_orientation_watcher.dart';
 
 typedef AudioOnlyCallback = Future<void> Function(bool value);
 
@@ -553,6 +554,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     if (_isDisposed) return;
 
     _setupDefaultFullscreen();
+    _setupLandscapeFullscreen();
 
     if (room.platform == Sites.iptvSite) {
       await loadFullChannelSchedule(room.epgId);
@@ -651,6 +653,61 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         _enterFullscreenMode();
       }
     });
+  }
+
+  Worker? _landscapeFullscreenWorker;
+  StreamSubscription<HeldOrientation>? _heldOrientationSub;
+  VoidCallback? _stopWatchingOrientation;
+
+  /// Whether the current fullscreen was entered by turning the phone, so
+  /// turning it back leaves it (a fullscreen the user chose stays).
+  bool _fullscreenByRotation = false;
+
+  /// 横屏自动全屏 (Android phones): follows the setting, watching the
+  /// phone's orientation only while it is on.
+  void _setupLandscapeFullscreen() {
+    if (!Platform.isAndroid || !allowFullScreen || _landscapeFullscreenWorker != null) return;
+    void apply(bool enabled) {
+      if (enabled && _stopWatchingOrientation == null) {
+        _stopWatchingOrientation = DeviceOrientationWatcher.instance.watch();
+        _heldOrientationSub = DeviceOrientationWatcher.instance.changes.listen(_onHeldOrientation);
+      } else if (!enabled) {
+        _stopLandscapeFullscreen();
+      }
+    }
+
+    final setting = _settingsService.app.enableLandscapeFullscreen;
+    _landscapeFullscreenWorker = ever<bool>(setting, apply);
+    apply(setting.v);
+  }
+
+  void _stopLandscapeFullscreen() {
+    unawaited(_heldOrientationSub?.cancel());
+    _heldOrientationSub = null;
+    _stopWatchingOrientation?.call();
+    _stopWatchingOrientation = null;
+  }
+
+  void _onHeldOrientation(HeldOrientation held) {
+    if (_isDisposed || _fullscreenTransitioning || showLocked.value) return;
+    // A tablet's room already follows the system rotation.
+    if (!WindowService().locksMobileOrientation) return;
+    final player = GlobalPlayerService.instance.player;
+    if (player.isInPip.value) return;
+    final mode = _livePlayController.state.value.ui.screenMode;
+    switch (held) {
+      case HeldOrientation.landscape:
+        // A portrait stream has its own portrait fullscreen.
+        if (player.isSystemFullscreen.value || mode != VideoMode.normal || _playerManager.isVerticalVideo.value) {
+          return;
+        }
+        _fullscreenByRotation = true;
+        unawaited(toggleFullScreen());
+      case HeldOrientation.portrait:
+        if (!_fullscreenByRotation || !player.isSystemFullscreen.value || mode != VideoMode.fullscreen) return;
+        _fullscreenByRotation = false;
+        unawaited(toggleFullScreen());
+    }
   }
 
   void _enterFullscreenMode() {
@@ -1430,6 +1487,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   }
 
   Future<void> exitFullScreen() async {
+    _fullscreenByRotation = false;
     await WindowService().doExitFullScreen();
     GlobalPlayerService.instance.player.isSystemFullscreen.value = false;
   }
@@ -1713,6 +1771,9 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     _setStatus(PlayerStatus.disposed);
 
     _playerManager.detachVideoController(this);
+    _landscapeFullscreenWorker?.dispose();
+    _landscapeFullscreenWorker = null;
+    _stopLandscapeFullscreen();
     _danmakuManager.dispose();
     _cancelAllTimers();
     scheduleScrollController.dispose();

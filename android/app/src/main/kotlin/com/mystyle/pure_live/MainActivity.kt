@@ -59,6 +59,7 @@ class MainActivity : AudioServiceActivity() {
     private var highRefreshRateEnabled = false
     private var displayModeChannel: MethodChannel? = null
     private var predictiveBackChannel: MethodChannel? = null
+    private var deviceOrientationChannel: DeviceOrientationChannel? = null
     private var predictiveBackEnabled = false
     private var predictiveBackRegistered = false
     private var displayListenerRegistered = false
@@ -263,6 +264,10 @@ class MainActivity : AudioServiceActivity() {
             }
         }
 
+        deviceOrientationChannel?.dispose()
+        deviceOrientationChannel =
+            DeviceOrientationChannel(this, flutterEngine.dartExecutor.binaryMessenger)
+
         predictiveBackChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             PREDICTIVE_BACK_CHANNEL,
@@ -389,6 +394,7 @@ class MainActivity : AudioServiceActivity() {
         super.onStart()
         traceLifecycle("onStart")
         registerDisplayListener()
+        deviceOrientationChannel?.resume()
         scheduleDisplayModeRefresh(delayMillis = 0)
     }
 
@@ -503,6 +509,7 @@ class MainActivity : AudioServiceActivity() {
     override fun onStop() {
         traceLifecycle("onStop")
         unregisterDisplayListener()
+        deviceOrientationChannel?.pause()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             unregisterPredictiveBack()
@@ -525,6 +532,8 @@ class MainActivity : AudioServiceActivity() {
         }
 
         predictiveBackChannel = null
+        deviceOrientationChannel?.dispose()
+        deviceOrientationChannel = null
 
         super.onDestroy()
     }

@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.4.1",
+    "title": "v3.4.1",
+    "date": "2026-10-16",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.4.1",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### ✨ 新功能\n\n- **锁定方向时全屏仍跟随手机旋转**（安卓）：「设置 › 视频 › 播放行为设置」里「自动全屏」下方新增开关。手机开启了方向锁定时，横屏全屏默认停在一个方向；打开这个开关后，全屏会跟着手机在左右两个横屏方向之间翻转（未锁定时本来就会跟着转）。平板打开后全屏也会横过来，退出全屏交还给系统。手机、平板、桌面各存一份，备份里三份都会带上。\n\n#### 🎬 直播间\n\n- **B 站有声无画自动重开**：部分 B 站线路的开头只声明了音频，画面一直黑着、声音正常。现在声音播放 4 秒仍没有画面时，会自动重新打开一次直播流；还在连接或切换线路时不会误判。\n- **切换直播间后「外部打开」正确**：全屏时用侧栏切换直播间，退出全屏后点右上角「外部打开」，打开的是当前直播间，不再是第一个直播间（之前主播显示为 undefined）。\n\n#### 📱 安卓\n\n- **返回退出不再闪烁**：在首页按返回退出时，会先闪一下黑色桌面，再闪一张白色图标卡片，现在改用系统自带的返回桌面动画，缩回去的是应用本身的画面。直播间里退出全屏、退出小窗等返回操作也改走安卓 13 起的新返回机制。\n\n#### 🎞 录制回放\n\n- **退出后播放器正确释放**：退出本地录制回放后，播放器会被销毁；从回放页切进小窗再退出时也不会残留。\n\n#### ⚙️ 设置\n\n- **「竖屏直播适配」移到播放行为设置**：从「设置 › 通用」移到「设置 › 视频 › 播放行为设置」的第一项。\n- **移除自动助眠**：删除「新直播间自动助眠」和「自动助眠播放时长」两项。直播间菜单里的「定时关闭」不受影响。\n- **首页右上角菜单两侧对齐**：展开的菜单里各项右侧的空白比左侧宽一截（被「排序」子菜单项多占的位置撑开），现在左右一样宽。\n\n#### 🧹 其他\n\n- **下拉刷新球不再露出**：首页加载球收起时连同阴影都藏在标签栏下面，浅色模式下不再在标签下方露出一圈光晕或半个球。\n- **更详细的日志**：日志会额外记录安卓界面的生命周期、窗口焦点、返回手势和系统内存回收，方便排查闪烁、退出这类问题。",
+    "files": [
+      {
+        "name": "PureLive-3.4.1-Android-arm64-v8a",
+        "size": "119.49mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.4.1-iOS-TrollStore.ipa",
+        "size": "44.79mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.4.1-iOS-Unsigned.zip",
+        "size": "44.53mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.4.1-Linux-x64.deb",
+        "size": "41.85mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.4.1-Linux-x64.tar.gz",
+        "size": "50.18mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.4.1-Linux-x64.zip",
+        "size": "50.22mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.4.1-MacOS-AppleSilicon.zip",
+        "size": "42.17mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.4.1-MacOS-Intel.zip",
+        "size": "44.9mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.4.1-Windows-x64.zip",
+        "size": "60.64mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.1/PureLive-3.4.1-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.4.0",
     "title": "v3.4.0",
     "date": "2026-10-16",

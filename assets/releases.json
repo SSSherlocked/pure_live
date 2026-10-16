@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.4.0",
+    "title": "v3.4.0",
+    "date": "2026-10-16",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.4.0",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎬 直播间\n\n- **退出直播间一定停止播放**：退出直播间回到主页后，播放器必定停下；即使旧的直播流晚到或重连成功，也不会在主页上「假死复活」自己响起来。「后台播放」只决定 app 切到系统后台时是继续播放还是暂停。\n- **切换直播间时弹幕真正立即消失**：之前弹幕数据清空了，但画面停在最后一帧，旧弹幕要等新直播间开播才消失；现在点下新直播间的那一刻屏幕上的弹幕就清空。\n- **新直播间不再先闪旧画面**：上面的问题出现时，打开任何直播间都会先显示后台那路流的画面，直到新直播流替换上来；随着后台的流被及时停止，这种情况也一并消失。\n- **虎牙卡顿**：虎牙某条 FLV 线路连不上时，改用下一条能连上的 FLV 线路，不再退到 HLS 线路（HLS 在这里每隔几秒就会卡一下）。\n- **HLS 线路不再频繁卡顿**：经本地中转播放的 HLS 直播（虎牙、B 站等的 HLS 线路），播放器每读完一次播放列表都会误以为断线、重连并等待 1 秒，列表一再落后，片段过期后画面就卡住。中转现在把每份播放列表和片段都带上准确的长度发给播放器，这种误判不再发生。\n\n#### 👆 操作\n\n- **切页后马上能操作**：左右滑动切页松手后，新页面的回弹动画大幅缩短且仍然柔和，很快就能上下滚动或点击新页面。\n\n#### 🧹 其他\n\n- **更详细的日志**：打开「启用本地日志」后，日志会记录页面跳转、app 前后台切换和后台暂停/恢复、直播间打开/切换/关闭及其直播状态判断、断线重连、后台保活、音频焦点（来电、拔耳机）、弹幕连接，以及播放器的暂停、恢复、关闭，方便排查问题。\n- **清空日志**：「清空日志」会连同正在写入的日志文件一起删除；日志开着时，随即新建一个以当前时间命名的日志文件，从头开始记录。",
+    "files": [
+      {
+        "name": "PureLive-3.4.0-Android-arm64-v8a",
+        "size": "119.49mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.4.0-iOS-TrollStore.ipa",
+        "size": "44.79mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.4.0-iOS-Unsigned.zip",
+        "size": "44.53mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.4.0-Linux-x64.deb",
+        "size": "41.85mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.4.0-Linux-x64.tar.gz",
+        "size": "50.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.4.0-Linux-x64.zip",
+        "size": "50.22mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.4.0-MacOS-AppleSilicon.zip",
+        "size": "42.17mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.4.0-MacOS-Intel.zip",
+        "size": "44.9mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.4.0-Windows-x64.zip",
+        "size": "60.64mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.0/PureLive-3.4.0-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.3.8",
     "title": "v3.3.8",
     "date": "2026-10-16",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.3.8-Android-arm64-v8a",
         "size": "119.49mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.8/PureLive-3.3.8-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +118,7 @@
       {
         "name": "PureLive-3.3.8-MacOS-AppleSilicon.zip",
         "size": "42.16mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.3.8/PureLive-3.3.8-MacOS-AppleSilicon.zip"
       },
       {

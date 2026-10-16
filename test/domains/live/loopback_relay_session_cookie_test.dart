@@ -21,8 +21,11 @@ final class _SessionCookieProvider {
   }
 
   final HttpServer _server;
-  int segmentWithCookie = 0;
-  int segmentWithoutCookie = 0;
+  /// Paths fetched with and without the session cookie. The relay also
+  /// prefetches the playlist's newest segment, so more than the init section
+  /// may arrive here.
+  final List<String> withCookie = <String>[];
+  final List<String> withoutCookie = <String>[];
 
   String get manifestUrl => 'http://${InternetAddress.loopbackIPv4.address}:${_server.port}$streamPath/media.m3u8';
 
@@ -44,11 +47,7 @@ final class _SessionCookieProvider {
       return;
     }
     final bool authorized = request.headers.value(HttpHeaders.cookieHeader)?.contains(cookie) ?? false;
-    if (authorized) {
-      segmentWithCookie++;
-    } else {
-      segmentWithoutCookie++;
-    }
+    (authorized ? withCookie : withoutCookie).add(request.uri.path);
     response.statusCode = authorized ? HttpStatus.ok : HttpStatus.unauthorized;
     if (authorized) response.add(utf8.encode('init-payload'));
     await response.close();
@@ -92,7 +91,7 @@ void main() {
     final (int childStatus, String body) = await _get(child);
     expect(childStatus, HttpStatus.ok);
     expect(body, 'init-payload');
-    expect(provider.segmentWithCookie, 1);
-    expect(provider.segmentWithoutCookie, 0);
+    expect(provider.withCookie, contains('${_SessionCookieProvider.streamPath}/init.2.mp4'));
+    expect(provider.withoutCookie, isEmpty);
   });
 }

@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
+import 'package:pure_live/core/widgets/refresh_indicators.dart';
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
@@ -68,9 +68,13 @@ class PlayOther extends StatelessWidget {
   }
 }
 
-/// Followed rooms split into 已开播 / 录播, one tap away from
-/// replacing the room being watched. Used by the room panel's 关注 tab and
-/// by the fullscreen [PlayOther] panel.
+/// The followed rooms that are live, one tap away from replacing the room
+/// being watched. Used by the room panel's 关注 tab and by the fullscreen
+/// [PlayOther] panel.
+///
+/// Pulled down it refreshes, with the home lists' refresh ball; in the
+/// desktop layout ([AppLayout.refreshByButton]) a button at its bottom right
+/// does too. The order is the home 关注 page's 排序 setting.
 class FollowRoomSwitcher extends StatefulWidget {
   const FollowRoomSwitcher({required this.controller, this.onSwitch, super.key});
 
@@ -83,13 +87,15 @@ class FollowRoomSwitcher extends StatefulWidget {
   State<FollowRoomSwitcher> createState() => _FollowRoomSwitcherState();
 }
 
-class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTickerProviderStateMixin {
-  late final TabController tabController;
-
+class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
   final onlineRooms = <LiveRoom>[].obs;
-  final recordingRooms = <LiveRoom>[].obs;
   final loadingFinish = false.obs;
-  final refreshing = false.obs;
+
+  /// The refresh in progress; a pull or a press meanwhile joins it.
+  Completer<void>? _refreshing;
+
+  /// A refresh that never reports back still lets the ball go.
+  static const Duration _refreshTimeout = Duration(seconds: 30);
 
   StreamSubscription<dynamic>? subscription;
   Worker? _favoritesWorker;
@@ -100,8 +106,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
   @override
   void initState() {
     super.initState();
-
-    tabController = TabController(length: 2, vsync: this, animationDuration: pureLiveTabTransitionDuration);
 
     _updateRooms();
 
@@ -125,13 +129,23 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       SettingsService.to.theme.livePanelFollowRefreshMinutes.v,
     );
     if (minutes <= 0) return;
-    _autoRefreshTimer = Timer.periodic(Duration(minutes: minutes), (_) => _refresh());
+    _autoRefreshTimer = Timer.periodic(Duration(minutes: minutes), (_) => unawaited(_refresh()));
   }
 
-  void _refresh() {
-    if (!mounted || refreshing.value) return;
-    refreshing.value = true;
+  /// Asks the 关注 controller to refresh and completes when it reports back.
+  Future<void> _refresh() {
+    final running = _refreshing;
+    if (running != null) return running.future;
+    final completer = Completer<void>();
+    _refreshing = completer;
     EventBus.instance.emit('refresh_favorite_rooms', true);
+    return completer.future.timeout(_refreshTimeout, onTimeout: _finishRefresh);
+  }
+
+  void _finishRefresh() {
+    final running = _refreshing;
+    _refreshing = null;
+    if (running != null && !running.isCompleted) running.complete();
   }
 
   void _updateRooms() {
@@ -140,146 +154,65 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
 
     // The same order as the home 关注 page (its 排序 setting).
     final liveList = allRooms.where((room) => room.isLiveNow && room.isRecord == false).toList();
-    final recordList = allRooms.where((room) => room.effectiveLiveStatus == LiveStatus.replay).toList();
     sortFavoriteRooms(liveList);
-    sortFavoriteRooms(recordList);
     onlineRooms.assignAll(liveList);
-    recordingRooms.assignAll(recordList);
 
     loadingFinish.value = true;
-    refreshing.value = false;
+    _finishRefresh();
   }
 
   @override
   void dispose() {
-    tabController.dispose();
     subscription?.cancel();
     _favoritesWorker?.dispose();
     _sortWorker?.dispose();
     _autoRefreshWorker?.dispose();
     _autoRefreshTimer?.cancel();
+    _finishRefresh();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    final textMetrics = resolveRoomHistoryTextMetrics(
-      textScaler: MediaQuery.textScalerOf(context),
-      headerFontSize: textTheme.titleSmall?.fontSize ?? 14,
-      headerLineHeight: textTheme.titleSmall?.height ?? 1.25,
-      tabFontSize: textTheme.labelLarge?.fontSize ?? 14,
-      tabLineHeight: textTheme.labelLarge?.height ?? 1.43,
-      titleFontSize: textTheme.titleMedium?.fontSize ?? 15,
-      titleLineHeight: textTheme.titleMedium?.height ?? 1.5,
-      detailFontSize: textTheme.bodySmall?.fontSize ?? 12,
-      detailLineHeight: textTheme.bodySmall?.height ?? 1.33,
-    );
-
-    return Column(
+    final refreshByButton = AppLayout.of(context).refreshByButton;
+    return Stack(
       children: [
-        Padding(
-          // No gap above the tabs: the panel's title row is right above them.
-          // 排序 on the left and refresh on the right, equally wide, keep the
-          // tabs centred.
-          padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
-          child: Row(
-            children: [
-              const FavoriteSortButton(key: ValueKey('follow-panel-sort')),
-              Expanded(
-                // The two tabs share the row equally, each label centred in
-                // its half; the bar is narrowed so the labels sit closer than
-                // the full row put them (see _followTabsWidth). A row that
-                // scrolls its tabs keeps the full width.
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = textMetrics.scrollTabs
-                        ? constraints.maxWidth
-                        : _followTabsWidth(context, constraints.maxWidth);
-                    return Center(
-                      child: SizedBox(
-                        width: width,
-                        height: textMetrics.tabBarHeight,
-                        child: ScrollableTabBar(
-                          controller: tabController,
-                          isScrollable: textMetrics.scrollTabs,
-                          tabAlignment: textMetrics.scrollTabs ? TabAlignment.start : TabAlignment.fill,
-                          physics: const PureLiveBoundedScrollPhysics(),
-                          labelColor: colors.primary,
-                          unselectedLabelColor: colors.onSurfaceVariant,
-                          indicatorSize: TabBarIndicatorSize.label,
-                          dividerHeight: 0,
-                          splashBorderRadius: BorderRadius.circular(8),
-                          labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-                          tabs: [
-                            _CompactTab(
-                              icon: Icons.sensors_rounded,
-                              label: i18n('online_room_title'),
-                              height: textMetrics.tabBarHeight,
-                              shrinkToFit: !textMetrics.scrollTabs,
-                            ),
-                            _CompactTab(
-                              icon: Icons.fiber_smart_record_rounded,
-                              label: i18n('recording_room_title'),
-                              height: textMetrics.tabBarHeight,
-                              shrinkToFit: !textMetrics.scrollTabs,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Obx(
-                () => IconButton(
-                  key: const ValueKey('room-history-refresh'),
-                  tooltip: i18n('refresh'),
-                  visualDensity: VisualDensity.compact,
-                  onPressed: refreshing.value ? null : _refresh,
-                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                ),
-              ),
-            ],
+        Positioned.fill(
+          child: Obx(
+            () => loadingFinish.value
+                ? EasyRefresh.builder(
+                    // A floating ball over the list, as on the home lists.
+                    header: floatingRefreshHeader(),
+                    triggerAxis: Axis.vertical,
+                    onRefresh: _refresh,
+                    childBuilder: (context, physics) => _buildRoomList(onlineRooms, physics),
+                  )
+                : AppStatusView(type: AppStatusType.loading, title: '', subtitle: ''),
           ),
         ),
-        Expanded(
-          child: Stack(
-            children: [
-              Obx(
-                () => loadingFinish.value
-                    ? CalmTabBarView(
-                        controller: tabController,
-                        physics: const PureLiveBoundedScrollPhysics(),
-                        children: [
-                          _buildRoomGrid(onlineRooms, history: false, textMetrics: textMetrics),
-                          _buildRoomGrid(recordingRooms, history: false, textMetrics: textMetrics),
-                        ],
-                      )
-                    : AppStatusView(type: AppStatusType.loading, title: '', subtitle: ''),
-              ),
-              Obx(
-                () => refreshing.value
-                    ? const Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        child: LinearProgressIndicator(minHeight: 2, backgroundColor: Colors.transparent),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
+        if (refreshByButton)
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: FloatingActionButton.small(
+              key: const ValueKey('follow-panel-refresh'),
+              heroTag: null,
+              tooltip: i18n('refresh'),
+              onPressed: () => unawaited(_refresh()),
+              child: const Icon(Icons.refresh_rounded),
+            ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildRoomGrid(List<LiveRoom> rooms, {required bool history, required RoomHistoryTextMetrics textMetrics}) {
+  Widget _buildRoomList(List<LiveRoom> rooms, ScrollPhysics physics) {
     if (rooms.isEmpty) {
-      return AppStatusView(type: AppStatusType.empty);
+      // Still a scroll view, so an empty list can be pulled to refresh.
+      return CustomScrollView(
+        physics: physics,
+        slivers: [SliverFillRemaining(hasScrollBody: false, child: AppStatusView(type: AppStatusType.empty))],
+      );
     }
 
     // One column of avatar rows at every width: no covers, the same list in
@@ -304,9 +237,9 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
           return Theme(
             data: Theme.of(context).copyWith(textTheme: Get.theme.textTheme),
             child: GridView.builder(
-              key: ValueKey(history ? 'watch-history-grid' : 'live-room-grid'),
+              key: const ValueKey('live-room-grid'),
               padding: const EdgeInsets.fromLTRB(padding, 2, padding, padding),
-              physics: const PureLiveScrollPhysics(),
+              physics: physics,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 1,
                 mainAxisExtent: rowExtent,
@@ -326,11 +259,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
                   forceCompact: true,
                   longPressDetails: false,
                   highlighted: playing,
-                  status: playing
-                      ? i18n('now_watching')
-                      : history
-                      ? _historyLabel(room)
-                      : null,
+                  status: playing ? i18n('now_watching') : null,
                   onSelect: () {
                     widget.onSwitch?.call();
                     widget.controller.switchRoom(room);
@@ -343,73 +272,4 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
       },
     );
   }
-}
-
-/// The width of the 关注 panel's two tabs within [rowWidth]. The full row set
-/// each label in the middle of its half, [rowWidth] / 2 minus a label apart;
-/// this width keeps a share of that gap: three quarters on touch layouts,
-/// four fifths with a pointer.
-double _followTabsWidth(BuildContext context, double rowWidth) {
-  final share = AppLayout.of(context).touch ? 0.75 : 0.8;
-  final style = Theme.of(context).textTheme.labelLarge;
-  final scaler = MediaQuery.textScalerOf(context);
-  double labelWidth(String text) {
-    final painter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: Directionality.of(context),
-      textScaler: scaler,
-      maxLines: 1,
-    )..layout();
-    final width = painter.width;
-    painter.dispose();
-    // The tab's icon and the gap after it.
-    return 14 + 3 + width;
-  }
-
-  final label = (labelWidth(i18n('online_room_title')) + labelWidth(i18n('recording_room_title'))) / 2;
-  // Never so narrow that a tab (label plus 6 padding a side) has to shrink
-  // its label.
-  final gap = rowWidth / 2 - label;
-  return (2 * label + 2 * share * gap).clamp(math.min(rowWidth, 2 * (label + 12)), rowWidth).toDouble();
-}
-
-class _CompactTab extends StatelessWidget {
-  const _CompactTab({required this.icon, required this.label, required this.height, required this.shrinkToFit});
-
-  final IconData icon;
-  final String label;
-  final double height;
-  final bool shrinkToFit;
-
-  @override
-  Widget build(BuildContext context) {
-    final content = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14),
-        const SizedBox(width: 3),
-        // Flexible causes a layout error here because TabBar may provide unbounded width constraints.
-        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge),
-      ],
-    );
-    return Tab(
-      height: height,
-      child: shrinkToFit ? FittedBox(fit: BoxFit.scaleDown, child: content) : content,
-    );
-  }
-}
-
-/// When a 录播 room was last watched, for its row's status.
-String _historyLabel(LiveRoom room) {
-  final value = room.lastWatchedAt;
-  if (value == null || value <= 0) return i18n('history_earlier');
-  return i18n('watched_at', args: {'time': formatHistoryWatchedAt(value)});
-}
-
-String formatHistoryWatchedAt(int millisecondsSinceEpoch) {
-  final watched = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
-  String twoDigits(int value) => value.toString().padLeft(2, '0');
-  return '${watched.year.toString().padLeft(4, '0')}-'
-      '${twoDigits(watched.month)}-${twoDigits(watched.day)} '
-      '${twoDigits(watched.hour)}:${twoDigits(watched.minute)}';
 }

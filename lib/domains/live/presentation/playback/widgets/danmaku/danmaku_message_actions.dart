@@ -15,7 +15,7 @@ class DanmakuMessageActions {
           child: Wrap(
             children: [
               ListTile(
-                title: Text('${message.userName}: ${message.message}'),
+                title: Text(message.isSystem ? message.message : '${message.userName}: ${message.message}'),
                 subtitle: message.userLevel.isEmpty ? null : Text('Lv.${message.userLevel}'),
               ),
               ListTile(
@@ -23,7 +23,9 @@ class DanmakuMessageActions {
                 title: Text(i18n('copy')),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
-                  await Clipboard.setData(ClipboardData(text: '${message.userName}: ${message.message}'));
+                  await Clipboard.setData(
+                    ClipboardData(text: message.isSystem ? message.message : '${message.userName}: ${message.message}'),
+                  );
                   ToastUtil.show(i18n('copied_to_clipboard'));
                 },
               ),

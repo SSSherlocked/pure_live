@@ -993,9 +993,10 @@ class LivePlayController extends GetxController
   void addSystemMessage(String text) {
     final msg = LiveMessage(
       type: LiveMessageType.chat,
-      userName: i18n('system_message'),
+      userName: '',
       message: text,
       color: LiveMessageColor.white,
+      isSystem: true,
     );
     addDanmakuMessage(msg);
   }

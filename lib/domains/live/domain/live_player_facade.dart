@@ -31,6 +31,7 @@ import 'package:pure_live/core/player/presentation/fullscreen_window.dart' show 
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:pure_live/domains/live/presentation/playback/widgets/danmaku/compact_danmaku_overlay.dart';
 import 'package:media_core_better_player/media_core_better_player.dart' show kBetterPlayerBackendId;
+import 'package:media_core_video_player/media_core_video_player.dart' show kVideoPlayerBackendId;
 import 'package:media_core_ijk_player/media_core_ijk_player.dart' show kIjkPlayerBackendId;
 
 final class LivePlayerFacade {
@@ -38,8 +39,10 @@ final class LivePlayerFacade {
     PlayerEngine defaultEngine = PlayerEngine.mediaKit,
     PlaybackSourceInterceptor? sourceInterceptor,
     bool Function()? useHardStopOnExit,
+    bool Function()? hlsSystemPlayer,
   }) : preferredEngine = defaultEngine,
-       _useHardStopOnExit = useHardStopOnExit ?? (() => SettingsService.to.player.useHardStopOnExit.v) {
+       _useHardStopOnExit = useHardStopOnExit ?? (() => SettingsService.to.player.useHardStopOnExit.v),
+       _hlsSystemPlayer = hlsSystemPlayer ?? (() => SettingsService.to.player.hlsSystemPlayer.v) {
     _sourceInterceptor = sourceInterceptor;
     // Both refresh questions — "the lines died, give me new ones" and "the
     // engine is changing, give me lines it can use" — have one answer: ask the
@@ -73,6 +76,32 @@ final class LivePlayerFacade {
   /// after [idleReleaseDelay], so a room opened meanwhile reuses the warm
   /// engine instead of a cold start.
   final bool Function() _useHardStopOnExit;
+
+  /// HLS lines on the system player while the engine is mpv (see
+  /// [PlayerSettingsController.hlsSystemPlayer]).
+  final bool Function() _hlsSystemPlayer;
+
+  /// Whether the lines now playing pass a clean HLS manifest through the
+  /// Dart relay: yes for mpv and ijkplayer, no for a system player, which
+  /// keeps its connections and reads ahead by itself.
+  bool _relayCleanManifests = true;
+
+  /// The system player's backend on this platform, if it has one.
+  static String? get _systemHlsBackend => switch (defaultTargetPlatform) {
+    TargetPlatform.android || TargetPlatform.iOS => kBetterPlayerBackendId,
+    TargetPlatform.macOS => kVideoPlayerBackendId,
+    _ => null,
+  };
+
+  /// The backend a room's lines open on: the chosen engine, except that an
+  /// HLS first line goes to the system player while the engine is mpv.
+  String _backendFor(String firstLine, Map<String, LiveStreamFacts> streamFacts) {
+    final engine = backendIdOfEngine(preferredEngine);
+    final system = _systemHlsBackend;
+    if (system == null || preferredEngine != PlayerEngine.mediaKit || !_hlsSystemPlayer()) return engine;
+    if (!isHlsLine(firstLine, streamFacts[firstLine])) return engine;
+    return system;
+  }
   static const Duration idleReleaseDelay = Duration(seconds: 45);
   Timer? _idleReleaseTimer;
 
@@ -243,6 +272,9 @@ final class LivePlayerFacade {
     // stream facts, which is what the ingest wiring decides from.
     final committed = sourceSelection is PlaybackSourceQualitySelection ? sourceSelection : null;
     final streamFacts = committed?.streamFacts ?? const <String, LiveStreamFacts>{};
+    final backend = _backendFor(sourceUrl, streamFacts);
+    _relayCleanManifests = backend == backendIdOfEngine(preferredEngine);
+    if (!_relayCleanManifests) Log.i('player: HLS line on the system player ($backend)');
 
     // Declared before the open so libmpv starts at the room's level; a
     // post-open setVolume let one 100% frame of audio through first.
@@ -272,7 +304,7 @@ final class LivePlayerFacade {
         ),
         title: liveroom?.title,
       ),
-      preferredBackend: backendIdOfEngine(preferredEngine),
+      preferredBackend: backend,
     );
     Log.i('player: open returned after ${openClock.elapsedMilliseconds} ms');
     PlaybackStartupTiming.instance.mark('open');
@@ -323,6 +355,7 @@ final class LivePlayerFacade {
     _roomSession++;
     _lastHeaders = const {};
     _lastLines = const [];
+    _relayCleanManifests = true;
     OpenVolume.pending = _openVolumeFor(liveroom);
     _cancelIdleRelease();
     await _controller.play(
@@ -457,6 +490,7 @@ final class LivePlayerFacade {
 
   Future<void> switchEngine(PlayerEngine engine, {bool isManual = false, bool resumeCurrentSource = true}) async {
     preferredEngine = engine;
+    _relayCleanManifests = true;
     onEngineChanged?.call(engine);
     if (!_servingRoom) {
       // No room open: the next one starts on the new engine.
@@ -824,7 +858,12 @@ final class LivePlayerFacade {
     final interceptor = _sourceInterceptor;
     if (interceptor == null) return sources;
     final intercepted = await interceptor.intercept(
-      PlaybackSourceInterception(sources: sources, streamFacts: streamFacts, sourceQueryPolicies: sourceQueryPolicies),
+      PlaybackSourceInterception(
+        sources: sources,
+        streamFacts: streamFacts,
+        sourceQueryPolicies: sourceQueryPolicies,
+        relayCleanManifests: _relayCleanManifests,
+      ),
     );
     return intercepted.isEmpty ? sources : intercepted;
   }

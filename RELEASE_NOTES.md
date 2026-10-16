@@ -4,6 +4,15 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.5.0
+
+## ✨ 新功能
+
+- **HLS 线路用系统播放器**：「设置 › 播放器内核」里新增开关，默认打开。内核为 mpv 时，m3u8 线路（Twitch，以及各平台的 HLS 线路）改由系统自带的播放器播放：安卓用 ExoPlayer，iPhone/iPad 和 Mac 用 AVPlayer。系统播放器原生支持 HLS，连接复用、自动缓冲、硬件解码，更省电也更稳；打不开时自动退回 mpv。FLV 线路仍用 mpv。手动选了 IJK 或 Exo 内核时按你的选择。
+- **Mac 新增 AVPlayer 播放后端**：Mac 上播放 HLS 直播时使用苹果的 AVPlayer。
+
+---
+
 # Pure Live v3.4.5
 
 ## 🎬 直播间

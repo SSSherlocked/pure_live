@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:media_core/media_core.dart';
 import 'package:pure_live/core/player/kernel/player_consts.dart';
 import 'package:pure_live/core/player/presentation/fullscreen_window.dart';
@@ -17,6 +17,7 @@ import 'package:media_core_mediasession/media_core_mediasession.dart';
 import 'package:pure_live/core/player/kernel/media_kit_live_properties.dart';
 import 'package:pure_live/core/player/kernel/open_volume.dart';
 import 'package:media_core_better_player/media_core_better_player.dart';
+import 'package:media_core_video_player/media_core_video_player.dart' show VideoPlayerAdapterFactory;
 import 'package:pure_live/core/config/player_settings_controller.dart';
 
 class PlayerKernelService {
@@ -81,6 +82,13 @@ class PlayerKernelService {
           ).registration(),
         )
         ..registerBackend(const BetterPlayerAdapterFactory().registration());
+    }
+
+    // AVPlayer on macOS: HLS lines play there while the engine is mpv (see
+    // LivePlayerFacade._backendFor). iOS reaches AVPlayer through
+    // better_player.
+    if (defaultTargetPlatform == TargetPlatform.macOS) {
+      kernel.registerBackend(const VideoPlayerAdapterFactory().registration());
     }
 
     kernel.attachPresentation(

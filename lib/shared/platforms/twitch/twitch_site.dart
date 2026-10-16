@@ -801,7 +801,9 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
               "requestID": "JIRA-VXP-2397",
               "freeformTags": null,
               "tags": [],
-              "broadcasterLanguages": ["ZH", "KO"],
+              // Every language: Twitch is worldwide. A fixed ["ZH", "KO"] (from the
+              // upstream project) made 热门 and every category East Asian only.
+              "broadcasterLanguages": [],
               "systemFilters": [],
             },
             "sortTypeIsRecency": false,

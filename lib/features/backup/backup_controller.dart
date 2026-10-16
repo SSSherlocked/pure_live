@@ -257,45 +257,38 @@ class BackupController extends GetxController {
 
   void _importV2(Map<String, dynamic> data) {
     validateSectionStructure(data);
-    Get.find<AppSettingsController>().fromJson(Map<String, dynamic>.from(data['app'] ?? {}));
-
-    Get.find<ThemeSettingsController>().fromJson(Map<String, dynamic>.from(data['theme'] ?? {}));
-
-    Get.find<RoomCardSettingsController>().fromJson(Map<String, dynamic>.from(data['roomCard'] ?? {}));
-
-    Get.find<FontSettingsController>().fromJson(Map<String, dynamic>.from(data['font'] ?? {}));
-
-    Get.find<PlayerSettingsController>().fromJson(Map<String, dynamic>.from(data['player'] ?? {}));
-
-    Get.find<DanmakuSettingsController>().fromJson(Map<String, dynamic>.from(data['danmaku'] ?? {}));
-
-    Get.find<VolumeSettingsController>().fromJson(Map<String, dynamic>.from(data['volume'] ?? {}));
-
-    Get.find<FavoriteRoomController>().fromJson(Map<String, dynamic>.from(data['favorite'] ?? {}));
-
-    Get.find<HistoryController>().fromJson(Map<String, dynamic>.from(data['history'] ?? {}));
-
-    if (data.containsKey('webdav')) {
-      Get.find<WebDavController>().fromJson(Map<String, dynamic>.from(data['webdav'] ?? {}));
+    // Only the sections the backup carries. A section left out (a sync or a
+    // restore of only 关注, or a backup older than the section) keeps this
+    // device's settings: importing it as an empty map reset it to defaults,
+    // so syncing only the follow list also reset the theme, the player, the
+    // danmaku and every other section.
+    void section(String name, void Function(Map<String, dynamic> json) apply) {
+      if (data.containsKey(name)) apply(Map<String, dynamic>.from(data[name] ?? {}));
     }
 
-    Get.find<IptvSettingsController>().fromJson(Map<String, dynamic>.from(data['iptv'] ?? {}));
-
-    if (data.containsKey('cookie')) {
-      Get.find<CookieSettingsController>().fromJson(Map<String, dynamic>.from(data['cookie'] ?? {}));
-    }
-
-    Get.find<ProxySettingsController>().fromJson(Map<String, dynamic>.from(data['proxy'] ?? {}));
+    section('app', Get.find<AppSettingsController>().fromJson);
+    section('theme', Get.find<ThemeSettingsController>().fromJson);
+    section('roomCard', Get.find<RoomCardSettingsController>().fromJson);
+    section('font', Get.find<FontSettingsController>().fromJson);
+    section('player', Get.find<PlayerSettingsController>().fromJson);
+    section('danmaku', Get.find<DanmakuSettingsController>().fromJson);
+    section('volume', Get.find<VolumeSettingsController>().fromJson);
+    section('favorite', Get.find<FavoriteRoomController>().fromJson);
+    section('history', Get.find<HistoryController>().fromJson);
+    section('webdav', Get.find<WebDavController>().fromJson);
+    section('iptv', Get.find<IptvSettingsController>().fromJson);
+    section('cookie', Get.find<CookieSettingsController>().fromJson);
+    section('proxy', Get.find<ProxySettingsController>().fromJson);
 
     // Normalize both the old flat PiP rectangle and the former player-owned
     // rememberPipPosition flag before importing the current window settings.
-    Get.find<WindowSizeController>().fromJson(WindowSizeController.extractConfig(data));
+    if (data.containsKey('windowSize')) {
+      Get.find<WindowSizeController>().fromJson(WindowSizeController.extractConfig(data));
+    }
 
-    Get.find<ExitSettingsController>().fromJson(Map<String, dynamic>.from(data['exit'] ?? {}));
-
-    Get.find<StartupController>().fromJson(Map<String, dynamic>.from(data['startup'] ?? {}));
-
-    Get.find<RefreshConfigController>().fromJson(Map<String, dynamic>.from(data['refresh'] ?? {}));
+    section('exit', Get.find<ExitSettingsController>().fromJson);
+    section('startup', Get.find<StartupController>().fromJson);
+    section('refresh', Get.find<RefreshConfigController>().fromJson);
 
     // Only when present, for the same reason: older backups predate the
     // recorder section and must keep this device's recording preferences.
@@ -310,7 +303,7 @@ class BackupController extends GetxController {
   }
 
   /// Reject malformed sections before any controller persists an earlier one.
-  /// Missing/null sections keep their historical default-import behavior.
+  /// Missing sections are not imported (see _importV2).
   static void validateSectionStructure(Map<String, dynamic> data) {
     const sections = <String>[
       'app',

@@ -115,6 +115,9 @@ jobs:
             --env-files .env \
             --class-name AppConfig
       - uses: ./.github/actions/android-ndk
+      - uses: ./.github/actions/native-bundles
+        with:
+          target: android
       # A debug build: no signing secrets, and it compiles the same Kotlin
       # and Java as the release build.
       - name: Build Android debug APK

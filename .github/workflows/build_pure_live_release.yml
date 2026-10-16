@@ -160,6 +160,9 @@ jobs:
             --env-files .env \
             --class-name AppConfig
       - uses: ./.github/actions/android-ndk
+      - uses: ./.github/actions/native-bundles
+        with:
+          target: android
       - name: Build Android arm64-v8a release APK
         env:
           # CI runners are ephemeral, so the configuration cache would be
@@ -222,6 +225,9 @@ jobs:
           dart run enven `
             --env-files .env `
             --class-name AppConfig
+      - uses: ./.github/actions/native-bundles
+        with:
+          target: windows
       # Only the portable archive is published (no installer), so the app is
       # built with Flutter directly rather than packaged by fastforge.
       - name: Build Windows release
@@ -357,6 +363,9 @@ jobs:
           dart run enven \
             --env-files .env \
             --class-name AppConfig
+      - uses: ./.github/actions/native-bundles
+        with:
+          target: linux
       - name: Build Linux release
         run: |
           flutter build linux \
@@ -445,6 +454,9 @@ jobs:
           dart run enven \
             --env-files .env \
             --class-name AppConfig
+      - uses: ./.github/actions/native-bundles
+        with:
+          target: macos
       - name: Build macOS release
         run: |
           flutter build macos \
@@ -560,6 +572,9 @@ jobs:
           dart run enven \
             --env-files .env \
             --class-name AppConfig
+      - uses: ./.github/actions/native-bundles
+        with:
+          target: ios
       - name: Build iOS device application
         run: |
           flutter build ios \

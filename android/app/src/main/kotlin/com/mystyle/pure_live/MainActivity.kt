@@ -307,6 +307,17 @@ class MainActivity : AudioServiceActivity() {
             } else {
                 unregisterPredictiveBack()
             }
+            // While a player route is on screen the task snapshot is the
+            // window's plain background, not a frame of the stream. The
+            // system refreshes that snapshot only when the task leaves the
+            // screen by a path other than the system's own back-to-home
+            // (a Home swipe, the screen going off, an app switch), and the
+            // OnePlus/ColorOS launcher animates the cached snapshot when
+            // Back leaves the app from the home route: a room left earlier
+            // was shown shrinking into the icon. A plain card never shows a
+            // room that is no longer open; the home route keeps real
+            // snapshots.
+            setRecentsScreenshotEnabled(!enabled)
         }
     }
 

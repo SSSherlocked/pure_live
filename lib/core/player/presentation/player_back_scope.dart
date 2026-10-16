@@ -93,6 +93,9 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
   /// while the element lives, and `dispose` can no longer read a valid context.
   Route<dynamic>? _route;
 
+  /// Set once the route is popped or the scope disposes, whichever is first.
+  bool _released = false;
+
   bool get _usesNativeBack => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   @override
@@ -119,7 +122,7 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_usesNativeBack) return;
+    if (!_usesNativeBack || _released) return;
     final route = ModalRoute.of(context) ?? _route;
     if (route == null) return;
     _route = route;
@@ -202,25 +205,37 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
     }
   }
 
+  /// Hands Back to the rest of the app. Runs when the route is popped and
+  /// again from [dispose]; the second call is a no-op.
+  ///
+  /// The route pops before its widgets dispose (the pop transition runs in
+  /// between, and a page left while the app was in the background disposes
+  /// only once it is back). Until the native interception was switched off,
+  /// a Back in that window reached a scope whose route was already gone and
+  /// was swallowed: at the home route one Back did nothing.
+  void _releaseNativeBack() {
+    if (!_usesNativeBack || _released) return;
+    _released = true;
+    final route = _route;
+    if (route != null) _backScopeByRoute.remove(route);
+    // Only clear the shared callbacks when this scope is the last player
+    // standing: clearing them while another route is on screen is what made
+    // Back fall through to the route pop — one press left the page from
+    // fullscreen. `identical` keeps a successor's handlers intact.
+    if (_backScopeByRoute.isEmpty && identical(_nativeBack.onBackInvoked, _onInvoked)) {
+      _nativeBack.onBackStarted = null;
+      _nativeBack.onBackProgress = null;
+      _nativeBack.onBackCancelled = null;
+      _nativeBack.onBackInvoked = null;
+      // Disable unconditionally: dispose can race the asynchronous enable,
+      // and leaving the callback registered would consume Back on Home.
+      unawaited(_setNativeBackEnabled(false));
+    }
+  }
+
   @override
   void dispose() {
-    if (_usesNativeBack) {
-      final route = _route;
-      if (route != null) _backScopeByRoute.remove(route);
-      // Only clear the shared callbacks when this scope is the last player
-      // standing: clearing them while another route is on screen is what made
-      // Back fall through to the route pop — one press left the page from
-      // fullscreen. `identical` keeps a successor's handlers intact.
-      if (_backScopeByRoute.isEmpty && identical(_nativeBack.onBackInvoked, _onInvoked)) {
-        _nativeBack.onBackStarted = null;
-        _nativeBack.onBackProgress = null;
-        _nativeBack.onBackCancelled = null;
-        _nativeBack.onBackInvoked = null;
-        // Disable unconditionally: dispose can race the asynchronous enable,
-        // and leaving the callback registered would consume Back on Home.
-        unawaited(_setNativeBackEnabled(false));
-      }
-    }
+    _releaseNativeBack();
     super.dispose();
   }
 
@@ -229,7 +244,9 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
     return PopScope<Object?>(
       canPop: !widget.presentationActive,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && widget.presentationActive) {
+        if (didPop) {
+          _releaseNativeBack();
+        } else if (widget.presentationActive) {
           unawaited(_handlePresentationBack());
         }
       },

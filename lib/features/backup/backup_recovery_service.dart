@@ -36,13 +36,25 @@ class BackupRecoveryService {
       return null;
     }
 
+    final dateStr = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, 'T', HH, '_', nn, '_', ss]);
+    File fileIn(String directory) => File('$directory/purelive_$dateStr.txt');
+
+    // A backup directory that is set is where the backup goes, without
+    // asking. Only when it cannot be written (removed, or the permission to
+    // it lapsed) does the picker come up, starting there.
+    if (backupDirectory.isNotEmpty && await _exists(backupDirectory)) {
+      if (await backup.backup(fileIn(backupDirectory), sections: sections, password: password)) {
+        ToastUtil.show(i18n("create_backup_success"));
+        return backupDirectory;
+      }
+    }
+
     String? selectedDirectory = await FilePicker.getDirectoryPath(
       initialDirectory: backupDirectory.isEmpty ? null : backupDirectory,
     );
     if (selectedDirectory == null) return null;
 
-    final dateStr = formatDate(DateTime.now(), [yyyy, '-', mm, '-', dd, 'T', HH, '_', nn, '_', ss]);
-    final file = File('$selectedDirectory/purelive_$dateStr.txt');
+    final file = fileIn(selectedDirectory);
 
     if (await backup.backup(file, sections: sections, password: password)) {
       if (backup.backupDirectory.v.isEmpty) {
@@ -57,6 +69,14 @@ class BackupRecoveryService {
     } else {
       ToastUtil.show(i18n("create_backup_failed"));
       return null;
+    }
+  }
+
+  static Future<bool> _exists(String directory) async {
+    try {
+      return await Directory(directory).exists();
+    } catch (_) {
+      return false;
     }
   }
 

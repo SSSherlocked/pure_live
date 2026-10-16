@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -28,8 +29,23 @@ jobs:
         shell: bash
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           set -uo pipefail
+          # A push is compared with the last commit whose checks passed, not
+          # with the previous push: a newer push cancels a running check, so
+          # a docs-only push right after a code push would otherwise leave
+          # that code unchecked.
+          if [[ "$EVENT" == push ]]; then
+            passed=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=$BRANCH&event=push&status=success&per_page=1" \
+              --jq '.workflow_runs[0].head_sha // empty' 2>/dev/null || true)
+            if [[ -n "$passed" ]] && git merge-base --is-ancestor "$passed" HEAD 2>/dev/null; then
+              echo "Comparing with $passed, the last commit that passed."
+              BASE=$passed
+            fi
+          fi
           # Manual runs, new branches and rewritten history check everything.
           if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             echo "flutter=true" >> "$GITHUB_OUTPUT"

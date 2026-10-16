@@ -101,9 +101,40 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
       if (showBackToBottom.value) showBackToBottom.value = false;
       return;
     }
-    final offset = scrollController.offset;
-    final position = scrollController.position;
-    final maxScroll = position.maxScrollExtent;
+    if (scrollController.positions.length != 1) return;
+    onScrollMetrics(scrollController.position);
+  }
+
+  /// The vertical list last seen scrolling (see [onScrollNotification]): the
+  /// one the jump buttons move.
+  ScrollPosition? _seenPosition;
+
+  /// BasePageView reports each scroll of the list on screen here, with the
+  /// scrollable's [context].
+  void onScrollNotification(ScrollMetrics metrics, BuildContext? context) {
+    if (metrics.axis != Axis.vertical) return;
+    final scrollable = context == null ? null : Scrollable.maybeOf(context);
+    if (scrollable != null && scrollable.position.axis == Axis.vertical) _seenPosition = scrollable.position;
+    onScrollMetrics(metrics);
+  }
+
+  /// The list the jump buttons act on: the one last seen scrolling while it
+  /// is still on screen, else the bound controller's.
+  ScrollPosition? get _jumpTarget {
+    final seen = _seenPosition;
+    final owner = seen?.context;
+    if (seen != null && owner is State && owner.mounted && seen.hasContentDimensions) return seen;
+    final controller = scrollController;
+    if (controller.hasClients && controller.positions.length == 1) return controller.position;
+    return null;
+  }
+
+  /// Sets the jump buttons from a vertical list's [metrics].
+  void onScrollMetrics(ScrollMetrics metrics) {
+    if (isClosed || metrics.axis != Axis.vertical || !metrics.hasContentDimensions) return;
+    final offset = metrics.pixels;
+    final maxScroll = metrics.maxScrollExtent;
+    final atEdge = metrics.atEdge;
 
     if (offset > jumpButtonDistance && !showBackToTop.value) {
       showBackToTop.value = true;
@@ -111,7 +142,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
       showBackToTop.value = false;
     }
 
-    if (position.atEdge && offset > 0) {
+    if (atEdge && offset > 0) {
       showBackToBottom.value = false;
     } else {
       if (maxScroll - offset > jumpButtonDistance) {
@@ -127,15 +158,10 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
     _headerRetry?.cancel();
     scrollController.removeListener(_scrollListener);
     _boundScrollController = null;
+    _seenPosition = null;
     _ownedScrollController.dispose();
     easyRefreshController.dispose();
     super.onClose();
-  }
-
-  void scrollToTopImmediate() {
-    if (scrollController.hasClients) {
-      scrollController.jumpTo(0);
-    }
   }
 
   void finishRefreshControllers(IndicatorResult result) {
@@ -147,21 +173,23 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   }
 
   void scrollToBottom() {
-    if (!scrollController.hasClients) return;
-    final distance = (scrollController.position.maxScrollExtent - scrollController.offset).abs();
-    scrollController.animateTo(
-      scrollController.position.maxScrollExtent,
+    final position = _jumpTarget;
+    if (position == null) return;
+    final distance = (position.maxScrollExtent - position.pixels).abs();
+    position.animateTo(
+      position.maxScrollExtent,
       duration: _scrollAnimationDuration(distance),
       curve: Curves.easeOutCubic,
     );
   }
 
   void scrollToTopOrRefresh() {
-    if (!scrollController.hasClients) return;
-    if (scrollController.offset > 0) {
-      scrollController.animateTo(
+    final position = _jumpTarget;
+    if (position == null) return;
+    if (position.pixels > 0) {
+      position.animateTo(
         0,
-        duration: _scrollAnimationDuration(scrollController.offset),
+        duration: _scrollAnimationDuration(position.pixels),
         curve: Curves.easeOutCubic,
       );
     } else {

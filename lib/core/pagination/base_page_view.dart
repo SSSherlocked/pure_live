@@ -133,7 +133,23 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
                 ),
               ),
               Expanded(
-                child: LayoutBuilder(
+                // The jump buttons follow whichever vertical list is being
+                // scrolled, from its own notifications: a tabbed page binds
+                // a ScrollController per tab, and a binding that lagged
+                // behind the page on screen left the buttons deaf to
+                // scrolling (they appeared only when loading more re-read
+                // the position).
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    controller.onScrollNotification(notification.metrics, notification.context);
+                    return false;
+                  },
+                  child: NotificationListener<ScrollMetricsNotification>(
+                    onNotification: (notification) {
+                      controller.onScrollNotification(notification.metrics, notification.context);
+                      return false;
+                    },
+                    child: LayoutBuilder(
                   builder: (context, constraint) {
                     return Obx(() {
                       if (controller.list.isEmpty) {
@@ -157,6 +173,8 @@ class BasePageView<C extends BasePageScrollAndStateBone<T>, T> extends Stateless
                       return buildActualContent(context);
                     });
                   },
+                ),
+                  ),
                 ),
               ),
             ],

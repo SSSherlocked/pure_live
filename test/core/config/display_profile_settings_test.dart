@@ -10,6 +10,7 @@ import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/core/config/profiled_settings.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/core/config/theme_settings_controller.dart';
+import 'package:pure_live/core/config/player_settings_controller.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
 
@@ -353,6 +354,31 @@ void main() {
         expect(values['crossAxisSpacing'], 10);
         expect(values['livePanelWidth'], 720);
       }
+    });
+  });
+
+  group('全屏时自动旋转', () {
+    test('旧备份的单值给三套；新备份按档位读回，extractConfig 带出三套', () {
+      final old = PlayerSettingsController.parseConfig({'fullscreenAutoRotate': true});
+      for (final profile in DisplayProfile.values) {
+        expect(_profileOf(old, PlayerSettingsController.profilesKey, profile)['fullscreenAutoRotate'], isTrue);
+      }
+
+      final extracted = PlayerSettingsController.extractConfig({
+        'player': {
+          'fullscreenAutoRotate': false,
+          PlayerSettingsController.profilesKey: {
+            'phone': {'fullscreenAutoRotate': true},
+            'tablet': {'fullscreenAutoRotate': 'yes'},
+          },
+        },
+      });
+      final profiles = PlayerSettingsController.profilesKey;
+      expect(_profileOf(extracted, profiles, DisplayProfile.phone)['fullscreenAutoRotate'], isTrue);
+      // A bad value falls back to the backup's single value.
+      expect(_profileOf(extracted, profiles, DisplayProfile.tablet)['fullscreenAutoRotate'], isFalse);
+      expect(_profileOf(extracted, profiles, DisplayProfile.desktop)['fullscreenAutoRotate'], isFalse);
+      expect(() => jsonEncode(extracted), returnsNormally);
     });
   });
 }

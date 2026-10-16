@@ -70,6 +70,10 @@ class WindowService {
   factory WindowService() => _instance;
   WindowService._internal();
 
+  /// Whether the activity holds the sensor landscape of 全屏时自动旋转, which
+  /// a large screen (no orientation lock of its own) has to release on exit.
+  bool _sensorLandscape = false;
+
   bool _canApplyMobileOrientationLock() {
     if (!Platform.isAndroid) return true;
     final views = WidgetsBinding.instance.platformDispatcher.views;
@@ -88,7 +92,16 @@ class WindowService {
       if (kIsWeb) {
         await document.documentElement?.requestFullscreen();
       } else if (Platform.isAndroid || Platform.isIOS) {
+        // 全屏时自动旋转: the two landscape sides follow the sensor even with
+        // the system rotation lock on, on a tablet too.
+        if (Platform.isAndroid &&
+            SettingsService.to.player.fullscreenAutoRotate.v &&
+            await DisplayModeService.setSensorLandscape()) {
+          _sensorLandscape = true;
+          return;
+        }
         if (!_canApplyMobileOrientationLock()) return;
+        _sensorLandscape = false;
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.landscapeLeft,
           DeviceOrientation.landscapeRight,
@@ -103,12 +116,19 @@ class WindowService {
   }
 
   Future<void> verticalScreen() async {
-    if (!_canApplyMobileOrientationLock()) return;
+    if (!_canApplyMobileOrientationLock()) {
+      // A large screen is never locked to portrait, only released from the
+      // sensor landscape it may hold.
+      if (_sensorLandscape) await followSystemOrientation();
+      return;
+    }
+    _sensorLandscape = false;
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
 
   Future<void> followSystemOrientation() async {
     if (!(Platform.isAndroid || Platform.isIOS)) return;
+    _sensorLandscape = false;
     await SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
   }
 

@@ -2,6 +2,7 @@ package com.mystyle.purelive
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.util.Log
 import android.graphics.Color
 import android.hardware.display.DisplayManager
@@ -228,6 +229,15 @@ class MainActivity : AudioServiceActivity() {
                     }
 
                     "getDisplayModeInfo" -> result.success(displayModeInfo())
+
+                    // 全屏时自动旋转: both landscape sides follow the sensor
+                    // even with the system rotation lock on, which Flutter's
+                    // landscape preference (USER_LANDSCAPE) respects. Flutter's
+                    // next orientation preference replaces it.
+                    "setSensorLandscape" -> {
+                        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                        result.success(true)
+                    }
 
                     else -> result.notImplemented()
                 }

@@ -38,7 +38,8 @@ class SettingsService extends GetxService {
   LogController get log => Get.find<LogController>();
 
   /// Makes every per-profile setting (danmaku style and chat list, room cards
-  /// and grid spacing, text sizes, live panel widths) hold [profile]'s values.
+  /// and grid spacing, text sizes, live panel widths, fullscreen auto-rotate)
+  /// hold [profile]'s values.
   /// The app shell calls it whenever the resolved layout changes; a no-op
   /// while the profile stays the same. The profile is remembered on this
   /// device so the next launch starts from it.
@@ -47,6 +48,7 @@ class SettingsService extends GetxService {
     roomCard.useProfile(profile);
     theme.useProfile(profile);
     font.useProfile(profile);
+    player.useProfile(profile);
     if (ProfiledSettings.lastProfile != profile) {
       unawaited(HivePrefUtil.setString(ProfiledSettings.lastProfileKey, profile.name));
     }

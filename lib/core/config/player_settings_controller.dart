@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
+import 'package:pure_live/core/config/profiled_settings.dart';
 import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/core/player/kernel/player_engine_output.dart';
 import 'package:pure_live/core/player/super_resolution.dart';
@@ -254,6 +255,35 @@ class PlayerSettingsController extends GetxController {
   final RxMap<String, String> portraitRoomOverrides = <String, String>{}.obs;
   final RxMap<String, String> _sessionPortraitRoomOverrides = <String, String>{}.obs;
 
+  /// Android: a landscape fullscreen turns between its two sides with the
+  /// phone even when the system rotation lock is on. Kept per profile, so a
+  /// phone and a tablet sharing a backup keep their own.
+  final RxBool fullscreenAutoRotate = hiveBool('fullscreenAutoRotate', false);
+
+  /// Hive key prefix and backup key of the per-profile settings.
+  static const String profilePrefix = 'playerProfile';
+  static const String profilesKey = 'playerProfiles';
+
+  static final _fullscreenAutoRotateSpec = ProfiledSpec<bool>(
+    'fullscreenAutoRotate',
+    fallback: false,
+    read: ProfiledSpec.flag,
+  );
+
+  /// What the phone, the tablet and the desktop profile keep apart.
+  static List<ProfiledSpec> get profiledSpecs => [_fullscreenAutoRotateSpec];
+
+  /// The per-profile settings above; their fields always hold the active
+  /// profile's values (see [ProfiledSettings]).
+  late final ProfiledSettings profiles = ProfiledSettings(profilePrefix, [
+    _fullscreenAutoRotateSpec.bind(fullscreenAutoRotate),
+  ]);
+
+  /// The profile the per-profile fields hold.
+  Rx<DisplayProfile> get profile => profiles.profile;
+
+  void useProfile(DisplayProfile profile) => profiles.use(profile);
+
   PortraitLayoutMode get portraitLayoutMode =>
       _enumByName(PortraitLayoutMode.values, portraitLayoutModeName.v, PortraitLayoutMode.balanced);
 
@@ -298,6 +328,7 @@ class PlayerSettingsController extends GetxController {
     if (videoPlayerKey.v != normalizedPlayerKey) videoPlayerKey.v = normalizedPlayerKey;
     _normalizeMpvSettingsForPlatform(defaultTargetPlatform);
     _loadPortraitRoomOverrides(_portraitRoomOverridesRaw.v);
+    profiles.init();
     _workers.addAll([
       ever<int>(videoFitIndex, (_) => _repairPlaybackPreferences()),
       ever<String>(preferResolution, (_) => _repairPlaybackPreferences()),
@@ -311,6 +342,7 @@ class PlayerSettingsController extends GetxController {
       worker.dispose();
     }
     _workers.clear();
+    profiles.dispose();
     super.onClose();
   }
 
@@ -502,13 +534,17 @@ class PlayerSettingsController extends GetxController {
       'rememberPortraitRoomOverride': rememberPortraitRoomOverride.v,
       'showPortraitDiagnostics': showPortraitDiagnostics.v,
       'portraitRoomOverrides': Map<String, String>.from(portraitRoomOverrides),
+      'fullscreenAutoRotate': fullscreenAutoRotate.v,
+      // The single key above carries the active profile's value (what an
+      // older build restores); this carries all three profiles.
+      profilesKey: profiles.export(),
     };
   }
 
   /// Parse the complete section without notifying observers or persisting values.
   static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
     T typed<T>(dynamic value) => value as T;
-    return {
+    final parsed = <String, dynamic>{
       'portraitRoomOverrides': parsePortraitRoomOverrides(json['portraitRoomOverrides'] ?? '{}'),
       'videoFitIndex': normalizeVideoFitIndex(typed<int>(json['videoFitIndex'] ?? defaultVideoFitIndex)),
       'videoPlayerKey': normalizeVideoPlayerKeyForPlatform(
@@ -572,7 +608,12 @@ class PlayerSettingsController extends GetxController {
       ),
       'rememberPortraitRoomOverride': typed<bool>(json['rememberPortraitRoomOverride'] ?? true),
       'showPortraitDiagnostics': typed<bool>(json['showPortraitDiagnostics'] ?? false),
+      'fullscreenAutoRotate': _fullscreenAutoRotateSpec.decode(json['fullscreenAutoRotate']),
     };
+    // A backup from before the profiles has only the single value: every
+    // profile takes it.
+    parsed[profilesKey] = ProfiledSettings.parse(profiledSpecs, json[profilesKey], legacy: (_) => parsed);
+    return parsed;
   }
 
   void fromJson(Map<String, dynamic> json) {
@@ -605,6 +646,8 @@ class PlayerSettingsController extends GetxController {
     portraitDanmakuModeName.v = parsed['portraitDanmakuModeName'];
     rememberPortraitRoomOverride.v = parsed['rememberPortraitRoomOverride'];
     showPortraitDiagnostics.v = parsed['showPortraitDiagnostics'];
+    // 全屏时自动旋转 comes from the restored active profile.
+    profiles.restore(parsed[profilesKey] as Map<String, dynamic>);
     portraitRoomOverrides.assignAll(parsed['portraitRoomOverrides']);
     _persistPortraitRoomOverrides();
     engineOutputsFromJson(json['engineOutputs']);
@@ -612,6 +655,7 @@ class PlayerSettingsController extends GetxController {
 
   static Map<String, dynamic> extractConfig(Map<String, dynamic>? rootConfig) {
     final player = rootConfig?['player'] as Map<String, dynamic>? ?? {};
+    final parsed = parseConfig(player);
     return {
       'videoFitIndex': normalizeVideoFitIndex((player['videoFitIndex'] ?? defaultVideoFitIndex) as int),
       'videoPlayerKey': normalizeVideoPlayerKeyForPlatform(
@@ -679,6 +723,8 @@ class PlayerSettingsController extends GetxController {
       'showPortraitDiagnostics': player['showPortraitDiagnostics'] ?? false,
       'portraitRoomOverrides': player['portraitRoomOverrides'] ?? {},
       'engineOutputs': player['engineOutputs'] ?? {},
+      'fullscreenAutoRotate': parsed['fullscreenAutoRotate'],
+      profilesKey: parsed[profilesKey],
     };
   }
 

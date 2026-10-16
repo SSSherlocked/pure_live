@@ -113,6 +113,19 @@ class DisplayModeService {
     }
   }
 
+  /// Android: lets a landscape screen turn between its two sides with the
+  /// sensor, the system rotation lock notwithstanding, until the next
+  /// orientation preference. Answers whether it was applied.
+  static Future<bool> setSensorLandscape() async {
+    try {
+      return await _channel.invokeMethod<bool>('setSensorLandscape') ?? false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
+  }
+
   static Future<DisplayModeInfo?> refreshInfo() async {
     _ensureHandler();
     try {

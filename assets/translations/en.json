@@ -1868,5 +1868,7 @@
   "value_seconds": "{n} s",
   "value_minutes": "{n} min",
   "value_hours": "{n} h",
-  "favorite_page_layout": "Following page shows"
+  "favorite_page_layout": "Following page shows",
+  "fullscreen_auto_rotate": "Auto-rotate in fullscreen",
+  "fullscreen_auto_rotate_desc": "A landscape fullscreen turns between its two sides with the device, even with the system rotation lock on. Kept separately for phone and tablet; this edits the current one."
 }

@@ -9,6 +9,7 @@ class PlaybackSourceInterception {
     required this.sources,
     this.streamFacts = const <String, LiveStreamFacts>{},
     this.sourceQueryPolicies = const <String, HlsSourceQueryPolicy>{},
+    this.blockTwitchAds = false,
   });
 
   final List<PlayerSource> sources;
@@ -16,6 +17,10 @@ class PlaybackSourceInterception {
   final Map<String, LiveStreamFacts> streamFacts;
 
   final Map<String, HlsSourceQueryPolicy> sourceQueryPolicies;
+
+  /// Whether a Twitch line goes through the Dart relay with its ad segments
+  /// taken out (see TwitchAdBreaks).
+  final bool blockTwitchAds;
 }
 
 abstract interface class PlaybackSourceInterceptor {

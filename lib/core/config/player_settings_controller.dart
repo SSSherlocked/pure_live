@@ -227,6 +227,10 @@ class PlayerSettingsController extends GetxController {
   final RxBool audioOnly = false.obs;
   final RxBool useHardStopOnExit = hiveBool('useHardStopOnExit', false);
 
+  /// Twitch's stitched-in ads are taken out of the stream: the break is
+  /// waited out instead of watched.
+  final RxBool blockTwitchAds = hiveBool('blockTwitchAds', true);
+
   /// Anime4K super-resolution mode (Windows/desktop GPUs only).
   final RxString superResolutionMode = hiveString('superResolutionMode', SuperResolutionMode.off.name);
 
@@ -522,6 +526,7 @@ class PlayerSettingsController extends GetxController {
       'windowsPipMinHeight': windowsPipMinHeight.v,
       'audioOnly': false,
       'useHardStopOnExit': useHardStopOnExit.v,
+      'blockTwitchAds': blockTwitchAds.v,
       'superResolutionMode': SuperResolutionMode.fromName(superResolutionMode.v).name,
       'enablePortraitStreamAdaptation': enablePortraitStreamAdaptation.v,
       'letterboxPageColor': letterboxPageColor.v,
@@ -579,6 +584,7 @@ class PlayerSettingsController extends GetxController {
       'windowsPipMinHeight': typed<double>((json['windowsPipMinHeight'] ?? 90.0).toDouble().clamp(60.0, 240.0)),
       'audioOnly': typed<bool>(false),
       'useHardStopOnExit': typed<bool>(json['useHardStopOnExit'] ?? false),
+      'blockTwitchAds': typed<bool>(json['blockTwitchAds'] ?? true),
       'superResolutionMode': SuperResolutionMode.fromName(
         typed<String>(json['superResolutionMode'] ?? SuperResolutionMode.off.name),
       ).name,
@@ -635,6 +641,7 @@ class PlayerSettingsController extends GetxController {
     windowsPipMinHeight.v = parsed['windowsPipMinHeight'];
     audioOnly.v = parsed['audioOnly'];
     useHardStopOnExit.v = parsed['useHardStopOnExit'];
+    blockTwitchAds.v = parsed['blockTwitchAds'];
     superResolutionMode.v = parsed['superResolutionMode'];
     enablePortraitStreamAdaptation.v = parsed['enablePortraitStreamAdaptation'];
     letterboxPageColor.v = parsed['letterboxPageColor'];
@@ -694,6 +701,7 @@ class PlayerSettingsController extends GetxController {
       'rememberPipPosition': player['rememberPipPosition'] ?? true,
       'audioOnly': false,
       'useHardStopOnExit': player['useHardStopOnExit'] ?? false,
+      'blockTwitchAds': player['blockTwitchAds'] ?? true,
       'superResolutionMode': SuperResolutionMode.fromName(player['superResolutionMode']?.toString()).name,
       'enablePortraitStreamAdaptation': player['enablePortraitStreamAdaptation'] ?? true,
       'letterboxPageColor': player['letterboxPageColor'] ?? false,

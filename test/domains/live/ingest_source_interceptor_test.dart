@@ -32,6 +32,7 @@ class _ScriptedTransport extends PlaybackSourceTransport {
     LiveStreamFacts? facts,
     HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
+    bool blockTwitchAds = false,
   }) async {
     prepareCalls++;
     requestedUrl = url;

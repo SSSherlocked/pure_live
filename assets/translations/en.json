@@ -1859,5 +1859,8 @@
   "fullscreen_auto_rotate": "Rotate fullscreen with rotation lock on",
   "fullscreen_auto_rotate_desc": "Saved to {profile} only",
   "landscape_fullscreen": "Fullscreen in landscape",
-  "landscape_fullscreen_desc": "Needs system auto-rotate; turning back to portrait exits"
+  "landscape_fullscreen_desc": "Needs system auto-rotate; turning back to portrait exits",
+  "block_twitch_ads": "Block Twitch ads",
+  "block_twitch_ads_subtitle": "Wait out ad breaks instead of playing them",
+  "twitch_ad_break": "Twitch ad break; the stream resumes shortly"
 }

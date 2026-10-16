@@ -61,6 +61,12 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 subtitle: i18n('force_destroy_player_subtitle'),
                 value: SettingsService.to.player.useHardStopOnExit,
               ),
+              context.buildSwitchTile(
+                icon: Remix.forbid_line,
+                title: i18n('block_twitch_ads'),
+                subtitle: i18n('block_twitch_ads_subtitle'),
+                value: SettingsService.to.player.blockTwitchAds,
+              ),
             ]);
           }),
           Obx(() {

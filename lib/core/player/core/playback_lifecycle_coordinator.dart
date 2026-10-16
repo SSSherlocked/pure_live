@@ -29,7 +29,6 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
     required LifecycleResumeCallback resumeFromLifecycle,
     required bool Function() shouldContinueInBackground,
     required bool Function() isAudioOnly,
-    required bool Function() isSleepSessionActive,
     required Future<void> Function() commitAudioOnlyPowerSaving,
     required Future<void> Function() prepareAudioOnlyVideoRestore,
     this.hiddenPauseDelay = const Duration(milliseconds: 1500),
@@ -37,7 +36,6 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
        _resumeFromLifecycle = resumeFromLifecycle,
        _shouldContinueInBackground = shouldContinueInBackground,
        _isAudioOnly = isAudioOnly,
-       _isSleepSessionActive = isSleepSessionActive,
        _commitAudioOnlyPowerSaving = commitAudioOnlyPowerSaving,
        _prepareAudioOnlyVideoRestore = prepareAudioOnlyVideoRestore;
 
@@ -51,7 +49,6 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
   final LifecycleResumeCallback _resumeFromLifecycle;
   final bool Function() _shouldContinueInBackground;
   final bool Function() _isAudioOnly;
-  final bool Function() _isSleepSessionActive;
   final Future<void> Function() _commitAudioOnlyPowerSaving;
   final Future<void> Function() _prepareAudioOnlyVideoRestore;
 
@@ -154,7 +151,7 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
     _hiddenPauseTimer = null;
     _hiddenPauseRevision++;
     _hiddenApplied = false;
-    if (_isAudioOnly() && !_isSleepSessionActive()) {
+    if (_isAudioOnly()) {
       await _prepareAudioOnlyVideoRestore();
     }
 

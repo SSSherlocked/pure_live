@@ -208,8 +208,8 @@ final class LivePlayerFacade {
     if (_disposed) return;
     _sourceResolver = sourceResolver;
     // The open says what the room wants, both ways: a 纯音频 left on by the
-    // previous room (or an ASMR start since turned off) must not carry over,
-    // with the picture covered or its decoder still off.
+    // previous room must not carry over, with the picture covered or its
+    // decoder still off.
     if (audioOnly) {
       await setAudioOnlyMode(true, stopVideoDecoding: true);
     } else if (_audioOnlyMode.value) {
@@ -297,8 +297,8 @@ final class LivePlayerFacade {
     if (_disposed) return;
     _sourceResolver = sourceResolver;
     // The open says what the room wants, both ways: a 纯音频 left on by the
-    // previous room (or an ASMR start since turned off) must not carry over,
-    // with the picture covered or its decoder still off.
+    // previous room must not carry over, with the picture covered or its
+    // decoder still off.
     if (audioOnly) {
       await setAudioOnlyMode(true, stopVideoDecoding: true);
     } else if (_audioOnlyMode.value) {

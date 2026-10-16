@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/core/theme/theme.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 
+/// The gap Flutter keeps before a submenu entry's trailing arrow (its label
+/// spacing at standard density, which the floating menus use). The arrow is
+/// drawn on the left here, but the gap stays and made the entry - and with
+/// it the whole menu - that much wider than its other entries.
+const double _submenuArrowGap = 12;
+
 /// Width of a player submenu whose labels are not given.
 const double playerSubmenuWidth = 152;
 
@@ -61,7 +67,16 @@ class LeftSubmenuButton extends StatelessWidget {
         ? playerSubmenuWidth
         : menuLabelWidth(context, names, PlayerMenuChoice.styleOf(context)) + playerMenuItemPadding + entryLeadingWidth;
     return SubmenuButton(
-      style: style,
+      // The end padding gives back the gap left for the (empty) trailing
+      // arrow, so the entry is as wide as a plain one with the same label.
+      style: (style ?? const ButtonStyle()).copyWith(
+        padding: const WidgetStatePropertyAll(
+          EdgeInsetsDirectional.only(
+            start: kFloatingMenuItemHorizontalPadding,
+            end: kFloatingMenuItemHorizontalPadding - _submenuArrowGap,
+          ),
+        ),
+      ),
       leadingIcon: _submenuLeading(leadingIcon),
       // The arrow is drawn before the label instead.
       submenuIcon: const WidgetStatePropertyAll(SizedBox.shrink()),

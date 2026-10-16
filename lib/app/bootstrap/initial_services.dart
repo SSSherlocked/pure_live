@@ -155,7 +155,7 @@ class InitialServices {
   }
 
   /// Retire the legacy global default so an old backup or persisted value can
-  /// no longer make new rooms audio-only after ASMR has been disabled.
+  /// no longer make new rooms audio-only.
   static Future<void> _migrateRoomScopedAudioOnly() async {
     const migrationKey = 'migration.room_scoped_audio_only.v231';
     if (HivePrefUtil.getBool(migrationKey) == true) return;

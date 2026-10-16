@@ -395,7 +395,6 @@ class LivePlayController extends GetxController
   bool _reactiveStateClosed = false;
   int _roomLoadEpoch = 0;
   int _iptvPlaybackEpoch = 0;
-  bool _asmrSessionActive = false;
   Timer? _danmakuFlushTimer;
   Worker? _pipStateWorker;
   Worker? _screenKeepOnWorker;
@@ -445,14 +444,11 @@ class LivePlayController extends GetxController
     });
     LiveAudioFocus.instance.pausedByInterruption.addListener(_syncBackgroundHold);
     LiveAudioFocus.instance.onNoisyPause = _markUserPause;
-    LiveAudioService.onSleepTimerPause = _markUserPause;
     BackgroundPlaybackService.setRemotePauseListener(_remotePauseListener);
-    final autoStartAsmr = Platform.isAndroid && SettingsService.to.app.enableAsmrSleepMode.v;
-    _asmrSessionActive = autoStartAsmr;
     state.value = LivePlayState(
       room: RoomState(detail: room, isLiving: true, success: false),
-      // ASMR is the only automatic audio-only entry point. Manual headphone
-      // switching is scoped to the current room and is never persisted.
+      // Audio-only is the headphone action's alone: scoped to the current
+      // room and never persisted.
       player: PlayerState(
         qualites: const <LivePlayQuality>[],
         currentQuality: 0,
@@ -460,15 +456,11 @@ class LivePlayController extends GetxController
         sourceQueryPolicies: const {},
         streamFacts: const {},
         currentLineIndex: 0,
-        isCurrentRoomAudioOnly: autoStartAsmr,
+        isCurrentRoomAudioOnly: false,
         hasUseDefaultResolution: false,
       ),
       ui: UIState(closeTimes: 60, closeTimeFlag: false),
     );
-    unawaited(
-      LiveAudioService.configureSleepTimer(enabled: autoStartAsmr, minutes: SettingsService.to.app.asmrSleepMinutes.v),
-    );
-
     _initControllers();
     _danmakuPresentationRecovery = DanmakuPresentationRecovery(
       isBlocked: () => GlobalPlayerService.instance.player.isCompactModeActive,
@@ -991,31 +983,9 @@ class LivePlayController extends GetxController
     updateRoom(liveroom: candidate.withAudienceFallbackFrom(detail));
   }
 
-  /// Applies the headphone action to this room only. Restoring video also
-  /// ends an automatically started ASMR timer, while manually entering audio
-  /// mode does not implicitly create a sleep session.
+  /// Applies the headphone action to this room only.
   @override
   Future<void> setCurrentRoomAudioOnlyFromUser(bool value) async {
-    if (!value && _asmrSessionActive) {
-      _asmrSessionActive = false;
-      // Stopping the sleep timer updates its in-memory state synchronously, but
-      // the Android keep-alive channel may answer slowly on a busy vendor ROM.
-      // Keep that platform cleanup out of the native video-track transition so
-      // restoring video never waits behind the foreground service.
-      unawaited(
-        LiveAudioService.configureSleepTimer(
-          enabled: false,
-          minutes: SettingsService.to.app.asmrSleepMinutes.v,
-        ).catchError((Object error, StackTrace stackTrace) {
-          Log.dev(
-            'Sleep timer cleanup failed during video restore',
-            name: 'LivePlayController',
-            error: error,
-            stackTrace: stackTrace,
-          );
-        }),
-      );
-    }
     await playerController.changeCurrentRoomAudioOnly(value);
   }
 
@@ -1331,13 +1301,7 @@ class LivePlayController extends GetxController
     updatePlayer(hasUseDefaultResolution: false);
     updateUI(refreshKey: 0);
 
-    final autoStartAsmr = Platform.isAndroid && SettingsService.to.app.enableAsmrSleepMode.v;
-    _asmrSessionActive = autoStartAsmr;
-    await LiveAudioService.configureSleepTimer(
-      enabled: autoStartAsmr,
-      minutes: SettingsService.to.app.asmrSleepMinutes.v,
-    );
-    updatePlayer(isCurrentRoomAudioOnly: autoStartAsmr);
+    updatePlayer(isCurrentRoomAudioOnly: false);
 
     updateRoom(liveroom: newRoom);
     currentSite = Sites.of(newRoom.platform!);
@@ -1545,7 +1509,6 @@ class LivePlayController extends GetxController
     _roomStateHoldWorker?.dispose();
     LiveAudioFocus.instance.pausedByInterruption.removeListener(_syncBackgroundHold);
     if (LiveAudioFocus.instance.onNoisyPause == _markUserPause) LiveAudioFocus.instance.onNoisyPause = null;
-    if (LiveAudioService.onSleepTimerPause == _markUserPause) LiveAudioService.onSleepTimerPause = null;
     BackgroundPlaybackService.clearRemotePauseListener(_remotePauseListener);
     _backgroundKeeper.dispose();
     unawaited(BackgroundPlaybackService.setForegroundHold(false));
@@ -1564,13 +1527,6 @@ class LivePlayController extends GetxController
     tabController.dispose();
     unawaited(_danmakuRemovals.close());
 
-    // The sleep session belongs to this room; a later room must not be
-    // paused by its timer.
-    if (_asmrSessionActive || LiveAudioService.isSleepSessionActive) {
-      unawaited(
-        LiveAudioService.configureSleepTimer(enabled: false, minutes: SettingsService.to.app.asmrSleepMinutes.v),
-      );
-    }
     unawaited(_disposeNormalRouteResources());
     super.onClose();
   }

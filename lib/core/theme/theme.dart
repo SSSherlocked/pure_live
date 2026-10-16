@@ -12,6 +12,9 @@ const double kFloatingMenuItemHeight = 32;
 /// Top and bottom padding of a floating menu panel (75 % of the default 8).
 const double kFloatingMenuVerticalPadding = 6;
 
+/// Space on either side of a floating menu entry.
+const double kFloatingMenuItemHorizontalPadding = 16;
+
 /// Corner radius of a floating menu panel: nearly square.
 const double kFloatingMenuCornerRadius = 4;
 
@@ -341,7 +344,7 @@ class MyTheme {
         style: ButtonStyle(
           minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight)),
           // Room for a submenu arrow hanging left of the icon.
-          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
+          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: kFloatingMenuItemHorizontalPadding)),
           visualDensity: VisualDensity.standard,
           // Phones otherwise pad every entry to a 48 px tap target, which
           // undid the 32 px entries on touch platforms only.

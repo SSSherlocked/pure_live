@@ -104,13 +104,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
             ),
             if (Platform.isAndroid)
               context.buildSwitchTile(
-                icon: Icons.screen_rotation_rounded,
-                title: i18n('fullscreen_auto_rotate'),
-                subtitle: i18n('fullscreen_auto_rotate_desc'),
-                value: settings.fullscreenAutoRotate,
-              ),
-            if (Platform.isAndroid)
-              context.buildSwitchTile(
                 icon: Icons.picture_in_picture_alt_rounded,
                 title: i18n('portrait_pip_follow_source'),
                 subtitle: i18n('portrait_pip_follow_source_desc'),

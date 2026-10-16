@@ -9,7 +9,6 @@ import 'package:pure_live/core/player/core/playback_lifecycle_coordinator.dart';
 void main() {
   late List<String> calls;
   late bool audioOnly;
-  late bool sleepSession;
   late bool continueInBackground;
   late PlaybackLifecycleCoordinator coordinator;
 
@@ -26,7 +25,6 @@ void main() {
       },
       shouldContinueInBackground: () => continueInBackground,
       isAudioOnly: () => audioOnly,
-      isSleepSessionActive: () => sleepSession,
       commitAudioOnlyPowerSaving: () async => calls.add('commitPowerSaving'),
       prepareAudioOnlyVideoRestore: () async => calls.add('prepareVideoRestore'),
       hiddenPauseDelay: hiddenPauseDelay,
@@ -36,7 +34,6 @@ void main() {
   setUp(() {
     calls = <String>[];
     audioOnly = false;
-    sleepSession = false;
     continueInBackground = true;
     coordinator = build();
   });
@@ -64,17 +61,6 @@ void main() {
       await coordinator.handleState(AppLifecycleState.resumed);
 
       expect(calls, <String>['prepareVideoRestore']);
-    });
-
-    test('助眠会话回前台不恢复：它整夜都要省电', () async {
-      audioOnly = true;
-      sleepSession = true;
-
-      await coordinator.handleState(AppLifecycleState.hidden);
-      calls.clear();
-      await coordinator.handleState(AppLifecycleState.resumed);
-
-      expect(calls, isNot(contains('prepareVideoRestore')));
     });
 
     test('普通视频模式退到后台不动解码', () async {

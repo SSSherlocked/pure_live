@@ -47,8 +47,6 @@ class AppSettingsController extends GetxController {
   final RxBool backgroundAudioOnly = hiveBool('backgroundAudioOnly', false);
   final RxBool backgroundPauseDanmaku = hiveBool('backgroundPauseDanmaku', false);
   final RxBool pauseOnPipClose = hiveBool('pauseOnPipClose', false);
-  final RxBool enableAsmrSleepMode = hiveBool('enableAsmrSleepMode', false);
-  final RxInt asmrSleepMinutes = hiveInt('asmrSleepMinutes', 60);
   final RxBool enableRotateScreen = hiveBool('enableRotateScreen', false);
   final RxBool enableScreenKeepOn = hiveBool('enableScreenKeepOn', true);
   final RxBool enableFullScreenDefault = hiveBool('enableFullScreenDefault', false);
@@ -210,8 +208,6 @@ class AppSettingsController extends GetxController {
       'backgroundAudioOnly': backgroundAudioOnly.v,
       'backgroundPauseDanmaku': backgroundPauseDanmaku.v,
       'pauseOnPipClose': pauseOnPipClose.v,
-      'enableAsmrSleepMode': enableAsmrSleepMode.v,
-      'asmrSleepMinutes': asmrSleepMinutes.v,
       'enableRotateScreen': enableRotateScreen.v,
       'enableScreenKeepOn': enableScreenKeepOn.v,
       'enableFullScreenDefault': enableFullScreenDefault.v,
@@ -236,10 +232,6 @@ class AppSettingsController extends GetxController {
       'backgroundAudioOnly': typed<bool>(json['backgroundAudioOnly'] ?? false),
       'backgroundPauseDanmaku': typed<bool>(json['backgroundPauseDanmaku'] ?? false),
       'pauseOnPipClose': typed<bool>(json['pauseOnPipClose'] ?? false),
-      'enableAsmrSleepMode': typed<bool>(json['enableAsmrSleepMode'] ?? false),
-      'asmrSleepMinutes': typed<int>(
-        (((json['asmrSleepMinutes'] as num?)?.toInt() ?? 60).clamp(1, maxSleepMinutes)).toInt(),
-      ),
       'enableRotateScreen': typed<bool>(json['enableRotateScreen'] ?? false),
       'enableScreenKeepOn': typed<bool>(json['enableScreenKeepOn'] ?? true),
       'enableFullScreenDefault': typed<bool>(json['enableFullScreenDefault'] ?? false),
@@ -260,8 +252,6 @@ class AppSettingsController extends GetxController {
     backgroundAudioOnly.v = parsed['backgroundAudioOnly'];
     backgroundPauseDanmaku.v = parsed['backgroundPauseDanmaku'];
     pauseOnPipClose.v = parsed['pauseOnPipClose'];
-    enableAsmrSleepMode.v = parsed['enableAsmrSleepMode'];
-    asmrSleepMinutes.v = parsed['asmrSleepMinutes'];
     enableRotateScreen.v = parsed['enableRotateScreen'];
     enableScreenKeepOn.v = parsed['enableScreenKeepOn'];
     enableFullScreenDefault.v = parsed['enableFullScreenDefault'];
@@ -282,8 +272,6 @@ class AppSettingsController extends GetxController {
       'backgroundAudioOnly': app['backgroundAudioOnly'] ?? false,
       'backgroundPauseDanmaku': app['backgroundPauseDanmaku'] ?? false,
       'pauseOnPipClose': app['pauseOnPipClose'] ?? false,
-      'enableAsmrSleepMode': app['enableAsmrSleepMode'] ?? false,
-      'asmrSleepMinutes': (((app['asmrSleepMinutes'] as num?)?.toInt() ?? 60).clamp(1, maxSleepMinutes)).toInt(),
       'enableRotateScreen': app['enableRotateScreen'] ?? false,
       'enableScreenKeepOn': app['enableScreenKeepOn'] ?? true,
       'enableFullScreenDefault': app['enableFullScreenDefault'] ?? false,

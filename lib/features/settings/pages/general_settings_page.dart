@@ -11,7 +11,6 @@ import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
 import 'package:pure_live/features/settings/pages/room_card_settings_page.dart';
-import 'package:pure_live/features/settings/pages/portrait_live_settings_page.dart';
 import 'package:pure_live/features/settings/widgets/network_proxy_settings_section.dart';
 import 'package:pure_live/core/config/exit_settings_controller.dart';
 import 'package:pure_live/core/config/window_size_controller.dart';
@@ -62,12 +61,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
               title: i18n("danmaku_settings"),
               subtitle: i18n("danmaku_settings_entry_subtitle"),
               onTap: () => Get.to(() => const _DanmakuSettingsSubpage()),
-            ),
-            context.buildTile(
-              icon: Icons.stay_current_portrait_rounded,
-              title: i18n('portrait_live_settings'),
-              subtitle: i18n('portrait_live_settings_desc'),
-              onTap: () => Get.to(() => const PortraitLiveSettingsPage()),
             ),
             const _DisplayModeTile(),
           ]),

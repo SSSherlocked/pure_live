@@ -56,7 +56,6 @@ class GlobalPlayerService {
       resumeFromLifecycle: (token) async => mobile && await playerManager.resumeFromLifecycle(token),
       shouldContinueInBackground: () => LiveAudioService.shouldContinueInBackground,
       isAudioOnly: () => playerManager.desiredAudioOnlyMode,
-      isSleepSessionActive: () => LiveAudioService.isSleepSessionActive,
       commitAudioOnlyPowerSaving: () => playerManager.setAudioOnly(true),
       prepareAudioOnlyVideoRestore: () => playerManager.setAudioOnly(false),
     )..start();
@@ -64,8 +63,6 @@ class GlobalPlayerService {
     LivePlaybackHooks.pauseIfPlaying = () async {
       if (playerManager.isPlayingNow) await playerManager.pause();
     };
-    // The sleep timer (ASMR) pauses the room when it ends.
-    LiveAudioService.configurePlaybackCommands(pause: () => playerManager.pause());
     _initialized = true;
     Log.dev("GlobalPlayerService: kernel facade ready.", name: "GlobalPlayerService");
   }

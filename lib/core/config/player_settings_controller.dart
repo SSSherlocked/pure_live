@@ -223,7 +223,7 @@ class PlayerSettingsController extends GetxController {
   final RxDouble windowsPipMinWidth = hiveDouble('windowsPipMinWidth', 140.0);
   final RxDouble windowsPipMinHeight = hiveDouble('windowsPipMinHeight', 90.0);
   // Kept as an inert compatibility field for old backups. Audio-only is now
-  // room-scoped and controlled by the headphone action or ASMR auto-start.
+  // room-scoped and controlled by the headphone action.
   final RxBool audioOnly = false.obs;
   final RxBool useHardStopOnExit = hiveBool('useHardStopOnExit', false);
 

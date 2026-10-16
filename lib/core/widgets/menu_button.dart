@@ -14,7 +14,7 @@ const MenuStyle homeMenuStyle = MenuStyle(
 /// Entries of the home and room-page menus: body-size text with room on
 /// either side and 36 px rows, so they do not read as crowded.
 const ButtonStyle homeMenuItemStyle = ButtonStyle(
-  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
+  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: kFloatingMenuItemHorizontalPadding)),
   // 4 px taller than the player's menus.
   minimumSize: WidgetStatePropertyAll(Size(64, kFloatingMenuItemHeight + 4)),
 );

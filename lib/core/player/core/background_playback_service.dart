@@ -16,7 +16,6 @@ import 'package:pure_live/core/utils/latest_async_value_queue.dart';
 /// between.
 class BackgroundPlaybackService {
   static const _channel = MethodChannel('pure_live/background_playback');
-  static bool sleepSessionActive = false;
   static bool audioOnlySessionActive = false;
   static bool? _appliedKeepAlive;
   static bool _foregroundHeld = false;

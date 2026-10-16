@@ -1,41 +1,16 @@
-import 'dart:async';
-
 import 'dart:io';
-
-import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/core/background_playback_policy.dart';
 import 'package:pure_live/core/player/core/background_playback_service.dart';
-import 'package:pure_live/core/config/app_settings_controller.dart';
 
 class LiveAudioService {
   LiveAudioService._();
 
-  static Timer? _sleepTimer;
-  static int _sleepMinutes = 60;
-  static Future<void> Function()? _pauseCommand;
-
-  /// Schedules the sleep timer (tests pass a fake).
-  @visibleForTesting
-  static Timer Function(Duration delay, void Function() callback) timerFactory = Timer.new;
-
-  /// Told when the sleep timer pauses the room: the user's pause, not one to
-  /// wait out (the room's background keeper lets its hold go).
-  static void Function()? onSleepTimerPause;
-
-  static bool get isSleepSessionActive => BackgroundPlaybackService.sleepSessionActive;
-
   static bool get shouldContinueInBackground => BackgroundPlaybackPolicy.shouldContinue(
     backgroundPlaybackEnabled: SettingsService.to.app.enableBackgroundPlay.v,
-    sleepSessionActive: isSleepSessionActive,
     audioOnlySessionActive: BackgroundPlaybackService.audioOnlySessionActive,
   );
-
-  /// What the sleep timer runs when it ends (the global player's pause).
-  static void configurePlaybackCommands({required Future<void> Function() pause}) {
-    _pauseCommand = pause;
-  }
 
   static Future<void> setPlayer(
     dynamic player, {
@@ -50,40 +25,11 @@ class LiveAudioService {
   }
 
   static Future<void> start(String roomId, String title, String author, String? cover) async {
-    if (BackgroundPlaybackService.sleepSessionActive) {
-      _armSleepTimer();
-    }
     await syncKeepAlive();
   }
 
   static Future<void> stop() async {
-    _cancelSleepTimer();
     await syncKeepAlive();
-  }
-
-  static Future<void> configureSleepTimer({required bool enabled, required int minutes}) async {
-    _sleepMinutes = minutes.clamp(1, AppSettingsController.maxSleepMinutes).toInt();
-    BackgroundPlaybackService.sleepSessionActive = enabled;
-    if (enabled) {
-      _armSleepTimer();
-    } else {
-      _cancelSleepTimer();
-    }
-  }
-
-  static void _armSleepTimer() {
-    _cancelSleepTimer();
-    _sleepTimer = timerFactory(Duration(minutes: _sleepMinutes), () {
-      _sleepTimer = null;
-      BackgroundPlaybackService.sleepSessionActive = false;
-      onSleepTimerPause?.call();
-      unawaited(_pauseCommand?.call());
-    });
-  }
-
-  static void _cancelSleepTimer() {
-    _sleepTimer?.cancel();
-    _sleepTimer = null;
   }
 
   /// The background play switch changed. The foreground service and the

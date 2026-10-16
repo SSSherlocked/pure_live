@@ -1120,10 +1120,10 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   void clearPipDanmaku() => pipDanmakuController.clear();
 
   void clearDanmaku() {
-    danmakuController.resume();
-    pipDanmakuController.resume();
     danmakuController.clear();
     pipDanmakuController.clear();
+    danmakuController.resume();
+    pipDanmakuController.resume();
   }
 
   Future<void> loadFullChannelSchedule(String? epgId) async {

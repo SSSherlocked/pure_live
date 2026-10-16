@@ -1294,7 +1294,7 @@ class LivePlayController extends GetxController
     // (offline, failed) removes it below.
     final switchEpoch = ++_roomSwitchEpoch;
     final previousController = state.value.player.videoController;
-    previousController?.danmakuController.clear();
+    previousController?.clearDanmaku();
     updateRoom(success: false, isLiving: true, isLoading: true);
     clearClosedPlaybackSource();
     clearSuperChats();

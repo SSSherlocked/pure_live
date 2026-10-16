@@ -1,3 +1,4 @@
+import 'package:flutter/scheduler.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -411,6 +412,19 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
       track.locked = false;
       track.lockedUntil = 0;
     }
+    _paintEmptyFrame();
+  }
+
+  /// Paints the cleared screen once. [clear] stops the loop, and a stopped
+  /// loop leaves its last frame up: the cleared danmaku stayed on screen
+  /// until something new was sent (a room switch showed the old room's
+  /// danmaku until the new room played).
+  void _paintEmptyFrame() {
+    if (!isAttached) return;
+    resumeEngine();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!_dataSystem.hasPending && _ctx.aliveCount == 0 && !_ctx.fxParticles.hasAlive) pauseEngine();
+    });
   }
 
   // ========================

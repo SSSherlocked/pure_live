@@ -10,13 +10,15 @@ const double kSettingsIconSlot = 24;
 const double kSettingsIconGap = 12;
 
 /// Row metrics shared by every row of a settings card: the same side
-/// padding, the same space above and below the text and the same minimum
-/// height, whether the row is a plain, switch, slider or hand-built one.
+/// padding and the same space above and below the text, whether the row is
+/// a plain, switch, slider or hand-built one.
 /// [AppLayoutFactory.buildModernCard] hands them to its rows through the
 /// list tile theme, so a row only sets what differs (a switch's end edge).
+/// The minimum height stays Material's: 56 for one line, 72 for a title
+/// with an explanation. A single 56 px minimum for every row cut the
+/// two-line rows, most of them, from 72 to about 58 px.
 const double kSettingsRowSidePadding = 16;
 const double kSettingsRowVerticalPadding = 14;
-const double kSettingsRowMinHeight = 64;
 
 /// A switch row's padding: the switch carries its own margin at the end.
 const EdgeInsetsDirectional kSettingsSwitchRowPadding = EdgeInsetsDirectional.only(
@@ -125,7 +127,6 @@ extension AppLayoutFactory on BuildContext {
       child: ListTileTheme.merge(
         contentPadding: const EdgeInsets.symmetric(horizontal: kSettingsRowSidePadding),
         minVerticalPadding: kSettingsRowVerticalPadding,
-        minTileHeight: kSettingsRowMinHeight,
         horizontalTitleGap: kSettingsIconGap,
         minLeadingWidth: kSettingsIconSlot,
         child: Column(children: autoShapedChildren),

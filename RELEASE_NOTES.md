@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.4.6
+
+## 🎬 直播间
+
+- **Twitch 热门和分区不再只有东亚主播**：之前的直播列表只取中文和韩文主播，现在显示全部语言，按观看人数排序。
+
+---
+
 # Pure Live v3.4.5
 
 ## 🎬 直播间

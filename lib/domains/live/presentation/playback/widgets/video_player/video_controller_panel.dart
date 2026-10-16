@@ -132,6 +132,17 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
     });
   }
 
+  @override
+  void didUpdateWidget(VideoControllerPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A room switch keeps this panel but hands it the new room's controller,
+    // whose controls start shown: arm its hide as initState did.
+    if (identical(oldWidget.controller, widget.controller)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) controller.enableController();
+    });
+  }
+
   /// 小窗播放 from the ⋯ menu (Android), the same as the Windows bar button.
   Future<void> _enterPip() async {
     final service = GlobalPlayerService.instance;

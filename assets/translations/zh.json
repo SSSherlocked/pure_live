@@ -480,7 +480,7 @@
   "sms_login": "短信登陆",
   "speed": "滚动速度",
   "danmaku_mass_mode": "海量模式",
-  "danmaku_mass_mode_subtitle": "弹幕不排队、不限条数",
+  "danmaku_mass_mode_subtitle": "弹幕不排队、不限条数，「同屏最大弹幕条数」失效",
   "pip_danmaku_scale_auto": "小窗弹幕比例自动",
   "pip_danmaku_scale_auto_subtitle": "按小窗宽度缩小弹幕",
   "pip_danmaku_scale": "小窗弹幕比例",

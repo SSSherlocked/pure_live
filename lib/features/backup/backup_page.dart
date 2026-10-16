@@ -117,9 +117,11 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
     }
   }
 
-  /// Deletes every log file except the one being written.
+  /// Deletes every log file, the one being written too; with logging on, a
+  /// new file starts in its place.
   Future<void> _clearLogFiles() async {
     final active = Log.activeLogFilePath;
+    await Log.restartFile();
     var failed = false;
     for (final entry in _logFiles) {
       if (entry.path == active) continue;

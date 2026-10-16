@@ -10,6 +10,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pure_live/core/platform/app_path_manager.dart';
 import 'package:pure_live/core/config/log_controller.dart';
+import 'package:pure_live/core/logging/startup_trace.dart';
 
 class Log {
   static const int maxDebugEntries = 2000;
@@ -91,6 +92,35 @@ class Log {
     }
     _logFileWriter = writer;
     return true;
+  }
+
+  /// 清空日志 for the file being written: it is deleted, and while logging
+  /// is on a new file starts in its place, named for now (its header and
+  /// times start afresh). With logging off nothing is created.
+  static Future<void> restartFile() async {
+    final generation = ++_statusGeneration;
+    final previous = _logFileWriter;
+    _logFileWriter = null;
+    final oldPath = previous?.path;
+    if (previous != null) await previous.close();
+    StartupTrace.detach();
+    if (oldPath != null) {
+      try {
+        await File(oldPath).delete();
+      } catch (_) {}
+    }
+    _allLogs.clear();
+    if (generation != _statusGeneration || !_localLoggingEnabled) return;
+    final writer = LogFileWriter(fileName: '${fileTimestamp(DateTime.now())}.log');
+    if (!await writer.init()) {
+      await writer.close();
+      return;
+    }
+    if (generation != _statusGeneration) {
+      await writer.close();
+      return;
+    }
+    _logFileWriter = writer;
   }
 
   static void writeLog(Object content, [Level level = Level.info]) {
@@ -207,7 +237,8 @@ class LogFileWriter {
   Timer? _drainTimer;
   bool _draining = false;
 
-  LogFileWriter() : _fileName = launchFileName;
+  /// Writes this launch's file, or [fileName] (a file started by 清空日志).
+  LogFileWriter({String? fileName}) : _fileName = fileName ?? launchFileName;
 
   /// One file per launch, shared with the startup trace (see StartupTrace)
   /// and kept when logging is switched off and on again.

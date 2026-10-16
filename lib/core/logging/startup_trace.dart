@@ -54,6 +54,10 @@ abstract final class StartupTrace {
 
   static String _format(String line) => '[STARTUP] $line\r\n';
 
+  /// Stops writing the trace: its file was deleted (日志 › 清空日志) and a
+  /// late line must not bring it back.
+  static void detach() => _file = null;
+
   /// Appends [message] with the time since [begin].
   static void mark(String message) {
     final line = '${_clock.elapsedMilliseconds.toString().padLeft(6)} ms  $message';

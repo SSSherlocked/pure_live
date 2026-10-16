@@ -168,6 +168,7 @@ class LivePlayController extends GetxController
     }
     _reconnectAttempt++;
     _reconnecting = true;
+    Log.i('room: reconnect attempt $_reconnectAttempt');
     try {
       // A drop can be the end of the broadcast. Ask the platform first: an
       // offline room shows 未开播 and the ladder keeps checking, so a room
@@ -214,6 +215,7 @@ class LivePlayController extends GetxController
       if (isClosed || _ownerClosed || fetched.isLiveStatusPending) return false;
       final refreshed = fetched.withAudienceFallbackFrom(current);
       final live = _playableAfter(current, refreshed);
+      Log.i('room: status check ${refreshed.effectiveLiveStatus.name} -> ${live ? 'live' : 'ended'}');
       if (live == state.value.room.isLiving) return !live;
       updateRoom(liveroom: refreshed, isLiving: live);
       unawaited(live ? _syncDanmakuConnection(refreshed) : danmakuController.stopDanmaku());
@@ -316,6 +318,10 @@ class LivePlayController extends GetxController
     if (input == _lastKeeperInput) return;
     _lastKeeperInput = input;
     _backgroundKeeper.update(input);
+    Log.i(
+      'background hold: ${_backgroundKeeper.hold.name} (away ${input.away}, phase ${input.phase.name}, '
+      'reconnecting ${input.reconnecting}, offline ${input.roomOffline}, interrupted ${input.interrupted})',
+    );
     _applyBackgroundHold();
   }
 
@@ -328,6 +334,7 @@ class LivePlayController extends GetxController
   /// stopped the room: a call's planned resume is dropped too.
   void _onRemotePause() {
     if (isClosed || _ownerClosed) return;
+    Log.i('room: paused from the notification / lock screen / headset');
     LiveAudioFocus.instance.forgetResume();
     _pausedByPipClose = false;
     _markUserPause();
@@ -404,6 +411,7 @@ class LivePlayController extends GetxController
   @override
   void onInit() {
     super.onInit();
+    Log.i('room: open ${room.platform}:${room.roomId}');
     _nativeFullscreenSync.attach();
     unawaited(LiveAudioFocus.instance.attach());
     _controllerTag = '${identityHashCode(this)}';
@@ -567,6 +575,9 @@ class LivePlayController extends GetxController
     final player = GlobalPlayerService.instance.player;
     if (player.isInPip.value) return;
     final app = SettingsService.to.app;
+    Log.i(
+      'room: away switches (danmaku off ${app.backgroundPauseDanmaku.v}, audio only ${app.backgroundAudioOnly.v})',
+    );
     if (!_danmakuOffByUs && app.backgroundPauseDanmaku.v) {
       _danmakuOffByUs = true;
       unawaited(danmakuController.suspendConnections());
@@ -1090,6 +1101,10 @@ class LivePlayController extends GetxController
       }
 
       final liveStatus = _playableAfter(requestedRoom, liveRoom);
+      Log.i(
+        'room: ${liveRoom.platform}:${liveRoom.roomId} status ${liveRoom.effectiveLiveStatus.name} '
+        '(was ${requestedRoom.effectiveLiveStatus.name}) -> ${liveStatus ? 'play' : 'offline'}',
+      );
 
       if (liveStatus) {
         unawaited(getSuperChatMessage(liveRoom, loadEpoch: loadEpoch));
@@ -1261,6 +1276,10 @@ class LivePlayController extends GetxController
   void clearClosedPlaybackSource() => _restoreQualityAndLines();
 
   Future<void> switchRoom(LiveRoom newRoom) async {
+    Log.i(
+      'room: switch ${state.value.room.detail?.platform}:${state.value.room.detail?.roomId} '
+      '-> ${newRoom.platform}:${newRoom.roomId}',
+    );
     // A reconnect ladder, and a stall-refresh count, belong to the room they
     // started for.
     _stopReconnect();
@@ -1498,6 +1517,7 @@ class LivePlayController extends GetxController
 
   @override
   void onClose() {
+    Log.i('room: close ${state.value.room.detail?.platform}:${state.value.room.detail?.roomId}');
     _nativeFullscreenSync.detach();
     unawaited(LiveAudioFocus.instance.detach());
     _stopReconnect();

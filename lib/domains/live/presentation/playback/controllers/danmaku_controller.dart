@@ -14,6 +14,7 @@ import 'package:pure_live/domains/live/presentation/playback/states/live_play_st
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_session_host.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_stall_watchdog.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/danmaku_repeat_merger.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// Owns exactly one room-bound danmaku session.
 ///
@@ -184,6 +185,7 @@ class DanmakuController extends GetxController {
       final token = ++_sessionToken;
       _maskedNameNoticeShown = false;
       _connectingKey = key;
+      Log.i('danmaku: connect $key');
       _installCallbacks(engine, liveroom, key, token);
 
       if (liveroom.isRecord == true) _addStatusMessage(i18n('recording_mode_notice'));
@@ -216,6 +218,7 @@ class DanmakuController extends GetxController {
   /// [stopDanmaku] then closes the socket, which can wait behind a connect
   /// in progress; until it does, a message must not reach the new room.
   void cutOff() {
+    Log.i('danmaku: cut off (room switch)');
     _sessionToken++;
     _sessionKey = null;
     _connectingKey = null;

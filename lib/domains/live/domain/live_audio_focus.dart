@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// Audio focus for a live room on phones and tablets.
 ///
@@ -71,6 +72,7 @@ class LiveAudioFocus {
         _pausedByInterruption = false;
         final player = GlobalPlayerService.instance.player;
         if (player.isPlayingNow) {
+          Log.i('audio focus: headphones unplugged, pausing');
           onNoisyPause?.call();
           unawaited(player.pause());
         }
@@ -88,6 +90,7 @@ class LiveAudioFocus {
   }
 
   void _onInterruption(AudioInterruptionEvent event) {
+    Log.i('audio focus: ${event.begin ? 'lost' : 'back'} (${event.type.name})');
     final player = GlobalPlayerService.instance.player;
     if (event.begin) {
       if (event.type == AudioInterruptionType.duck) return;

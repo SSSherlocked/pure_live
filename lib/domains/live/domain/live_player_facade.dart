@@ -128,7 +128,10 @@ final class LivePlayerFacade {
   /// room played: [close] then releases the engine instead of keeping it
   /// warm, so the next room starts on the new settings.
   bool _retireOnClose = false;
-  void retireEngineOnClose() => _retireOnClose = true;
+  void retireEngineOnClose() {
+    Log.i('player: engine to be released when this room closes (settings changed)');
+    _retireOnClose = true;
+  }
   PlayerHandle? get handle => _controller.handle;
 
   /// Kernel-side handle lifecycle: emitted when an engine is attached and
@@ -218,6 +221,9 @@ final class LivePlayerFacade {
 
     final urls = <String>[sourceUrl, ...playUrls.where((value) => value != sourceUrl)];
     _room = liveroom;
+    // A stream still playing when a room opens is one that outlived the room
+    // it belonged to (what played behind the home page).
+    if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
     _roomSession++;
     _lastHeaders = Map<String, String>.unmodifiable(headers);
@@ -298,6 +304,9 @@ final class LivePlayerFacade {
       await setAudioOnlyMode(false, stopVideoDecoding: true);
     }
     _room = liveroom;
+    // A stream still playing when a room opens is one that outlived the room
+    // it belonged to (what played behind the home page).
+    if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
     _roomSession++;
     _lastHeaders = const {};
@@ -372,11 +381,13 @@ final class LivePlayerFacade {
   }
 
   Future<void> togglePlayPause() {
+    Log.i('player: toggle play/pause');
     _userIntentRevision++;
     return _controller.togglePlayPause();
   }
 
   Future<void> pause() {
+    Log.i('player: pause');
     _userIntentRevision++;
     return _controller.pause();
   }
@@ -404,6 +415,7 @@ final class LivePlayerFacade {
   }
 
   Future<void> resume() {
+    Log.i('player: resume');
     _userIntentRevision++;
     _cancelIdleRelease();
     return _controller.resume();
@@ -864,6 +876,7 @@ final class LivePlayerFacade {
   }
 
   Future<void> close() async {
+    Log.i('player: close (room left)');
     _servingRoom = false;
     _cancelIdleRelease();
     await _sourceInterceptor?.release();
@@ -888,6 +901,7 @@ final class LivePlayerFacade {
   /// settings. Does nothing while a room is open.
   Future<void> releaseIdleEngine() async {
     if (_servingRoom || _disposed) return;
+    Log.i('player: warm engine released (settings changed between rooms)');
     _cancelIdleRelease();
     _retireOnClose = false;
     await _controller.close();

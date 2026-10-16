@@ -15,9 +15,18 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   /// page too).
   static String? _pathOf(Route<dynamic>? route) => route?.settings.name?.split('?').first;
 
+  /// Every page change, named routes and dialogs alike (unnamed ones by
+  /// their type): with them the log shows where the app was when something
+  /// happened.
+  static void _logRoute(String how, Route<dynamic> route, Route<dynamic>? other) {
+    String name(Route<dynamic>? r) => r == null ? '-' : (_pathOf(r) ?? r.runtimeType.toString());
+    Log.i('route: $how ${name(route)} (other: ${name(other)})');
+  }
+
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPush(route, previousRoute);
+    _logRoute('push', route, previousRoute);
     switch (_pathOf(route)) {
       case RoutePath.kLivePlay:
         _onLivePlayEnter();
@@ -35,6 +44,7 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didPop(route, previousRoute);
+    _logRoute('pop', route, previousRoute);
     switch (_pathOf(route)) {
       case RoutePath.kLivePlay:
         _onLivePlayExit('pop');
@@ -50,12 +60,14 @@ class LiveRouteObserver extends RouteObserver<PageRoute<dynamic>> {
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
     super.didRemove(route, previousRoute);
+    _logRoute('remove', route, previousRoute);
     if (_pathOf(route) == RoutePath.kLivePlay) _onLivePlayExit('remove');
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    if (newRoute != null) _logRoute('replace', newRoute, oldRoute);
     if (_pathOf(oldRoute) == RoutePath.kLivePlay && _pathOf(newRoute) != RoutePath.kLivePlay) {
       _onLivePlayExit('replace');
     }

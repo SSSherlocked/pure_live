@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:pure_live/core/logging/app_log.dart';
 
 /// Identifies the exact playback intent that an application lifecycle pause
 /// belongs to. A later room/source change or an explicit user command makes
@@ -88,6 +89,7 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
 
   Future<void> _applyState(AppLifecycleState state) async {
     if (_disposed) return;
+    if (state != _lastState) Log.i('app: ${state.name}');
     _lastState = state;
 
     switch (state) {
@@ -114,7 +116,11 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
       await _commitAudioOnlyPowerSaving();
     }
 
-    if (_shouldContinueInBackground() || _pendingPause != null) return;
+    if (_shouldContinueInBackground() || _pendingPause != null) {
+      Log.i('app: in the background, playback continues (background play or a pause already pending)');
+      return;
+    }
+    Log.i('app: in the background, pausing in ${hiddenPauseDelay.inMilliseconds} ms unless back');
     _hiddenPauseTimer?.cancel();
     final revision = ++_hiddenPauseRevision;
     if (hiddenPauseDelay <= Duration.zero) {
@@ -140,6 +146,7 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
       return;
     }
     _pendingPause = await _pauseForLifecycle();
+    Log.i(_pendingPause == null ? 'app: background pause: nothing playing' : 'app: background pause: paused');
   }
 
   Future<void> _enterResumedState() async {
@@ -155,7 +162,8 @@ class PlaybackLifecycleCoordinator with WidgetsBindingObserver {
     _pendingPause = null;
     _hiddenApplied = false;
     if (token != null) {
-      await _resumeFromLifecycle(token);
+      final resumed = await _resumeFromLifecycle(token);
+      Log.i(resumed ? 'app: back: resumed' : 'app: back: not resumed (room changed or user played/paused)');
     }
   }
 

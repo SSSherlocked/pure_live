@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.4.5
+
+## 🎬 直播间
+
+- **Twitch 打开不再黑屏十几秒**：播放器读 Twitch 的播放列表时，每读到结尾都误以为断线、立即重连，列表一直读不完，要等十秒后换用另一个播放内核才出画面。现在 HLS 直播（Twitch、各平台的 m3u8 线路）不再把读完当断线，打开即播；FLV 直播断流后仍会自动续上。
+
+---
+
 # Pure Live v3.4.4
 
 ## ⚙️ 设置

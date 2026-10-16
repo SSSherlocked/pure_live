@@ -84,12 +84,8 @@ abstract final class MediaKitLiveProperties {
       'demuxer-thread': 'yes',
       // Drop late frames instead of stacking lag.
       'framedrop': 'decoder+vo',
-      // A connection that breaks mid-stream is reopened by ffmpeg itself
-      // (a live stream has no known size, so a read error or a close both
-      // count as "before the end"); for live that lands at the live edge.
-      // Connect errors are retried within 2 s at most, so a dead line still
-      // fails over inside the source-ready window. Was low-end only.
-      'stream-lavf-o': 'reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=2',
+      // Per source (see sourceProperties); this is the progressive default.
+      'stream-lavf-o': progressiveReconnectOptions,
     };
 
     if (_lowEnd) {
@@ -246,6 +242,25 @@ abstract final class MediaKitLiveProperties {
   /// Whether mpv's `v` lines are wanted: the local log is on.
   static bool get mpvVerboseLog => HivePrefUtil.getBool(LogController.enableLocalLogKey) ?? false;
 
+  /// ffmpeg's reconnect options for a progressive live stream (FLV): a
+  /// connection that breaks mid-stream is reopened by ffmpeg itself (a live
+  /// stream has no known size, so a read error or a close both count as
+  /// "before the end"); for live that lands at the live edge. Connect errors
+  /// are retried within 2 s at most, so a dead line still fails over inside
+  /// the source-ready window.
+  static const String progressiveReconnectOptions =
+      'reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=2';
+
+  /// The same for an HLS playlist, without reconnect_streamed. A playlist is
+  /// a small file read to its end, and served chunked (no length) it always
+  /// ends in an "End of file" that reconnect_streamed takes for a break:
+  /// ffmpeg reopened Twitch's playlist at its last byte 70 times in 10 s,
+  /// never finished reading it, and the room stayed black until the kernel
+  /// gave up on mpv and played the line with ijkplayer (12.7 s to the first
+  /// frame). The HLS demuxer reloads the playlist and refetches segments
+  /// itself.
+  static const String playlistReconnectOptions = 'reconnect=1,reconnect_on_network_error=1,reconnect_delay_max=2';
+
   static Map<String, String> sourceProperties({
     required Uri uri,
     required String? declaredFormat,
@@ -264,6 +279,7 @@ abstract final class MediaKitLiveProperties {
       // after a cold start burned every line and engine before one played
       // (28-44 s black). With the seek allowed, the picture appears at once.
       'force-seekable': playlist ? 'no' : 'yes',
+      'stream-lavf-o': playlist ? playlistReconnectOptions : progressiveReconnectOptions,
     };
   }
 

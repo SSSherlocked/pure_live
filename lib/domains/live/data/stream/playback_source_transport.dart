@@ -156,7 +156,6 @@ class PlaybackSourceTransport {
     LiveStreamFacts? facts,
     HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
-    bool relayCleanManifest = true,
   }) async {
     if (_closed) return null;
     final int generation = ++_generation;
@@ -171,7 +170,6 @@ class PlaybackSourceTransport {
         facts: facts,
         policy: policy,
         relayPreferred: relayPreferred,
-        relayCleanManifest: relayCleanManifest,
       );
       // The superseded input stays open one more round: the engine may still be
       // reading it while the caller assembles the replacement source list.
@@ -213,7 +211,6 @@ class PlaybackSourceTransport {
     required LiveStreamFacts? facts,
     required HlsSourceQueryPolicy? policy,
     bool relayPreferred = false,
-    bool relayCleanManifest = true,
   }) async {
     final Uri? source = Uri.tryParse(url);
     if (source == null) return null;
@@ -244,7 +241,7 @@ class PlaybackSourceTransport {
       manifest: manifest,
     );
     final IngestPlan plan = resolveIngestPlan(needs: decision.needs, sourceIsManifest: manifest);
-    if (plan.isDirect && manifest && (relayCleanManifest || relayPreferred)) {
+    if (plan.isDirect && manifest) {
       // Every HLS line goes through the Dart relay, not only the ones that
       // need a rewrite. mpv's own HLS reader opens a new HTTPS connection
       // for every segment and playlist reload (it disables persistent HTTP

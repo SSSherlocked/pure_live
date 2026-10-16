@@ -38,10 +38,5 @@
          playback): flutter/flutter#193927. Render with Skia instead. -->
     <key>FLTEnableImpeller</key>
     <false/>
-    <key>NSAppTransportSecurity</key>
-    <dict>
-      <key>NSAllowsLocalNetworking</key>
-      <true/>
-    </dict>
   </dict>
 </plist>

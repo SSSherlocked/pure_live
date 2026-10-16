@@ -61,17 +61,6 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 subtitle: i18n('force_destroy_player_subtitle'),
                 value: SettingsService.to.player.useHardStopOnExit,
               ),
-              if (engine == PlayerEngine.mediaKit && PlayerConsts.hlsSystemPlayerAvailable(defaultTargetPlatform))
-                context.buildSwitchTile(
-                  icon: Remix.play_circle_line,
-                  title: i18n('hls_system_player'),
-                  subtitle: i18n(
-                    defaultTargetPlatform == TargetPlatform.android
-                        ? 'hls_system_player_subtitle_android'
-                        : 'hls_system_player_subtitle_apple',
-                  ),
-                  value: SettingsService.to.player.hlsSystemPlayer,
-                ),
             ]);
           }),
           Obx(() {

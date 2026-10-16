@@ -9,7 +9,6 @@ class PlaybackSourceInterception {
     required this.sources,
     this.streamFacts = const <String, LiveStreamFacts>{},
     this.sourceQueryPolicies = const <String, HlsSourceQueryPolicy>{},
-    this.relayCleanManifests = true,
   });
 
   final List<PlayerSource> sources;
@@ -17,22 +16,7 @@ class PlaybackSourceInterception {
   final Map<String, LiveStreamFacts> streamFacts;
 
   final Map<String, HlsSourceQueryPolicy> sourceQueryPolicies;
-
-  /// Whether an HLS line whose manifest needs no rewrite still goes through
-  /// the Dart relay (for mpv and ijkplayer). A system player reads it
-  /// directly.
-  final bool relayCleanManifests;
 }
-
-/// Whether [url] is an HLS line: as the platform declared it, else by its
-/// path.
-bool isHlsLine(String url, LiveStreamFacts? facts) {
-  if (facts != null) return facts.format == LiveStreamFormat.hls;
-  final path = Uri.tryParse(url)?.path.toLowerCase() ?? '';
-  return path.endsWith('.m3u8') || _playlistPath.hasMatch(path);
-}
-
-final RegExp _playlistPath = RegExp(r'/(master_)?playlist$');
 
 abstract interface class PlaybackSourceInterceptor {
   Future<List<PlayerSource>> intercept(PlaybackSourceInterception request);

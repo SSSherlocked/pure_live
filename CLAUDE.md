@@ -31,6 +31,7 @@
 ## 分支、提交与推送
 
 - 只有 `master` 一个分支。验证过的改动直接提交并推送到 `origin/master`。
+- 临时分支 `next/3.5.0`：放 3.5.0 的内容（HLS 线路用系统播放器、Mac 的 AVPlayer 后端），master 继续发 3.4.x。3.4.x 的修复照常进 master，并合并进这个分支；3.5 的改动只进这个分支，更新说明写在分支上 `RELEASE_NOTES.md` 的 v3.5.0 一节。用户决定发布第一个 3.5 版本时：把 `next/3.5.0` 合并进 master（普通合并，不改写历史），删除分支里 `ci.yml` 对它的触发，推送后删除本地和远端的 `next/3.5.0`，并删掉本条。
 - 提交身份：`SSSherlocked <35389477+SSSherlocked@users.noreply.github.com>`（已在本仓库的 git 配置里设置）。不要用任何个人邮箱提交，也不要把用户邮箱写进代码或安装包元数据。
 - 提交信息末尾加上 Claude 的 `Co-Authored-By` 署名行。
 - 不要强制推送或改写历史，除非用户明确要求；推送被拒时先 `git fetch` 并变基，不要覆盖远端。

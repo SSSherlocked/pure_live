@@ -122,8 +122,7 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
   /// is still on screen, else the bound controller's.
   ScrollPosition? get _jumpTarget {
     final seen = _seenPosition;
-    final owner = seen?.context;
-    if (seen != null && owner is State && owner.mounted && seen.hasContentDimensions) return seen;
+    if (seen != null && seen.context.storageContext.mounted && seen.hasContentDimensions) return seen;
     final controller = scrollController;
     if (controller.hasClients && controller.positions.length == 1) return controller.position;
     return null;

@@ -732,13 +732,11 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   void _cancelAllTimers() {
     _defaultFullscreenTimer?.cancel();
-    _controllerTransitionTimer?.cancel();
     _hideVolumeTimer?.cancel();
     _debounceTimer?.cancel();
     showControllerTimer?.cancel();
     _controllerHideDeadlineMs = null;
     _defaultFullscreenTimer = null;
-    _controllerTransitionTimer = null;
     _hideVolumeTimer = null;
     _debounceTimer = null;
     showControllerTimer = null;
@@ -1500,11 +1498,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     showLocked.value = false;
     stopHideController();
 
-    _controllerTransitionTimer?.cancel();
-    _controllerTransitionTimer = Timer(_controllerHideDelay, () {
-      _controllerTransitionTimer = null;
-      enableController();
-    });
 
     GlobalPlayerService.instance.player.isWindowFullscreen.value = false;
 
@@ -1648,11 +1641,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     showLocked.value = false;
     stopHideController();
 
-    _controllerTransitionTimer?.cancel();
-    _controllerTransitionTimer = Timer(_controllerHideDelay, () {
-      _controllerTransitionTimer = null;
-      enableController();
-    });
 
     if (GlobalPlayerService.instance.player.isWindowFullscreen.value) {
       _livePlayController.setNormalScreen();
@@ -1797,7 +1785,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   bool get _isMouseOverController => _controlHoverOwners.isNotEmpty;
   bool _isMouseOverPlayer = false;
   Timer? _defaultFullscreenTimer;
-  Timer? _controllerTransitionTimer;
   Timer? _debounceTimer;
   Timer? _hideVolumeTimer;
 }

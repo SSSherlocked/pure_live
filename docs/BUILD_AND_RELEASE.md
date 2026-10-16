@@ -6,7 +6,7 @@
 
 | 工作流 | 触发 | 作用 |
 |---|---|---|
-| 代码检查（`ci.yml`） | 每次推送 `master` 与 PR | 检测改动（只改文档时跳过 Flutter 检查）；并行跑 `flutter analyze` 和 `flutter test`；另跑仓库审计、文字样式、设置页宽度、版本一致性和工具测试 |
+| 代码检查（`ci.yml`） | 每次推送 `master` 与 PR | 检测改动（只改文档时跳过 Flutter 检查）；并行跑 `flutter analyze`、`flutter test` 和 Android debug 编译（检查原生 Kotlin/Java）；另跑仓库审计、文字样式、设置页宽度、版本一致性和工具测试 |
 | 发布新版本（`build_pure_live_release.yml`） | 手动 | 按勾选的平台打包（Android 默认勾选），可选先做代码检查，可选发布 Release |
 | 更新发布历史（`update_releases.yml`） | 手动 | 重新生成 `assets/releases.json` |
 | 同步原生库（`mirror_native_bundles.yml`） | 手动 | 把 FFmpeg 等预编译原生库的发布复制到本仓库的 Releases |

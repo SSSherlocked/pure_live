@@ -18,7 +18,7 @@
   - `tool/release_version.py check`：版本号与更新源一致
   - `python -m unittest discover -s tool/tests -p 'test_*.py'`
 - `tool/emoji/` 下是抓取各平台表情包、生成 `assets/emo/` 的脚本，需要更新表情时再运行。
-- 因为不能本地编译，改 Dart 代码时要逐行核对类型、import 和调用方，推送后以 CI 的 `flutter analyze` 和 `flutter test` 为准。
+- 因为不能本地编译，改 Dart 代码时要逐行核对类型、import 和调用方，推送后以 CI 的 `flutter analyze`、`flutter test` 和 Android 编译为准；改 Kotlin 时核对 `package com.mystyle.purelive`（目录名是 `pure_live`）。
 
 ## 依赖
 
@@ -38,7 +38,7 @@
 
 ## CI 与发布
 
-- `.github/workflows/ci.yml` 在每次推送时运行：先检测改动（只改文档时跳过 Flutter 检查），然后并行跑 Analyze 和 Test，另有仓库审计和工具测试。
+- `.github/workflows/ci.yml` 在每次推送时运行：先检测改动（只改文档时跳过 Flutter 检查），然后并行跑 Analyze、Test 和 Android 编译（debug APK，检查 Kotlin/Java），另有仓库审计和工具测试。
 - 查看 CI 结果：GitHub 匿名 API 每小时只有 60 次配额，容易被限流；优先打开 Actions 网页（`https://github.com/SSSherlocked/pure_live/actions/workflows/ci.yml`）读取运行状态，不要高频轮询 API。
 - 发布用手动触发的 `build_pure_live_release.yml`，输入版本号（如 `3.2.2`）。`RELEASE_NOTES.md` 里最好先写好这个版本的中文更新说明；没写时发布不会被阻止，会按上次发布以来的提交自动生成一节（提交标题，英文）。发布完成后，工作流会把 `RELEASE_NOTES.md`、`pubspec.yaml`、`assets/version.json`、`releases.json` 提交回 master。
 - 应用内更新：启动后和「关于 › 检查更新」读取 master 上的 `assets/version.json`（最新版本与更新说明）和 `assets/releases.json`（各平台的下载文件，按文件名里的平台关键词挑选），关于 › 历史也读取后者。两个文件都由发布工作流写回，不要手工提前修改，否则用户会收到不存在的更新。

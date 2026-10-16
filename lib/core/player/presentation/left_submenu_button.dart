@@ -3,36 +3,22 @@ import 'package:pure_live/core/theme/theme.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
 
 /// The gap Flutter keeps before a submenu entry's trailing arrow (its label
-/// spacing at standard density, which the floating menus use). The arrow is
-/// drawn on the left here, but the gap stays and made the entry - and with
-/// it the whole menu - that much wider than its other entries.
+/// spacing at standard density, which the floating menus use). The floating
+/// menus draw no submenu arrow, but the gap stays and made the entry - and
+/// with it the whole menu - that much wider than its other entries.
 const double _submenuArrowGap = 12;
 
 /// Width of a player submenu whose labels are not given.
 const double playerSubmenuWidth = 152;
-
-/// The leading icon of a submenu entry with its arrow. The arrow is an
-/// indicator, not part of the label: it hangs in the entry's left padding,
-/// so the icon starts where every other entry's icon does.
-Widget _submenuLeading(Widget? icon) {
-  return Stack(
-    clipBehavior: Clip.none,
-    alignment: Alignment.center,
-    children: [
-      icon ?? const SizedBox.square(dimension: 18),
-      const Positioned(left: -15, top: 0, bottom: 0, child: Icon(Icons.arrow_left, size: 14)),
-    ],
-  );
-}
 
 /// A [SubmenuButton] whose submenu opens to the left of its menu.
 ///
 /// The player's menus sit at the right edge of the picture (the ⋯ button,
 /// the quality/line chip), so a submenu opening to the right lands on the
 /// side panel or off the screen. The submenu is anchored at the entry's start
-/// edge and shifted left by its width, so it sits flush against the menu; its
-/// arrow sits before the label and points the way it opens. Where there is no
-/// room on the left either, the menu layout still keeps it on screen.
+/// edge and shifted left by its width, so it sits flush against the menu.
+/// Where there is no room on the left either, the menu layout still keeps it
+/// on screen.
 class LeftSubmenuButton extends StatelessWidget {
   const LeftSubmenuButton({
     super.key,
@@ -77,8 +63,10 @@ class LeftSubmenuButton extends StatelessWidget {
           ),
         ),
       ),
-      leadingIcon: _submenuLeading(leadingIcon),
-      // The arrow is drawn before the label instead.
+      // An entry without an icon keeps the icon column, so its label lines
+      // up with the others.
+      leadingIcon: leadingIcon ?? const SizedBox.square(dimension: 18),
+      // Floating menus draw no submenu arrow.
       submenuIcon: const WidgetStatePropertyAll(SizedBox.shrink()),
       alignmentOffset: Offset(-width, 0),
       menuStyle: const MenuStyle(

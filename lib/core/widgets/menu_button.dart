@@ -30,8 +30,7 @@ Widget homeMenuIcon(BuildContext context, IconData icon, {Color? color}) =>
 
 /// One entry of the home page's two menus: an icon and its
 /// name, shared by [MenuButton], [CommonAppBarActions] and the room page's
-/// menu. A submenu entry's arrow hangs in the left padding, so plain entries
-/// need no slot for it.
+/// menu.
 Widget homeMenuItem(
   BuildContext context, {
   Key? key,

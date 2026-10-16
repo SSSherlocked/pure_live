@@ -1,4 +1,5 @@
 import 'areas_grid_view.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 
 import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/index.dart';
@@ -27,7 +28,7 @@ class AreasPage extends GetView<AreasController> {
                 tabs: availableSitesList.map((e) => PlatformTab(site: e)).toList(),
               ),
             ),
-            body: TabBarView(
+            body: CalmTabBarView(
               controller: controller.tabController,
               // This route already contains a horizontal category PageView.
               // Let the top platform tabs switch the outer page explicitly so

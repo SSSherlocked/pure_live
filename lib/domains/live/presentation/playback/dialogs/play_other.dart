@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 import 'dart:async';
 
 import 'package:pure_live/core/index.dart';
@@ -249,7 +250,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> with SingleTick
             children: [
               Obx(
                 () => loadingFinish.value
-                    ? TabBarView(
+                    ? CalmTabBarView(
                         controller: tabController,
                         physics: const PureLiveBoundedScrollPhysics(),
                         children: [

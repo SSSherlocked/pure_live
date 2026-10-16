@@ -1,4 +1,5 @@
 import 'package:remixicon/remixicon.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:pure_live/domains/live/presentation/areas/area_card.dart';
@@ -221,7 +222,7 @@ class _AreaGridViewState extends State<AreaGridView> with TickerProviderStateMix
                 subtitle: i18n("empty_areas_subtitle"),
               ),
               contentBuilder: (context, _, _) {
-                return TabBarView(
+                return CalmTabBarView(
                   controller: _tabController,
                   physics: const PureLiveBoundedScrollPhysics(),
                   children: categoriesList.asMap().entries.map((entry) {

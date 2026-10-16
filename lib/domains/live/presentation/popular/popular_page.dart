@@ -1,4 +1,5 @@
 import 'popular_grid_view.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/popular/popular_controller.dart';
@@ -28,7 +29,7 @@ class PopularPage extends GetView<PopularController> {
                 tabs: sites.map((e) => PlatformTab(site: e)).toList(),
               ),
             ),
-            body: TabBarView(
+            body: CalmTabBarView(
               controller: controller.tabController,
               physics: const PureLiveBoundedScrollPhysics(),
               children: sites.map((e) => PopularGridView(e.id)).toList(),

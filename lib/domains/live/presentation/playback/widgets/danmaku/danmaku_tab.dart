@@ -1,4 +1,5 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
@@ -32,7 +33,7 @@ class DanmakuTabView extends GetView<LivePlayController> {
             children: [
               DanmakuSectionTabBar(controller: controller.tabController, tabs: controller.tabs),
               Expanded(
-                child: TabBarView(
+                child: CalmTabBarView(
                   controller: controller.tabController,
                   physics: const PureLiveBoundedScrollPhysics(),
                   children: [

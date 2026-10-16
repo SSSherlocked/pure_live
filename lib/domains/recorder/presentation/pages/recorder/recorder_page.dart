@@ -1,4 +1,5 @@
 import 'package:remixicon/remixicon.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/network/image_cache_manager.dart';
 import 'package:pure_live/core/utils/live_quality_label.dart';
@@ -55,7 +56,7 @@ class RecorderPage extends GetView<RecorderController> {
             RecorderStatusSelector(labels: tabs.map(i18n).toList(growable: false)),
             const Divider(height: 1),
             Expanded(
-              child: TabBarView(
+              child: CalmTabBarView(
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _TaskList(filter: null),

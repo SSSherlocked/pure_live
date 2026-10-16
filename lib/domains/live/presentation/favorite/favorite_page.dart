@@ -1,4 +1,5 @@
 import 'package:remixicon/remixicon.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
 import 'package:pure_live/domains/live/presentation/favorite/room_grid_view.dart';
@@ -185,7 +186,7 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
                 // status tabs above move with it.
                 const allSite = Sites.allSite;
                 final activeStatus = controller.tabOnlineIndex.value;
-                return TabBarView(
+                return CalmTabBarView(
                   key: const ValueKey('favorite-status-pages'),
                   controller: controller.tabController,
                   physics: const PureLiveBoundedScrollPhysics(),
@@ -207,7 +208,7 @@ class _FavoriteSiteTabsState extends State<_FavoriteSiteTabs> with SingleTickerP
                   ],
                 );
               }
-              return TabBarView(
+              return CalmTabBarView(
                 controller: _tabController,
                 physics: const PureLiveBoundedScrollPhysics(),
                 children: availableSitesList.asMap().entries.map((entry) {

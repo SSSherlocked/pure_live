@@ -1,4 +1,5 @@
 import 'package:remixicon/remixicon.dart';
+import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/domains/live/presentation/areas/area_card.dart';
 import 'package:pure_live/domains/live/presentation/areas/favorite_areas_controller.dart';
@@ -95,7 +96,7 @@ class _FavoriteAreaSiteTabsState extends State<_FavoriteAreaSiteTabs> with Singl
           tabs: widget.sites.map<Widget>((site) => PlatformTab(site: site)).toList(growable: false),
         ),
         Expanded(
-          child: TabBarView(
+          child: CalmTabBarView(
             controller: _tabController,
             physics: const PureLiveBoundedScrollPhysics(),
             children: widget.sites

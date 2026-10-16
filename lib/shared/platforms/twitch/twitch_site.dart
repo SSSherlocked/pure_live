@@ -443,18 +443,32 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
 
       var response = await getGplResponse(liveGpl);
 
-      List<LiveCategory> categories = [];
+      List<LiveCategory> tagged = [];
       var data = response['data'];
       var searchCategoryTags = data['searchCategoryTags'];
       for (var item in searchCategoryTags) {
-        categories.add(LiveCategory(id: item["id"], name: item["tagName"], children: []));
+        tagged.add(LiveCategory(id: item["id"], name: item["tagName"], children: []));
       }
+      // The tags are mostly game genres; everything that is not a game
+      // (Just Chatting, Music, ASMR, Art, Sports, ...) sits under IRL and
+      // Creative, which came somewhere in the middle. Top (every category by
+      // viewers, no tag) comes first, then those two, then the genres.
+      const firstTags = ['IRL', 'Creative'];
+      final categories = <LiveCategory>[
+        LiveCategory(id: _topCategoryId, name: 'Top', children: []),
+        for (final name in firstTags) ...tagged.where((item) => item.name == name),
+        ...tagged.where((item) => !firstTags.contains(item.name)),
+      ];
 
       List<Future> futures = [];
       for (var item in categories) {
         futures.add(
           Future(() async {
-            var items = await getAllSubCategores(item, 1, 30, []);
+            // Top lists every category Twitch has: one page of the most
+            // watched is the point, not all of them.
+            var items = item.id == _topCategoryId
+                ? await getSubCategores(item, 1, 100)
+                : await getAllSubCategores(item, 1, 30, []);
             item.children.addAll(items);
           }),
         );
@@ -492,6 +506,9 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
     }
   }
 
+  /// The category id of Top: no tag filter.
+  static const String _topCategoryId = 'top';
+
   Future<List<LiveArea>> getSubCategores(LiveCategory liveCategory, int page, int pageSize) async {
     var cursorType = "getSubCategores";
     var cursorId = liveCategory.id;
@@ -508,7 +525,7 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
           "recommendationsContext": {"platform": "web"},
           "requestID": "JIRA-VXP-2397",
           "sort": "VIEWER_COUNT",
-          "tags": [liveCategory.id],
+          "tags": [if (liveCategory.id != _topCategoryId) liveCategory.id],
         },
         if (cursor.isNotEmpty) "cursor": cursor,
       },

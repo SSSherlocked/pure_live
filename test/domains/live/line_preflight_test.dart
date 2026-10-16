@@ -63,6 +63,20 @@ void main() {
       expect(outcome.verdictOf(Uri.parse(v6Dead)), LineReach.dead);
     });
 
+    test('首条 FLV 不通时，下一条可用的 FLV 排到最前，而不是 HLS', () async {
+      const alFlv = 'https://al.flv.huya.test/src/a.flv?x=1';
+      const alHls = 'https://al.hls.huya.test/src/a.m3u8?x=1';
+      const txFlv = 'https://tx.flv.huya.test/src/a.flv?x=1';
+      const txHls = 'https://tx.hls.huya.test/src/a.m3u8?x=1';
+      final outcome = await preflight({
+        'al.flv.huya.test': LineReach.dead,
+        'al.hls.huya.test': LineReach.reachable,
+        'tx.flv.huya.test': LineReach.reachable,
+        'tx.hls.huya.test': LineReach.reachable,
+      }).order([_source(alFlv), _source(alHls), _source(txFlv), _source(txHls)]);
+      expect(_urls(outcome.sources), [txFlv, alHls, txHls, alFlv]);
+    });
+
     test('同一主机在有效期内只探测一次', () async {
       final asked = <String>[];
       final instance = preflight({

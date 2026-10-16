@@ -102,13 +102,29 @@ class LinePreflight {
       'line preflight: ${unreachable.length} of ${probed.length} line(s) moved last '
       '(${clock.elapsedMilliseconds} ms): $hosts',
     );
-    return LinePreflightOutcome(<PlayerSource>[
+    // A platform that lists a stream (FLV) line first keeps a stream line
+    // first: moving a dead FLV line back must not leave an HLS line at the
+    // front while another FLV line is alive (Huya: al.flv dead, tx.flv
+    // fine, and mpv's live HLS through the relay stuttered every few
+    // seconds).
+    final alive = <int>[
       for (var index = 0; index < sources.length; index++)
-        if (!unreachable.contains(index)) sources[index],
+        if (!unreachable.contains(index)) index,
+    ];
+    if (!_isManifest(sources.first.uri)) {
+      alive.sort((a, b) {
+        final byKind = (_isManifest(sources[a].uri) ? 1 : 0).compareTo(_isManifest(sources[b].uri) ? 1 : 0);
+        return byKind != 0 ? byKind : a.compareTo(b);
+      });
+    }
+    return LinePreflightOutcome(<PlayerSource>[
+      for (final index in alive) sources[index],
       for (var index = 0; index < sources.length; index++)
         if (unreachable.contains(index)) sources[index],
     ], verdicts);
   }
+
+  static bool _isManifest(Uri uri) => uri.path.toLowerCase().endsWith('.m3u8');
 
   static bool _isProbeable(Uri uri) {
     final scheme = uri.scheme.toLowerCase();

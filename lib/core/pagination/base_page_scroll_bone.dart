@@ -88,6 +88,12 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
 
   DateTime? _lastLoadFailure;
 
+  /// How far from the top (or the end) the back-to-top (to-bottom) button
+  /// appears. It was 400 with the home page's 80 px bottom bar; the bar is
+  /// gone, the lists are that much taller and scroll that much less, so the
+  /// buttons kept to 400 showed only on a forced overscroll.
+  static const double jumpButtonDistance = 320;
+
   void _syncScrollFlags() {
     if (!scrollController.hasClients) {
       // Empty and error states have no scroll view: nothing to jump through.
@@ -99,16 +105,16 @@ abstract class BasePageScrollAndStateBone<T> extends BaseController {
     final position = scrollController.position;
     final maxScroll = position.maxScrollExtent;
 
-    if (offset > 400 && !showBackToTop.value) {
+    if (offset > jumpButtonDistance && !showBackToTop.value) {
       showBackToTop.value = true;
-    } else if (offset <= 400 && showBackToTop.value) {
+    } else if (offset <= jumpButtonDistance && showBackToTop.value) {
       showBackToTop.value = false;
     }
 
     if (position.atEdge && offset > 0) {
       showBackToBottom.value = false;
     } else {
-      if (maxScroll - offset > 400) {
+      if (maxScroll - offset > jumpButtonDistance) {
         if (!showBackToBottom.value) showBackToBottom.value = true;
       } else {
         if (showBackToBottom.value) showBackToBottom.value = false;

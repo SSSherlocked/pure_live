@@ -27,6 +27,8 @@ internal class NativeLogPlugin : FlutterPlugin, EventChannel.StreamHandler {
             "ExoPlayerImpl:I",
             "BetterPlayer:I",
             "flutter:I",
+            // MainActivity's lifecycle trace.
+            "PureLiveActivity:I",
             "*:W",
         )
 

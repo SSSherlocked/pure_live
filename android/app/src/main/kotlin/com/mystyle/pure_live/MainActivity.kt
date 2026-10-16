@@ -1,6 +1,8 @@
 package com.mystyle.purelive
 
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import android.graphics.Color
 import android.hardware.display.DisplayManager
 import android.media.AudioManager
@@ -32,6 +34,11 @@ class MainActivity : AudioServiceActivity() {
         private var playbackWakeLock: PowerManager.WakeLock? = null
         private var playbackWifiLock: WifiManager.WifiLock? = null
         private var activeActivity: WeakReference<MainActivity>? = null
+
+        /// Activity lifecycle lines, taken into the app log by NativeLogPlugin:
+        /// which instance, who started it and why it stops, so a window that
+        /// leaves and comes straight back can be traced.
+        private const val LIFECYCLE_TAG = "PureLiveActivity"
 
         internal fun debugFinishActiveActivity(): Boolean {
             check(Looper.myLooper() == Looper.getMainLooper())
@@ -112,8 +119,20 @@ class MainActivity : AudioServiceActivity() {
             null
         }
 
+    private fun traceLifecycle(event: String, detail: String = "") {
+        val id = Integer.toHexString(System.identityHashCode(this))
+        Log.i(LIFECYCLE_TAG, "$event #$id task=$taskId root=$isTaskRoot finishing=$isFinishing $detail".trim())
+    }
+
+    private fun describe(intent: Intent?): String {
+        if (intent == null) return "intent=null"
+        val flags = Integer.toHexString(intent.flags)
+        return "action=${intent.action} flags=0x$flags categories=${intent.categories} from=$referrer"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        traceLifecycle("onCreate", "restored=${savedInstanceState != null} ${describe(intent)}")
         activeActivity = WeakReference(this)
 
         // Enable edge-to-edge so the Flutter surface can extend into the
@@ -323,6 +342,7 @@ class MainActivity : AudioServiceActivity() {
 
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
+        traceLifecycle("onBackPressed", "intercepted=$predictiveBackEnabled")
         // Hardware Back and `adb input keyevent BACK` may still arrive through
         // this legacy entry point on Android 13+ vendor builds. Keep the same
         // live-route arbitration as the predictive gesture callback.
@@ -336,6 +356,7 @@ class MainActivity : AudioServiceActivity() {
 
     override fun onStart() {
         super.onStart()
+        traceLifecycle("onStart")
         registerDisplayListener()
         scheduleDisplayModeRefresh(delayMillis = 0)
     }
@@ -394,8 +415,34 @@ class MainActivity : AudioServiceActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        traceLifecycle("onNewIntent", describe(intent))
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        traceLifecycle("onRestart")
+    }
+
+    override fun onPause() {
+        traceLifecycle("onPause")
+        super.onPause()
+    }
+
+    override fun finish() {
+        traceLifecycle("finish")
+        super.finish()
+    }
+
+    override fun moveTaskToBack(nonRoot: Boolean): Boolean {
+        traceLifecycle("moveTaskToBack", "nonRoot=$nonRoot")
+        return super.moveTaskToBack(nonRoot)
+    }
+
     override fun onResume() {
         super.onResume()
+        traceLifecycle("onResume")
 
         // Keep physical volume controls attached to media whenever this
         // window is foreground, including before a player acquires focus and
@@ -413,6 +460,7 @@ class MainActivity : AudioServiceActivity() {
     }
 
     override fun onStop() {
+        traceLifecycle("onStop")
         unregisterDisplayListener()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -423,6 +471,7 @@ class MainActivity : AudioServiceActivity() {
     }
 
     override fun onDestroy() {
+        traceLifecycle("onDestroy")
         if (activeActivity?.get() === this) {
             activeActivity = null
         }

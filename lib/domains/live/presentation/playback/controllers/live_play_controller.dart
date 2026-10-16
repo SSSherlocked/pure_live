@@ -68,12 +68,21 @@ String unknownRoomStatusMessage(LiveRoom? room) =>
 class LivePlayController extends GetxController
     with GetSingleTickerProviderStateMixin, WidgetsBindingObserver
     implements DanmakuSessionHost, PlayerSessionHost {
-  LivePlayController({required this.room, required this.site}) : _iptvPlayerStarter = null;
+  LivePlayController({required this.room, required String site}) : _routeSite = site, _iptvPlayerStarter = null;
 
   @visibleForTesting
-  LivePlayController.withIptvPlayerStarter(this._iptvPlayerStarter, {required this.room, required this.site});
+  LivePlayController.withIptvPlayerStarter(this._iptvPlayerStarter, {required this.room, required String site})
+    : _routeSite = site;
 
-  final String site;
+  /// The platform the route opened the page with.
+  final String _routeSite;
+  bool _siteResolved = false;
+
+  /// The platform of the room on screen: the route's until the room is set
+  /// up, then [currentSite]'s, which a room switch replaces. A switch to a
+  /// room on another platform must not leave the page asking the first
+  /// platform (外部打开 built the first platform's link for the new room).
+  String get site => _siteResolved ? currentSite.id : _routeSite;
   final LiveRoom room;
   final IptvPlayerStarter? _iptvPlayerStarter;
 
@@ -415,7 +424,8 @@ class LivePlayController extends GetxController
     _nativeFullscreenSync.attach();
     unawaited(LiveAudioFocus.instance.attach());
     _controllerTag = '${identityHashCode(this)}';
-    currentSite = Sites.of(site);
+    currentSite = Sites.of(_routeSite);
+    _siteResolved = true;
 
     final manager = GlobalPlayerService.instance.player;
     _longStallSub = manager.onLongStall.listen(_onLongStall);

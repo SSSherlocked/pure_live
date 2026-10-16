@@ -52,22 +52,6 @@ String _labelOf(FavoriteSortMode mode) => switch (mode) {
   FavoriteSortMode.audience => i18n('favorite_sort_audience'),
 };
 
-/// The three orders (the shared choice entry), the current one highlighted.
-List<PopupMenuEntry<FavoriteSortMode>> _sortItems(BuildContext context) {
-  final current = SettingsService.to.roomCard.favoriteSortMode;
-  final labels = [for (final mode in FavoriteSortMode.values) _labelOf(mode)];
-  return [
-    for (final mode in FavoriteSortMode.values)
-      choiceMenuItem<FavoriteSortMode>(
-        context,
-        value: mode,
-        label: _labelOf(mode),
-        labels: labels,
-        selected: mode == current,
-      ),
-  ];
-}
-
 void _applySortMode(FavoriteSortMode? mode) {
   if (mode != null) SettingsService.to.roomCard.favoriteSortModeName.v = mode.name;
 }
@@ -81,33 +65,3 @@ HomePageMenuAction favoriteSortMenuAction() => HomePageMenuAction(
   selected: () => SettingsService.to.roomCard.favoriteSortMode.index,
   onSelected: (index) => _applySortMode(FavoriteSortMode.values[index]),
 );
-
-/// The 排序 button of the room's 关注 panel: a small, quiet icon opening the
-/// three orders.
-class FavoriteSortButton extends StatelessWidget {
-  const FavoriteSortButton({super.key, this.iconSize = 18});
-
-  /// A compact icon button's side: 48 less the compact density's 8.
-  static const double _buttonExtent = kMinInteractiveDimension - 8;
-
-  final double iconSize;
-
-  @override
-  Widget build(BuildContext context) {
-    // The items are built when the menu opens, so they show the current order.
-    return PopupMenuButton<FavoriteSortMode>(
-      tooltip: i18n('favorite_sort'),
-      icon: Icon(Icons.filter_list_rounded, size: iconSize, color: Theme.of(context).colorScheme.onSurfaceVariant),
-      // As compact as the panel's refresh button opposite it, so the tabs
-      // between the two sit in the middle.
-      style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
-      // Beside the icon rather than over it, its top level with the icon's:
-      // one compact button (40) to the right, the icon's top inset down.
-      position: PopupMenuPosition.over,
-      offset: Offset(_buttonExtent, (_buttonExtent - iconSize) / 2),
-      onSelected: _applySortMode,
-      constraints: choiceMenuConstraints(context, [for (final mode in FavoriteSortMode.values) _labelOf(mode)]),
-      itemBuilder: _sortItems,
-    );
-  }
-}

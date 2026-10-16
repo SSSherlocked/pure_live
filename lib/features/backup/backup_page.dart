@@ -252,8 +252,9 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
             onTap: _backupAction == null
                 ? () => unawaited(
                     _runBackupAction(_BackupAction.create, 'create_backup_failed', () async {
-                      // The export flow chooses a directory and remembers the first
-                      // successful choice; no separate first-run settings step.
+                      // A set backup directory is written straight away; without one
+                      // (or when it cannot be written) the export picks a directory
+                      // and remembers the first successful choice.
                       await BackupRecoveryService().createAppSettingsBackup(backupDirectory);
                     }),
                   )

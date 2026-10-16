@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi' show Abi;
 import 'dart:io';
 
@@ -68,9 +69,20 @@ abstract final class AppUpdate {
   /// Throws when the feed cannot be read.
   static Future<AppUpdateInfo?> check() async {
     final stamp = DateTime.now().millisecondsSinceEpoch;
-    final feed = await RaceHttp.fetchJson(
+    // The freshest copy, not the first: a mirror's stale copy announced an
+    // older release, and the update went unnoticed.
+    final feed = await RaceHttp.fetchFreshest<Map<String, dynamic>>(
       [for (final url in VersionUtil.mirror.mirrors('assets/version.json')) '$url?ts=$stamp'],
       timeout: const Duration(seconds: 10),
+      parse: (body) {
+        try {
+          final data = jsonDecode(body);
+          return data is Map<String, dynamic> ? data : null;
+        } catch (_) {
+          return null;
+        }
+      },
+      compare: (a, b) => _compareFeeds(_platformEntry(a), _platformEntry(b)),
     );
     if (feed == null) throw StateError('update feed unavailable');
     final entry = _platformEntry(feed);
@@ -110,6 +122,19 @@ abstract final class AppUpdate {
       return Map<String, dynamic>.from(platforms[_platformKey] as Map);
     }
     return feed;
+  }
+
+  /// Which of two feed entries announces the later release: by build
+  /// number, then by version.
+  static int _compareFeeds(Map<String, dynamic> a, Map<String, dynamic> b) {
+    final byBuild = (int.tryParse('${a['build_number'] ?? ''}') ?? 0).compareTo(
+      int.tryParse('${b['build_number'] ?? ''}') ?? 0,
+    );
+    if (byBuild != 0) return byBuild;
+    return compareReleaseVersions(
+      _normalize(a['version']?.toString() ?? ''),
+      _normalize(b['version']?.toString() ?? ''),
+    );
   }
 
   static String _normalize(String value) => value.trim().replaceFirst(RegExp(r'^[vV]'), '');

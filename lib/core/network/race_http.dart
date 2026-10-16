@@ -97,6 +97,58 @@ class RaceHttp {
     );
   }
 
+  /// Fetches [urls] at once and returns the freshest answer: the one
+  /// [compare] ranks highest among those in by [settle] after the first.
+  ///
+  /// The mirrors of one file do not all serve the same copy: a CDN edge can
+  /// keep an old one for hours (jsDelivr served a releases.json five
+  /// releases behind), and it is often the fastest to answer. Taking the
+  /// first answer then showed an old release list and missed updates.
+  /// [parse] turns a 200 body into an answer, or null for one to ignore.
+  static Future<T?> fetchFreshest<T extends Object>(
+    List<String> urls, {
+    required T? Function(String body) parse,
+    required int Function(T a, T b) compare,
+    Duration timeout = const Duration(seconds: 10),
+    Duration settle = const Duration(seconds: 2),
+    Map<String, String>? headers,
+  }) async {
+    if (urls.isEmpty) return null;
+    final answers = <T>[];
+    final done = Completer<void>();
+    var remaining = urls.length;
+    Timer? settleTimer;
+    void finish() {
+      if (!done.isCompleted) done.complete();
+    }
+
+    final timeoutTimer = Timer(timeout, finish);
+    for (final url in urls) {
+      unawaited(
+        Future(() async {
+          try {
+            final res = await _client.get(Uri.parse(url), headers: headers).timeout(timeout);
+            if (res.statusCode != 200) return;
+            final answer = parse(utf8.decode(res.bodyBytes));
+            if (answer == null || done.isCompleted) return;
+            answers.add(answer);
+            settleTimer ??= Timer(settle, finish);
+          } catch (_) {
+            // Another mirror may still answer.
+          } finally {
+            remaining--;
+            if (remaining == 0) finish();
+          }
+        }),
+      );
+    }
+    await done.future;
+    timeoutTimer.cancel();
+    settleTimer?.cancel();
+    if (answers.isEmpty) return null;
+    return answers.reduce((best, next) => compare(next, best) > 0 ? next : best);
+  }
+
   static Future<T?> _race<T>(
     List<String> urls, {
     required Future<T?> Function(String url) task,

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/file_utils.dart';
 import 'package:pure_live/core/network/race_http.dart';
-import 'package:pure_live/core/network/http_client.dart';
 import 'package:pure_live/core/models/release_model.dart';
 
 typedef ReleaseHistoryExternalLauncher = Future<bool> Function(Uri uri);
@@ -22,7 +21,6 @@ class ReleaseHistoryRepository {
 
   static const String releaseAssetPath = 'assets/releases.json';
 
-  static const Duration _resolveTimeout = Duration(seconds: 10);
   static const Duration _fetchTimeout = Duration(seconds: 15);
 
   List<ReleaseModel>? _cache;
@@ -32,11 +30,22 @@ class ReleaseHistoryRepository {
       return _cache!;
     }
 
-    final url = await _resolveSourceUrl();
-    final response = await HttpClient.instance.getJson(url, header: defaultHeaders).timeout(_fetchTimeout);
-
-    final decoded = response is String ? json.decode(response) : response;
-    final releases = parse(decoded);
+    final releases = await RaceHttp.fetchFreshest<List<ReleaseModel>>(
+      _sourceUrls(),
+      headers: defaultHeaders,
+      timeout: _fetchTimeout,
+      parse: (body) {
+        try {
+          return parse(json.decode(body));
+        } catch (_) {
+          return null;
+        }
+      },
+      compare: compareReleaseLists,
+    );
+    if (releases == null) {
+      throw StateError('No release history source responded');
+    }
     _cache = releases;
     return releases;
   }
@@ -45,26 +54,12 @@ class ReleaseHistoryRepository {
     _cache = null;
   }
 
-  Future<String> _resolveSourceUrl() async {
-    final raw = VersionUtil.mirror.rawUrl(releaseAssetPath);
-    final mirrors = VersionUtil.mirror.mirrors(releaseAssetPath);
-
-    final sourceUrls = <String>[...mirrors, raw];
-
+  List<String> _sourceUrls() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final urls = sourceUrls
-        .map((source) {
-          final uri = Uri.parse(source);
-          return uri.replace(queryParameters: {...uri.queryParameters, 'ts': timestamp}).toString();
-        })
-        .toList(growable: false);
-
-    final url = await RaceHttp.findFastestUrl(urls, headers: defaultHeaders).timeout(_resolveTimeout);
-
-    if (url == null) {
-      throw StateError('No release history source responded');
-    }
-    return url;
+    return [
+      for (final source in VersionUtil.mirror.mirrors(releaseAssetPath))
+        Uri.parse(source).replace(queryParameters: {...Uri.parse(source).queryParameters, 'ts': timestamp}).toString(),
+    ];
   }
 
   List<ReleaseModel> parse(Object? decoded) {
@@ -113,4 +108,13 @@ int compareReleaseVersions(String left, String right) {
     if (byPart != 0) return byPart;
   }
   return 0;
+}
+
+/// Which of two copies of the release list is newer: the one whose newest
+/// release is newer, then the longer one.
+int compareReleaseLists(List<ReleaseModel> left, List<ReleaseModel> right) {
+  String newest(List<ReleaseModel> releases) =>
+      releases.map((release) => release.version).fold('', (a, b) => compareReleaseVersions(a, b) >= 0 ? a : b);
+  final byVersion = compareReleaseVersions(newest(left), newest(right));
+  return byVersion != 0 ? byVersion : left.length.compareTo(right.length);
 }

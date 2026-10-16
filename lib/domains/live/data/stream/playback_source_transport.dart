@@ -100,6 +100,10 @@ class PlaybackSourceTransport {
   /// relay that drops it reads the playlist fine and then starves on the first
   /// segment. Every other relay here already fetched upstream through the
   /// player's proxy; this one is the last that did not.
+  /// How many of a live playlist's newest segments the relay fetches before
+  /// the player asks for them (see LoopbackIngestRelay.start).
+  static const int prefetchSegments = 3;
+
   static Future<PlaybackInputLease> _createIngestRelay(
     String url,
     Map<String, String> headers, {
@@ -117,6 +121,7 @@ class PlaybackSourceTransport {
       rootManifest: rootManifest,
       childUriPolicy: childUriPolicy,
       sessionCookies: true,
+      prefetchSegments: prefetchSegments,
       findProxy: _perHostProxy,
     );
     return PlaybackInputLease(relay.inputUri, relay.close, isUsable: () => !relay.isClosed);
@@ -236,6 +241,21 @@ class PlaybackSourceTransport {
       manifest: manifest,
     );
     final IngestPlan plan = resolveIngestPlan(needs: decision.needs, sourceIsManifest: manifest);
+    if (plan.isDirect && manifest) {
+      // Every HLS line goes through the Dart relay, not only the ones that
+      // need a rewrite. mpv's own HLS reader opens a new HTTPS connection
+      // for every segment and playlist reload (it disables persistent HTTP
+      // under its custom I/O) and asks for a segment only when it needs it;
+      // a live stream then stutters whenever a handshake or a segment is
+      // slow (Twitch on macOS). The relay keeps its connections open,
+      // fetches the newest segments ahead and serves them from memory.
+      Log.dev(
+        '${source.host}: manifest served by the Dart relay${relayPreferred ? ' (first address dead)' : ''}',
+        name: 'PlaybackIngest',
+      );
+      final String? rootManifest = decision.rootManifest;
+      return (_) => _createIngestRelay(url, frozen, rootManifest: rootManifest);
+    }
     if (plan.isDirect) {
       if (!relayPreferred) return null;
       // The probe reached this host only past its first address (IPv6
@@ -244,10 +264,6 @@ class PlaybackSourceTransport {
       // so the line is served from loopback instead. Manifests go through
       // the manifest relay, FLV through the tag relay (AVC passes unchanged);
       // anything else has no Dart relay and stays direct.
-      if (manifest) {
-        Log.dev('${source.host}: first address dead, manifest served by the Dart relay', name: 'PlaybackIngest');
-        return (_) => _createIngestRelay(url, frozen);
-      }
       final bool flv = facts?.format == LiveStreamFormat.flv || source.path.toLowerCase().endsWith('.flv');
       if (!flv) return null;
       Log.dev('${source.host}: first address dead, FLV served by the Dart relay', name: 'PlaybackIngest');

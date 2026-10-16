@@ -36,7 +36,9 @@ Header floatingRefreshHeader() => BuilderHeader(
     // closed it rests a shadow's reach above it: tucked under the app bar,
     // shadow included, instead of leaving its glow under the tabs.
     final offset = state.offset.clamp(0.0, double.infinity).toDouble();
-    final gap = offset >= ballSize ? (offset - ballSize) / 2 : -shadowReach * (1 - offset / ballSize);
+    // [gap] is the ball's distance up from the list's top edge (the strip's
+    // bottom): positive keeps it above, under the app bar.
+    final gap = offset >= ballSize ? (offset - ballSize) / 2 : shadowReach * (1 - offset / ballSize);
     return Stack(
       clipBehavior: Clip.none,
       children: [

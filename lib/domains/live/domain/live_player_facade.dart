@@ -593,15 +593,25 @@ final class LivePlayerFacade {
       }
       return;
     }
-    _noPictureTimer ??= Timer(noPictureGrace, () {
-      _noPictureTimer = null;
-      if (_disposed || _noPictureReopened || _pictureSeen || !_servingRoom || _audioOnlyMode.value || _videoOff) return;
-      final size = _controller.handle?.combinedSnapshot.geometry.videoSize;
-      if (size != null && size.width > 0 && size.height > 0) return;
-      _noPictureReopened = true;
-      Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening the stream');
-      unawaited(_controller.retry());
-    });
+    _noPictureTimer ??= Timer(noPictureGrace, _checkForPicture);
+  }
+
+  void _checkForPicture() {
+    _noPictureTimer = null;
+    if (_disposed || _noPictureReopened || _pictureSeen || !_servingRoom || _audioOnlyMode.value || _videoOff) return;
+    final snapshot = _controller.handle?.combinedSnapshot;
+    final size = snapshot?.geometry.videoSize;
+    if (size != null && size.width > 0 && size.height > 0) return;
+    // "Playing" is reported as soon as a line is being opened. Only a stream
+    // whose position moves is actually sounding; one still connecting (or
+    // being walked through failing lines) is looked at again later.
+    if ((snapshot?.playback.position ?? Duration.zero) < const Duration(seconds: 1)) {
+      _noPictureTimer = Timer(noPictureGrace, _checkForPicture);
+      return;
+    }
+    _noPictureReopened = true;
+    Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening the stream');
+    unawaited(_controller.retry());
   }
 
   void _resetPictureWatch() {

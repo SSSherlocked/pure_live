@@ -225,6 +225,7 @@ final class LivePlayerFacade {
     // it belonged to (what played behind the home page).
     if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
+    _resetPictureWatch();
     _roomSession++;
     _lastHeaders = Map<String, String>.unmodifiable(headers);
     _lastLines = List<String>.unmodifiable(urls);
@@ -308,6 +309,7 @@ final class LivePlayerFacade {
     // it belonged to (what played behind the home page).
     if (_lastPlaying && !_servingRoom) Log.w('player: a stream was still playing when this room opened');
     _servingRoom = true;
+    _resetPictureWatch();
     _roomSession++;
     _lastHeaders = const {};
     _lastLines = const [];
@@ -430,7 +432,14 @@ final class LivePlayerFacade {
     if (Platform.isAndroid || Platform.isIOS) return 1.0;
     return (room?.getSavedVolume() ?? 1.0).clamp(0.0, 1.0);
   }
-  Future<void> setAudioOnly(bool audioOnly) => _controller.setAudioOnly(audioOnly);
+  Future<void> setAudioOnly(bool audioOnly) {
+    _videoOff = audioOnly;
+    return _controller.setAudioOnly(audioOnly);
+  }
+
+  /// Whether video decoding was turned off on purpose (audio-only, or
+  /// 后台只播声音 while away): no picture is then expected.
+  bool _videoOff = false;
   void setPresentationVisible(bool visible) => _controller.setPresentationVisible(visible);
 
   Future<void> switchEngine(PlayerEngine engine, {bool isManual = false, bool resumeCurrentSource = true}) async {
@@ -555,6 +564,53 @@ final class LivePlayerFacade {
     }
   }
 
+  /// How long a room may play sound with no picture before its stream is
+  /// reopened.
+  static const Duration noPictureGrace = Duration(seconds: 4);
+  Timer? _noPictureTimer;
+
+  /// Whether this room's stream was already reopened for want of a picture.
+  bool _noPictureReopened = false;
+
+  /// Whether this stream has shown a picture: only a stream that never did
+  /// is reopened, not one whose picture went away later.
+  bool _pictureSeen = false;
+
+  /// A room that plays sound but never gets a picture is reopened once.
+  ///
+  /// Some FLV edges (seen on Bilibili) send a header that declares only an
+  /// audio stream: FFmpeg's probe then stops as soon as the audio is found,
+  /// the video track is never created and the picture stays black while the
+  /// sound plays. A new connection gets a proper header, so one reopen
+  /// brings the picture back. Audio-only modes and audio-only platforms are
+  /// left alone.
+  void _watchForPicture({required bool playing, required bool hasPicture, required bool dummy}) {
+    if (hasPicture) _pictureSeen = true;
+    if (hasPicture || !playing || dummy || _audioOnlyMode.value || _videoOff || _pictureSeen || _noPictureReopened) {
+      if (hasPicture || !playing) {
+        _noPictureTimer?.cancel();
+        _noPictureTimer = null;
+      }
+      return;
+    }
+    _noPictureTimer ??= Timer(noPictureGrace, () {
+      _noPictureTimer = null;
+      if (_disposed || _noPictureReopened || _pictureSeen || !_servingRoom || _audioOnlyMode.value || _videoOff) return;
+      final size = _controller.handle?.combinedSnapshot.geometry.videoSize;
+      if (size != null && size.width > 0 && size.height > 0) return;
+      _noPictureReopened = true;
+      Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening the stream');
+      unawaited(_controller.retry());
+    });
+  }
+
+  void _resetPictureWatch() {
+    _noPictureTimer?.cancel();
+    _noPictureTimer = null;
+    _noPictureReopened = false;
+    _pictureSeen = false;
+  }
+
   void _setStalled(bool stalled) {
     if (isStalled.value == stalled) return;
     isStalled.value = stalled;
@@ -664,9 +720,11 @@ final class LivePlayerFacade {
     if (size != null && size.width > 0 && size.height > 0) {
       windowsPipDriver.onVideoSize((size.width / size.height * 1000).round(), 1000);
     }
+    final hasPicture = size != null && size.width > 0 && size.height > 0 && !dummy;
+    _watchForPicture(playing: state.playback == PlayerPlaybackState.playing, hasPicture: hasPicture, dummy: dummy);
     PlaybackStartupTiming.instance.reportPlaybackState(
       playing: state.playback == PlayerPlaybackState.playing,
-      hasPicture: size != null && size.width > 0 && size.height > 0 && !dummy,
+      hasPicture: hasPicture,
       audioOnly: dummy || _audioOnlyMode.value,
     );
     videoGeometryState.value = _computeVideoGeometry();
@@ -878,6 +936,7 @@ final class LivePlayerFacade {
   Future<void> close() async {
     Log.i('player: close (room left)');
     _servingRoom = false;
+    _resetPictureWatch();
     _cancelIdleRelease();
     await _sourceInterceptor?.release();
     final retire = _retireOnClose;
@@ -913,6 +972,7 @@ final class LivePlayerFacade {
     _cancelIdleRelease();
     _stallTimer?.cancel();
     _stallTimer = null;
+    _noPictureTimer?.cancel();
     await _sourceInterceptor?.close();
     await _stateSub?.cancel();
     await _playingSub?.cancel();

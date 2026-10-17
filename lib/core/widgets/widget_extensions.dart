@@ -27,7 +27,7 @@ const EdgeInsetsDirectional kSettingsSwitchRowPadding = EdgeInsetsDirectional.on
   end: 8,
 );
 
-/// The leading icon of a settings row: theme colour, 22 px, as every shared
+/// The leading icon of a settings row: secondary text grey, 22 px, as every shared
 /// settings tile draws it. Rows built by hand use this so their icons match.
 class SettingsRowIcon extends StatelessWidget {
   const SettingsRowIcon(this.icon, {super.key});
@@ -35,7 +35,7 @@ class SettingsRowIcon extends StatelessWidget {
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Icon(icon, size: 22, color: Theme.of(context).colorScheme.primary);
+  Widget build(BuildContext context) => Icon(icon, size: 22, color: Theme.of(context).colorScheme.onSurfaceVariant);
 }
 
 extension AppLayoutFactory on BuildContext {
@@ -47,7 +47,7 @@ extension AppLayoutFactory on BuildContext {
         text,
         style: AppText.of(this).secondary.copyWith(
           fontWeight: FontWeight.bold,
-          color: theme.colorScheme.primary.withValues(alpha: 0.65),
+          color: theme.colorScheme.onSurfaceVariant,
           letterSpacing: 0.5,
         ),
       ),
@@ -149,7 +149,7 @@ extension AppLayoutFactory on BuildContext {
     final theme = Theme.of(this);
     return Obx(
       () => SwitchListTile(
-        secondary: icon != null ? Icon(icon, color: iconColor ?? theme.colorScheme.primary, size: 22) : null,
+        secondary: icon != null ? Icon(icon, color: iconColor ?? theme.colorScheme.onSurfaceVariant, size: 22) : null,
         title: Text(title, style: AppText.of(this).sectionTitle),
         subtitle: subtitle != null && subtitle.isNotEmpty
             ? Padding(
@@ -202,7 +202,7 @@ extension AppLayoutFactory on BuildContext {
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: IconTheme(
-              data: IconThemeData(color: iconColor ?? theme.colorScheme.primary, size: 22),
+              data: IconThemeData(color: iconColor ?? theme.colorScheme.onSurfaceVariant, size: 22),
               child: iconWidget,
             ),
           ),
@@ -215,7 +215,7 @@ extension AppLayoutFactory on BuildContext {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: Icon(icon, color: iconColor ?? theme.colorScheme.primary, size: 22),
+            child: Icon(icon, color: iconColor ?? theme.colorScheme.onSurfaceVariant, size: 22),
           ),
         ],
       );

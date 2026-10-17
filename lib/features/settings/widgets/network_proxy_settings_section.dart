@@ -141,7 +141,7 @@ class _NetworkProxySettingsSectionState extends State<NetworkProxySettingsSectio
           context.buildModernCard([
             SwitchListTile(
               contentPadding: kSettingsSwitchRowPadding,
-              secondary: Icon(Remix.apps_line, color: theme.colorScheme.primary),
+              secondary: Icon(Remix.apps_line, color: theme.colorScheme.onSurfaceVariant),
               title: Text(i18n("enable_app_proxy")),
               subtitle: Text(i18n("enable_app_proxy_desc")),
               value: proxyCtrl.enableAppProxy.v,
@@ -159,7 +159,7 @@ class _NetworkProxySettingsSectionState extends State<NetworkProxySettingsSectio
               ),
             SwitchListTile(
               contentPadding: kSettingsSwitchRowPadding,
-              secondary: Icon(Remix.video_line, color: theme.colorScheme.primary),
+              secondary: Icon(Remix.video_line, color: theme.colorScheme.onSurfaceVariant),
               title: Text(i18n("enable_player_proxy")),
               subtitle: Text(i18n("enable_player_proxy_desc")),
               value: proxyCtrl.enableProxy.v,

@@ -106,15 +106,15 @@ class _SettingsContentWidthState extends State<SettingsContentWidth> {
 
   @override
   Widget build(BuildContext context) {
-    // Every settings row's leading icon takes the theme colour: the shared
-    // tiles set it themselves, and this default covers a page's own
-    // ListTile / SwitchListTile rows, which otherwise drew theirs grey.
+    // Every settings row's leading icon is the secondary text grey: the
+    // shared tiles set it themselves, and this default covers a page's own
+    // ListTile / SwitchListTile rows.
     final content = KeyedSubtree(
       key: _contentKey,
       // One icon slot and one gap for every row, hand-built ones included,
       // so the texts of a card start on one line.
       child: ListTileTheme.merge(
-        iconColor: Theme.of(context).colorScheme.primary,
+        iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
         minLeadingWidth: kSettingsIconSlot,
         horizontalTitleGap: kSettingsIconGap,
         // Settings text reads a size up (see LargerText).

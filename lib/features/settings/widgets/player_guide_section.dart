@@ -46,7 +46,7 @@ class PlayerGuideSection extends StatelessWidget {
               data: theme.copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
                 key: PageStorageKey('guide-$i'),
-                leading: Icon(_guideChapters[i].icon, color: theme.colorScheme.primary, size: 24),
+                leading: Icon(_guideChapters[i].icon, color: theme.colorScheme.onSurfaceVariant, size: 24),
                 title: Text(i18n(_guideChapters[i].titleKey)),
                 subtitle: Text(
                   i18n('player_guide_entries', args: {'count': _guideChapters[i].entries.length.toString()}),
@@ -74,7 +74,7 @@ class PlayerGuideSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary),
+              Icon(Icons.menu_book_rounded, color: theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

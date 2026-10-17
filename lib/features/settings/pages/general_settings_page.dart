@@ -122,7 +122,7 @@ class GeneralSettingsPage extends GetView<SettingsService> {
                 return SwitchListTile(
                   contentPadding: kSettingsSwitchRowPadding,
                   key: const ValueKey('windows-startup-switch'),
-                  secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.primary, size: 22),
+                  secondary: Icon(Remix.windows_line, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
                   title: Text(i18n('startup'), style: AppText.of(context).sectionTitle),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 2),
@@ -631,7 +631,7 @@ class AnimatedTimerIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final iconColor = theme.colorScheme.primary;
+    final iconColor = theme.colorScheme.onSurfaceVariant;
 
     double turns = 0.0;
     if (enabled && totalMinutes > 0 && remainingMs > 0) {

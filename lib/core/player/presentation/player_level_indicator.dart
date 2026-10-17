@@ -32,7 +32,12 @@ class PlayerLevelIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final level = value.isFinite ? value.clamp(0.0, 1.0).toDouble() : 0.0;
-    final m = PlatformUtils.isMobile ? _LevelMetrics.touch : _LevelMetrics.desktop;
+    // An upright phone's picture is narrow: the bars hug its edges there.
+    final m = !PlatformUtils.isMobile
+        ? _LevelMetrics.desktop
+        : MediaQuery.orientationOf(context) == Orientation.portrait
+        ? _LevelMetrics.touchPortrait
+        : _LevelMetrics.touch;
     final text = AppText.of(context);
     final numberStyle = PlatformUtils.isMobile ? text.tag : text.secondary;
     return IgnorePointer(
@@ -121,6 +126,15 @@ class _LevelMetrics {
     trackWidth: 4,
     maxTrackHeight: 140,
     edgeInset: 40,
+    columnWidth: 32,
+    iconSize: 18,
+    gap: 10,
+  );
+
+  static const touchPortrait = _LevelMetrics(
+    trackWidth: 4,
+    maxTrackHeight: 140,
+    edgeInset: 12,
     columnWidth: 32,
     iconSize: 18,
     gap: 10,

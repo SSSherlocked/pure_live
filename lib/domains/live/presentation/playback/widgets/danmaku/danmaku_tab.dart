@@ -142,7 +142,8 @@ class DanmakuSectionTabBar extends StatelessWidget {
             bottom: _labelBottomSpace + _indicatorStrip - _indicatorGap - _indicatorThickness,
           ),
         ),
-        dividerColor: theme.colorScheme.outlineVariant,
+        // The same faint line as the divider above the bar.
+        dividerColor: dividerLineColor(theme.colorScheme),
         dividerHeight: _dividerThickness,
         controller: controller,
         // Five equal-width sections share a narrow panel: shrink a label that

@@ -225,6 +225,14 @@ const double kFloatingMenuSelectedOpacity = 0.16;
 
 Color floatingMenuSelectedColor(ColorScheme colors) => colors.primary.withValues(alpha: kFloatingMenuSelectedOpacity);
 
+/// Opacity of a divider line: the text colour, faint, so a hairline over a
+/// black or dark page is only just visible (Material's outlineVariant stood
+/// out as a bright grey there). Outlines that must read clearly keep their
+/// own roles.
+const double kDividerOpacity = 0.12;
+
+Color dividerLineColor(ColorScheme colors) => colors.onSurface.withValues(alpha: kDividerOpacity);
+
 class MyTheme {
   final Color? primaryColor;
   final ColorScheme? colorScheme;
@@ -463,6 +471,8 @@ class MyTheme {
         surfaceTintColor: Colors.transparent,
         shape: kFloatingMenuShape,
       ),
+      // Every Divider and VerticalDivider that does not set its own colour.
+      dividerTheme: DividerThemeData(color: dividerLineColor(baseTheme.colorScheme)),
       dialogTheme: DialogThemeData(
         elevation: 0,
         backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainerHigh,

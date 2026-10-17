@@ -169,18 +169,22 @@ class DanmakuListViewState extends State<DanmakuListView> {
   Future<void> forceScrollToBottom() async {
     if (!mounted || !_autoScrollEnabled) return;
     final revision = _tailFollowGuard.capture();
-    await SchedulerBinding.instance.endOfFrame;
-    if (!mounted ||
-        !_autoScrollEnabled ||
-        !_tailFollowGuard.isCurrent(revision) ||
-        _activeScrollPointers > 0 ||
-        !_scrollController.hasClients) {
-      return;
-    }
-    final position = _scrollController.position;
-    if (!position.hasContentDimensions || position.isScrollingNotifier.value) return;
-    if ((position.pixels - position.minScrollExtent).abs() > 0.5) {
-      _scrollController.jumpTo(position.minScrollExtent);
+    // The list grows downwards and lays its rows out lazily, so the end is
+    // only an estimate until the last rows are built: jump again until it
+    // holds still.
+    for (var attempt = 0; attempt < 3; attempt++) {
+      await SchedulerBinding.instance.endOfFrame;
+      if (!mounted ||
+          !_autoScrollEnabled ||
+          !_tailFollowGuard.isCurrent(revision) ||
+          _activeScrollPointers > 0 ||
+          !_scrollController.hasClients) {
+        return;
+      }
+      final position = _scrollController.position;
+      if (!position.hasContentDimensions || position.isScrollingNotifier.value) return;
+      if ((position.maxScrollExtent - position.pixels).abs() <= 0.5) return;
+      _scrollController.jumpTo(position.maxScrollExtent);
     }
   }
 
@@ -242,12 +246,24 @@ class DanmakuListViewState extends State<DanmakuListView> {
       _pauseAutoScroll();
     }
 
-    // Keep the snapshot stable after every deliberate drag, including a drag
-    // that begins at the live edge and cannot move away from minScrollExtent.
-    // Auto-resuming on ScrollEnd made that first swipe look ignored because
-    // the next message batch immediately replaced the rows. The explicit
-    // "return to live" button is the sole resume action.
+    // A paused list that the user scrolls back down to its last row follows
+    // the live tail again, as the "return to live" button does. Only a
+    // scroll that has come to rest counts, so a drag still in progress (or
+    // one that starts at the bottom and heads up) keeps the snapshot.
+    if (!_autoScrollEnabled && notification is ScrollEndNotification && notification.depth == 0) {
+      final metrics = notification.metrics;
+      if (metrics.hasContentDimensions && metrics.maxScrollExtent - metrics.pixels <= _liveEdgeTolerance) {
+        // The Listener above counts the pointer up after the scrollable has
+        // handled it; resume once that event has been dispatched.
+        scheduleMicrotask(() {
+          if (mounted && !_autoScrollEnabled) unawaited(_resumeAutoScroll());
+        });
+      }
+    }
   }
+
+  /// How close to the last row a resting scroll counts as back at the bottom.
+  static const double _liveEdgeTolerance = 12;
 
   void _removeActiveScrollPointer() {
     if (_activeScrollPointers > 0) _activeScrollPointers--;
@@ -356,15 +372,22 @@ class DanmakuListViewState extends State<DanmakuListView> {
                             // second automatic layer around every visible row.
                             addRepaintBoundaries: false,
                             controller: _scrollController,
-                            reverse: true,
                             dragStartBehavior: DragStartBehavior.down,
                             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             physics: const PureLiveScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                            // Oldest first, from the top: the first message sits
+                            // as far below the top as every message sits from
+                            // the sides.
+                            padding: const EdgeInsets.fromLTRB(
+                              _chatListPadding,
+                              _chatListSideInset,
+                              _chatListPadding,
+                              10,
+                            ),
                             scrollCacheExtent: const ScrollCacheExtent.pixels(360),
                             itemCount: _visibleMessages.length,
                             itemBuilder: (_, index) {
-                              final msg = _visibleMessages[_visibleMessages.length - 1 - index];
+                              final msg = _visibleMessages[index];
                               // Returning the identical widget instance lets
                               // Element.updateChild skip rebuilding emoji spans,
                               // HSL colors and decorations for every existing row
@@ -416,6 +439,14 @@ class DanmakuListViewState extends State<DanmakuListView> {
     );
   }
 }
+
+/// The list's own horizontal padding, and each message's inside it.
+const double _chatListPadding = 6;
+const double _chatItemSidePadding = 8;
+
+/// How far a message stands from the list's sides, and the first one from
+/// its top.
+const double _chatListSideInset = _chatListPadding + _chatItemSidePadding;
 
 /// A danmaku colour for the chat list, darkened in the light theme until it
 /// reaches 3:1 against [background]: a yellow or light green message at full
@@ -494,8 +525,7 @@ class DanmakuItem extends StatelessWidget {
         fontWeight: fontWeight,
         nameFontWeight: nameFontWeight,
         bubble: settings.chatListBubble.v,
-        bubbleBorderOpacity: settings.chatListBubbleBorderOpacity.v,
-        bubbleFillOpacity: settings.chatListBubbleFill.v ? settings.chatListBubbleFillOpacity.v : 0,
+        bubbleFillOpacity: settings.chatListBubbleFillOpacity.v.clamp(0.0, 1.0).toDouble(),
         bubbleHeight: settings.chatListBubbleHeight.v
             .clamp(DanmakuSettingsController.minChatListBubbleHeight, DanmakuSettingsController.maxChatListBubbleHeight)
             .toDouble(),
@@ -517,7 +547,6 @@ class DanmakuItem extends StatelessWidget {
     required FontWeight fontWeight,
     required FontWeight nameFontWeight,
     required bool bubble,
-    required double bubbleBorderOpacity,
     required double bubbleFillOpacity,
     required double bubbleHeight,
     required ChatListColorMode colorMode,
@@ -532,25 +561,15 @@ class DanmakuItem extends StatelessWidget {
     // line height is 1.45): the rest is shared above and below the text.
     final lineHeight = MediaQuery.textScalerOf(context).scale(fontSize) * 1.45;
     final bubblePadding = (bubbleHeight - 1) * lineHeight / 2;
-    // [spacing] is the gap between two messages in text lines, half of it
-    // above and half below each. At 0 two outlined bubbles also give up one
-    // outline's width, so the neighbours share a single edge.
+    // [spacing] is the gap between two messages in text lines, below each
+    // one, so the first message keeps the list's top inset exactly.
     final gap = spacing * lineHeight;
-    final shareOutline = gap == 0 && bubble && bubbleBorderOpacity > 0;
     final card = DecoratedBox(
-      decoration: bubble
-          // An outline at its own opacity, and a background fill only when
-          // switched on (off, the list's own background shows through).
+      // A bubble is its background colour alone, no outline.
+      decoration: bubble && bubbleFillOpacity > 0
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: bubbleFillOpacity > 0
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: bubbleFillOpacity)
-                  : null,
-              border: bubbleBorderOpacity > 0
-                  ? Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: bubbleBorderOpacity),
-                    )
-                  : null,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: bubbleFillOpacity),
             )
           : const BoxDecoration(),
       child: Padding(
@@ -573,7 +592,9 @@ class DanmakuItem extends StatelessWidget {
                 decoration: BoxDecoration(color: vibrantColor, shape: BoxShape.circle),
               ),
 
-            Expanded(
+            // Loose, so a short message's bubble ends with its text and a
+            // long one still wraps at the row's width.
+            Flexible(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onSecondaryTap: () => _showActions(context),
@@ -661,67 +682,28 @@ class DanmakuItem extends StatelessWidget {
       ),
     );
     return RepaintBoundary(
-      child: _OverlapNext(
-        overlap: shareOutline ? _bubbleOutlineWidth : 0,
-        child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: gap / 2),
-        child: repeated
-            ? Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  card,
-                  Positioned(
-                    right: bubble ? -2 : 0,
-                    bottom: bubble ? -2 : 0,
-                    child: _RepeatBadge(count: repeats, fontSize: fontSize),
-                  ),
-                ],
-              )
-            : card,
-      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(_chatItemSidePadding, 0, _chatItemSidePadding, gap),
+        // The list hands every row its full width; the bubble takes only
+        // what its text needs, from the start edge.
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: repeated
+              ? Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    card,
+                    Positioned(
+                      right: bubble ? -2 : 0,
+                      bottom: bubble ? -2 : 0,
+                      child: _RepeatBadge(count: repeats, fontSize: fontSize),
+                    ),
+                  ],
+                )
+              : card,
+        ),
       ),
     );
-  }
-}
-
-/// The width of a chat bubble's outline ([Border.all]'s default).
-const double _bubbleOutlineWidth = 1;
-
-/// Takes [overlap] pixels less height than its child, which still paints in
-/// full: the next row then covers that strip, so two bubbles drawn edge to
-/// edge share one outline instead of showing two side by side.
-class _OverlapNext extends SingleChildRenderObjectWidget {
-  const _OverlapNext({required this.overlap, required super.child});
-
-  final double overlap;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderOverlapNext(overlap);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderOverlapNext renderObject) => renderObject.overlap = overlap;
-}
-
-class _RenderOverlapNext extends RenderProxyBox {
-  _RenderOverlapNext(this._overlap);
-
-  double _overlap;
-  set overlap(double value) {
-    if (value == _overlap) return;
-    _overlap = value;
-    markNeedsLayout();
-  }
-
-  @override
-  void performLayout() {
-    final child = this.child;
-    if (child == null) {
-      size = constraints.smallest;
-      return;
-    }
-    child.layout(constraints, parentUsesSize: true);
-    final height = (child.size.height - _overlap).clamp(0.0, double.infinity).toDouble();
-    size = constraints.constrain(Size(child.size.width, height));
   }
 }
 

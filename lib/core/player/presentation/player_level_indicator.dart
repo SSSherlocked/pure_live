@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:pure_live/core/theme/app_text.dart';
 
 /// Which edge of the picture a level indicator stands at.
 enum PlayerLevelSide { left, right }
 
-/// The readout of a level being changed on the picture: a thin vertical white
-/// track, filled from the bottom, with its icon below. Brightness stands at the
-/// left edge and volume at the right, matching the halves a drag changes them
-/// on; it fades in only while the level changes.
+/// The readout of a level being changed on the picture: the level as a bare
+/// number on top, a thin vertical white track filled from the bottom, and its
+/// icon below. Brightness stands at the left edge and volume at the right,
+/// matching the halves a drag changes them on; it fades in only while the
+/// level changes.
 ///
 /// It draws in the same white as the volume bar beside the mute button and
 /// takes no input.
@@ -46,12 +48,23 @@ class PlayerLevelIndicator extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 // A phone's inline picture is barely 200 px tall: the track
-                // takes at most half of it so the icon still fits.
+                // takes at most half of it so the number and the icon still fit.
                 final available = constraints.maxHeight.isFinite ? constraints.maxHeight / 2 : _maxTrackHeight;
                 final trackHeight = available.clamp(40.0, _maxTrackHeight).toDouble();
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // No percent sign: the bar already says it is a share.
+                    // Tabular figures keep the column from shifting as it counts.
+                    Text(
+                      '${(level * 100).round()}',
+                      style: AppText.of(context).tag.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    const SizedBox(height: _iconGap),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(_trackWidth / 2),
                       child: SizedBox(

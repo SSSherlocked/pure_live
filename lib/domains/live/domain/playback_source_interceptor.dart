@@ -11,6 +11,7 @@ class PlaybackSourceInterception {
     this.sourceQueryPolicies = const <String, HlsSourceQueryPolicy>{},
     this.relayCleanManifests = true,
     this.blockTwitchAds = false,
+    this.relayFirstLine = false,
   });
 
   final List<PlayerSource> sources;
@@ -26,6 +27,11 @@ class PlaybackSourceInterception {
   /// Whether a Twitch line goes through the Dart relay with its ad segments
   /// taken out (see TwitchAdBreaks).
   final bool blockTwitchAds;
+
+  /// Whether the first line goes through a Dart relay even when the native
+  /// engine could read it (an FLV header that hides the video, see
+  /// LivePlayerFacade's no-picture reopen).
+  final bool relayFirstLine;
 }
 
 /// Whether [url] is an HLS line: as the platform declared it, else by its

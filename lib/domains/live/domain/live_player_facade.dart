@@ -705,8 +705,41 @@ final class LivePlayerFacade {
       return;
     }
     _noPictureReopened = true;
-    Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening the stream');
-    unawaited(_controller.retry());
+    Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening it through the relay');
+    unawaited(_reopenThroughRelay());
+  }
+
+  /// Reopens the lines with the first one through the Dart relay, which
+  /// declares the video an FLV header left out (see withVideoDeclared): a
+  /// plain reopen got the same audio-only header again. An owned input has
+  /// no line to relay and is retried as it is.
+  Future<void> _reopenThroughRelay() async {
+    final current = commit;
+    if (current == null || current.urls.isEmpty || current.ownedSource != null || _sourceInterceptor == null) {
+      await _controller.retry();
+      return;
+    }
+    final lines = current.currentUrl.isEmpty
+        ? current.urls
+        : <String>[current.currentUrl, ...current.urls.where((url) => url != current.currentUrl)];
+    await _controller.play(
+      LiveSourceRequest(
+        sources: await _intercept(
+          livePlanSources(
+            lines,
+            headers: current.headers,
+            streamFacts: current.streamFacts,
+            title: _room == null ? null : liveSourceTitle(_room!),
+            artUri: _room == null ? null : liveSourceArtUri(_room!),
+          ),
+          streamFacts: current.streamFacts,
+          sourceQueryPolicies: current.sourceQueryPolicies,
+          relayFirstLine: true,
+        ),
+        title: _room?.title,
+      ),
+      preferredBackend: backendIdOfEngine(preferredEngine),
+    );
   }
 
   void _resetPictureWatch() {
@@ -902,6 +935,7 @@ final class LivePlayerFacade {
     List<PlayerSource> sources, {
     Map<String, LiveStreamFacts> streamFacts = const {},
     Map<String, HlsSourceQueryPolicy> sourceQueryPolicies = const {},
+    bool relayFirstLine = false,
   }) async {
     final interceptor = _sourceInterceptor;
     if (interceptor == null) return sources;
@@ -912,6 +946,7 @@ final class LivePlayerFacade {
         sourceQueryPolicies: sourceQueryPolicies,
         relayCleanManifests: _relayCleanManifests,
         blockTwitchAds: _blockTwitchAds(),
+        relayFirstLine: relayFirstLine,
       ),
     );
     return intercepted.isEmpty ? sources : intercepted;

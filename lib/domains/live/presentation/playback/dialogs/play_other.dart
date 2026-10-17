@@ -94,6 +94,10 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
   /// The refresh in progress; a pull or a press meanwhile joins it.
   Completer<void>? _refreshing;
 
+  /// Lets the desktop refresh button run the pull's refresh, so the same
+  /// refresh ball shows it (as on the home lists).
+  final EasyRefreshController _refreshController = EasyRefreshController();
+
   /// A refresh that never reports back still lets the ball go.
   static const Duration _refreshTimeout = Duration(seconds: 30);
 
@@ -138,8 +142,20 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
     if (running != null) return running.future;
     final completer = Completer<void>();
     _refreshing = completer;
+    _refreshesStarted++;
     EventBus.instance.emit('refresh_favorite_rooms', true);
     return completer.future.timeout(_refreshTimeout, onTimeout: _finishRefresh);
+  }
+
+  int _refreshesStarted = 0;
+
+  /// The desktop button: the refresh ball drops in and runs the refresh;
+  /// if it cannot (the header is busy or out of reach), the refresh runs
+  /// without it.
+  Future<void> _refreshByButton() async {
+    final started = _refreshesStarted;
+    await _refreshController.callRefresh();
+    if (mounted && _refreshesStarted == started) await _refresh();
   }
 
   void _finishRefresh() {
@@ -169,6 +185,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
     _autoRefreshWorker?.dispose();
     _autoRefreshTimer?.cancel();
     _finishRefresh();
+    _refreshController.dispose();
     super.dispose();
   }
 
@@ -183,6 +200,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
                 ? EasyRefresh.builder(
                     // A floating ball over the list, as on the home lists.
                     header: floatingRefreshHeader(),
+                    controller: _refreshController,
                     triggerAxis: Axis.vertical,
                     onRefresh: _refresh,
                     childBuilder: (context, physics) => _buildRoomList(onlineRooms, physics),
@@ -198,7 +216,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
               key: const ValueKey('follow-panel-refresh'),
               heroTag: null,
               tooltip: i18n('refresh'),
-              onPressed: () => unawaited(_refresh()),
+              onPressed: () => unawaited(_refreshByButton()),
               child: const Icon(Icons.refresh_rounded),
             ),
           ),
@@ -238,7 +256,8 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
             data: Theme.of(context).copyWith(textTheme: Get.theme.textTheme),
             child: GridView.builder(
               key: const ValueKey('live-room-grid'),
-              padding: const EdgeInsets.fromLTRB(padding, 2, padding, padding),
+              // The same margin on every side, the top included.
+              padding: const EdgeInsets.all(padding),
               physics: physics,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 1,

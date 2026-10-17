@@ -1,5 +1,6 @@
 package com.mystyle.purelive
 
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -485,6 +486,13 @@ class MainActivity : AudioServiceActivity() {
 
     override fun onTrimMemory(level: Int) {
         traceLifecycle("onTrimMemory", "level=$level")
+        // UI_HIDDEN only says the window left the screen, and it arrives while
+        // the system's back-to-home / recents animation still shows the app's
+        // window. Flutter treats every level as memory pressure, and the app
+        // then drops every decoded image, so covers blanked mid-animation (the
+        // flicker on leaving) and reloaded on return. Real pressure levels
+        // (BACKGROUND and up, RUNNING_* before API 34) still reach Flutter.
+        if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) return
         super.onTrimMemory(level)
     }
 

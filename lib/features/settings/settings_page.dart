@@ -47,7 +47,7 @@ class SettingsPage extends GetView<SettingsService> {
           // One flat list: no group headings. Theme, the home menu, refresh and
           // the network proxy live inside 通用; 播放器内核 inside 视频; 备份与恢复
           // inside 数据管理与备份.
-          context.buildModernCard([
+          _EntryList([
             context.buildTile(
               icon: Remix.settings_4_line,
               title: i18n("general"),
@@ -89,6 +89,39 @@ class SettingsPage extends GetView<SettingsService> {
           const SizedBox(height: 32),
         ],
       )),
+    );
+  }
+}
+
+/// The settings entries on the page itself, without a card: rows in the
+/// shared settings metrics, a hairline between two rows from the text's
+/// start to the side padding.
+class _EntryList extends StatelessWidget {
+  const _EntryList(this.entries);
+
+  final List<Widget> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTileTheme.merge(
+      contentPadding: const EdgeInsets.symmetric(horizontal: kSettingsRowSidePadding),
+      minVerticalPadding: kSettingsRowVerticalPadding,
+      horizontalTitleGap: kSettingsIconGap,
+      minLeadingWidth: kSettingsIconSlot,
+      child: Column(
+        children: [
+          for (var i = 0; i < entries.length; i++) ...[
+            if (i > 0)
+              const Divider(
+                height: 0.5,
+                thickness: 0.5,
+                indent: kSettingsRowSidePadding + kSettingsIconSlot + kSettingsIconGap,
+                endIndent: kSettingsRowSidePadding,
+              ),
+            entries[i],
+          ],
+        ],
+      ),
     );
   }
 }

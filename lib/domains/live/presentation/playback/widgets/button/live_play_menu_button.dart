@@ -33,7 +33,7 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
     // The same menu as the home page's: MenuAnchor entries sized to their
     // content (a popup menu rounds its width up to 56 px steps, which left a
     // wide empty band on the right).
-    return MenuAnchor(
+    return AppMenuAnchor(
       style: homeMenuStyle,
       alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
       onOpen: () => controller.updateUI(isMenuOpen: true),

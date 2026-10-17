@@ -280,7 +280,7 @@ class _WebDavPageState extends State<WebDavPage> {
       title: Text(i18n("webdav"), style: const TextStyle(fontWeight: FontWeight.w400)),
       actions: [
         // The app's floating-menu style (see the home menus).
-        MenuAnchor(
+        AppMenuAnchor(
           style: homeMenuStyle,
           alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
           menuChildren: [
@@ -519,7 +519,7 @@ class _WebDavPageState extends State<WebDavPage> {
       ),
       trailing: Obx(() {
         final enabled = controller.canStartFileAction;
-        return MenuAnchor(
+        return AppMenuAnchor(
           style: homeMenuStyle,
           alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
           menuChildren: [

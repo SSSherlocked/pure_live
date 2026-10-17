@@ -44,7 +44,7 @@ class CommonAppBarActions extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        MenuAnchor(
+        AppMenuAnchor(
           style: homeMenuStyle,
           alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
           menuChildren: [

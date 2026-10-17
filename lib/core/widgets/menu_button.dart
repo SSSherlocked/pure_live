@@ -93,7 +93,7 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MenuAnchor(
+    return AppMenuAnchor(
       style: homeMenuStyle,
       alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
       menuChildren: [

@@ -539,13 +539,7 @@ class DanmakuItem extends StatelessWidget {
             )
           : const BoxDecoration(),
       child: Padding(
-        // A folded line keeps its last words clear of the ×N badge.
-        padding: EdgeInsets.fromLTRB(
-          bubble ? 12 : 4,
-          bubble ? bubblePadding : 2,
-          (bubble ? 12 : 4) + (repeated ? fontSize * 2 + 6 : 0),
-          bubble ? bubblePadding : 2,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: bubble ? 12 : 4, vertical: bubble ? bubblePadding : 2),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -652,16 +646,15 @@ class DanmakuItem extends StatelessWidget {
       // its text needs, from the start edge.
       child: Align(
         alignment: AlignmentDirectional.centerStart,
+        // The ×N badge follows the bubble, outside it: a long message wraps
+        // short of it rather than making room inside the bubble.
         child: repeated
-            ? Stack(
-                clipBehavior: Clip.none,
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  card,
-                  Positioned(
-                    right: bubble ? -2 : 0,
-                    bottom: bubble ? -2 : 0,
-                    child: _RepeatBadge(count: repeats, fontSize: fontSize),
-                  ),
+                  Flexible(child: card),
+                  const SizedBox(width: 4),
+                  _RepeatBadge(count: repeats, fontSize: fontSize),
                 ],
               )
             : card,

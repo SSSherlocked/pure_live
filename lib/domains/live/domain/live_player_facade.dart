@@ -655,12 +655,12 @@ final class LivePlayerFacade {
 
   /// A room that plays sound but never gets a picture is reopened once.
   ///
-  /// Some FLV edges (seen on Bilibili) send a header that declares only an
-  /// audio stream: FFmpeg's probe then stops as soon as the audio is found,
-  /// the video track is never created and the picture stays black while the
-  /// sound plays. A new connection gets a proper header, so one reopen
-  /// brings the picture back. Audio-only modes and audio-only platforms are
-  /// left alone.
+  /// A last resort, not the fix: a video track that FFmpeg's probe did not
+  /// see is never selected by mpv, and the probe now runs at its default
+  /// 5 s window (see MediaKitLiveProperties) so an edge that sends audio
+  /// first is waited for. Should a stream still come up without a picture,
+  /// one plain reopen gives it a second connection. Audio-only modes and
+  /// audio-only platforms are left alone.
   void _watchForPicture({required bool playing, required bool hasPicture, required bool dummy}) {
     if (hasPicture) _pictureSeen = true;
     if (hasPicture || !playing || dummy || _audioOnlyMode.value || _videoOff || _pictureSeen || _noPictureReopened) {
@@ -687,41 +687,8 @@ final class LivePlayerFacade {
       return;
     }
     _noPictureReopened = true;
-    Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening it through the relay');
-    unawaited(_reopenThroughRelay());
-  }
-
-  /// Reopens the lines with the first one through the Dart relay, which
-  /// declares the video an FLV header left out (see withVideoDeclared): a
-  /// plain reopen got the same audio-only header again. An owned input has
-  /// no line to relay and is retried as it is.
-  Future<void> _reopenThroughRelay() async {
-    final current = commit;
-    if (current == null || current.urls.isEmpty || current.ownedSource != null || _sourceInterceptor == null) {
-      await _controller.retry();
-      return;
-    }
-    final lines = current.currentUrl.isEmpty
-        ? current.urls
-        : <String>[current.currentUrl, ...current.urls.where((url) => url != current.currentUrl)];
-    await _controller.play(
-      LiveSourceRequest(
-        sources: await _intercept(
-          livePlanSources(
-            lines,
-            headers: current.headers,
-            streamFacts: current.streamFacts,
-            title: _room == null ? null : liveSourceTitle(_room!),
-            artUri: _room == null ? null : liveSourceArtUri(_room!),
-          ),
-          streamFacts: current.streamFacts,
-          sourceQueryPolicies: current.sourceQueryPolicies,
-          relayFirstLine: true,
-        ),
-        title: _room?.title,
-      ),
-      preferredBackend: backendIdOfEngine(preferredEngine),
-    );
+    Log.w('player: sound but no picture after ${noPictureGrace.inSeconds} s; reopening the stream');
+    unawaited(_controller.retry());
   }
 
   void _resetPictureWatch() {
@@ -918,7 +885,6 @@ final class LivePlayerFacade {
     List<PlayerSource> sources, {
     Map<String, LiveStreamFacts> streamFacts = const {},
     Map<String, HlsSourceQueryPolicy> sourceQueryPolicies = const {},
-    bool relayFirstLine = false,
   }) async {
     final interceptor = _sourceInterceptor;
     if (interceptor == null) return sources;
@@ -928,7 +894,6 @@ final class LivePlayerFacade {
         streamFacts: streamFacts,
         sourceQueryPolicies: sourceQueryPolicies,
         blockTwitchAds: _blockTwitchAds(),
-        relayFirstLine: relayFirstLine,
       ),
     );
     return intercepted.isEmpty ? sources : intercepted;

@@ -48,7 +48,7 @@
 ### 对应测试
 
 `test/core/player/`、`test/domains/live/` 下带 `line_preflight`、`ingest_source_interceptor`、`playback_ingest_needs`、
-`playback_manifest_probe`、`media_kit_source_properties`、`media_kit_refused_seek`、`stream_replay`、`flv_video_declared`、
+`playback_manifest_probe`、`media_kit_source_properties`、`media_kit_refused_seek`、`stream_replay`、
 `loopback_relay_session_cookie` 的测试。
 
 ## 一次开播经过的决策层（2026-10-17 现状）
@@ -70,7 +70,7 @@
    `network-timeout=8`、`cache-pause=yes`/`cache-pause-wait=1`、`demuxer-readahead-secs=8`、`cache-secs=30`、`framedrop=decoder+vo`、
    `hwdec-software-fallback=1`、Android `initial-audio-sync=no`、低端机 `lowres=1`/2 线程；按源设置 `force-seekable`（FLV yes、HLS no）
    和 ffmpeg 的 `reconnect*` 选项。
-7. **门面看门狗** `LivePlayerFacade`：有声无画 4 s 且位置已过 1 s → 经中转重开一次；mpv 报音频 PTS 回跳 2–60 s 且开播 ≥ 5 s → 换同类线路（20 s 内一次）；
+7. **门面看门狗** `LivePlayerFacade`：有声无画 4 s 且位置已过 1 s → 同一条线原样重开一次（兜底，10-17 起探测已不截断视频轨）；mpv 报音频 PTS 回跳 2–60 s 且开播 ≥ 5 s → 换同类线路（20 s 内一次）；
    位置不动 → 卡顿提示 / 长卡顿事件。
 8. **内核 watchdogs**：buffering 12 s、position 15 s 无进展 → recovery（向宿主要新线路再重开）。
 9. **房间控制器重连梯** `LivePlayController`：网络类失败后 2/5/10/20/30/60 s 重试，最长 30 min，网络恢复时立刻重试。
@@ -91,13 +91,14 @@
 
 ### 一步到位的方向
 
-1. **已做（10-17 第二次提交）**：`demuxer-lavf-analyzeduration` 和 `demuxer-lavf-probesize` 回到 mpv/FFmpeg 默认值（5 s / 5 MB），
+1. **已做（10-17，64c4f92f9）**：`demuxer-lavf-analyzeduration` 和 `demuxer-lavf-probesize` 回到 mpv/FFmpeg 默认值（5 s / 5 MB），
    改用 `demuxer-lavf-o=fpsprobesize=0` 砍掉 20 帧的帧率分析：两轨参数齐全即结束探测，正常流首帧不变慢，音频先到的流最多等到下一个关键帧。
    `demuxer-lavf-o` 是 mpv 的键值列表，按字符串写入（与 `stream-lavf-o` 同一写法）；适配层的 `change-list` 路径只处理 List 值。
-   **待确认**：用 `playback-timing firstFrame` 日志在 Android 上对比首帧没有明显变慢，并在 B 站房间（如 886540）确认首开有画面。
-2. 上一条确认后撤掉 `withVideoDeclared` 和「无画面经中转重开」这两层补丁，以及对应测试；保留 Dart 中转只为 IPv6 黑洞和 HEVC 标签重写。
-   注意 `withVideoDeclared` 还覆盖「FLV 头真的只声明音频」这种情况：那时 FFmpeg 在建出音轨后立刻结束探测，与 `analyzeduration` 无关；
-   撤之前要确认 10-17 的日志（23 627 字节、约 1.4 s 的 AAC 后结束）确实是窗口截断而不是这条路。
+   用户已在 Android 上确认：`playback-timing firstFrame` 首帧没有明显变慢，B 站房间 886540 首开有画面。
+2. **已做（10-17，第二次提交）**：撤掉 `withVideoDeclared` 和「无画面经中转重开」这两层补丁及 `flv_video_declared` 测试；
+   Dart 中转只为 IPv6 黑洞、HEVC 标签重写和 Twitch 去广告。第 7 层的「有声无画 4 s 原样重开一次」保留为兜底。
+   10-17 日志里探测在 23 627 字节（约 1.4 s 的 AAC）后结束，远多于「头只声明音频、建出音轨即结束」会读到的字节数，所以是窗口截断这条路，
+   第 1 条已经堵住；若将来真遇到 FLV 头只声明音频的节点，那是另一个问题，不要把头改写加回中转。
 3. 不再新增独立的「重开」决策者。需要新的恢复行为时，加到内核 sweep/watchdogs 这一层，由它统一执行。
 
 ## 冷启动 40 s 黑屏：根因（已修，记录以免回退）
@@ -119,7 +120,8 @@
 | 10-16 | 659d9b657 | 第 7 层：无画面重开要等位置过 1 s | 修 10-16 自己引入的误重开 |
 | 10-16 | 5aa540f81 | 第 2 层：死 FLV 线让位给活 FLV 线而非 HLS | 虎牙 HLS 卡顿 |
 | 10-17 | f70fb00aa | 第 3、7 层：中转改 FLV 头标志；无画面经中转重开 | 1 s 内到视频的流恢复画面；1 s 后到的仍无画 |
-| 10-17 | （本次） | 第 6 层：探测回到默认 5 MB/5 s，加 `fpsprobesize=0` | 探测不再截掉晚到的视频轨；首帧仍在第一个关键帧；与第 4 层 10 s 窗口的关系：最坏等一个 GOP（B 站约 2–4 s）仍在窗口内 |
+| 10-17 | 64c4f92f9 | 第 6 层：探测回到默认 5 MB/5 s，加 `fpsprobesize=0` | 探测不再截掉晚到的视频轨；首帧仍在第一个关键帧；与第 4 层 10 s 窗口的关系：最坏等一个 GOP（B 站约 2–4 s）仍在窗口内 |
+| 10-17 | （本次） | 第 3、7 层：撤 f70fb00aa 的中转改头和经中转重开 | 少两个决策者；无画面 4 s 原样重开一次仍作兜底 |
 
 ## 改动规则
 

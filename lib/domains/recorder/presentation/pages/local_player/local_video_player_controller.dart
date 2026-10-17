@@ -132,6 +132,18 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   /// it as that file becomes current.
   final volume = 1.0.obs;
 
+  /// Whether the volume readout at the picture's right edge is up: a key
+  /// changed the volume within the last second.
+  final volumeShown = false.obs;
+  Timer? _volumeShownTimer;
+
+  /// Shows the volume readout for a second, without the control bar.
+  void flashVolume() {
+    volumeShown.value = true;
+    _volumeShownTimer?.cancel();
+    _volumeShownTimer = Timer(const Duration(seconds: 1), () => volumeShown.value = false);
+  }
+
   /// Whether the recording being played carries chat (a `<prefix>.xml` beside
   /// it), which is what the danmaku button is offered for.
   final hasDanmaku = false.obs;
@@ -881,6 +893,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     }
     _positionSaver?.cancel();
     _controlsHideTimer?.cancel();
+    _volumeShownTimer?.cancel();
     unawaited(_savePosition());
     _stateSub?.cancel();
     _transportSub?.cancel();

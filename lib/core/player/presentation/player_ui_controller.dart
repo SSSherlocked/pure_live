@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:io';
 
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/player/presentation/player_level_indicator.dart';
 
 /// What the shared player surface needs from whoever owns playback.
 ///
@@ -134,16 +135,17 @@ bool startsInSystemTopGestureZone({required double globalDy, required double top
 /// The full-surface gesture layer every player shares.
 ///
 /// On a phone or tablet a vertical drag on the left half changes screen
-/// brightness, on the right half the volume, and both show the same card while
-/// they run; on a desktop the layer changes nothing (the keyboard owns volume). The layer owns only the
-/// gesture and the readout; the values themselves come from
+/// brightness, on the right half the volume, and the level shows at that edge
+/// while it runs ([PlayerLevelIndicator]); on a desktop the layer changes
+/// nothing (the keyboard owns volume). The layer owns only the gesture and the
+/// readout; the values themselves come from
 /// [PlayerUiController], so a live room writes to the room's volume while a
 /// recording writes to the ordinary player volume.
 ///
 /// Responsibilities:
 ///
 /// - recognise the brightness/volume drags
-/// - show the value card for the duration of the gesture
+/// - show the level at the edge it is changed on for the duration of the gesture
 /// - ignore drags that would race the system's own home gesture
 ///
 /// It does not:
@@ -272,14 +274,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
 
   void _onVerticalDragEnd(DragEndDetails details) => _resetDrag();
 
-  IconData get _icon {
-    if (_side == PlayerDragSide.brightness) {
-      if (_value <= 0) return Icons.brightness_low;
-      return _value < 0.5 ? Icons.brightness_medium : Icons.brightness_high;
-    }
-    if (_value <= 0) return Icons.volume_mute;
-    return _value < 0.5 ? Icons.volume_down : Icons.volume_up;
-  }
+  IconData get _brightnessIcon => _value < 0.5 ? Icons.brightness_low_rounded : Icons.brightness_high_rounded;
 
   @override
   Widget build(BuildContext context) {
@@ -303,44 +298,17 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
         fit: StackFit.expand,
         children: [
           if (widget.child != null) widget.child!,
-          IgnorePointer(
-            child: AnimatedOpacity(
-              opacity: _visible ? 0.8 : 0.0,
-              duration: const Duration(milliseconds: 300),
-              child: Center(
-                child: Card(
-                  color: Colors.black,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(_icon, color: Colors.white),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: SizedBox(
-                              width: 100,
-                              height: 20,
-                              child: LinearProgressIndicator(
-                                value: _value,
-                                backgroundColor: Colors.white38,
-                                valueColor: const AlwaysStoppedAnimation(Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '${(_value * 100).round()}%',
-                          style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          PlayerLevelIndicator(
+            side: PlayerLevelSide.left,
+            visible: _visible && _side == PlayerDragSide.brightness,
+            value: _value,
+            icon: _brightnessIcon,
+          ),
+          PlayerLevelIndicator(
+            side: PlayerLevelSide.right,
+            visible: _visible && _side == PlayerDragSide.volume,
+            value: _value,
+            icon: playerVolumeIcon(_value),
           ),
         ],
       ),

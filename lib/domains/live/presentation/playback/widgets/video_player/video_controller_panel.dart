@@ -10,6 +10,7 @@ import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
 import 'package:pure_live/core/player/presentation/player_volume_bar.dart';
+import 'package:pure_live/core/player/presentation/player_level_indicator.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/player_control_policy.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
@@ -172,7 +173,6 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
         autofocus: true,
         child: Obx(() {
           final double currentVolume = controller.currentVolume.value;
-          final int percentage = (currentVolume * 100).round();
           final screenMode = controller.livePlayController.state.value.ui.screenMode;
           // An upright phone tightens the floating controls, inline and in
           // fullscreen alike (a 56 px top bar left the inline title 18 px
@@ -196,12 +196,6 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
               (portraitFullscreen || (manager.isSystemFullscreen.value && verticalVideo));
           final displayModeEntry = policy.orientationControls && portraitFullscreen && verticalVideo;
 
-          final IconData iconData = currentVolume <= 0
-              ? Icons.volume_mute
-              : currentVolume < 0.5
-              ? Icons.volume_down
-              : Icons.volume_up;
-
           return PlayerControlDensity.scope(
             compact: compactControls,
             child: MouseRegion(
@@ -210,44 +204,13 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
               cursor: !controller.showController.value ? SystemMouseCursors.none : SystemMouseCursors.basic,
               child: Stack(
                 children: [
-                  Container(
-                    color: Colors.transparent,
-                    alignment: Alignment.center,
-                    child: AnimatedOpacity(
-                      opacity: controller.showVolume.value ? 0.8 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Card(
-                        color: Colors.black,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Icon(iconData, color: Colors.white),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8, right: 8),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: SizedBox(
-                                    width: 100,
-                                    height: 20,
-                                    child: LinearProgressIndicator(
-                                      value: currentVolume,
-                                      backgroundColor: Colors.white38,
-                                      valueColor: const AlwaysStoppedAnimation(Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                "$percentage%",
-                                style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                  // ↑/↓ and M: the level at the right edge, where a drag
+                  // changes it; the control bar stays as it was.
+                  PlayerLevelIndicator(
+                    side: PlayerLevelSide.right,
+                    visible: controller.showVolume.value,
+                    value: currentVolume,
+                    icon: playerVolumeIcon(currentVolume),
                   ),
                   Obx(() {
                     final manager = GlobalPlayerService.instance.player;

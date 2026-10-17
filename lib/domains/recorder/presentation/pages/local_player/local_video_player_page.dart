@@ -15,6 +15,7 @@ import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/core/player/presentation/player_volume_bar.dart';
+import 'package:pure_live/core/player/presentation/player_level_indicator.dart';
 import 'package:pure_live/core/player/presentation/compact_playback_progress.dart';
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_actions.dart';
 import 'package:pure_live/core/player/presentation/fullscreen_window.dart' show fullscreenDriver;
@@ -463,7 +464,8 @@ class _RecordingKeyboardShortcutsState extends State<RecordingKeyboardShortcuts>
         final next = (current + (key == LogicalKeyboardKey.arrowUp ? 0.1 : -0.1)).clamp(0.0, 1.0);
         await controller.uiSetVolume(next);
       }());
-      controller.revealControls();
+      // The level shows at the right edge; the control bar stays as it was.
+      controller.flashVolume();
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -650,6 +652,14 @@ class _RecordingVideoFace extends StatelessWidget {
                     ),
                   )
                 : const SizedBox.shrink(),
+          ),
+          Obx(
+            () => PlayerLevelIndicator(
+              side: PlayerLevelSide.right,
+              visible: controller.volumeShown.value,
+              value: controller.volume.value,
+              icon: playerVolumeIcon(controller.volume.value),
+            ),
           ),
         ],
       ),

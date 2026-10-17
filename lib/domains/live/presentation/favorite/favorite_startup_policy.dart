@@ -4,23 +4,22 @@ import 'package:pure_live/core/models/live_room.dart';
 /// in flight.
 ///
 /// Every room is marked [LiveStatus.unknown], so cached state is never
-/// presented as current. The three buckets retain their previous positions,
+/// presented as current. The two buckets retain their previous positions,
 /// however, which prevents the grid from disappearing and reappearing while
 /// several platform requests settle.
 class FavoriteVerificationPreview {
   FavoriteVerificationPreview._({
     required List<LiveRoom> rooms,
     required List<LiveRoom> onlineRooms,
-    required List<LiveRoom> replayRooms,
     required List<LiveRoom> offlineRooms,
   }) : rooms = List<LiveRoom>.unmodifiable(rooms),
        onlineRooms = List<LiveRoom>.unmodifiable(onlineRooms),
-       replayRooms = List<LiveRoom>.unmodifiable(replayRooms),
        offlineRooms = List<LiveRoom>.unmodifiable(offlineRooms);
 
   final List<LiveRoom> rooms;
   final List<LiveRoom> onlineRooms;
-  final List<LiveRoom> replayRooms;
+
+  /// Every room that is not live, 录播 (replay) ones included.
   final List<LiveRoom> offlineRooms;
 }
 
@@ -38,22 +37,19 @@ FavoriteVerificationPreview buildFavoriteVerificationPreview(Iterable<LiveRoom> 
   final persisted = List<LiveRoom>.from(rooms);
   final pending = markFavoriteRoomsPendingVerification(persisted);
   final online = <LiveRoom>[];
-  final replay = <LiveRoom>[];
   final offline = <LiveRoom>[];
 
   for (var index = 0; index < persisted.length; index++) {
     final previous = persisted[index];
     final preview = pending[index];
-    if (previous.effectiveLiveStatus == LiveStatus.replay) {
-      replay.add(preview);
-    } else if (previous.isLiveNow) {
+    if (previous.isLiveNow) {
       online.add(preview);
     } else {
       offline.add(preview);
     }
   }
 
-  return FavoriteVerificationPreview._(rooms: pending, onlineRooms: online, replayRooms: replay, offlineRooms: offline);
+  return FavoriteVerificationPreview._(rooms: pending, onlineRooms: online, offlineRooms: offline);
 }
 
 String favoriteRoomIdentity(LiveRoom liveroom) => liveroom.identityKey;

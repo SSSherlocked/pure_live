@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 /// A slider that only changes when its thumb is dragged.
 ///
 /// Tapping or brushing the track does nothing, so a finger passing over the
-/// player panels cannot jump a setting to a new value.
+/// player panels cannot jump a setting to a new value. Its colours come
+/// from the theme's grey slider palette.
 class ThumbOnlySlider extends StatelessWidget {
   const ThumbOnlySlider({
     super.key,
@@ -12,8 +13,6 @@ class ThumbOnlySlider extends StatelessWidget {
     required this.max,
     required this.onChanged,
     this.stepSize,
-    this.activeColor,
-    this.inactiveColor,
     this.semanticFormatterCallback,
   });
 
@@ -22,8 +21,6 @@ class ThumbOnlySlider extends StatelessWidget {
   final double max;
   final ValueChanged<double>? onChanged;
   final double? stepSize;
-  final Color? activeColor;
-  final Color? inactiveColor;
   final SemanticFormatterCallback? semanticFormatterCallback;
 
   @override
@@ -36,8 +33,6 @@ class ThumbOnlySlider extends StatelessWidget {
       max: max,
       divisions: divisions != null && divisions > 0 ? divisions : null,
       allowedInteraction: SliderInteraction.slideThumb,
-      activeColor: activeColor,
-      inactiveColor: inactiveColor,
       semanticFormatterCallback: semanticFormatterCallback,
       onChanged: onChanged,
     );

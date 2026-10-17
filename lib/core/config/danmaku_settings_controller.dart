@@ -45,7 +45,7 @@ class DanmakuSettingsController extends GetxController {
   static const int defaultChatListFontWeight = 100;
   static const int defaultChatListNameFontWeight = 900;
   /// The gap between two chat list messages as a share of the message's
-  /// text line: 0 lays them edge to edge (two bubbles share one outline),
+  /// text line: 0 lays them edge to edge,
   /// 1 leaves a line's height between them. 0.4 is the 8 px the list had at
   /// the default 14 px text.
   static const double defaultChatListItemGap = 0.4;
@@ -172,11 +172,7 @@ class DanmakuSettingsController extends GetxController {
   /// Whether chat list messages sit in rounded bubbles.
   final RxBool chatListBubble = hiveBool('chatListBubble', true);
 
-  /// The bubble outline's opacity, 0-1.
-  final RxDouble chatListBubbleBorderOpacity = hiveDouble('chatListBubbleBorderOpacity', 1.0);
-
-  /// A filled bubble background (off: outline only) and its opacity, 0-1.
-  final RxBool chatListBubbleFill = hiveBool('chatListBubbleFill', false);
+  /// The bubble's background opacity, 0-1.
   final RxDouble chatListBubbleFillOpacity = hiveDouble('chatListBubbleFillOpacity', defaultChatListBubbleFillOpacity);
 
   /// The bubble's height, in text lines ([defaultChatListBubbleHeight]).
@@ -355,12 +351,6 @@ class DanmakuSettingsController extends GetxController {
     convertRenamed: chatListGapFromPixels,
   );
   static final _chatBubbleSpec = ProfiledSpec<bool>('chatListBubble', fallback: true, read: ProfiledSpec.flag);
-  static final _chatBubbleBorderOpacitySpec = ProfiledSpec<double>(
-    'chatListBubbleBorderOpacity',
-    fallback: 1.0,
-    read: ProfiledSpec.number(min: 0, max: 1),
-  );
-  static final _chatBubbleFillSpec = ProfiledSpec<bool>('chatListBubbleFill', fallback: false, read: ProfiledSpec.flag);
   static final _chatBubbleFillOpacitySpec = ProfiledSpec<double>(
     'chatListBubbleFillOpacity',
     fallback: defaultChatListBubbleFillOpacity,
@@ -423,8 +413,6 @@ class DanmakuSettingsController extends GetxController {
     _chatNameFontWeightSpec,
     _chatSpacingSpec,
     _chatBubbleSpec,
-    _chatBubbleBorderOpacitySpec,
-    _chatBubbleFillSpec,
     _chatBubbleFillOpacitySpec,
     _chatColorModeSpec,
     _chatAvatarSpec,
@@ -455,8 +443,6 @@ class DanmakuSettingsController extends GetxController {
     _chatNameFontWeightSpec.bind(chatListNameFontWeight),
     _chatSpacingSpec.bind(chatListItemGap),
     _chatBubbleSpec.bind(chatListBubble),
-    _chatBubbleBorderOpacitySpec.bind(chatListBubbleBorderOpacity),
-    _chatBubbleFillSpec.bind(chatListBubbleFill),
     _chatBubbleFillOpacitySpec.bind(chatListBubbleFillOpacity),
     _chatBubbleHeightSpec.bind(chatListBubbleHeight),
     _chatColorModeSpec.bind(chatListColorMode),
@@ -616,8 +602,6 @@ class DanmakuSettingsController extends GetxController {
       'chatListNameFontWeight': chatListNameFontWeight.v,
       'chatListItemGap': chatListItemGap.v,
       'chatListBubble': chatListBubble.v,
-      'chatListBubbleBorderOpacity': normalizeBubbleOpacity(chatListBubbleBorderOpacity.v, fallback: 1.0),
-      'chatListBubbleFill': chatListBubbleFill.v,
       'chatListBubbleFillOpacity': normalizeBubbleOpacity(
         chatListBubbleFillOpacity.v,
         fallback: defaultChatListBubbleFillOpacity,
@@ -691,10 +675,6 @@ class DanmakuSettingsController extends GetxController {
         ),
       ),
       'chatListBubble': typed<bool>(json['chatListBubble'] ?? true),
-      'chatListBubbleBorderOpacity': typed<double>(
-        normalizeBubbleOpacity(json['chatListBubbleBorderOpacity'] ?? 1.0, fallback: 1.0),
-      ),
-      'chatListBubbleFill': typed<bool>(json['chatListBubbleFill'] ?? false),
       'chatListBubbleFillOpacity': typed<double>(
         normalizeBubbleOpacity(
           json['chatListBubbleFillOpacity'] ?? defaultChatListBubbleFillOpacity,
@@ -824,11 +804,6 @@ class DanmakuSettingsController extends GetxController {
       ),
       'chatListItemGap': _chatListGapIn(danmaku),
       'chatListBubble': danmaku['chatListBubble'] ?? true,
-      'chatListBubbleBorderOpacity': normalizeBubbleOpacity(
-        danmaku['chatListBubbleBorderOpacity'] ?? 1.0,
-        fallback: 1.0,
-      ),
-      'chatListBubbleFill': danmaku['chatListBubbleFill'] ?? false,
       'chatListBubbleFillOpacity': normalizeBubbleOpacity(
         danmaku['chatListBubbleFillOpacity'] ?? defaultChatListBubbleFillOpacity,
         fallback: defaultChatListBubbleFillOpacity,

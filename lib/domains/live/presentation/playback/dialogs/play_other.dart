@@ -235,7 +235,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
 
     // One column of avatar rows at every width: no covers, the same list in
     // the side panel and in the fullscreen panel.
-    const padding = 10.0;
     return Builder(
       builder: (context) {
         return Obx(() {
@@ -257,7 +256,7 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
             child: GridView.builder(
               key: const ValueKey('live-room-grid'),
               // The same margin on every side, the top included.
-              padding: const EdgeInsets.all(padding),
+              padding: const EdgeInsets.all(LivePanelTab.listPadding),
               physics: physics,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 1,

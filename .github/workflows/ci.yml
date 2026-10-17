@@ -3,8 +3,8 @@
 name: 代码检查
 on:
   push:
-    # next/3.5.0 until it is merged into master (see CLAUDE.md).
-    branches: [master, next/3.5.0]
+    # next/3.6.0 until it is merged into master (see CLAUDE.md).
+    branches: [master, next/3.6.0]
   pull_request:
   workflow_dispatch:
 permissions:

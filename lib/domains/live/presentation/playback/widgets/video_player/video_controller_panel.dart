@@ -1018,6 +1018,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                 for (var line = 0; line < state.lineCount; line++)
                   i18n('toolbox_line', args: {'index': (line + 1).toString()}),
               ],
+              tags: state.lineFormatTags,
               entries: [
                 for (var index = 0; index < state.lineCount; index++)
                   PlayerMenuChoice(
@@ -1028,6 +1029,8 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                         i18n('toolbox_line', args: {'index': (line + 1).toString()}),
                     ],
                     selected: state.currentLineIndex == index,
+                    tag: state.lineFormatTag(index),
+                    tags: state.lineFormatTags,
                     onPressed: switching
                         ? null
                         : () => unawaited(live.setResolution(ReloadDataType.changeLine, state.currentQuality, index)),
@@ -1048,14 +1051,18 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
     required bool switching,
     required List<String> choices,
     required List<Widget> entries,
+    List<String?> tags = const [],
   }) {
     // The list is as wide as its longest choice (PlayerMenuChoice, in the
     // compact roles), so it can open centred on the chip; MenuAnchor still
     // flips it above or slides it back on screen where it does not fit.
-    final compactLabel = compactTextTheme(Theme.of(context).textTheme).labelLarge ?? const TextStyle();
+    final compactTheme = compactTextTheme(Theme.of(context).textTheme);
+    final compactLabel = compactTheme.labelLarge ?? const TextStyle();
     final width = math.max(
       64.0,
-      menuLabelWidth(context, choices, compactLabel.copyWith(fontWeight: FontWeight.w800)) + playerMenuItemPadding,
+      menuLabelWidth(context, choices, compactLabel.copyWith(fontWeight: FontWeight.w800)) +
+          streamFormatTagSlot(context, tags, style: compactTheme.labelSmall) +
+          playerMenuItemPadding,
     );
     return MenuAnchor(
       style: const MenuStyle(alignment: Alignment.bottomCenter),

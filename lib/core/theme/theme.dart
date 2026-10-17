@@ -31,6 +31,51 @@ const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
 /// former 5.6 px); its drag halo is twice as wide.
 const double kSliderThumbRadius = 7.28;
 
+/// The neutral greys of every slider and its value badge, one set per
+/// brightness, whatever the theme colour: the thumb shares the filled
+/// track's grey, the empty track sits one step above the page, and the tick
+/// dots are a shade off the track under them. A badge (the value shown
+/// beside a slider, and the bubble while dragging) is a grey pill with
+/// near-white text in dark mode and near-black text in light mode.
+class SliderPalette {
+  const SliderPalette._({
+    required this.track,
+    required this.emptyTrack,
+    required this.tick,
+    required this.emptyTick,
+    required this.badge,
+    required this.badgeText,
+  });
+
+  final Color track;
+  final Color emptyTrack;
+  final Color tick;
+  final Color emptyTick;
+  final Color badge;
+  final Color badgeText;
+
+  static const SliderPalette dark = SliderPalette._(
+    track: Color(0xFF74787F),
+    emptyTrack: Color(0xFF33363B),
+    tick: Color(0xFF9A9EA4),
+    emptyTick: Color(0xFF555960),
+    badge: Color(0xFF303338),
+    badgeText: Color(0xFFE8EAED),
+  );
+
+  static const SliderPalette light = SliderPalette._(
+    track: Color(0xFF8E9298),
+    emptyTrack: Color(0xFFD8DADE),
+    tick: Color(0xFFCDD0D4),
+    emptyTick: Color(0xFFABAEB3),
+    badge: Color(0xFFE3E5E8),
+    badgeText: Color(0xFF26292E),
+  );
+
+  static SliderPalette of(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? dark : light;
+}
+
 /// The colour of every floating menu panel (MenuAnchor menus, their
 /// submenus and popup menus): one tonal grey at [kFloatingMenuOpacity] in
 /// every mode. Pure-black mode keeps the grey too, so a menu over a black
@@ -69,22 +114,31 @@ String? resolveAppFontFamily({
   return 'MI_Sans_Regular';
 }
 
-/// The colour scheme for the chosen theme colour [seed].
+/// The colour scheme for the chosen theme colour [seed], used when dynamic
+/// colour is off.
 ///
 /// Material's seeding only takes the seed's hue and picks its own tones:
 /// tonal spot turned a grey or white seed blue, and monochrome made every
-/// grey white in dark mode (black in light mode). The surfaces still come
-/// from Material - a true grey set for a near-neutral seed (monochrome),
-/// otherwise one close to the seed (fidelity) - but the primary colour is
-/// the chosen colour itself, so each shade looks as picked. It is only
-/// lightened or darkened as far as it must be to stay readable on the page
-/// ([kMinPrimaryContrast]).
+/// grey white in dark mode (black in light mode). The accent roles still
+/// come from Material - a true grey set for a near-neutral seed
+/// (monochrome), otherwise one close to the seed (fidelity) - but the
+/// primary colour is the chosen colour itself, so each shade looks as
+/// picked. It is only lightened or darkened as far as it must be to stay
+/// readable on the page ([kMinPrimaryContrast]).
+///
+/// Pages, cards, bars, sheets, dialogs, text and outlines take no colour
+/// from the seed: they are Material's neutral greys ([_neutralSurfaces]),
+/// and surfaceTint is transparent so elevation adds no tint either. The
+/// theme colour only marks accents (buttons, switches, sliders, selection).
 ColorScheme seededColorScheme(Color seed, Brightness brightness) {
   final neutral = HSLColor.fromColor(seed).saturation < 0.12;
-  final base = ColorScheme.fromSeed(
-    seedColor: seed,
-    brightness: brightness,
-    dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
+  final base = _neutralSurfaces(
+    ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+      dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
+    ),
+    brightness,
   );
   final primary = readablePrimary(seed.withValues(alpha: 1), base.surface);
   final onPrimary = _contrast(Colors.white, primary) >= _contrast(Colors.black, primary) ? Colors.white : Colors.black;
@@ -95,7 +149,47 @@ ColorScheme seededColorScheme(Color seed, Brightness brightness) {
     primaryContainer: container,
     onPrimaryContainer: base.onSurface,
     inversePrimary: Color.alphaBlend(primary.withValues(alpha: 0.6), base.inverseSurface),
-    surfaceTint: primary,
+    surfaceTint: Colors.transparent,
+  );
+}
+
+/// [scheme] with every surface, text and outline role replaced by
+/// Material 3's neutral palette at chroma 0 (the tone of each role is
+/// Material's own, e.g. surface T98 light / T6 dark).
+ColorScheme _neutralSurfaces(ColorScheme scheme, Brightness brightness) {
+  if (brightness == Brightness.dark) {
+    return scheme.copyWith(
+      surface: const Color(0xFF131313),
+      onSurface: const Color(0xFFE2E2E2),
+      onSurfaceVariant: const Color(0xFFC6C6C6),
+      surfaceDim: const Color(0xFF131313),
+      surfaceBright: const Color(0xFF393939),
+      surfaceContainerLowest: const Color(0xFF0E0E0E),
+      surfaceContainerLow: const Color(0xFF1B1B1B),
+      surfaceContainer: const Color(0xFF1F1F1F),
+      surfaceContainerHigh: const Color(0xFF2A2A2A),
+      surfaceContainerHighest: const Color(0xFF353535),
+      outline: const Color(0xFF919191),
+      outlineVariant: const Color(0xFF474747),
+      inverseSurface: const Color(0xFFE2E2E2),
+      onInverseSurface: const Color(0xFF303030),
+    );
+  }
+  return scheme.copyWith(
+    surface: const Color(0xFFF9F9F9),
+    onSurface: const Color(0xFF1B1B1B),
+    onSurfaceVariant: const Color(0xFF474747),
+    surfaceDim: const Color(0xFFDADADA),
+    surfaceBright: const Color(0xFFF9F9F9),
+    surfaceContainerLowest: const Color(0xFFFFFFFF),
+    surfaceContainerLow: const Color(0xFFF3F3F3),
+    surfaceContainer: const Color(0xFFEEEEEE),
+    surfaceContainerHigh: const Color(0xFFE8E8E8),
+    surfaceContainerHighest: const Color(0xFFE2E2E2),
+    outline: const Color(0xFF777777),
+    outlineVariant: const Color(0xFFC6C6C6),
+    inverseSurface: const Color(0xFF303030),
+    onInverseSurface: const Color(0xFFF1F1F1),
   );
 }
 
@@ -130,6 +224,14 @@ double _contrast(Color a, Color b) {
 const double kFloatingMenuSelectedOpacity = 0.16;
 
 Color floatingMenuSelectedColor(ColorScheme colors) => colors.primary.withValues(alpha: kFloatingMenuSelectedOpacity);
+
+/// Opacity of a divider line: the text colour, faint, so a hairline over a
+/// black or dark page is only just visible (Material's outlineVariant stood
+/// out as a bright grey there). Outlines that must read clearly keep their
+/// own roles.
+const double kDividerOpacity = 0.12;
+
+Color dividerLineColor(ColorScheme colors) => colors.onSurface.withValues(alpha: kDividerOpacity);
 
 class MyTheme {
   final Color? primaryColor;
@@ -241,13 +343,26 @@ class MyTheme {
         ? Color.alphaBlend(baseTheme.colorScheme.onSurface.withValues(alpha: 0.07), Colors.black)
         : floatingMenuColor(baseTheme.colorScheme);
 
+    final sliderPalette = isDark ? SliderPalette.dark : SliderPalette.light;
+
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
       // A smaller drag halo makes every slider shorter than Material's 48 px;
-      // the thumb scales with it.
+      // the thumb scales with it. Sliders are grey (see SliderPalette).
       sliderTheme: baseTheme.sliderTheme.copyWith(
         overlayShape: const RoundSliderOverlayShape(overlayRadius: kSliderThumbRadius * 2),
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: kSliderThumbRadius),
+        activeTrackColor: sliderPalette.track,
+        inactiveTrackColor: sliderPalette.emptyTrack,
+        activeTickMarkColor: sliderPalette.tick,
+        inactiveTickMarkColor: sliderPalette.emptyTick,
+        thumbColor: sliderPalette.track,
+        overlayColor: sliderPalette.track.withValues(alpha: 0.12),
+        valueIndicatorColor: sliderPalette.badge,
+        valueIndicatorTextStyle: textTheme.labelMedium?.copyWith(
+          color: sliderPalette.badgeText,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       pageTransitionsTheme: appPageTransitionsTheme,
       appBarTheme: AppBarTheme(
@@ -356,6 +471,8 @@ class MyTheme {
         surfaceTintColor: Colors.transparent,
         shape: kFloatingMenuShape,
       ),
+      // Every Divider and VerticalDivider that does not set its own colour.
+      dividerTheme: DividerThemeData(color: dividerLineColor(baseTheme.colorScheme)),
       dialogTheme: DialogThemeData(
         elevation: 0,
         backgroundColor: pureBlack ? Colors.black : baseTheme.colorScheme.surfaceContainerHigh,

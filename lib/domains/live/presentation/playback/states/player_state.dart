@@ -2,7 +2,8 @@ import 'package:pure_live/core/player/core/playback_source.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pure_live/core/stream/hls_source_query_policy.dart';
 import 'package:pure_live/core/models/live_play_quality.dart';
-import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts;
+import 'package:pure_live/core/widgets/stream_format_tag.dart';
+import 'package:pure_live/shared/platforms/live_site.dart' show LiveStreamFacts, LiveStreamFormat;
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 
 /// Resolves the route-scoped video controller for a partial player-state update.
@@ -60,6 +61,21 @@ class PlayerState {
     if (i < 0 || i >= playUrls.length) return playUrls.first;
     return playUrls[i];
   }
+
+  /// `FLV` or `HLS` for line [index]'s menu tag: the site's facts first,
+  /// then the URL's path; null when neither tells (or for an owned source).
+  String? lineFormatTag(int index) {
+    if (ownedSource != null || index < 0 || index >= playUrls.length) return null;
+    final url = playUrls[index];
+    return switch (streamFacts[url]?.format) {
+      LiveStreamFormat.flv => 'FLV',
+      LiveStreamFormat.hls => 'HLS',
+      _ => streamFormatTagOfUrl(url),
+    };
+  }
+
+  /// [lineFormatTag] of every line, in order.
+  List<String?> get lineFormatTags => [for (var line = 0; line < lineCount; line++) lineFormatTag(line)];
 
   PlayerState copyWith({
     Object? videoController = _notProvided,

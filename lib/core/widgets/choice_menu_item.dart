@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/core/theme/app_text.dart';
 import 'package:pure_live/core/theme/theme.dart';
 import 'package:pure_live/core/player/presentation/player_menu_choice.dart';
+import 'package:pure_live/core/widgets/stream_format_tag.dart';
 
 /// One entry of a popup list that picks one of several values (sort order,
 /// quality, line, display mode). Every such list in the app uses this, so
@@ -17,8 +18,9 @@ const double _choicePadding = 16;
 /// entries' padding. Pass it as the PopupMenuButton's `constraints`; without
 /// the cap the popup rounds its width up in 56 px steps and leaves wide empty
 /// margins.
-BoxConstraints choiceMenuConstraints(BuildContext context, List<String> labels) {
-  final width = _labelWidth(context, labels) + _choicePadding * 2;
+/// [tags] are the entries' stream format tags, when the list picks a line.
+BoxConstraints choiceMenuConstraints(BuildContext context, List<String> labels, {List<String?> tags = const []}) {
+  final width = _labelWidth(context, labels) + streamFormatTagSlot(context, tags) + _choicePadding * 2;
   return BoxConstraints(minWidth: width, maxWidth: width);
 }
 
@@ -32,6 +34,8 @@ PopupMenuItem<T> choiceMenuItem<T>(
   required List<String> labels,
   required bool selected,
   Key? key,
+  String? tag,
+  List<String?> tags = const [],
 }) {
   final base = AppText.of(context).body;
   final colors = Theme.of(context).colorScheme;
@@ -46,17 +50,15 @@ PopupMenuItem<T> choiceMenuItem<T>(
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: _choicePadding),
       color: selected ? floatingMenuSelectedColor(colors) : null,
-      child: SizedBox(
-        width: _labelWidth(context, labels),
-        child: Text(
-          label,
-          maxLines: 1,
-          textAlign: TextAlign.center,
-          style: base.copyWith(
-            color: selected ? colors.primary : null,
-            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-          ),
+      child: StreamLineLabel(
+        label: label,
+        labelWidth: _labelWidth(context, labels),
+        style: base.copyWith(
+          color: selected ? colors.primary : null,
+          fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
         ),
+        tag: tag,
+        tagSlot: streamFormatTagSlot(context, tags),
       ),
     ),
   );

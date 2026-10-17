@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/theme/app_text.dart';
+import 'package:pure_live/core/theme/theme.dart';
 
 /// The width every settings row gives its leading icon, and the gap from
 /// there to its text: switch, slider and plain rows alike, so the texts of a
@@ -396,9 +397,10 @@ extension AppLayoutFactory on BuildContext {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final titleStyle = AppText.of(this).sectionTitle;
+                    final palette = SliderPalette.of(context);
                     final valueStyle = AppText.of(this).body.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
+                      color: palette.badgeText,
                     );
                     final scaler = MediaQuery.textScalerOf(context);
                     final titlePainter = TextPainter(
@@ -416,7 +418,7 @@ extension AppLayoutFactory on BuildContext {
                     final valueBadge = Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        color: palette.badge,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(displayValue, style: valueStyle),
@@ -458,8 +460,6 @@ extension AppLayoutFactory on BuildContext {
                       min: min,
                       max: max,
                       value: value,
-                      activeColor: theme.colorScheme.primary,
-                      inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
                       onChanged: onChanged,
                     ),
                   ),

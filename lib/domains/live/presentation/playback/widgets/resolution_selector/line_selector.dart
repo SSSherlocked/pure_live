@@ -46,7 +46,7 @@ class LineSelector extends StatelessWidget {
         constraints: choiceMenuConstraints(context, [
           for (var line = 0; line < state.player.lineCount; line++)
             i18n("toolbox_line", args: {"index": (line + 1).toString()}),
-        ]),
+        ], tags: state.player.lineFormatTags),
         offset: labelMenuOffset(context, _labelStyle(context), maxHeight),
         onOpened: () {
           controller.updateUI(isMenuOpen: true);
@@ -92,6 +92,7 @@ class LineSelector extends StatelessWidget {
             for (var line = 0; line < state.player.lineCount; line++)
               i18n("toolbox_line", args: {"index": (line + 1).toString()}),
           ];
+          final tags = state.player.lineFormatTags;
           return [
             for (var index = 0; index < labels.length; index++)
               choiceMenuItem<int>(
@@ -100,6 +101,8 @@ class LineSelector extends StatelessWidget {
                 label: labels[index],
                 labels: labels,
                 selected: index == currentIndex,
+                tag: tags[index],
+                tags: tags,
               ),
           ];
         },

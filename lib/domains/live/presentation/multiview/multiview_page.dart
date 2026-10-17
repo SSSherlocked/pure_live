@@ -718,7 +718,15 @@ class _MultiviewPageState extends State<MultiviewPage> {
           children: [
             for (var i = 0; i < state.lines.length; i++)
               ListTile(
-                title: Text(i18n('multiview_line', args: {'index': '${i + 1}'})),
+                title: Row(
+                  children: [
+                    Flexible(child: Text(i18n('multiview_line', args: {'index': '${i + 1}'}))),
+                    if (streamFormatTagOfUrl(state.lines[i]) case final tag?) ...[
+                      const SizedBox(width: 6),
+                      StreamFormatTag(label: tag),
+                    ],
+                  ],
+                ),
                 trailing: i == state.lineIndex ? const Icon(Icons.check_rounded) : null,
                 onTap: () {
                   Navigator.of(sheetContext).pop();

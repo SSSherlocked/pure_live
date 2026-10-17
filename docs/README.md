@@ -10,6 +10,7 @@
 
 - [关注刷新设计](FAVORITE_REFRESH_DESIGN.md)：刷新、并发、快照和失败语义。
 - [虎牙播放会话](HUYA_PLAYBACK_SESSION.md)：虎牙的选线、续签与回归基线。
+- [播放内核](PLAYBACK_CORE.md)：内核的文件范围、一次开播的九个决策层、B 站黑屏/有声无画的根因与修复谱系。
 
 ## 产品与平台参考
 

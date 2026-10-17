@@ -39,7 +39,7 @@ class IngestSourceInterceptor implements PlaybackSourceInterceptor {
         facts: request.streamFacts[url],
         policy: request.sourceQueryPolicies[url],
         // Only its first address is dead: a Dart relay reaches the others.
-        relayPreferred: verdict == LineReach.firstAddressDead,
+        relayPreferred: verdict == LineReach.firstAddressDead || request.relayFirstLine,
         blockTwitchAds: request.blockTwitchAds,
       );
     } catch (error) {

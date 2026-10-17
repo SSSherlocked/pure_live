@@ -63,6 +63,21 @@ class FlvLegacyHevcTagRewriter {
   }
 }
 
+/// [header] (the FLV header and the first PreviousTagSize, as the first
+/// packet of [FlvInputFramer]) with its video flag set.
+///
+/// Some Bilibili edges send a header that declares an audio stream only.
+/// FFmpeg's probe then ends as soon as the audio is found, the video track is
+/// never created and the picture stays black while the sound plays; a reopen
+/// gets the same header. Declaring video makes the probe wait for it. A
+/// stream that really has no video costs only the probe's wait.
+Uint8List withVideoDeclared(Uint8List header) {
+  if (header.length < 5 || (header[4] & 0x01) != 0) return header;
+  final out = Uint8List.fromList(header);
+  out[4] |= 0x01;
+  return out;
+}
+
 /// Playback-only loopback relay that applies [FlvLegacyHevcTagRewriter].
 ///
 /// Only hosts known to serve codec-id-12 HEVC are routed here, so ordinary FLV
@@ -143,9 +158,16 @@ class FlvLegacyHevcRelay {
       downstream.response.bufferOutput = false;
       final framer = FlvInputFramer();
       final rewriter = FlvLegacyHevcTagRewriter();
+      var first = true;
       await for (final chunk in upstream) {
         if (_closed) break;
         for (final packet in framer.add(chunk)) {
+          if (first) {
+            first = false;
+            downstream.response.add(withVideoDeclared(packet));
+            sent = true;
+            continue;
+          }
           downstream.response.add(rewriter.rewrite(packet));
           sent = true;
         }

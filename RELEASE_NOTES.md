@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.4.7
+
+## 🎬 直播间
+
+- **B 站有声无画**：部分 B 站直播流在开头声明自己「只有音频」，播放器于是只建了音频轨，画面一直黑着，重开也一样。现在本地中转会把这个声明改成「音频＋视频」，让播放器等到画面；发现有声无画时，也会改经本地中转重开一次，而不是原样重开。
+
+---
+
 # Pure Live v3.4.6
 
 ## ✨ 新功能

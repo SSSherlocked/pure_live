@@ -384,7 +384,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 unit: 'px',
                 onChanged: (v) => controller.danmakuTopArea.value = v.toDouble(),
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _counter(
                 theme,
@@ -394,7 +393,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 unit: 'px',
                 onChanged: (v) => controller.danmakuBottomArea.value = v.toDouble(),
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _switch(
                 theme,
@@ -524,7 +522,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                     unit: i18n('value_seconds', args: {'n': ''}).trim(),
                     onChanged: (v) => SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v = v,
                     labelColor: labelColor,
-                    digitColor: digitColor,
                   ),
               ],
             ),
@@ -625,9 +622,10 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     required int max,
     required ValueChanged<int> onChanged,
     required Color labelColor,
-    required Color digitColor,
     String? unit,
   }) {
+    // The stepper is neutral grey, as the slider value badges are.
+    final palette = SliderPalette.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -648,19 +646,21 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
             decrementSemanticLabel: i18n('decrease_value', args: {'label': title}),
             incrementSemanticLabel: i18n('increase_value', args: {'label': title}),
             onChanged: onChanged,
+            backgroundColor: palette.badge,
+            foregroundColor: palette.badgeText,
             // A compact stepper: small −/+ buttons around a value box wide
             // enough for three digits.
             buttonSize: const Size(30, 28),
             borderRadius: 8,
             valueMinWidth: 48,
-            decrementIcon: const Icon(Icons.remove, size: 16, color: Colors.white),
-            incrementIcon: const Icon(Icons.add, size: 16, color: Colors.white),
-            textStyle: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.bold),
+            decrementIcon: Icon(Icons.remove, size: 16, color: palette.badgeText),
+            incrementIcon: Icon(Icons.add, size: 16, color: palette.badgeText),
+            textStyle: AppText.of(context).body.copyWith(color: palette.badgeText, fontWeight: FontWeight.bold),
           ),
           // The value's unit after the stepper, as the sliders show theirs.
           if (unit != null) ...[
             const SizedBox(width: 6),
-            Text(unit, style: AppText.of(context).body.copyWith(color: digitColor)),
+            Text(unit, style: AppText.of(context).body.copyWith(color: palette.badgeText)),
           ],
         ],
       ),

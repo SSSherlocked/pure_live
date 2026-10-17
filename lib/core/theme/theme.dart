@@ -59,19 +59,19 @@ class SliderPalette {
   final Color badgeText;
 
   static const SliderPalette dark = SliderPalette._(
-    track: Color(0xFF74787F),
-    emptyTrack: Color(0xFF33363B),
-    tick: Color(0xFF9A9EA4),
-    emptyTick: Color(0xFF555960),
+    track: Color(0xFF878B92),
+    emptyTrack: Color(0xFF3C3F44),
+    tick: Color(0xFFADB1B6),
+    emptyTick: Color(0xFF62666C),
     badge: Color(0xFF303338),
     badgeText: Color(0xFFE8EAED),
   );
 
   static const SliderPalette light = SliderPalette._(
-    track: Color(0xFF8E9298),
-    emptyTrack: Color(0xFFD8DADE),
-    tick: Color(0xFFCDD0D4),
-    emptyTick: Color(0xFFABAEB3),
+    track: Color(0xFFA3A7AD),
+    emptyTrack: Color(0xFFE2E4E7),
+    tick: Color(0xFFD9DBDE),
+    emptyTick: Color(0xFFBABDC1),
     badge: Color(0xFFE3E5E8),
     badgeText: Color(0xFF26292E),
   );

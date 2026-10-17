@@ -603,9 +603,14 @@ class RoomCard extends StatelessWidget {
       return LayoutBuilder(
         builder: (context, constraints) {
           final textScale = MediaQuery.textScalerOf(context).scale(1);
-          final showAutomaticPlatformBadge =
-              config.automaticPlatformBadge && !dense && constraints.maxWidth >= 280 && textScale < 1.8;
           final compact = config.layout == RoomCardLayout.compact;
+          // A compact row has its own width rule for the tag (see
+          // _buildCompactTrailing); dense rows only get a narrower one there,
+          // so the 关注 panel, which is dense, still shows it.
+          final showAutomaticPlatformBadge =
+              config.automaticPlatformBadge &&
+              textScale < 1.8 &&
+              (compact || (!dense && constraints.maxWidth >= 280));
           final colors = Theme.of(context).colorScheme;
           return Card(
             key: const ValueKey('room-card-surface'),

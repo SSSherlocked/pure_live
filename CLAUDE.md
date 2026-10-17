@@ -44,6 +44,14 @@
 - 发布用手动触发的 `build_pure_live_release.yml`，输入版本号（如 `3.2.2`）。`RELEASE_NOTES.md` 里最好先写好这个版本的中文更新说明；没写时发布不会被阻止，会按上次发布以来的提交自动生成一节（提交标题，英文）。发布完成后，工作流会把 `RELEASE_NOTES.md`、`pubspec.yaml`、`assets/version.json`、`releases.json` 提交回 master。
 - 应用内更新：启动后和「关于 › 检查更新」读取 master 上的 `assets/version.json`（最新版本与更新说明）和 `assets/releases.json`（各平台的下载文件，按文件名里的平台关键词挑选），关于 › 历史也读取后者。两个文件都由发布工作流写回，不要手工提前修改，否则用户会收到不存在的更新。
 
+## 播放内核
+
+- 「播放内核」指 [docs/PLAYBACK_CORE.md](docs/PLAYBACK_CORE.md) 列出的文件：media_core 分叉的 `media_core_live`、`media_core_media_kit`、`media_core_ingest`，media-kit 分叉的 Android Surface 补丁，以及本仓库的 `lib/core/player/kernel/`、`lib/core/stream/`、`lib/domains/live/data/stream/`、`live_player_facade.dart`、`live_play_controller.dart` 的重连梯、各站点的线路顺序与 `LiveStreamFacts` 声明、`playback_header_resolver.dart`。
+- 普通改动（功能、界面、文案、设置、站点目录/弹幕/搜索）不得触及内核文件，也不得改 mpv 属性、超时、窗口、重试次数这类数字。顺手改一行也不行：同一次开播有九层代码各自做决定，一层的数字是按相邻层的窗口算的（见该文档的分层表）。
+- 内核改动单独立项：单独一次提交、一次推送，不与其他改动合并；提交信息写明改的是分层表的哪一层、动了哪个阈值、与相邻层窗口的关系；改代码前先更新 `docs/PLAYBACK_CORE.md` 的分层表和修复谱系。
+- 不在门面层（`live_player_facade.dart`）新增看门狗或「重开」逻辑；新的恢复行为加到 media_core_live 的 sweep/watchdogs，由它统一执行。先问「去掉哪一层能解决」，再问「加哪一层」。
+- 偏离 mpv/FFmpeg 默认值的属性，每一项都要在 `media_kit_live_properties.dart` 的注释里写清测得的收益和已知代价；没有数据支撑的调参回到默认值。
+
 ## 代码约定
 
 - 分层：`app -> core, shared, domains, features`；`core` 不依赖上层；`domains/X` 只依赖 `core`、`shared` 和自身。由 `tool/validate_architecture.py` 检查。

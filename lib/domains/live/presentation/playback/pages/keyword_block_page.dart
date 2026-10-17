@@ -482,7 +482,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
           ? null
           : Text(subtitle, style: AppText.of(context).secondary.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       value: value,
-      activeThumbColor: theme.colorScheme.primary,
       onChanged: onChanged,
     );
   }

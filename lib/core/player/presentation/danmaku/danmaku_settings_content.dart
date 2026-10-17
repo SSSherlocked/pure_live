@@ -696,7 +696,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                     : AppText.of(context).secondary,
               ),
         value: value,
-        activeThumbColor: theme.colorScheme.primary,
         onChanged: onChanged,
       ),
     );

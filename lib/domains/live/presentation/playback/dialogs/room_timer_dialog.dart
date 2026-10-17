@@ -70,7 +70,6 @@ class _RoomTimerEditorState extends State<_RoomTimerEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final height = MediaQuery.sizeOf(context).height;
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -98,7 +97,6 @@ class _RoomTimerEditorState extends State<_RoomTimerEditor> {
                         subtitle: Text(i18n('room_playback_timer_desc')),
                         contentPadding: EdgeInsets.zero,
                         value: _enabled,
-                        activeThumbColor: colorScheme.primary,
                         onChanged: (value) {
                           setState(() {
                             _enabled = value;

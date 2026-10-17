@@ -45,7 +45,6 @@ class HotAreasPage extends GetView<HotAreasController> {
                       Switch(
                         key: ValueKey('platform-switch-${item.id}'),
                         value: isShow,
-                        activeThumbColor: theme.colorScheme.primary,
                         onChanged: (bool value) => controller.onChanged(item.id, value),
                       ),
                       if (isShow && visibleCount > 1) ...[

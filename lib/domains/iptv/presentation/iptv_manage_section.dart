@@ -749,7 +749,6 @@ class IptvManageSectionState extends State<IptvManageSection> {
           Switch(
             value: item.isAutoSync,
             materialTapTargetSize: MaterialTapTargetSize.padded,
-            activeThumbColor: theme.colorScheme.primary,
 
             onChanged: busy
                 ? null

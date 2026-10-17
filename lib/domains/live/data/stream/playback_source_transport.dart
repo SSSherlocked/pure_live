@@ -13,6 +13,7 @@ import 'flv_legacy_hevc_relay.dart';
 import 'live_stream_ingest.dart';
 import 'playback_ingest_needs.dart';
 import 'playback_manifest_probe.dart';
+import 'twitch_preroll_wait.dart';
 import 'package:pure_live/core/logging/app_log.dart';
 
 class _PlaybackInputCreation {
@@ -179,6 +180,13 @@ class PlaybackSourceTransport {
     try {
       if (_creating.isNotEmpty || _pending.isNotEmpty || _stale.isNotEmpty) await _cancelPendingResources();
       if (!current()) return null;
+      final Uri? source = Uri.tryParse(url);
+      if (blockTwitchAds && source != null && isTwitchLine(source) && isDeclaredManifest(facts, source)) {
+        // A pre-roll has no live run for the relay to serve instead: the
+        // line waits it out before the player opens (see waitOutTwitchPreroll).
+        await waitOutTwitchPreroll(url, headers: headers, current: current);
+        if (!current()) return null;
+      }
       final PlaybackOwnedInputFactory? createInput = await _chooseInput(
         url: url,
         headers: headers,

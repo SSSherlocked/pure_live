@@ -89,6 +89,7 @@ final class LivePlayerFacade {
   Timer? _adBreakTimer;
   bool _inAdBreak = false;
   bool _adBreakNoticeShown = false;
+  bool _adBreakHolding = false;
 
   /// A Twitch ad break taken out of the stream: the player waits on the
   /// live stream, so its stall watchdogs (the kernel's and [onLongStall])
@@ -101,7 +102,11 @@ final class LivePlayerFacade {
     }
     _adBreakTimer?.cancel();
     _adBreakTimer = Timer(adBreakHold, _endAdBreak);
-    if (_inAdBreak) return;
+    if (report.holding) _adBreakHolding = true;
+    if (_inAdBreak) {
+      _noticeAdBreakIfWaiting();
+      return;
+    }
     _inAdBreak = true;
     _adBreakNoticeShown = false;
     _controller.watchdogs.stallsHeld = true;
@@ -111,10 +116,11 @@ final class LivePlayerFacade {
 
   /// The viewer hears about a break only once the picture waits on it: the
   /// player has the segments before the break buffered and plays them out
-  /// first, and a break that ends before they run out is never seen.
+  /// first, and a break that ends before they run out is never seen. A
+  /// pre-roll holds the line before anything plays: it is noticed at once.
   void _noticeAdBreakIfWaiting() {
     if (!_inAdBreak || _adBreakNoticeShown) return;
-    final waiting = _stallPlayback == PlayerPlaybackState.buffering || isStalled.value;
+    final waiting = _adBreakHolding || _stallPlayback == PlayerPlaybackState.buffering || isStalled.value;
     if (!waiting) return;
     _adBreakNoticeShown = true;
     Log.i('twitch: the picture waits on the ad break');
@@ -127,6 +133,7 @@ final class LivePlayerFacade {
     if (!_inAdBreak) return;
     _inAdBreak = false;
     _adBreakNoticeShown = false;
+    _adBreakHolding = false;
     _controller.watchdogs.stallsHeld = false;
     _longStallReported = false;
     _sinceAdvance

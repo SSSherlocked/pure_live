@@ -108,6 +108,9 @@ class _FontTypographySectionState extends State<FontTypographySection> {
     });
   }
 
+  /// Sizes move in steps of 0.1 px, and show at that precision.
+  static double _toTenth(double value) => (value * 10).round() / 10;
+
   /// One size slider and, under it, a line drawn in the text role it sets.
   Widget _sizeRow({
     required IconData icon,
@@ -129,8 +132,8 @@ class _FontTypographySectionState extends State<FontTypographySection> {
           value: setting.v,
           min: min,
           max: max,
-          displayValue: formatPixels(setting.v.round()),
-          onChanged: (newValue) => setting.v = newValue,
+          displayValue: formatPixels(_toTenth(setting.v)),
+          onChanged: (newValue) => setting.v = _toTenth(newValue),
         ),
         Padding(
           padding: EdgeInsets.fromLTRB(

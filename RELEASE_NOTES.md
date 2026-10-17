@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.5.3
+
+## 🎨 外观
+
+- **字号按 0.1 px 显示**：「字体设置」里五项字号的滑条本来就能拖到小数，右侧却只显示整数，看不出 13.4 和 13 的区别。现在按 0.1 px 调节，数值也显示到 0.1 px（如 13.4 px）。
+
+---
+
 # Pure Live v3.5.2
 
 ## 💬 弹幕

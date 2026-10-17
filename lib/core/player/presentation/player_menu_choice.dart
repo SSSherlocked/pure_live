@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/theme/theme.dart';
+import 'package:pure_live/core/widgets/stream_format_tag.dart';
 
 /// The widest of [labels] in [style], so every entry of a menu can take that
 /// width and centre its label.
@@ -37,12 +38,20 @@ class PlayerMenuChoice extends StatelessWidget {
     required this.labels,
     required this.selected,
     required this.onPressed,
+    this.tag,
+    this.tags = const [],
   });
 
   final String label;
 
   /// Every label of the menu, for the shared width.
   final List<String> labels;
+
+  /// A line's stream format (FLV, HLS) shown after its label, if known.
+  final String? tag;
+
+  /// Every entry's [tag], for the room kept after the labels.
+  final List<String?> tags;
   final bool selected;
   final VoidCallback? onPressed;
 
@@ -60,14 +69,12 @@ class PlayerMenuChoice extends StatelessWidget {
       style: selected
           ? ButtonStyle(backgroundColor: WidgetStatePropertyAll(floatingMenuSelectedColor(colors)))
           : null,
-      child: SizedBox(
-        width: menuLabelWidth(context, labels, bold),
-        child: Text(
-          label,
-          maxLines: 1,
-          textAlign: TextAlign.center,
-          style: selected ? bold.copyWith(color: colors.primary) : bold.copyWith(fontWeight: FontWeight.w600),
-        ),
+      child: StreamLineLabel(
+        label: label,
+        labelWidth: menuLabelWidth(context, labels, bold),
+        style: selected ? bold.copyWith(color: colors.primary) : bold.copyWith(fontWeight: FontWeight.w600),
+        tag: tag,
+        tagSlot: streamFormatTagSlot(context, tags),
       ),
     );
   }

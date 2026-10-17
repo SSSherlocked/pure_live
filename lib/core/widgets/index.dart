@@ -6,6 +6,7 @@ export './menu_button.dart';
 export './home_app_bar.dart';
 export './common_appbar_actions.dart';
 export './choice_menu_item.dart';
+export './stream_format_tag.dart';
 export 'section_list_tile.dart';
 export './pure_live_scroll_physics.dart';
 export './pure_live_scroll_controller.dart';

@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.5.0",
+    "title": "v3.5.0",
+    "date": "2026-10-17",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.5.0",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎬 直播间\n\n- **线路菜单标出流类型**：直播间的线路按钮、全屏面板和多屏页的线路菜单里，每条线路后面多了一个 FLV 或 HLS 小标签。标签是透明底的细边框胶囊，颜色跟线路名一致；判断不出格式的线路不显示。\n- **B 站有声无画**：部分 B 站节点开头先只发声音，画面要等到下一个关键帧才来；而播放器只给了自己 1 秒时间认流，这 1 秒里没看到画面就只建了音频轨，之后画面来了也不会再选上，于是一直有声无画，重开也一样。这 1 秒是 10 月 11 日为了让 B 站首帧快一秒而压短的。现在认流时间回到播放器默认的 5 秒，足够等到下一个关键帧；首帧快的那一秒改由不再等 20 帧做帧率分析来保证，正常的流仍然在第一个关键帧就出画。\n- **Twitch 广告过后一卡一卡**：屏蔽广告时，广告一结束就立刻接上直播，可那时广告后的直播只出了一小段，播放器只能贴着直播最前沿播，手里没有任何缓冲，之后每一段都要现等，于是每两秒卡一下，一直卡到退出直播间。现在要等广告后的直播攒够三段（约 6 秒）才接上，和刚进直播间时一样留有余量，接上后不再卡顿。\n- **Twitch 广告提示只在真的等广告时出现**：之前只要播放列表里带有广告标记就会提示「Twitch 广告时段」，刷新直播间后即使画面照常播放也会弹出。现在只有画面因为广告停下来时才提示；广告标记只写了预计时长的，也按预计时长结束，不再把之后的直播都当成广告。\n- **刚进直播间的 Twitch 片头广告也会屏蔽**：之前进直播间时如果正赶上片头广告，播放列表里只有广告、没有直播可以接，广告就照常播放。现在会先不打开播放器，提示「Twitch 广告时段，直播稍后继续」，等广告后的直播出来再开始播放；最多等 90 秒，超时仍按原样播放。\n\n#### 💬 弹幕\n\n- **弹幕列表从上往下排**：新弹幕加在下面，刚进直播间时内容贴着顶部显示，第一条上方留出和两侧一样的边距。新消息来了照样滚到最新，往上翻看时不会被拉回去。\n- **气泡只显示底色**：弹幕气泡不再画边框，相关设置已删除；气泡宽度跟着文字走，短弹幕不再占满整行。\n- **边距和关注列表一致**：弹幕列表四周离边缘 10 px，与信息页的「关注」列表相同；宽屏下不再套一层圆角卡片，任何宽度下都铺满面板。\n\n#### 🎨 外观\n\n- **关闭动态取色时是纯中性色**：之前关掉「动态取色」后，底色、卡片、面板仍带一点主题色的色调。现在关闭时这些表面都是不带色偏的灰阶，主题色只用在按钮、开关、选中项等需要强调的地方；打开时不变。\n- **滑条改成灰色**：各处滑条的轨道和刻度点改为中性灰，旁边的数值徽标和拖动时的气泡改成灰底浅色字，对比度更高。\n- **分隔线更淡**：信息页标签栏上下的横线等分隔线改为文字色的 12% 透明度，在深色页面上不再刺眼。\n- **封面卡片边框可调**：「房间卡片」设置里选封面卡片时多了「封面卡片边框」滑条，按 5% 调节边框透明度；默认 0% 不画边框，与之前一样。\n- **加载动画统一为三重连环**：按钮、列表、对话框、登录页、搜索、录制、投屏、多屏和播放器里原来的 Material 转圈，都换成了 app 自己的三重连环加载动画，颜色跟随主题色，播放器上仍是白色；下拉刷新本来就是这个动画，交互不变。切换画质或线路时只在画质旁显示一个加载动画；直播间加载时，播放器标题处只显示加载动画，不再同时显示旧标题。下载和更新的进度条不受影响。\n- **菜单与按钮的间距统一**：所有由按钮打开的菜单都在按钮下方 4 px 处展开。之前播放器右上角 ⋯ 菜单从整条顶栏的底边展开，离按钮明显更远；搜索页的排序菜单会盖住按钮；多屏、画质线路等菜单的间距也各不相同。",
+    "files": [
+      {
+        "name": "PureLive-3.5.0-Android-arm64-v8a",
+        "size": "119.34mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.5.0-iOS-TrollStore.ipa",
+        "size": "44.8mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.5.0-iOS-Unsigned.zip",
+        "size": "44.54mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.5.0-Linux-x64.deb",
+        "size": "41.86mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.5.0-Linux-x64.tar.gz",
+        "size": "50.2mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.5.0-Linux-x64.zip",
+        "size": "50.23mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.5.0-MacOS-AppleSilicon.zip",
+        "size": "42.18mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.5.0-MacOS-Intel.zip",
+        "size": "44.91mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.5.0-Windows-x64.zip",
+        "size": "60.63mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.0/PureLive-3.5.0-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.4.6",
     "title": "v3.4.6",
     "date": "2026-10-17",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.4.6-Android-arm64-v8a",
         "size": "119.49mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.4.6/PureLive-3.4.6-Android-arm64-v8a.apk"
       },
       {

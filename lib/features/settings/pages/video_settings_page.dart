@@ -93,22 +93,6 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 icon: SettingsService.to.vol.globalVolumeMute.v ? Remix.volume_mute_line : Remix.volume_up_line,
               ),
             ),
-            if (_isMobile)
-              Obx(
-                () => _mutedAware(
-                  context.buildSliderTile(
-                    context,
-                    icon: Remix.phone_line,
-                    title: i18n("mobile_default_volume"),
-                    value: SettingsService.to.vol.defaultMobileVolume.v * 100,
-                    min: 0.0,
-                    max: 100.0,
-                    displayValue: "${(SettingsService.to.vol.defaultMobileVolume.v * 100).toStringAsFixed(0)}%",
-                    onChanged: (val) =>
-                        SettingsService.to.vol.defaultMobileVolume.v = double.parse((val / 100).toStringAsFixed(2)),
-                  ),
-                ),
-              ),
             if (_isDesktop)
               Obx(
                 () => _mutedAware(

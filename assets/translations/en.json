@@ -696,7 +696,6 @@
   "show_danmaku_subtitle": "Off: no danmaku is received",
   "global_mute": "Muted by default",
   "global_mute_subtitle": "Rooms start muted",
-  "mobile_default_volume": "Mobile Default Volume",
   "desktop_default_volume": "Desktop Default Volume",
   "room_volume": "Room Volume",
   "reset_default": "Reset Default",

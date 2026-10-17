@@ -697,7 +697,6 @@
   "show_danmaku_subtitle": "关闭则不接收弹幕",
   "global_mute": "默认静音",
   "global_mute_subtitle": "进入直播间默认静音",
-  "mobile_default_volume": "手机端默认音量",
   "desktop_default_volume": "电脑端默认音量",
   "room_volume": "房间音量",
   "reset_default": "恢复默认",

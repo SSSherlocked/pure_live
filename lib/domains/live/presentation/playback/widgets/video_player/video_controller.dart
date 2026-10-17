@@ -584,12 +584,8 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
         await setVolume(0.0);
         return;
       }
-      // Android/iOS media volume belongs to the device, not to an individual
-      // room. A room-level snapshot can outlive this route while the user
-      // changes media volume elsewhere; replaying it here would unexpectedly
-      // overwrite that newer device choice (most visibly when the stale value
-      // is zero). Adopt the current native level without writing it back or
-      // erasing the desktop/multiview room preference.
+      // Android/iOS media volume belongs to the device, not to a room: adopt
+      // the current native level without writing it back.
       currentVolume.value = observed.clamp(0.0, 1.0).toDouble();
     } catch (error, stack) {
       // An optional volume plugin must not prevent the room from opening.
@@ -903,7 +899,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       _volumeRevision++;
       final resolved = volume.clamp(0.0, 1.0).toDouble();
       currentVolume.value = resolved;
-      unawaited(room.saveCurrentVolume(resolved));
     }, fetchInitialVolume: false);
     volumeSub.onError((Object error, StackTrace stack) {
       Log.dev('Observe system volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);
@@ -923,7 +918,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   Future<double?> volume() async {
     if (!_ownsVolume) return null;
-    if (!_usesSystemVolume) return room.getSavedVolume();
+    if (!_usesSystemVolume) return currentVolume.value;
     final revision = _volumeRevision;
     try {
       final observed = await _volumeController.getVolume().timeout(_volumeOperationTimeout);
@@ -975,7 +970,6 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       if (!_ownsVolume) return false;
       if (revision != _volumeRevision) return true;
       currentVolume.value = resolved;
-      await room.saveCurrentVolume(resolved);
       return true;
     } catch (error, stack) {
       Log.dev('Set volume failed', name: 'VideoController.Volume', error: error, stackTrace: stack);

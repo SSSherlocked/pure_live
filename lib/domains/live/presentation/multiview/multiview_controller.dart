@@ -30,9 +30,9 @@ typedef MultiviewStreamResolver = Future<MultiviewStreamSource> Function(
 
 typedef MultiviewGlobalPauseHook = Future<void> Function();
 
-/// Loads and saves the per-room volume used by multiview.
+/// The level a multiview cell opens at; a cell's later changes last for the
+/// session only.
 typedef MultiviewRoomVolumeLoader = double Function(LiveRoom liveroom);
-typedef MultiviewRoomVolumeSaver = Future<void> Function(LiveRoom liveroom, double volume);
 
 class MultiviewController extends GetxController {
   MultiviewController({
@@ -41,7 +41,6 @@ class MultiviewController extends GetxController {
     MultiviewGlobalPauseHook? pauseGlobalPlayback,
     MultiviewDanmakuEngineFactory? danmakuEngineFactory,
     MultiviewRoomVolumeLoader? roomVolumeLoader,
-    MultiviewRoomVolumeSaver? roomVolumeSaver,
     int? maxCellCount,
     this.frameStallTimeout = const Duration(seconds: 10),
     bool Function()? isFramePresentationVisible,
@@ -50,7 +49,6 @@ class MultiviewController extends GetxController {
        _pauseGlobalPlayback = pauseGlobalPlayback ?? _defaultPauseGlobalPlayback,
        _danmakuEngineFactory = danmakuEngineFactory ?? _defaultDanmakuEngineFactory,
        _roomVolumeLoader = roomVolumeLoader ?? _defaultRoomVolumeLoader,
-       _roomVolumeSaver = roomVolumeSaver ?? _defaultRoomVolumeSaver,
        maxCellCount = maxCellCount ?? (PlatformUtils.isDesktop ? maxCells : MultiviewLayout.focus.capacity) {
     if (this.maxCellCount < MultiviewLayout.focus.capacity || this.maxCellCount > maxCells) {
       throw ArgumentError.value(this.maxCellCount, 'maxCellCount', 'must be between 4 and $maxCells');
@@ -189,10 +187,6 @@ class MultiviewController extends GetxController {
 
   static double _defaultRoomVolumeLoader(LiveRoom liveroom) => liveroom.getSavedVolume();
 
-  static Future<void> _defaultRoomVolumeSaver(LiveRoom liveroom, double volume) {
-    return liveroom.saveCurrentVolume(volume);
-  }
-
   static Future<void> _defaultPauseGlobalPlayback() async {
     final service = GlobalPlayerService.instance;
     if (!service.initialized) return;
@@ -243,7 +237,6 @@ class MultiviewController extends GetxController {
   final MultiviewGlobalPauseHook _pauseGlobalPlayback;
   final MultiviewDanmakuEngineFactory _danmakuEngineFactory;
   final MultiviewRoomVolumeLoader _roomVolumeLoader;
-  final MultiviewRoomVolumeSaver _roomVolumeSaver;
 
   late final MultiviewDanmakuSession _danmakuSession = MultiviewDanmakuSession(
     engineFactory: _danmakuEngineFactory,
@@ -938,18 +931,6 @@ class MultiviewController extends GetxController {
     final resolved = volume.clamp(0.0, 1.0).toDouble();
     _volumes[cellIndex] = resolved;
     await _wallController.setCellVolume(cellIndex, resolved);
-    final room = cells[cellIndex].room;
-    if (room == null) return;
-    try {
-      await _roomVolumeSaver(room, resolved);
-    } catch (error, stackTrace) {
-      Log.dev(
-        'MultiviewController: persist room volume failed',
-        name: 'MultiviewController',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
   }
 
   double cellVolume(int cellIndex) {

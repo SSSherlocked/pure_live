@@ -1,4 +1,4 @@
-import 'package:pure_live/core/player/core/live_room_volume_manager.dart';
+import 'package:pure_live/core/config/settings_service.dart';
 import 'package:pure_live/core/network/http_header_policy.dart';
 import 'package:pure_live/core/utils/invisible_placeholders.dart';
 
@@ -597,13 +597,10 @@ class LiveRoom {
     return 'LiveRoom{roomId: $roomId, userId: $userId, link: $link, title: $title, nick: $nick, avatar: $avatar, cover: $cover, area: $area, watching: $watching, followers: $followers, platform: $platform, tagIds: $tagIds, introduction: $introduction, notice: $notice, status: $status, data: $data, danmakuData: $danmakuData, isRecord: $isRecord, liveStatus: $liveStatus, catchUpUrl: $catchUpUrl, isCatchUp: $isCatchUp, lastWatchedAt: $lastWatchedAt}';
   }
 
-  double getSavedVolume() {
-    return LiveRoomVolumeManager.getRoomVolume(this);
-  }
-
-  Future<void> saveCurrentVolume(double volume) async {
-    await LiveRoomVolumeManager.saveRoomVolume(this, volume);
-  }
+  /// The level this room opens at: the saved default, the same for every
+  /// room (rooms no longer remember their own level). The name stays because
+  /// the playback facade, a kernel file, reads it.
+  double getSavedVolume() => SettingsService.to.vol.roomOpenVolume;
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

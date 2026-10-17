@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/utils/i18n.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
-import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/core/config/settings_service.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
@@ -56,8 +55,7 @@ class _RoomMuteButtonState extends State<RoomMuteButton> {
   void _listenGlobalVolume() {
     final v = SettingsService.to.vol;
     _volumeListener = v.globalVolumeMute.stream.listen((_) => _updateVolumeFromGlobal());
-    final platformDefault = PlatformUtils.isMobile ? v.defaultMobileVolume : v.defaultDesktopVolume;
-    _platformVolWorker = platformDefault.stream.listen((_) => _updateVolumeFromGlobal());
+    _platformVolWorker = v.defaultDesktopVolume.stream.listen((_) => _updateVolumeFromGlobal());
   }
 
   bool _owns(VideoController owner, int generation) =>
@@ -91,9 +89,7 @@ class _RoomMuteButtonState extends State<RoomMuteButton> {
   void _updateVolumeFromGlobal() {
     if (!mounted) return;
     final v = SettingsService.to.vol;
-    final raw = PlatformUtils.isMobile ? v.defaultMobileVolume.v : v.defaultDesktopVolume.v;
-    if (!raw.isFinite) return;
-    final platformVolume = raw.clamp(0.0, 1.0).toDouble();
+    final platformVolume = v.currentPlatformDefaultVolume;
     _valueRevision++;
     setState(() {
       if (v.globalVolumeMute.v) {

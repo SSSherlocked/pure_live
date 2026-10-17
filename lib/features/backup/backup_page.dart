@@ -190,7 +190,7 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
                 return ListTile(
                   visualDensity: VisualDensity.compact,
                   contentPadding: const EdgeInsets.only(left: 16, right: 4),
-                  title: Text(entry.name, style: text.listPrimary),
+                  title: Text(entry.name, style: text.sectionTitle),
                   subtitle: Text(
                     entry.path == active ? '$size · ${i18n('log_file_in_use')}' : size,
                     style: text.secondary.copyWith(color: theme.colorScheme.onSurfaceVariant),

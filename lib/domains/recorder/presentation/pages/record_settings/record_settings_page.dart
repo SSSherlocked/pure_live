@@ -53,13 +53,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                     ? controller.recordSavePath.value
                     : controller.managedRecordPath.value,
                 trailing: controller.selectingRecordDirectory.value
-                    ? SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          semanticsLabel: i18n('record_storage_checking'),
-                        ),
-                      )
+                    ? AppLoadingIndicator(size: 20, semanticsLabel: i18n('record_storage_checking'))
                     : null,
                 onTap: controller.selectingRecordDirectory.value ? null : controller.pickRecordDir,
               ),
@@ -91,10 +85,7 @@ class RecordSettingsPage extends GetView<RecordSettingsController> {
                 title: i18n("clear_all_cache"),
                 subtitle: i18n("clear_all_cache_desc"),
                 trailing: controller.cacheClearPending.value
-                    ? SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, semanticsLabel: i18n('clear_all_cache')),
-                      )
+                    ? AppLoadingIndicator(size: 20, semanticsLabel: i18n('clear_all_cache'))
                     : null,
                 onTap: controller.cacheClearPending.value || controller.cacheClearPromptOpen.value
                     ? null

@@ -101,7 +101,7 @@ class LivePlayHeader extends StatelessWidget implements PreferredSizeWidget {
       if (awaitingCanonicalIdentity) {
         return const SizedBox(
           width: 47,
-          child: Center(child: SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))),
+          child: Center(child: AppLoadingIndicator(size: 18)),
         );
       }
       return Padding(

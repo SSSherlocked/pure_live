@@ -22,10 +22,7 @@ class LineSelector extends StatelessWidget {
       if (state.room.isLoading) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: SizedBox.square(
-            dimension: 12,
-            child: CircularProgressIndicator(strokeWidth: 1.8, color: Get.theme.colorScheme.primary),
-          ),
+          child: AppLoadingIndicator(size: 12, color: Get.theme.colorScheme.primary),
         );
       }
 
@@ -63,11 +60,7 @@ class LineSelector extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (switching) ...[
-                  SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(strokeWidth: 1.8, color: Get.theme.colorScheme.primary),
-                  ),
+                  AppLoadingIndicator(size: 12, color: Get.theme.colorScheme.primary),
                   const SizedBox(width: 5),
                 ],
                 Flexible(

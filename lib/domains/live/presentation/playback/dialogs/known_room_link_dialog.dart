@@ -151,7 +151,7 @@ class _KnownRoomLinkDialogState extends State<KnownRoomLinkDialog> {
   VoidCallback? _cancelChoice;
   Widget _body = const Padding(
     padding: EdgeInsets.all(20),
-    child: Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator())),
+    child: Center(child: AppLoadingIndicator(size: 28)),
   );
 
   @override
@@ -238,7 +238,7 @@ class _KnownRoomLinkDialogState extends State<KnownRoomLinkDialog> {
                 setState(
                   () => _body = const Padding(
                     padding: EdgeInsets.all(20),
-                    child: Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator())),
+                    child: Center(child: AppLoadingIndicator(size: 28)),
                   ),
                 );
                 result.complete(items[i]);

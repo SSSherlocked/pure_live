@@ -188,7 +188,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
               subtitle: i18n("playlist_file_type"),
               onTap: _localImporting || _networkImporting ? null : () => unawaited(showIptvImportDialog()),
               trailing: _localImporting
-                  ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const AppLoadingIndicator(size: 20)
                   : null,
             ),
           ]),
@@ -201,7 +201,7 @@ class _IptvPageState extends State<IptvPage> with SingleTickerProviderStateMixin
               subtitle: i18n("epg_file_type"),
               onTap: _localImporting || _networkImporting ? null : () => unawaited(showEpgImportDialog()),
               trailing: _localImporting
-                  ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const AppLoadingIndicator(size: 20)
                   : null,
             ),
             Obx(
@@ -843,7 +843,7 @@ class _EpgSourceDialogState extends State<_EpgSourceDialog> {
   }
 
   Widget _content(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) return const Center(child: AppLoadingIndicator());
     if (_failed || _sources.isEmpty) {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(12),

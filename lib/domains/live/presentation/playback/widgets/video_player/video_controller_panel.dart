@@ -551,10 +551,10 @@ class TopActionBar extends StatelessWidget {
                                 ),
                                 if (controller.livePlayController.state.value.room.isLoading) ...[
                                   const SizedBox(width: 8),
-                                  const SizedBox.square(
+                                  const AppLoadingIndicator(
                                     key: ValueKey('player-title-loading'),
-                                    dimension: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 1.8, color: Colors.white),
+                                    size: 14,
+                                    color: Colors.white,
                                   ),
                                 ],
                               ],
@@ -1099,10 +1099,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       switching
-                          ? SizedBox.square(
-                              dimension: spinner,
-                              child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
+                          ? AppLoadingIndicator(size: spinner, color: Colors.white)
                           // The HQ glyph has more inner padding than the line glyph,
                           // so it is drawn a size larger to read the same.
                           : Icon(
@@ -1555,10 +1552,7 @@ class _StreamChoiceLoading extends StatelessWidget {
     return const Padding(
       key: ValueKey('stream-selector-loading'),
       padding: EdgeInsets.symmetric(horizontal: 12),
-      child: SizedBox.square(
-        dimension: 14,
-        child: CircularProgressIndicator(strokeWidth: 1.8, color: Colors.white),
-      ),
+      child: AppLoadingIndicator(size: 14, color: Colors.white),
     );
   }
 }

@@ -105,7 +105,7 @@ class BiliBiliQRLoginPage extends GetView<BiliBiliQRLoginController> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
+          const AppLoadingIndicator(size: 28),
           const SizedBox(height: 20),
           Text(message, textAlign: TextAlign.center, style: AppText.of(context).listPrimary),
         ],

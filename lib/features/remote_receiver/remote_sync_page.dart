@@ -311,7 +311,7 @@ class _RemoteSyncPageState extends State<RemoteSyncPage> {
                   ),
                 ),
                 if (service.isDiscovering.value)
-                  const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                  const AppLoadingIndicator(size: 18),
               ],
             ),
             const SizedBox(height: 12),

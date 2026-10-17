@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/utils/i18n.dart';
 import 'package:pure_live/core/layout/app_layout.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:pure_live/core/widgets/app_loading_indicator.dart';
 import 'package:pure_live/core/theme/app_text.dart';
 
 enum AppStatusType { loading, empty, error }
@@ -45,7 +45,7 @@ class _AppStatusViewState extends State<AppStatusView> {
         : AppLayout.of(context).wide
         ? 32
         : 24;
-    return LoadingAnimationWidget.threeArchedCircle(color: color, size: size);
+    return AppLoadingIndicator(color: color, size: size);
   }
 
   @override

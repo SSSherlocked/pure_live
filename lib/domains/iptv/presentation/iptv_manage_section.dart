@@ -856,7 +856,7 @@ class IptvManageSectionState extends State<IptvManageSection> {
                       }
                     },
               child: deleting
-                  ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const AppLoadingIndicator(size: 18)
                   : Text(i18n("confirm"), style: TextStyle(color: theme.colorScheme.error)),
             ),
           ],

@@ -95,7 +95,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
+              const AppLoadingIndicator(size: 28),
               const SizedBox(height: 20),
               Text(message, textAlign: TextAlign.center, style: AppText.of(context).listPrimary),
             ],
@@ -121,10 +121,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
-                  SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.onSecondaryContainer),
-                  ),
+                  AppLoadingIndicator(size: 18, color: theme.colorScheme.onSecondaryContainer),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

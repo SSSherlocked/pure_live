@@ -101,7 +101,7 @@ class _WebDavPageState extends State<WebDavPage> {
           onPressed: controller.canUpload ? _uploadWithSections : null,
           tooltip: i18n(controller.isUploading.value ? 'webdav_uploading' : 'webdav_upload_current'),
           child: controller.isUploading.value
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const AppLoadingIndicator(size: 24)
               : const Icon(Icons.cloud_upload_outlined),
         ),
       ),
@@ -759,7 +759,7 @@ class _WebDavConfigDialogState extends State<_WebDavConfigDialog> {
             elevation: 0,
           ),
           child: _saving
-              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const AppLoadingIndicator(size: 18)
               : Text(isEditing ? i18n("webdav_update") : i18n("webdav_add")),
         ),
       ],

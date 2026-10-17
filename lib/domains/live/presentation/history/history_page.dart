@@ -415,7 +415,7 @@ class _HistoryLimitDialogState extends State<_HistoryLimitDialog> {
           style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
           onPressed: _saving ? null : _save,
           child: _saving
-              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const AppLoadingIndicator(size: 18)
               : Text(i18n("confirm"), style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).colorScheme.primary)),
         ),
       ],

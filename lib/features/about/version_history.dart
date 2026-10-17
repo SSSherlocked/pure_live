@@ -84,7 +84,7 @@ class _VersionHistoryPageState extends State<VersionHistoryPage> {
               () => IconButton(
                 onPressed: historyLoading.value ? null : () => loadReleaseHistory(forceRefresh: true),
                 icon: historyLoading.value
-                    ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const AppLoadingIndicator(size: 18)
                     : const Icon(Remix.refresh_line, size: 20),
                 tooltip: i18n('refresh'),
               ),

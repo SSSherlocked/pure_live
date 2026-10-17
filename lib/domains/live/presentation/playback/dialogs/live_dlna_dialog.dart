@@ -383,7 +383,7 @@ class _LiveDlnaPageState extends State<LiveDlnaPage> {
           if (_starting)
             const SizedBox.square(
               dimension: 40,
-              child: Padding(padding: EdgeInsets.all(9), child: CircularProgressIndicator(strokeWidth: 2)),
+              child: Padding(padding: EdgeInsets.all(9), child: AppLoadingIndicator(size: 22)),
             )
           else if (_source != null)
             IconButton(
@@ -488,7 +488,7 @@ class _LiveDlnaPageState extends State<LiveDlnaPage> {
               title: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis),
               subtitle: Text(device.id, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: casting
-                  ? const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const AppLoadingIndicator(size: 24)
                   : selected
                   ? Icon(Icons.check_circle_rounded, color: Theme.of(context).colorScheme.primary)
                   : null,

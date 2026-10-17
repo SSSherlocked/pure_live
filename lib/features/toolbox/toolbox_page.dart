@@ -102,7 +102,7 @@ class ToolBoxPage extends GetView<ToolBoxController> {
                   () => FilledButton.icon(
                     onPressed: this.controller.isBusy ? null : () => onAction(controller.text),
                     icon: this.controller.action.value == actionKind
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const AppLoadingIndicator(size: 18)
                         : Icon(btnIcon, size: 18),
                     label: Text(btnLabel),
                     style: FilledButton.styleFrom(

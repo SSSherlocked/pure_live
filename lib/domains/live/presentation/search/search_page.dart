@@ -111,7 +111,7 @@ class SearchPage extends GetView<pure_live.SearchController> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
               child: Center(
                 child: controller.loadingMore.v
-                    ? const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 2.5))
+                    ? const AppLoadingIndicator(size: 28)
                     : controller.hasMore.v
                     ? TextButton.icon(
                         onPressed: controller.loadMore,
@@ -149,7 +149,7 @@ class SearchPage extends GetView<pure_live.SearchController> {
 
   Widget _buildStatus(BuildContext context) {
     if (controller.loading.v) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: AppLoadingIndicator());
     }
     if (!controller.searched.v) {
       return AppStatusView(

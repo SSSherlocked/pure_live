@@ -115,7 +115,7 @@ class _BackgroundPlaySettingsPageState extends State<BackgroundPlaySettingsPage>
                   title: i18n('background_guide_group'),
                   subtitle: _loading ? null : i18n('background_guide_unavailable'),
                   trailing: _loading
-                      ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const AppLoadingIndicator(size: 18)
                       : null,
                 ),
               ])
@@ -179,7 +179,7 @@ class _BackgroundPlaySettingsPageState extends State<BackgroundPlaySettingsPage>
       trailing: !tappable
           ? const SizedBox.shrink()
           : _opening == step.id
-          ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+          ? const AppLoadingIndicator(size: 18)
           : Text(i18n(stateKey), style: AppText.of(context).secondary.copyWith(color: stateColor)),
     );
   }

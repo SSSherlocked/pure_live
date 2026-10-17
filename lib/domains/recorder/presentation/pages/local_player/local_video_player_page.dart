@@ -1498,10 +1498,7 @@ class _MobileLayoutState extends State<_MobileLayout> {
           // Folder scan: a small themed indicator on the video's own black, not
           // a full-screen white spinner page.
           return Center(
-            child: SizedBox.square(
-              dimension: 28,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: theme.colorScheme.primary),
-            ),
+            child: AppLoadingIndicator(size: 28, color: theme.colorScheme.primary),
           );
         }
         if (controller.videoFiles.isEmpty) {
@@ -2169,10 +2166,7 @@ class _DesktopLayout extends StatelessWidget {
           // layout does.
           if (controller.isLoading.value && controller.videoFiles.isEmpty) {
             return Center(
-              child: SizedBox.square(
-                dimension: 28,
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: theme.colorScheme.primary),
-              ),
+              child: AppLoadingIndicator(size: 28, color: theme.colorScheme.primary),
             );
           }
           if (controller.videoFiles.isEmpty) {

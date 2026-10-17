@@ -103,7 +103,7 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
   }
 
   Widget _progressIndicator(Color color) =>
-      SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: color));
+      AppLoadingIndicator(size: 18, color: color);
 
   @override
   Widget build(BuildContext context) {

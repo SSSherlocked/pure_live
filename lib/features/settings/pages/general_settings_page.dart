@@ -491,7 +491,7 @@ class _WindowSizeDialogState extends State<_WindowSizeDialog> {
         TextButton(
           onPressed: _isApplying ? null : _apply,
           child: _isApplying
-              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const AppLoadingIndicator(size: 18)
               : Text(
                   i18n('confirm'),
                   style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),

@@ -77,7 +77,7 @@ class _IptvScheduleDialogContentState extends State<IptvScheduleDialogContent> {
 
   Widget _buildBody(BuildContext context, ThemeData theme) {
     if (controller.scheduleLoading.value) {
-      return const Center(child: CircularProgressIndicator(key: ValueKey('iptv-schedule-loading')));
+      return const Center(child: AppLoadingIndicator(key: ValueKey('iptv-schedule-loading')));
     }
     if (controller.scheduleLoadFailed.value) {
       return _ScheduleStatus(
@@ -220,7 +220,7 @@ class _ReturnToLiveAction extends StatelessWidget {
             runSpacing: 4,
             children: [
               if (switching)
-                const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                const AppLoadingIndicator(size: 18)
               else
                 const Icon(Remix.live_line, size: 18),
               Text(i18n('return_to_live'), textAlign: TextAlign.center),

@@ -78,10 +78,7 @@ class _BackupSettingsSectionsState extends State<BackupSettingsSections> {
 
   Widget? _backupActionIndicator(_BackupAction action) {
     if (_backupAction != action) return null;
-    return SizedBox.square(
-      dimension: 20,
-      child: CircularProgressIndicator(strokeWidth: 2, semanticsLabel: i18n('refresh_loading')),
-    );
+    return AppLoadingIndicator(size: 20, semanticsLabel: i18n('refresh_loading'));
   }
 
   Future<void> _openLogDirectory() async {

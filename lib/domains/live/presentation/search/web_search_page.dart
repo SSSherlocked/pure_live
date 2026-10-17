@@ -141,7 +141,7 @@ class _WebSearchPageState extends State<WebSearchPage> {
                           ? null
                           : () => unawaited(controller.openExternalBrowser()),
                       icon: controller.isOpeningExternal.value
-                          ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const AppLoadingIndicator(size: 18)
                           : const Icon(Icons.open_in_new_rounded),
                       label: Text(i18n('open_in_system_browser'), textAlign: TextAlign.center),
                     ),

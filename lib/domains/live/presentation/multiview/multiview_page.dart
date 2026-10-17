@@ -1054,7 +1054,7 @@ class _MultiviewCellView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(strokeWidth: 2.5),
+          const AppLoadingIndicator(size: 28),
           if (roomLabel.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(roomLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.of(context).secondary.copyWith(color: Theme.of(context).hintColor)),

@@ -241,7 +241,7 @@ class _VideoDetailsDialogState extends State<VideoDetailsDialog> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_rows.isEmpty)
-          const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
+          const Padding(padding: EdgeInsets.all(16), child: Center(child: AppLoadingIndicator()))
         else
           for (final row in _rows)
             Padding(

@@ -437,7 +437,7 @@ class RoomCard extends StatelessWidget {
         );
       } else if (config.showAudience && room.isLiveNow) {
         children.add(_buildAudienceMetric(context, dense: true, inline: true));
-      } else if (config.showReplayBadge && room.isRecord == true) {
+      } else if (config.showReplayBadge && room.effectiveLiveStatus == LiveStatus.replay) {
         children.add(
           _buildReplayBadge(context, cover: false),
         );
@@ -671,7 +671,7 @@ class RoomCard extends StatelessWidget {
                                 top: 8,
                                 child: _buildAudienceMetric(context, dense: dense),
                               ),
-                            if (config.showReplayBadge && room.isRecord == true && !room.isLiveNow)
+                            if (config.showReplayBadge && room.effectiveLiveStatus == LiveStatus.replay)
                               Positioned(
                                 key: const ValueKey('room-card-replay-badge'),
                                 right: showDelete ? (dense ? 44 : 48) : 8,

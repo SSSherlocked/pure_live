@@ -48,7 +48,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   static const Duration _roomRefreshTimeout = Duration(seconds: 10);
   final onlineRooms = <LiveRoom>[].obs;
   final offlineRooms = <LiveRoom>[].obs;
-  final replayRooms = <LiveRoom>[].obs;
   final DateTime Function() _now;
 
   FavoriteController({DateTime Function()? now}) : _now = now ?? DateTime.now, super();
@@ -74,7 +73,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   void onInit() {
     super.onInit();
 
-    tabController = TabController(length: 3, vsync: this, animationDuration: pureLiveTabTransitionDuration);
+    tabController = TabController(length: 2, vsync: this, animationDuration: pureLiveTabTransitionDuration);
     WidgetsBinding.instance.addObserver(this);
 
     _workers.add(
@@ -321,10 +320,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         break;
 
       case 1:
-        source = replayRooms;
-        break;
-
-      case 2:
         source = offlineRooms;
         break;
 
@@ -349,8 +344,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
         ? FavoriteRoomController.to.favoriteRooms.v
         : switch (statusIndex) {
             0 => onlineRooms,
-            1 => replayRooms,
-            2 => offlineRooms,
+            1 => offlineRooms,
             _ => const <LiveRoom>[],
           };
     if (siteId == Sites.allSite) return source.length;
@@ -365,18 +359,16 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
       roomSnapshot ?? preview?.rooms ?? FavoriteRoomController.to.favoriteRooms.v,
     );
     _lastSyncedFavoriteSnapshot = _favoriteSnapshotSignature(roomsBase);
+    // Two statuses: 已开播 and 未开播. A 录播 (replay) room is not live, so it
+    // is with the offline ones, marked by the room card's 录播 badge.
     final nextOnline = preview != null
         ? List<LiveRoom>.from(preview.onlineRooms)
-        : roomsBase.where((r) => r.isLiveNow && r.isRecord == false).toList();
+        : roomsBase.where((r) => r.isLiveNow).toList();
     final nextOffline = preview != null
         ? List<LiveRoom>.from(preview.offlineRooms)
-        : roomsBase.where((r) => !r.isPlayableNow).toList();
-    final nextReplay = preview != null
-        ? List<LiveRoom>.from(preview.replayRooms)
-        : roomsBase.where((r) => r.effectiveLiveStatus == LiveStatus.replay).toList();
+        : roomsBase.where((r) => !r.isLiveNow).toList();
 
     _sortRooms(nextOnline);
-    _sortRooms(nextReplay);
     _sortRooms(nextOffline);
 
     // Build and sort plain lists first, then publish each result once. The old
@@ -384,7 +376,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     // background refresh, causing visible hitches with many favourites.
     _assignIfSnapshotChanged(onlineRooms, nextOnline);
     _assignIfSnapshotChanged(offlineRooms, nextOffline);
-    _assignIfSnapshotChanged(replayRooms, nextReplay);
   }
 
   bool _isCurrentFavoriteSnapshotSynced() {

@@ -32,7 +32,6 @@ class FavoritePage extends GetView<FavoriteController> {
                 physics: const PureLiveBoundedScrollPhysics(),
                 tabs: [
                   Tab(text: i18n("online_room_title")),
-                  Tab(text: i18n("recording_room_title")),
                   Tab(text: i18n("offline_room_title")),
                 ],
               ),
@@ -256,7 +255,7 @@ class _FavoriteEmptyState extends StatelessWidget {
       final statusIndex = this.statusIndex ?? controller.tabOnlineIndex.value;
       final totalForSite = controller.favoriteCountForSite(siteId);
       final globalTotal = FavoriteRoomController.to.favoriteRooms.v.length;
-      final offlineForSite = controller.favoriteCountForSite(siteId, statusIndex: 2);
+      final offlineForSite = controller.favoriteCountForSite(siteId, statusIndex: 1);
 
       if (globalTotal == 0) {
         return AppStatusView(
@@ -269,14 +268,10 @@ class _FavoriteEmptyState extends StatelessWidget {
         );
       }
 
-      final title = switch (statusIndex) {
-        1 => i18n('favorite_empty_recording_title'),
-        2 => i18n('favorite_empty_offline_title'),
-        _ => i18n('favorite_empty_online_title'),
-      };
+      final title = statusIndex == 1 ? i18n('favorite_empty_offline_title') : i18n('favorite_empty_online_title');
       final subtitleKey = totalForSite == 0 ? 'favorite_empty_platform_subtitle' : 'favorite_empty_filter_subtitle';
       final subtitle = i18n(subtitleKey).replaceAll('{count}', totalForSite.toString());
-      final canShowOffline = statusIndex != 2 && offlineForSite > 0;
+      final canShowOffline = statusIndex != 1 && offlineForSite > 0;
 
       return AppStatusView(
         type: AppStatusType.empty,
@@ -284,7 +279,7 @@ class _FavoriteEmptyState extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         buttonText: canShowOffline ? i18n('favorite_show_offline') : i18n('retry'),
-        onButtonPressed: canShowOffline ? () => controller.animateToStatusIndex(2) : controller.refreshData,
+        onButtonPressed: canShowOffline ? () => controller.animateToStatusIndex(1) : controller.refreshData,
       );
     });
   }

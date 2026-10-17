@@ -73,10 +73,14 @@ class PlayerLevelIndicator extends StatelessWidget {
                         child: Stack(
                           children: [
                             const Positioned.fill(child: ColoredBox(color: Colors.white30)),
-                            FractionallySizedBox(
-                              alignment: Alignment.bottomCenter,
-                              widthFactor: 1,
-                              heightFactor: level,
+                            // Pinned to the bottom edge: a bare FractionallySizedBox
+                            // in a Stack shrinks to its child and sits at the top,
+                            // which drew the level growing downward.
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: trackHeight * level,
                               child: const ColoredBox(color: Colors.white),
                             ),
                           ],

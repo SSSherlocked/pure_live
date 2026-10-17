@@ -18,15 +18,8 @@ class LineSelector extends StatelessWidget {
         return Obx(() {
       final state = controller.state.value;
 
-      // A room being loaded (or switched to) keeps the label's place.
-      if (state.room.isLoading) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: AppLoadingIndicator(size: 12, color: Get.theme.colorScheme.primary),
-        );
-      }
-
-      if (!state.room.success || !state.player.hasPlaybackSource) {
+      // The quality selector beside it shows the one loading animation.
+      if (state.room.isLoading || !state.room.success || !state.player.hasPlaybackSource) {
         return const SizedBox.shrink();
       }
 
@@ -59,10 +52,6 @@ class LineSelector extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (switching) ...[
-                  AppLoadingIndicator(size: 12, color: Get.theme.colorScheme.primary),
-                  const SizedBox(width: 5),
-                ],
                 Flexible(
                   child: Text(
                     currentLineName,

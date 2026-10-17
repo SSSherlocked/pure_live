@@ -533,32 +533,27 @@ class TopActionBar extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                              // The room on screen, which a switch updates at
-                              // once while the previous player stays.
-                              _liveRoomTitle(controller.livePlayController.state.value.room.detail ?? controller.room),
-                              overflow: TextOverflow.ellipsis,
-                              style: AppText.of(context).sectionTitle.copyWith(
+                            // While the room loads the title is cleared and
+                            // only the loading animation shows in its place.
+                            if (controller.livePlayController.state.value.room.isLoading)
+                              const AppLoadingIndicator(
+                                key: ValueKey('player-title-loading'),
+                                size: 14,
                                 color: Colors.white,
-                                // One step above regular, readable over video.
-                                fontWeight: FontWeight.w500,
-                                decoration: TextDecoration.none,
-                              ),
-                                  ),
+                              )
+                            else
+                              Text(
+                                // The room on screen, which a switch updates at
+                                // once while the previous player stays.
+                                _liveRoomTitle(controller.livePlayController.state.value.room.detail ?? controller.room),
+                                overflow: TextOverflow.ellipsis,
+                                style: AppText.of(context).sectionTitle.copyWith(
+                                  color: Colors.white,
+                                  // One step above regular, readable over video.
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.none,
                                 ),
-                                if (controller.livePlayController.state.value.room.isLoading) ...[
-                                  const SizedBox(width: 8),
-                                  const AppLoadingIndicator(
-                                    key: ValueKey('player-title-loading'),
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                ],
-                              ],
-                            ),
+                              ),
                             if (_liveProgramme(controller.livePlayController.state.value.room.detail ?? controller.room) case final programme?) ...[
                               const SizedBox(height: 2),
                               Text(
@@ -991,6 +986,8 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
             icon: Icons.high_quality_rounded,
             label: status.qualityLabel,
             switching: switching,
+            // One loading animation for both chips: on the quality chip.
+            showSpinner: switching,
             choices: [for (final quality in state.qualites) quality.quality],
             entries: [
               for (var index = 0; index < state.qualites.length; index++)
@@ -1049,6 +1046,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
     required IconData icon,
     required String label,
     required bool switching,
+    bool showSpinner = false,
     required List<String> choices,
     required List<Widget> entries,
     List<String?> tags = const [],
@@ -1098,7 +1096,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      switching
+                      showSpinner
                           ? AppLoadingIndicator(size: spinner, color: Colors.white)
                           // The HQ glyph has more inner padding than the line glyph,
                           // so it is drawn a size larger to read the same.

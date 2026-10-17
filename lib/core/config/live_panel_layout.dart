@@ -24,6 +24,10 @@ enum LivePanelTab {
   /// section of 弹幕设置 rather than a tab of its own.
   static const List<LivePanelTab> defaultOrder = [danmakuList, superChat, follow, danmakuSettings];
 
+  /// The margin a section's list keeps on every side, the top included: the
+  /// 关注 rooms and the chat messages line up at the same distance.
+  static const double listPadding = 10;
+
   static String encode(Iterable<LivePanelTab> order) => order.map((tab) => tab.id).join(',');
 
   /// The sections named in [raw], ignoring unknown ids.

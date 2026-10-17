@@ -8,6 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:flame_barrage/flame_barrage.dart';
 import 'package:pure_live/core/consts/platform_ids.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
@@ -365,7 +366,7 @@ class DanmakuListViewState extends State<DanmakuListView> {
                             onScrollNotification(notification);
                             return false;
                           },
-                          child: ListView.builder(
+                          child: ListView.separated(
                             key: const ValueKey('danmaku-message-list'),
                             addAutomaticKeepAlives: false,
                             // DanmakuItem already owns a boundary. Avoid nesting a
@@ -375,15 +376,9 @@ class DanmakuListViewState extends State<DanmakuListView> {
                             dragStartBehavior: DragStartBehavior.down,
                             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                             physics: const PureLiveScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                            // Oldest first, from the top: the first message sits
-                            // as far below the top as every message sits from
-                            // the sides.
-                            padding: const EdgeInsets.fromLTRB(
-                              _chatListPadding,
-                              _chatListSideInset,
-                              _chatListPadding,
-                              10,
-                            ),
+                            // Oldest first, from the top, at the 关注 list's
+                            // margin on every side, the top included.
+                            padding: const EdgeInsets.all(LivePanelTab.listPadding),
                             scrollCacheExtent: const ScrollCacheExtent.pixels(360),
                             itemCount: _visibleMessages.length,
                             itemBuilder: (_, index) {
@@ -394,6 +389,9 @@ class DanmakuListViewState extends State<DanmakuListView> {
                               // on each 80 ms live-tail update.
                               return _itemFor(msg);
                             },
+                            // Only between messages, so the first and the last
+                            // keep the list's margin exactly.
+                            separatorBuilder: (context, index) => const _ChatListGap(),
                           ),
                         ),
                       ),
@@ -439,14 +437,6 @@ class DanmakuListViewState extends State<DanmakuListView> {
     );
   }
 }
-
-/// The list's own horizontal padding, and each message's inside it.
-const double _chatListPadding = 6;
-const double _chatItemSidePadding = 8;
-
-/// How far a message stands from the list's sides, and the first one from
-/// its top.
-const double _chatListSideInset = _chatListPadding + _chatItemSidePadding;
 
 /// A danmaku colour for the chat list, darkened in the light theme until it
 /// reaches 3:1 against [background]: a yellow or light green message at full
@@ -513,7 +503,6 @@ class DanmakuItem extends StatelessWidget {
       final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
       final fontWeight = FontWeight(settings.chatListFontWeight.v.clamp(100, 900).toInt());
       final nameFontWeight = FontWeight(settings.chatListNameFontWeight.v.clamp(100, 900).toInt());
-      final spacing = settings.chatListItemGap.v.clamp(0.0, DanmakuSettingsController.maxChatListItemGap).toDouble();
       final repeats = danmaku.type == LiveMessageType.chat ? controller.danmakuRepeatsOf(danmaku).value : 1;
       return _buildCard(
         context,
@@ -521,7 +510,6 @@ class DanmakuItem extends StatelessWidget {
         textColor,
         nameColor,
         fontSize,
-        spacing,
         fontWeight: fontWeight,
         nameFontWeight: nameFontWeight,
         bubble: settings.chatListBubble.v,
@@ -542,8 +530,7 @@ class DanmakuItem extends StatelessWidget {
     Color vibrantColor,
     Color textColor,
     Color nameColor,
-    double fontSize,
-    double spacing, {
+    double fontSize, {
     required FontWeight fontWeight,
     required FontWeight nameFontWeight,
     required bool bubble,
@@ -561,9 +548,6 @@ class DanmakuItem extends StatelessWidget {
     // line height is 1.45): the rest is shared above and below the text.
     final lineHeight = MediaQuery.textScalerOf(context).scale(fontSize) * 1.45;
     final bubblePadding = (bubbleHeight - 1) * lineHeight / 2;
-    // [spacing] is the gap between two messages in text lines, below each
-    // one, so the first message keeps the list's top inset exactly.
-    final gap = spacing * lineHeight;
     final card = DecoratedBox(
       // A bubble is its background colour alone, no outline.
       decoration: bubble && bubbleFillOpacity > 0
@@ -682,28 +666,42 @@ class DanmakuItem extends StatelessWidget {
       ),
     );
     return RepaintBoundary(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(_chatItemSidePadding, 0, _chatItemSidePadding, gap),
-        // The list hands every row its full width; the bubble takes only
-        // what its text needs, from the start edge.
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: repeated
-              ? Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    card,
-                    Positioned(
-                      right: bubble ? -2 : 0,
-                      bottom: bubble ? -2 : 0,
-                      child: _RepeatBadge(count: repeats, fontSize: fontSize),
-                    ),
-                  ],
-                )
-              : card,
-        ),
+      // The list hands every row its full width; the bubble takes only what
+      // its text needs, from the start edge.
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: repeated
+            ? Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  card,
+                  Positioned(
+                    right: bubble ? -2 : 0,
+                    bottom: bubble ? -2 : 0,
+                    child: _RepeatBadge(count: repeats, fontSize: fontSize),
+                  ),
+                ],
+              )
+            : card,
       ),
     );
+  }
+}
+
+/// The gap between two chat messages: 弹幕间距 in message lines (the
+/// message's line height is 1.45).
+class _ChatListGap extends StatelessWidget {
+  const _ChatListGap();
+
+  @override
+  Widget build(BuildContext context) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    return Obx(() {
+      final settings = SettingsService.to.danmaku;
+      final fontSize = settings.chatListFontSize.v.clamp(10.0, 28.0).toDouble();
+      final spacing = settings.chatListItemGap.v.clamp(0.0, DanmakuSettingsController.maxChatListItemGap).toDouble();
+      return SizedBox(height: spacing * textScaler.scale(fontSize) * 1.45);
+    });
   }
 }
 

@@ -236,20 +236,22 @@ class DanmakuListViewState extends State<DanmakuListView> {
     // after the presentation restore above had already resumed it. Desktop mouse-wheel
     // input has no DragDetails, so it deliberately keeps the direction-only
     // path.
-    if (isDanmakuUserScrollStart(
+    final userScroll = isDanmakuUserScrollStart(
       notification,
       acceptDirectionOnlyUserScroll: AppLayout.of(context).pointer,
       hasActivePointer: _activeScrollPointers > 0,
-    )) {
-      _pauseAutoScroll();
-    }
+    );
+    // A list shorter than one page has nothing to scroll back to: dragging
+    // it only springs it, so it keeps following the live tail.
+    final metrics = notification.metrics;
+    final overflows = metrics.hasContentDimensions && metrics.maxScrollExtent > metrics.minScrollExtent;
+    if (userScroll && overflows) _pauseAutoScroll();
 
     // A paused list that the user scrolls back down to its last row follows
     // the live tail again, as the "return to live" button does. Only a
     // scroll that has come to rest counts, so a drag still in progress (or
     // one that starts at the bottom and heads up) keeps the snapshot.
     if (!_autoScrollEnabled && notification is ScrollEndNotification && notification.depth == 0) {
-      final metrics = notification.metrics;
       if (metrics.hasContentDimensions && metrics.maxScrollExtent - metrics.pixels <= _liveEdgeTolerance) {
         // The Listener above counts the pointer up after the scrollable has
         // handled it; resume once that event has been dispatched.

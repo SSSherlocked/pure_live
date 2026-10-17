@@ -9,18 +9,27 @@ on:
 permissions:
   contents: read
   actions: read
+# A push never cancels the run in progress: it used to, and with several
+# pushes in a row nearly every run was cancelled minutes before it finished.
+# Pushes queue instead (GitHub keeps only the newest waiting run), and the
+# change detection below compares with the last commit that passed, so the
+# queued run checks everything the cancelled ones would have. A pull
+# request's newer commit still replaces its older run.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  # Decides whether the Flutter jobs have anything to check: a push that only
-  # touches documentation or GitHub metadata skips them.
+  # Decides what needs checking: a push that only touches documentation or
+  # GitHub metadata skips the Flutter jobs, and the Android compile runs only
+  # when the native side or the dependencies changed (Dart is analyze's and
+  # test's job).
   changes:
     name: 检测改动
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       flutter: ${{ steps.filter.outputs.flutter }}
+      android: ${{ steps.filter.outputs.android }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -49,6 +58,7 @@ jobs:
           # Manual runs, new branches and rewritten history check everything.
           if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
             echo "flutter=true" >> "$GITHUB_OUTPUT"
+            echo "android=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           docs_only='(\.md$|^docs/|^LICENSE$|^\.github/(ISSUE_TEMPLATE/|dependabot\.yml$))'
@@ -61,6 +71,15 @@ jobs:
           else
             echo "Only documentation changed; skipping the Flutter jobs."
             echo "flutter=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Kotlin/Java, Gradle, the in-repo plugins, the dependency set, the
+          # generated config and the workflows themselves.
+          native='(^android/|^plugins/|^pubspec\.(yaml|lock)$|^\.env|^build\.yaml$|^\.github/(workflows|actions)/)'
+          if grep -qE "$native" <<< "$changed"; then
+            echo "android=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No native or dependency change; skipping the Android compile."
+            echo "android=false" >> "$GITHUB_OUTPUT"
           fi
 
   # Analyze and test run side by side; each restores the SDK, pub cache and
@@ -112,7 +131,7 @@ jobs:
   android:
     name: Android 编译
     needs: changes
-    if: needs.changes.outputs.flutter == 'true'
+    if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

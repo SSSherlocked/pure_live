@@ -35,11 +35,12 @@
 - 提交身份：`SSSherlocked <35389477+SSSherlocked@users.noreply.github.com>`（已在本仓库的 git 配置里设置）。不要用任何个人邮箱提交，也不要把用户邮箱写进代码或安装包元数据。
 - 提交信息末尾加上 Claude 的 `Co-Authored-By` 署名行。
 - 不要强制推送或改写历史，除非用户明确要求；推送被拒时先 `git fetch` 并变基，不要覆盖远端。
-- 连续的小改动合并成一次推送，避免每改一处就推送一次、等一次 CI。
+- 连续的小改动合并成一次推送，避免每改一处就推送一次、等一次 CI。一项改动做完、检查过就先在本地提交，攒到一组完整的改动（或用户要验证、要发布时）再推送；CI 正在跑时不要为了一个小改动再推一次，等它跑完再推。只改文档、更新说明的提交可以随下一次代码推送一起推。
 
 ## CI 与发布
 
-- `.github/workflows/ci.yml` 在每次推送时运行：先检测改动（只改文档时跳过 Flutter 检查），然后并行跑 Analyze、Test 和 Android 编译（debug APK，检查 Kotlin/Java），另有仓库审计和工具测试。
+- `.github/workflows/ci.yml` 在每次推送时运行：先检测改动（与上一次通过检查的提交比较；只改文档时跳过 Flutter 检查），然后并行跑 Analyze 和 Test；Android 编译（debug APK，检查 Kotlin/Java）只在 `android/`、`plugins/`、`pubspec.yaml`/`pubspec.lock`、`.env`、`build.yaml` 或工作流本身有改动时才跑；另有仓库审计和工具测试。
+- 推送不会取消正在跑的 CI：新的运行排队等前一次跑完（GitHub 只保留最新一个排队的运行，中间的排队运行会被丢弃），排到的那次会把之前没检查到的改动一起检查。确认结果时看最新一次运行；不要把 `cancel-in-progress` 改回对推送生效。
 - 查看 CI 结果：GitHub 匿名 API 每小时只有 60 次配额，容易被限流；优先打开 Actions 网页（`https://github.com/SSSherlocked/pure_live/actions/workflows/ci.yml`）读取运行状态，不要高频轮询 API。
 - 发布用手动触发的 `build_pure_live_release.yml`，输入版本号（如 `3.2.2`）。`RELEASE_NOTES.md` 里最好先写好这个版本的中文更新说明；没写时发布不会被阻止，会按上次发布以来的提交自动生成一节（提交标题，英文）。发布完成后，工作流会把 `RELEASE_NOTES.md`、`pubspec.yaml`、`assets/version.json`、`releases.json` 提交回 master。
 - 应用内更新：启动后和「关于 › 检查更新」读取 master 上的 `assets/version.json`（最新版本与更新说明）和 `assets/releases.json`（各平台的下载文件，按文件名里的平台关键词挑选），关于 › 历史也读取后者。两个文件都由发布工作流写回，不要手工提前修改，否则用户会收到不存在的更新。

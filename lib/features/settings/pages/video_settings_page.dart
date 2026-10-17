@@ -241,7 +241,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               Obx(
                 () => context.buildSliderTile(
                   context,
-                  icon: Remix.arrow_down_double_line,
+                  icon: Remix.arrow_left_right_line,
                   title: i18n('windows_pip_min_width'),
                   value: SettingsService.to.player.windowsPipMinWidth.v,
                   min: 100.0,
@@ -256,7 +256,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               Obx(
                 () => context.buildSliderTile(
                   context,
-                  icon: Remix.arrow_up_double_line,
+                  icon: Remix.arrow_up_down_line,
                   title: i18n('windows_pip_min_height'),
                   value: SettingsService.to.player.windowsPipMinHeight.v,
                   min: 60.0,

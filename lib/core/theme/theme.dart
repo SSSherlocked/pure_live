@@ -69,22 +69,31 @@ String? resolveAppFontFamily({
   return 'MI_Sans_Regular';
 }
 
-/// The colour scheme for the chosen theme colour [seed].
+/// The colour scheme for the chosen theme colour [seed], used when dynamic
+/// colour is off.
 ///
 /// Material's seeding only takes the seed's hue and picks its own tones:
 /// tonal spot turned a grey or white seed blue, and monochrome made every
-/// grey white in dark mode (black in light mode). The surfaces still come
-/// from Material - a true grey set for a near-neutral seed (monochrome),
-/// otherwise one close to the seed (fidelity) - but the primary colour is
-/// the chosen colour itself, so each shade looks as picked. It is only
-/// lightened or darkened as far as it must be to stay readable on the page
-/// ([kMinPrimaryContrast]).
+/// grey white in dark mode (black in light mode). The accent roles still
+/// come from Material - a true grey set for a near-neutral seed
+/// (monochrome), otherwise one close to the seed (fidelity) - but the
+/// primary colour is the chosen colour itself, so each shade looks as
+/// picked. It is only lightened or darkened as far as it must be to stay
+/// readable on the page ([kMinPrimaryContrast]).
+///
+/// Pages, cards, bars, sheets, dialogs, text and outlines take no colour
+/// from the seed: they are Material's neutral greys ([_neutralSurfaces]),
+/// and surfaceTint is transparent so elevation adds no tint either. The
+/// theme colour only marks accents (buttons, switches, sliders, selection).
 ColorScheme seededColorScheme(Color seed, Brightness brightness) {
   final neutral = HSLColor.fromColor(seed).saturation < 0.12;
-  final base = ColorScheme.fromSeed(
-    seedColor: seed,
-    brightness: brightness,
-    dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
+  final base = _neutralSurfaces(
+    ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+      dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
+    ),
+    brightness,
   );
   final primary = readablePrimary(seed.withValues(alpha: 1), base.surface);
   final onPrimary = _contrast(Colors.white, primary) >= _contrast(Colors.black, primary) ? Colors.white : Colors.black;
@@ -95,7 +104,47 @@ ColorScheme seededColorScheme(Color seed, Brightness brightness) {
     primaryContainer: container,
     onPrimaryContainer: base.onSurface,
     inversePrimary: Color.alphaBlend(primary.withValues(alpha: 0.6), base.inverseSurface),
-    surfaceTint: primary,
+    surfaceTint: Colors.transparent,
+  );
+}
+
+/// [scheme] with every surface, text and outline role replaced by
+/// Material 3's neutral palette at chroma 0 (the tone of each role is
+/// Material's own, e.g. surface T98 light / T6 dark).
+ColorScheme _neutralSurfaces(ColorScheme scheme, Brightness brightness) {
+  if (brightness == Brightness.dark) {
+    return scheme.copyWith(
+      surface: const Color(0xFF131313),
+      onSurface: const Color(0xFFE2E2E2),
+      onSurfaceVariant: const Color(0xFFC6C6C6),
+      surfaceDim: const Color(0xFF131313),
+      surfaceBright: const Color(0xFF393939),
+      surfaceContainerLowest: const Color(0xFF0E0E0E),
+      surfaceContainerLow: const Color(0xFF1B1B1B),
+      surfaceContainer: const Color(0xFF1F1F1F),
+      surfaceContainerHigh: const Color(0xFF2A2A2A),
+      surfaceContainerHighest: const Color(0xFF353535),
+      outline: const Color(0xFF919191),
+      outlineVariant: const Color(0xFF474747),
+      inverseSurface: const Color(0xFFE2E2E2),
+      onInverseSurface: const Color(0xFF303030),
+    );
+  }
+  return scheme.copyWith(
+    surface: const Color(0xFFF9F9F9),
+    onSurface: const Color(0xFF1B1B1B),
+    onSurfaceVariant: const Color(0xFF474747),
+    surfaceDim: const Color(0xFFDADADA),
+    surfaceBright: const Color(0xFFF9F9F9),
+    surfaceContainerLowest: const Color(0xFFFFFFFF),
+    surfaceContainerLow: const Color(0xFFF3F3F3),
+    surfaceContainer: const Color(0xFFEEEEEE),
+    surfaceContainerHigh: const Color(0xFFE8E8E8),
+    surfaceContainerHighest: const Color(0xFFE2E2E2),
+    outline: const Color(0xFF777777),
+    outlineVariant: const Color(0xFFC6C6C6),
+    inverseSurface: const Color(0xFF303030),
+    onInverseSurface: const Color(0xFFF1F1F1),
   );
 }
 

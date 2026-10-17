@@ -49,8 +49,7 @@
     android:allowBackup="false"
     tools:replace="android:allowBackup"
     android:requestLegacyExternalStorage="true"
-    android:allowNativeHeapPointerTagging="false" android:icon="@mipmap/ic_launcher"
-    android:enableOnBackInvokedCallback="true">
+    android:allowNativeHeapPointerTagging="false" android:icon="@mipmap/ic_launcher">
     <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask"
       android:theme="@style/LaunchTheme" android:clearTaskOnLaunch="true"
       android:excludeFromRecents="false"

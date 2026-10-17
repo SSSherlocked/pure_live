@@ -35,10 +35,9 @@ void _pruneBackScopes() {
 /// - otherwise [onBackRequest] is asked, and only an unhandled request pops.
 ///
 /// It exists in Core rather than beside one player because the interception it
-/// depends on is not a Flutter-level affair: Android 13+ delivers Back to the
-/// Activity, Flutter registers its own callback there at DEFAULT priority, and
-/// the route is popped before any `PopScope` runs unless the host has registered
-/// a PRIORITY_OVERLAY callback through [AndroidPredictiveBackService]. A player
+/// depends on is not a Flutter-level affair: Android delivers Back to the
+/// Activity's `onBackPressed`, and the host forwards it here through
+/// [AndroidPredictiveBackService] before Flutter can pop the route. A player
 /// page that only wraps itself in `PopScope` therefore looks correct and never
 /// receives the event — which is why both the live room and the recording player
 /// mount this scope instead.

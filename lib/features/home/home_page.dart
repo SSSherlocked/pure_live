@@ -46,14 +46,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     final limit = layout.phone && MediaQuery.sizeOf(context).width > AppLayout.wideBreakpoint
         ? HomePage.maxPhoneContentWidth
         : double.infinity;
-    // No PopScope here: the home route must stay poppable so Flutter tells
-    // Android it does not handle Back at the root. On Android 13+ the system
-    // then runs its own back-to-home animation with the app's live window;
-    // intercepting here and moving the task to back ourselves made the window
-    // vanish in one frame and the launcher flash (black, then its icon card).
-    // Where Back still reaches Flutter at the root (Android 12 and older, or a
-    // hardware key), `SystemNavigator.pop` ends in MainActivity's
-    // `popSystemNavigator`, which moves the task to back instead of finishing.
+    // No PopScope here: Back at the home route is Flutter's default,
+    // `SystemNavigator.pop`, which finishes the activity like a plain
+    // FlutterActivity (see MainActivity.onBackPressed).
     return HomeShellScope(
       child: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,

@@ -57,12 +57,11 @@ class LocalVideoPlayerPage extends GetView<LocalVideoPlayerController> {
 
 /// The recording player's system-Back owner.
 ///
-/// It exists because Back here is not a Flutter-level event. Android 13+ hands
-/// the gesture and the button to the Activity, where Flutter registers its own
-/// callback at **DEFAULT** priority — so the route can be popped before any
-/// `PopScope` runs. The host keeps a **PRIORITY_OVERLAY** callback instead and
-/// forwards it over `pure_live/predictive_back`, which is what makes "Back leaves
-/// fullscreen first" possible at all.
+/// It exists because Back here is not a Flutter-level event. Android hands the
+/// gesture and the button to the Activity's `onBackPressed`, which the host
+/// answers before Flutter: while a player route owns Back it forwards it over
+/// `pure_live/predictive_back`, which is what makes "Back leaves fullscreen
+/// first" possible at all.
 ///
 /// Two mechanisms are therefore wired, and both apply the same rule:
 ///

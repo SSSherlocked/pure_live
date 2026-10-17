@@ -283,11 +283,10 @@ class _MultiviewPageState extends State<MultiviewPage> {
   @override
   Widget build(BuildContext context) {
     // The grid owns Android Back through [PlayerBackScope], exactly like the live
-    // room and the recording player. A bare `PopScope` is not enough on Android
-    // 13+: the system hands Back to the Activity, where Flutter registers its
-    // callback at DEFAULT priority, so the *host's* PRIORITY_OVERLAY callback —
-    // the one this scope installs — decides first. Without it the immersive and
-    // fullscreen grids never saw Back at all.
+    // room and the recording player. A bare `PopScope` is not enough: Back
+    // reaches the Activity's `onBackPressed` first, and the host forwards it
+    // to this scope (while installed) before Flutter pops anything. Without it
+    // the immersive and fullscreen grids never saw Back at all.
     //
     // The scope also keeps `canPop` false while a mode is active, so the route
     // cannot be popped out from under a fullscreen grid.

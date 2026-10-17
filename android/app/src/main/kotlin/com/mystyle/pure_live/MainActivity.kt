@@ -19,10 +19,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
-import android.window.BackEvent
-import android.window.OnBackAnimationCallback
-import android.window.OnBackInvokedCallback
-import android.window.OnBackInvokedDispatcher
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -62,7 +58,6 @@ class MainActivity : AudioServiceActivity() {
     private var predictiveBackChannel: MethodChannel? = null
     private var deviceOrientationChannel: DeviceOrientationChannel? = null
     private var predictiveBackEnabled = false
-    private var predictiveBackRegistered = false
     private var displayListenerRegistered = false
     private var lastPublishedDisplayModeInfo: Map<String, Any>? = null
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -86,44 +81,6 @@ class MainActivity : AudioServiceActivity() {
             }
         }
     }
-
-    private val predictiveBackCallback =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            @Suppress("NewApi")
-            OnBackInvokedCallback { dispatchPresentationBack() }
-        } else {
-            null
-        }
-
-    @Suppress("NewApi")
-    private val predictiveBackAnimationCallback =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            object : OnBackAnimationCallback {
-                override fun onBackStarted(backEvent: BackEvent) {
-                    traceLifecycle("backStarted")
-                    predictiveBackChannel?.invokeMethod("backStarted", null)
-                }
-
-                override fun onBackProgressed(backEvent: BackEvent) {
-                    predictiveBackChannel?.invokeMethod(
-                        "backProgress",
-                        mapOf("progress" to backEvent.progress.toDouble()),
-                    )
-                }
-
-                override fun onBackCancelled() {
-                    traceLifecycle("backCancelled")
-                    predictiveBackChannel?.invokeMethod("backCancelled", null)
-                }
-
-                override fun onBackInvoked() {
-                    traceLifecycle("backInvoked")
-                    dispatchPresentationBack()
-                }
-            }
-        } else {
-            null
-        }
 
     private fun traceLifecycle(event: String, detail: String = "") {
         val id = Integer.toHexString(System.identityHashCode(this))
@@ -301,105 +258,26 @@ class MainActivity : AudioServiceActivity() {
 
         predictiveBackEnabled = enabled
         traceLifecycle("predictiveBack", "enabled=$enabled")
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (enabled) {
-                registerPredictiveBack()
-            } else {
-                unregisterPredictiveBack()
-            }
-            // While a player route is on screen the task snapshot is the
-            // window's plain background, not a frame of the stream. The
-            // system refreshes that snapshot only when the task leaves the
-            // screen by a path other than the system's own back-to-home
-            // (a Home swipe, the screen going off, an app switch), and the
-            // OnePlus/ColorOS launcher animates the cached snapshot when
-            // Back leaves the app from the home route: a room left earlier
-            // was shown shrinking into the icon. A plain card never shows a
-            // room that is no longer open; the home route keeps real
-            // snapshots.
-            setRecentsScreenshotEnabled(!enabled)
-        }
-    }
-
-    @Suppress("NewApi")
-    private fun registerPredictiveBack() {
-        if (
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            predictiveBackRegistered
-        ) {
-            return
-        }
-
-        val callback =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                predictiveBackAnimationCallback
-            } else {
-                predictiveBackCallback
-            } ?: return
-
-        onBackInvokedDispatcher.registerOnBackInvokedCallback(
-            // Flutter registers its Activity callback at DEFAULT. The live
-            // route must run first so fullscreen Back restores the normal
-            // room instead of popping the route and starting the app float.
-            OnBackInvokedDispatcher.PRIORITY_OVERLAY,
-            callback,
-        )
-
-        predictiveBackRegistered = true
-    }
-
-    @Suppress("NewApi")
-    private fun unregisterPredictiveBack() {
-        if (
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            !predictiveBackRegistered
-        ) {
-            return
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            predictiveBackAnimationCallback?.let(
-                onBackInvokedDispatcher::unregisterOnBackInvokedCallback,
-            )
-        } else {
-            predictiveBackCallback?.let(
-                onBackInvokedDispatcher::unregisterOnBackInvokedCallback,
-            )
-        }
-
-        predictiveBackRegistered = false
     }
 
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         traceLifecycle("onBackPressed", "intercepted=$predictiveBackEnabled")
-        // Android 12 and older (the manifest opts 13+ into the back
-        // dispatcher), and vendor builds that still route a hardware Back
-        // here. Keep the same live-route arbitration as the gesture callback.
+        // Every Back arrives here: the app does not opt into Android 13+'s
+        // back dispatcher (no `enableOnBackInvokedCallback`), the same as a
+        // plain FlutterActivity. A player route that owns Back gets it first;
+        // otherwise Flutter pops the route, and at the home route its
+        // `SystemNavigator.pop` finishes the activity. Finishing (not the
+        // system's back-to-home, not `moveTaskToBack`) closes the window with
+        // a fresh task snapshot, so recents never shows a room already left
+        // and player routes need not turn snapshots off. The engine is
+        // audio_service's cached one, so the next launch reattaches it.
         if (predictiveBackEnabled) {
             dispatchPresentationBack()
             return
         }
 
         super.onBackPressed()
-    }
-
-    /**
-     * Flutter's `SystemNavigator.pop` at the root route: FlutterActivity would
-     * finish the activity. Back at the home route must leave the app the way
-     * the system's own back-to-home does (Android 12+ moves the task to back
-     * and keeps the activity), so the next launch is a warm return, not a
-     * cold start. Android 13+ with the back dispatcher never comes here for a
-     * gesture Back (the home route is poppable, so the system handles it and
-     * animates the window); this covers Android 12 and older and a hardware
-     * Back that a vendor build still routes through `onBackPressed`.
-     */
-    override fun popSystemNavigator(): Boolean {
-        if (!isTaskRoot) return false
-        traceLifecycle("popSystemNavigator")
-        moveTaskToBack(true)
-        return true
     }
 
     override fun onStart() {
@@ -516,23 +394,12 @@ class MainActivity : AudioServiceActivity() {
         setVolumeControlStream(AudioManager.STREAM_MUSIC)
 
         scheduleDisplayModeRefresh(delayMillis = 0)
-
-        if (
-            predictiveBackEnabled &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-        ) {
-            registerPredictiveBack()
-        }
     }
 
     override fun onStop() {
         traceLifecycle("onStop")
         unregisterDisplayListener()
         deviceOrientationChannel?.pause()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            unregisterPredictiveBack()
-        }
 
         super.onStop()
     }
@@ -545,10 +412,6 @@ class MainActivity : AudioServiceActivity() {
 
         mainHandler.removeCallbacks(displayModeRefresh)
         displayModeChannel = null
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            unregisterPredictiveBack()
-        }
 
         predictiveBackChannel = null
         deviceOrientationChannel?.dispose()

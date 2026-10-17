@@ -2,13 +2,11 @@ import 'package:flutter/services.dart';
 
 /// Bridges Android's native back dispatcher to the player route on screen.
 ///
-/// This is not a convenience wrapper around `PopScope`. On Android 13+ the
-/// system back gesture and button are delivered to the Activity's
-/// `OnBackInvokedDispatcher`, where Flutter registers its own callback at
-/// DEFAULT priority — so the route is popped before `PopScope` is ever consulted
-/// unless the host registers first. `MainActivity` therefore keeps a
-/// PRIORITY_OVERLAY callback that forwards every back to Dart through this
-/// channel; `PopScope` stays the fallback for older or unsupported embeddings.
+/// This is not a convenience wrapper around `PopScope`. The system back
+/// gesture and button reach `MainActivity.onBackPressed` (the app does not opt
+/// into Android 13+'s back dispatcher); while enabled, it forwards every back
+/// to Dart through this channel instead of letting Flutter pop the route.
+/// `PopScope` stays the fallback for unsupported embeddings.
 ///
 /// Responsibilities:
 ///

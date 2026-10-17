@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 
 /// A [MenuAnchor] whose open menu is closed by Back.
 ///
-/// A menu is an overlay, not a route, so on its own Back went past it: at the
-/// home route Android ran its back-to-home animation with the menu still up,
-/// and the menu closing mid-animation made the window flicker. While the menu
-/// is open the route is held (`PopScope.canPop` false), so Back reaches
-/// Flutter and only closes the menu; closed, the route pops as before and the
-/// home route stays poppable for the system's own animation.
+/// A menu is an overlay, not a route, so on its own Back went past it and
+/// left the page (or the app) with the menu still up. While the menu is open
+/// the route is held (`PopScope.canPop` false), so Back only closes the menu;
+/// closed, the route pops as before.
 class AppMenuAnchor extends StatefulWidget {
   const AppMenuAnchor({
     super.key,

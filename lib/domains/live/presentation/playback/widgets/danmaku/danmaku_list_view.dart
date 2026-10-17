@@ -245,7 +245,17 @@ class DanmakuListViewState extends State<DanmakuListView> {
     // it only springs it, so it keeps following the live tail.
     final metrics = notification.metrics;
     final overflows = metrics.hasContentDimensions && metrics.maxScrollExtent > metrics.minScrollExtent;
-    if (userScroll && overflows) _pauseAutoScroll();
+    // A drag that pushes past the last row only springs the list back (the
+    // overscroll bounce at the bottom): it never left the live tail, so it
+    // must not pause it and bring up "return to live". A scroll pauses once
+    // it heads toward older rows from within the list (a drag moving up, a
+    // wheel turned up), or once the position is above the last row.
+    final leftTail = metrics.hasContentDimensions && metrics.maxScrollExtent - metrics.pixels > _liveEdgeTolerance;
+    final inList = metrics.hasContentDimensions && metrics.pixels <= metrics.maxScrollExtent;
+    final towardHistory =
+        (notification is ScrollUpdateNotification && (notification.scrollDelta ?? 0) < 0 && inList) ||
+        (notification is UserScrollNotification && notification.direction == ScrollDirection.forward);
+    if (userScroll && overflows && (leftTail || towardHistory)) _pauseAutoScroll();
 
     // A paused list that the user scrolls back down to its last row follows
     // the live tail again, as the "return to live" button does. Only a

@@ -908,6 +908,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   void updateVolumn(double volume) {
     if (!_ownsVolume) return;
+    uiHideControls();
     _hideVolumeTimer?.cancel();
     showVolume.value = true;
     _hideVolumeTimer = Timer(_volumeHideDelay, () {
@@ -1735,6 +1736,14 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   @override
   bool get uiSupportsDragGestures => PlatformHelper.isMobile;
+
+  @override
+  void uiHideControls() {
+    // An open menu or panel keeps the bar: it is what the viewer is using.
+    if (_isDisposed || isMenuOpen.value || !showController.value) return;
+    showController.value = false;
+    stopHideController();
+  }
 
   /// The room's own danmaku surface: the pool this controller owns, drawn by the
   /// shared renderer with the room's overrides.

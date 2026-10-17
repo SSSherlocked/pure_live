@@ -137,8 +137,9 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   final volumeShown = false.obs;
   Timer? _volumeShownTimer;
 
-  /// Shows the volume readout for a second, without the control bar.
+  /// Shows the volume readout for a second and puts the control bar away.
   void flashVolume() {
+    hideControls();
     volumeShown.value = true;
     _volumeShownTimer?.cancel();
     _volumeShownTimer = Timer(const Duration(seconds: 1), () => volumeShown.value = false);
@@ -848,6 +849,9 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
 
   @override
   bool get uiSupportsDragGestures => platformSupportsBrightness;
+
+  @override
+  void uiHideControls() => hideControls();
 
   /// The replayed chat of the recording, drawn by the same Core renderer the
   /// live room uses.

@@ -77,6 +77,11 @@ abstract interface class PlayerUiController {
   /// drag (a trackpad's two-finger swipe included) changes nothing.
   bool get uiSupportsDragGestures;
 
+  /// Puts the control bars away while a level changes, so the level readout at
+  /// the edge is the only thing on the picture (the fullscreen lock sits at the
+  /// same right edge as the volume).
+  void uiHideControls();
+
   /// The danmaku surface to overlay on the picture, or null when this player has
   /// none (a recording whose chat file is missing, a room with chat switched
   /// off).
@@ -260,6 +265,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
       _pendingTravel += delta.dy;
       if (_pendingTravel.abs() < playerGestureActivationDistance) return;
       _activated = true;
+      widget.controller.uiHideControls();
       final excess = _pendingTravel - playerGestureActivationDistance * _pendingTravel.sign;
       delta = Offset(delta.dx, excess);
     }

@@ -30,7 +30,11 @@ class PlayerLevelIndicator extends StatelessWidget {
 
   static const double _trackWidth = 4;
   static const double _maxTrackHeight = 140;
-  static const double _edgeInset = 28;
+  static const double _edgeInset = 40;
+
+  /// Wide enough for "100": the column keeps one width, so the track does not
+  /// move when the number gains or loses a digit.
+  static const double _columnWidth = 32;
   static const double _iconSize = 18;
   static const double _iconGap = 10;
 
@@ -56,12 +60,19 @@ class PlayerLevelIndicator extends StatelessWidget {
                   children: [
                     // No percent sign: the bar already says it is a share.
                     // Tabular figures keep the column from shifting as it counts.
-                    Text(
-                      '${(level * 100).round()}',
-                      style: AppText.of(context).tag.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    SizedBox(
+                      width: _columnWidth,
+                      child: Text(
+                        '${(level * 100).round()}',
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.visible,
+                        style: AppText.of(context).tag.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                     const SizedBox(height: _iconGap),

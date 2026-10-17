@@ -25,12 +25,13 @@ class HotAreasPage extends GetView<HotAreasController> {
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(kSettingsCardRadius),
                 border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05), width: 0.5),
               ),
               child: ReorderableListView.builder(
                 buildDefaultDragHandles: false,
                 shrinkWrap: true,
+                padding: const EdgeInsets.all(kSettingsCardInset),
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: controller.sites.length,
                 onReorderItem: (oldIndex, newIndex) => controller.onReorder(oldIndex, newIndex),

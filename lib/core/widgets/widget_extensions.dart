@@ -25,6 +25,16 @@ const double kSettingsRowSidePadding = 16;
 /// where a mouse needs no tight list and the extra air reads calmer.
 double get settingsRowVerticalPadding => PlatformUtils.isDesktop ? 20 : 14;
 
+/// A settings card's corner radius.
+const double kSettingsCardRadius = 16;
+
+/// The space between a settings card's edge and its rows, on every side: the
+/// first row's text does not sit against the card's top edge.
+const double kSettingsCardInset = 4;
+
+/// A row's own corner (its press highlight) inside the card's inset corner.
+const Radius _settingsRowRadius = Radius.circular(kSettingsCardRadius - kSettingsCardInset);
+
 /// A switch row's padding: the switch carries its own margin at the end.
 const EdgeInsetsDirectional kSettingsSwitchRowPadding = EdgeInsetsDirectional.only(
   start: kSettingsRowSidePadding,
@@ -80,12 +90,12 @@ extension AppLayoutFactory on BuildContext {
         ShapeBorder effectiveShape;
 
         if (validChildren.length == 1) {
-          effectiveShape = const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20)));
+          effectiveShape = const RoundedRectangleBorder(borderRadius: BorderRadius.all(_settingsRowRadius));
         } else if (i == 0) {
-          effectiveShape = const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20)));
+          effectiveShape = const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: _settingsRowRadius));
         } else if (i == validChildren.length - 1) {
           effectiveShape = const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(bottom: _settingsRowRadius),
           );
         } else {
           effectiveShape = const LinearBorder();
@@ -126,7 +136,7 @@ extension AppLayoutFactory on BuildContext {
       // The theme's card colour when it has one, else a light wash.
       color: theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(kSettingsCardRadius),
         side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.05), width: 0.5),
       ),
       child: ListTileTheme.merge(
@@ -134,7 +144,10 @@ extension AppLayoutFactory on BuildContext {
         minVerticalPadding: settingsRowVerticalPadding,
         horizontalTitleGap: kSettingsIconGap,
         minLeadingWidth: kSettingsIconSlot,
-        child: Column(children: autoShapedChildren),
+        child: Padding(
+          padding: const EdgeInsets.all(kSettingsCardInset),
+          child: Column(children: autoShapedChildren),
+        ),
       ),
     );
   }

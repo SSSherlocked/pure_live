@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 /// The app's text roles. Every piece of UI text uses one of these, read from
 /// the theme where the widget sits; nothing names a font size.
 ///
-/// | Role           | Used for                                        | Font setting  | Default |
-/// |----------------|-------------------------------------------------|---------------|---------|
-/// | [pageTitle]    | app bars, a page's main heading                 | 大标题         | 20      |
-/// | [sectionTitle] | card/streamer names, setting titles, dialog titles | 中号标题    | 15      |
-/// | [listPrimary]  | the first line of a list row                    | 正文大         | 14      |
-/// | [body]         | ordinary text and descriptions                  | 正文中         | 13      |
-/// | [secondary]    | subtitles, times, secondary details             | 正文小         | 12      |
-/// | [tag]          | platform tags, badges, counts                   | 正文小 − 1     | 11      |
+/// | Role           | Used for                                           | Font setting  | Default |
+/// |----------------|----------------------------------------------------|---------------|---------|
+/// | [pageTitle]    | app bars, a page's main heading                    | 页面标题      | 20      |
+/// | [sectionTitle] | card/streamer names, setting titles, dialog titles | 标题          | 15      |
+/// | [listPrimary]  | the first line of a list row                       | 列表主文字    | 14      |
+/// | [body]         | ordinary text and descriptions                     | 正文          | 13      |
+/// | [secondary]    | subtitles, times, secondary details                | 次要文字      | 12      |
+/// | [tag]          | platform tags, badges, counts                      | 次要文字 − 1  | 11      |
 ///
 /// Sizes come from 字体设置 through the theme (see `MyTheme`), so they follow
 /// the user's choices. Inside a [CompactText] area (the room's side panel,

@@ -88,6 +88,7 @@ class ThemeSettingsPage extends GetView<SettingsService> {
                     context,
                     icon: Remix.text_spacing,
                     title: i18n("text_size_title"),
+                    subtitle: i18n("text_size_subtitle"),
                     value: SettingsService.to.font.textScaleFactor.v,
                     min: FontSettingsController.minTextScaleFactor,
                     max: FontSettingsController.maxTextScaleFactor,

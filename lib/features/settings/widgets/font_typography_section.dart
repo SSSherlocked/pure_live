@@ -3,8 +3,9 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/core/config/font_settings_controller.dart';
 
-/// The five typography sliders (body and heading sizes) with their reset,
-/// listed inline in 通用 › 字体设置.
+/// The five typography sliders with their reset, listed inline in
+/// 通用 › 字体设置. Each sets exactly one [AppText] role (the tag role follows
+/// the secondary size) and previews that role under its slider.
 class FontTypographySection extends StatefulWidget {
   const FontTypographySection({super.key});
 
@@ -17,14 +18,16 @@ class _FontTypographySectionState extends State<FontTypographySection> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => Column(
+    return Obx(() {
+      final font = SettingsService.to.font;
+      final text = AppText.of(context);
+      return Column(
         key: const ValueKey('font-settings-content'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Expanded(child: context.buildGroupTitle(i18n("body_typography_group"))),
+              Expanded(child: context.buildGroupTitle(i18n("header_typography_group"))),
               TextButton.icon(
                 key: const ValueKey('font-settings-reset'),
                 onPressed: _resetBusy ? null : _resetToDefaults,
@@ -34,78 +37,111 @@ class _FontTypographySectionState extends State<FontTypographySection> {
             ],
           ),
           context.buildModernCard([
-            context.buildSliderTile(
-              context,
-              icon: Remix.font_size,
-              title: i18n("font_body_small_title"),
-              subtitle: i18n("font_body_small_desc"),
-              value: SettingsService.to.font.fontSizeBodySmall.v,
-              min: FontSettingsController.minFontSizeBodySmall,
-              max: FontSettingsController.maxFontSizeBodySmall,
-              displayValue: formatPixels(SettingsService.to.font.fontSizeBodySmall.v.round()),
-              onChanged: (newValue) {
-                SettingsService.to.font.fontSizeBodySmall.v = newValue;
-              },
-            ),
-            context.buildSliderTile(
-              context,
-              icon: Remix.text,
-              title: i18n("font_body_medium_title"),
-              subtitle: i18n("font_body_medium_desc"),
-              value: SettingsService.to.font.fontSizeBodyMedium.v,
-              min: FontSettingsController.minFontSizeBodyMedium,
-              max: FontSettingsController.maxFontSizeBodyMedium,
-              displayValue: formatPixels(SettingsService.to.font.fontSizeBodyMedium.v.round()),
-              onChanged: (newValue) {
-                SettingsService.to.font.fontSizeBodyMedium.v = newValue;
-              },
-            ),
-            context.buildSliderTile(
-              context,
-              icon: Remix.text_wrap,
-              title: i18n("font_body_large_title"),
-              subtitle: i18n("font_body_large_desc"),
-              value: SettingsService.to.font.fontSizeBodyLarge.v,
-              min: FontSettingsController.minFontSizeBodyLarge,
-              max: FontSettingsController.maxFontSizeBodyLarge,
-              displayValue: formatPixels(SettingsService.to.font.fontSizeBodyLarge.v.round()),
-              onChanged: (newValue) {
-                SettingsService.to.font.fontSizeBodyLarge.v = newValue;
-              },
-            ),
-          ]),
-          const SizedBox(height: 20),
-          context.buildGroupTitle(i18n("header_typography_group")),
-          context.buildModernCard([
-            context.buildSliderTile(
-              context,
-              icon: Remix.heading,
-              title: i18n("font_title_medium_title"),
-              subtitle: i18n("font_title_medium_desc"),
-              value: SettingsService.to.font.fontSizeTitleMedium.v,
-              min: FontSettingsController.minFontSizeTitleMedium,
-              max: FontSettingsController.maxFontSizeTitleMedium,
-              displayValue: formatPixels(SettingsService.to.font.fontSizeTitleMedium.v.round()),
-              onChanged: (newValue) {
-                SettingsService.to.font.fontSizeTitleMedium.v = newValue;
-              },
-            ),
-            context.buildSliderTile(
-              context,
+            _sizeRow(
               icon: Remix.bold,
               title: i18n("font_title_large_title"),
               subtitle: i18n("font_title_large_desc"),
-              value: SettingsService.to.font.fontSizeTitleLarge.v,
+              setting: font.fontSizeTitleLarge,
               min: FontSettingsController.minFontSizeTitleLarge,
               max: FontSettingsController.maxFontSizeTitleLarge,
-              displayValue: formatPixels(SettingsService.to.font.fontSizeTitleLarge.v.round()),
-              onChanged: (newValue) {
-                SettingsService.to.font.fontSizeTitleLarge.v = newValue;
-              },
+              preview: Text(i18n("font_title_large_preview"), style: text.pageTitle),
+            ),
+            _sizeRow(
+              icon: Remix.heading,
+              title: i18n("font_title_medium_title"),
+              subtitle: i18n("font_title_medium_desc"),
+              setting: font.fontSizeTitleMedium,
+              min: FontSettingsController.minFontSizeTitleMedium,
+              max: FontSettingsController.maxFontSizeTitleMedium,
+              preview: Text(i18n("font_title_medium_preview"), style: text.sectionTitle),
             ),
           ]),
+          const SizedBox(height: 20),
+          context.buildGroupTitle(i18n("body_typography_group")),
+          context.buildModernCard([
+            _sizeRow(
+              icon: Remix.text_wrap,
+              title: i18n("font_body_large_title"),
+              subtitle: i18n("font_body_large_desc"),
+              setting: font.fontSizeBodyLarge,
+              min: FontSettingsController.minFontSizeBodyLarge,
+              max: FontSettingsController.maxFontSizeBodyLarge,
+              preview: Text(i18n("font_body_large_preview"), style: text.listPrimary),
+            ),
+            _sizeRow(
+              icon: Remix.text,
+              title: i18n("font_body_medium_title"),
+              subtitle: i18n("font_body_medium_desc"),
+              setting: font.fontSizeBodyMedium,
+              min: FontSettingsController.minFontSizeBodyMedium,
+              max: FontSettingsController.maxFontSizeBodyMedium,
+              preview: Text(i18n("font_body_medium_preview"), style: text.body),
+            ),
+            _sizeRow(
+              icon: Remix.font_size,
+              title: i18n("font_body_small_title"),
+              subtitle: i18n("font_body_small_desc"),
+              setting: font.fontSizeBodySmall,
+              min: FontSettingsController.minFontSizeBodySmall,
+              max: FontSettingsController.maxFontSizeBodySmall,
+              // The tag role follows this size one pixel down; show both.
+              preview: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(text: i18n("font_body_small_preview"), style: text.secondary),
+                    const TextSpan(text: '  '),
+                    TextSpan(text: i18n("font_tag_preview"), style: text.tag),
+                  ],
+                ),
+              ),
+            ),
+          ]),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+            child: Text(
+              i18n("font_typography_note"),
+              style: text.secondary.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ),
         ],
-      ),
+      );
+    });
+  }
+
+  /// One size slider and, under it, a line drawn in the text role it sets.
+  Widget _sizeRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required RxDouble setting,
+    required double min,
+    required double max,
+    required Widget preview,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        context.buildSliderTile(
+          context,
+          icon: icon,
+          title: title,
+          subtitle: subtitle,
+          value: setting.v,
+          min: min,
+          max: max,
+          displayValue: formatPixels(setting.v.round()),
+          onChanged: (newValue) => setting.v = newValue,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            kSettingsRowSidePadding + kSettingsIconSlot + kSettingsIconGap,
+            0,
+            kSettingsRowSidePadding,
+            settingsRowVerticalPadding,
+          ),
+          child: preview,
+        ),
+      ],
     );
   }
 

@@ -9,17 +9,25 @@ class SuperChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (messages.isEmpty) {
-      // Only the one-line hint: no icon or headline for an empty tab.
-      return ListView(
+      // Only the one-line hint, in the middle of the tab: no icon or
+      // headline for an empty tab.
+      return CustomScrollView(
         key: const ValueKey('super-chat-empty-state'),
         primary: false,
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        children: [
-          Text(
-            i18n('super_chat_empty_subtitle'),
-            textAlign: TextAlign.center,
-            style: AppText.of(context).body.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  i18n('super_chat_empty_subtitle'),
+                  textAlign: TextAlign.center,
+                  style: AppText.of(context).body.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ),
+            ),
           ),
         ],
       );

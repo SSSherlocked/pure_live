@@ -1150,7 +1150,7 @@
   "repeated_danmaku_window": "相同内容合并时间",
   "danmaku_repeat_count": "共 {count} 条相同弹幕",
   "super_chat": "醒目留言",
-  "super_chat_empty_subtitle": "当前直播间的付费留言会显示在这里。",
+  "super_chat_empty_subtitle": "暂无付费留言",
   "multiview_title": "多画面",
   "multiview_pick_for_cell": "为格子 {index} 选台",
   "multiview_empty_cell_hint": "点击选台",

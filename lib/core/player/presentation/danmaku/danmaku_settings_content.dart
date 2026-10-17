@@ -131,7 +131,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
           reactiveCard(
             () => [
               _slider(
-                theme,
                 title: i18n('chat_list_font_size'),
                 value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
                 min: 10,
@@ -141,10 +140,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => formatPixels((value * 10).round() / 10),
                 onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = (v * 10).round() / 10,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _slider(
-                theme,
                 title: i18n('chat_list_font_weight'),
                 value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
                 min: 100,
@@ -157,10 +154,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                     i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
                 onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _slider(
-                theme,
                 title: i18n('chat_list_name_font_weight'),
                 value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
                 min: 100,
@@ -174,10 +169,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                     i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
                 onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _slider(
-                theme,
                 title: i18n('chat_list_item_spacing'),
                 value: SettingsService.to.danmaku.chatListItemGap.v
                     .clamp(0.0, DanmakuSettingsController.maxChatListItemGap)
@@ -190,7 +183,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => formatTimes(value),
                 onChanged: (v) => SettingsService.to.danmaku.chatListItemGap.v = (v * 20).round() / 20,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _switch(
                 theme,
@@ -202,7 +194,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               if (SettingsService.to.danmaku.chatListBubble.v) ...[
                 _slider(
-                  theme,
                   title: i18n('chat_list_bubble_height'),
                   value: SettingsService.to.danmaku.chatListBubbleHeight.v
                       .clamp(
@@ -216,10 +207,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   semanticValueBuilder: (value) => formatTimes(value, digits: 1),
                   onChanged: (v) => SettingsService.to.danmaku.chatListBubbleHeight.v = (v * 10).round() / 10,
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 ),
                 _slider(
-                  theme,
                   title: i18n('chat_list_bubble_fill_opacity'),
                   value: SettingsService.to.danmaku.chatListBubbleFillOpacity.v,
                   min: 0,
@@ -228,7 +217,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   semanticValueBuilder: (value) => formatPercent(value),
                   onChanged: (v) => SettingsService.to.danmaku.chatListBubbleFillOpacity.v = (v * 20).round() / 20,
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 ),
               ],
               ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
@@ -240,7 +228,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
           reactiveCard(
             () => [
               _slider(
-                theme,
                 title: i18n("opacity"),
                 value: controller.danmakuOpacity.value,
                 min: 0,
@@ -249,10 +236,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => formatPercent(value),
                 onChanged: (v) => controller.danmakuOpacity.value = v,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _slider(
-                theme,
                 title: i18n("font_size"),
                 value: controller.danmakuFontSize.value.toDouble(),
                 min: 10,
@@ -261,10 +246,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => formatPixels(double.parse(value.toStringAsFixed(1))),
                 onChanged: (v) => controller.danmakuFontSize.value = v,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _slider(
-                theme,
                 title: i18n('font_weight'),
                 value: controller.danmakuFontWeight.value.toDouble(),
                 min: 100,
@@ -275,12 +258,10 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                     i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_medium'),
                 onChanged: (v) => controller.danmakuFontWeight.value = (v / 100).round() * 100,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               // 弹幕间距: the gap between two tracks, as a share of the font
               // size. Kept per profile with the rest of the floating style.
               _slider(
-                theme,
                 title: i18n('danmaku_line_spacing'),
                 value: DanmakuSettingsController.normalizeLineSpacing(
                   SettingsService.to.danmaku.danmakuLineSpacing.value,
@@ -294,7 +275,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 onChanged: (v) =>
                     SettingsService.to.danmaku.danmakuLineSpacing.value = DanmakuSettingsController.normalizeLineSpacing(v),
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _switch(
                 theme,
@@ -304,7 +284,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
               ),
               _slider(
-                theme,
                 title: i18n("stroke"),
                 value: controller.danmakuFontBorder.value.toDouble(),
                 min: 0,
@@ -313,7 +292,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => formatPixels(double.parse(value.toStringAsFixed(1))),
                 onChanged: (v) => controller.danmakuFontBorder.value = v,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _switch(
                 theme,
@@ -325,7 +303,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               if (!controller.danmakuAutoMaxVisible.value)
                 _slider(
-                  theme,
                   title: i18n("max_visible_count"),
                   value: controller.danmakuMaxVisibleCount.value.toDouble(),
                   min: DanmakuSettingsController.minDanmakuMaxVisibleCount.toDouble(),
@@ -334,7 +311,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   semanticValueBuilder: (value) => value.toInt().toString(),
                   onChanged: (v) => controller.danmakuMaxVisibleCount.v = v.toInt(),
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 ),
               _switch(
                 theme,
@@ -352,7 +328,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 labelColor: labelColor,
               ),
               _slider(
-                theme,
                 title: i18n("speed"),
                 value: controller.danmakuSpeed.value.toDouble(),
                 min: 20,
@@ -361,7 +336,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => '${value.toInt()} px/s',
                 onChanged: (v) => controller.danmakuSpeed.value = v,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _switch(
                 theme,
@@ -374,7 +348,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               if (!SettingsService.to.danmaku.danmakuAutoFps.v)
                 _slider(
-                  theme,
                   title: i18n("danmaku_fps"),
                   value: controller.danmakuFps.value.toDouble(),
                   min: 30,
@@ -383,7 +356,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   semanticValueBuilder: (value) => '${value.toInt()} FPS',
                   onChanged: (v) => controller.danmakuFps.value = v.toInt(),
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 )
               else
                 Padding(
@@ -394,7 +366,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   ),
                 ),
               _slider(
-                theme,
                 title: i18n("danmaku_display_area"),
                 value: DanmakuSettingsController.normalizeDanmakuArea(controller.danmakuArea.value),
                 min: DanmakuSettingsController.minDanmakuArea,
@@ -404,7 +375,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => formatPercent(value),
                 onChanged: (v) => controller.danmakuArea.value = DanmakuSettingsController.normalizeDanmakuArea(v),
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _counter(
                 theme,
@@ -436,7 +406,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               if (!controller.pipDanmakuScaleAuto.value)
                 _slider(
-                  theme,
                   title: i18n("pip_danmaku_scale"),
                   value: controller.pipDanmakuScaleValue.value,
                   min: DanmakuSettingsController.pipDanmakuScaleMin,
@@ -445,7 +414,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   semanticValueBuilder: (value) => formatTimes(value),
                   onChanged: (v) => controller.pipDanmakuScaleValue.value = v,
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 ),
             ],
           ),
@@ -478,7 +446,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               // The message text's weight, in the 留言 list and on the picture;
               // one shared setting, so every open card follows it at once.
               _slider(
-                theme,
                 title: i18n('super_chat_font_weight'),
                 value: SettingsService.to.danmaku.superChatFontWeight.value.clamp(100, 900).toDouble(),
                 min: 100,
@@ -491,7 +458,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 semanticValueBuilder: (value) => i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
                 onChanged: (v) => SettingsService.to.danmaku.superChatFontWeight.value = (v / 100).round() * 100,
                 labelColor: labelColor,
-                digitColor: digitColor,
               ),
               _switch(
                 theme,
@@ -503,7 +469,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
               if (controller.showSuperChatOnPlayer.value) ...[
                 _slider(
-                  theme,
                   title: i18n('super_chat_opacity'),
                   value: DanmakuSettingsController.normalizeSuperChatOpacity(controller.superChatOpacity.value),
                   min: DanmakuSettingsController.minSuperChatOpacity,
@@ -514,10 +479,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   onChanged: (v) =>
                       controller.superChatOpacity.value = DanmakuSettingsController.normalizeSuperChatOpacity(v),
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 ),
                 _slider(
-                  theme,
                   title: i18n('super_chat_font_scale'),
                   value: DanmakuSettingsController.normalizeSuperChatFontScale(controller.superChatFontScale.value),
                   min: DanmakuSettingsController.minSuperChatFontScale,
@@ -528,7 +491,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   onChanged: (v) =>
                       controller.superChatFontScale.value = DanmakuSettingsController.normalizeSuperChatFontScale(v),
                   labelColor: labelColor,
-                  digitColor: digitColor,
                 ),
               ],
             ],
@@ -595,8 +557,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     );
   }
 
-  Widget _slider(
-    ThemeData theme, {
+  Widget _slider({
     required String title,
     required double value,
     required double min,
@@ -605,7 +566,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     required String Function(double value) semanticValueBuilder,
     required ValueChanged<double> onChanged,
     required Color labelColor,
-    required Color digitColor,
     double? stepSize,
   }) {
     return Padding(
@@ -626,12 +586,15 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  color: SliderPalette.of(context).badge,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   display,
-                  style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.bold, color: digitColor),
+                  style: AppText.of(context).secondary.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: SliderPalette.of(context).badgeText,
+                  ),
                 ),
               ),
             ],
@@ -644,8 +607,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               max: max,
               value: value,
               stepSize: stepSize,
-              activeColor: theme.colorScheme.primary,
-              inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
               semanticFormatterCallback: (semanticValue) =>
                 '$title, ${semanticValueBuilder(semanticValue)}',
               onChanged: onChanged,

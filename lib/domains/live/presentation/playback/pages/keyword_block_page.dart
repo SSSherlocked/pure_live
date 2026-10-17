@@ -74,7 +74,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final labelColor = theme.colorScheme.onSurface;
-    final digitColor = theme.colorScheme.primary;
     final dm = settingsService.danmaku;
 
     final sections = <Widget>[
@@ -92,7 +91,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
           ),
           if (dm.collapseRepeatedDanmaku.v)
             _slider(
-              theme,
               title: i18n('repeated_danmaku_window'),
               value: dm.repeatedDanmakuWindowSeconds.v.toDouble(),
               min: 1,
@@ -103,7 +101,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
                   formatSeconds(value.round()),
               onChanged: (value) => dm.repeatedDanmakuWindowSeconds.v = value.round(),
               labelColor: labelColor,
-              digitColor: digitColor,
             ),
           _switch(
             theme,
@@ -114,7 +111,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
           ),
           if (dm.enableDanmakuSimilarityFilter.v) ...[
             _slider(
-              theme,
               title: i18n('danmaku_similarity_threshold'),
               value: dm.danmakuSimilarityThreshold.v.toDouble(),
               min: 50,
@@ -124,10 +120,8 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               semanticValueBuilder: (value) => '${value.round()}%',
               onChanged: (value) => dm.danmakuSimilarityThreshold.v = value.round(),
               labelColor: labelColor,
-              digitColor: digitColor,
             ),
             _slider(
-              theme,
               title: i18n('danmaku_similarity_cache_duration'),
               value: dm.danmakuSimilarityCacheDuration.v.toDouble(),
               min: 1,
@@ -138,10 +132,8 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
                   formatSeconds(value.round()),
               onChanged: (value) => dm.danmakuSimilarityCacheDuration.v = value.round(),
               labelColor: labelColor,
-              digitColor: digitColor,
             ),
             _slider(
-              theme,
               title: i18n('danmaku_similarity_max_cache_size'),
               value: dm.danmakuSimilarityMaxCacheSize.v.toDouble(),
               min: 20,
@@ -151,7 +143,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               semanticValueBuilder: (value) => '${value.round()}',
               onChanged: (value) => dm.danmakuSimilarityMaxCacheSize.v = value.round(),
               labelColor: labelColor,
-              digitColor: digitColor,
             ),
           ],
           _buildInput(theme, labelColor),
@@ -405,8 +396,7 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
   // Slider
   // ================================================================
 
-  Widget _slider(
-    ThemeData theme, {
+  Widget _slider({
     required String title,
     required double value,
     required double min,
@@ -415,7 +405,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
     required String Function(double value) semanticValueBuilder,
     required ValueChanged<double> onChanged,
     required Color labelColor,
-    required Color digitColor,
     double? stepSize,
   }) {
     return Padding(
@@ -438,12 +427,15 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    color: SliderPalette.of(context).badge,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     display,
-                    style: AppText.of(context).secondary.copyWith(fontWeight: FontWeight.bold, color: digitColor),
+                    style: AppText.of(context).secondary.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: SliderPalette.of(context).badgeText,
+                    ),
                   ),
                 ),
               ],
@@ -458,8 +450,6 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
               max: max,
               value: value,
               stepSize: stepSize,
-              activeColor: theme.colorScheme.primary,
-              inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.15),
               semanticFormatterCallback: (semanticValue) =>
                 '$title, ${semanticValueBuilder(semanticValue)}',
               onChanged: onChanged,

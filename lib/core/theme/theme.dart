@@ -31,6 +31,51 @@ const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
 /// former 5.6 px); its drag halo is twice as wide.
 const double kSliderThumbRadius = 7.28;
 
+/// The neutral greys of every slider and its value badge, one set per
+/// brightness, whatever the theme colour: the thumb shares the filled
+/// track's grey, the empty track sits one step above the page, and the tick
+/// dots are a shade off the track under them. A badge (the value shown
+/// beside a slider, and the bubble while dragging) is a grey pill with
+/// near-white text in dark mode and near-black text in light mode.
+class SliderPalette {
+  const SliderPalette._({
+    required this.track,
+    required this.emptyTrack,
+    required this.tick,
+    required this.emptyTick,
+    required this.badge,
+    required this.badgeText,
+  });
+
+  final Color track;
+  final Color emptyTrack;
+  final Color tick;
+  final Color emptyTick;
+  final Color badge;
+  final Color badgeText;
+
+  static const SliderPalette dark = SliderPalette._(
+    track: Color(0xFF74787F),
+    emptyTrack: Color(0xFF33363B),
+    tick: Color(0xFF9A9EA4),
+    emptyTick: Color(0xFF555960),
+    badge: Color(0xFF303338),
+    badgeText: Color(0xFFE8EAED),
+  );
+
+  static const SliderPalette light = SliderPalette._(
+    track: Color(0xFF8E9298),
+    emptyTrack: Color(0xFFD8DADE),
+    tick: Color(0xFFCDD0D4),
+    emptyTick: Color(0xFFABAEB3),
+    badge: Color(0xFFE3E5E8),
+    badgeText: Color(0xFF26292E),
+  );
+
+  static SliderPalette of(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? dark : light;
+}
+
 /// The colour of every floating menu panel (MenuAnchor menus, their
 /// submenus and popup menus): one tonal grey at [kFloatingMenuOpacity] in
 /// every mode. Pure-black mode keeps the grey too, so a menu over a black
@@ -290,13 +335,26 @@ class MyTheme {
         ? Color.alphaBlend(baseTheme.colorScheme.onSurface.withValues(alpha: 0.07), Colors.black)
         : floatingMenuColor(baseTheme.colorScheme);
 
+    final sliderPalette = isDark ? SliderPalette.dark : SliderPalette.light;
+
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
       // A smaller drag halo makes every slider shorter than Material's 48 px;
-      // the thumb scales with it.
+      // the thumb scales with it. Sliders are grey (see SliderPalette).
       sliderTheme: baseTheme.sliderTheme.copyWith(
         overlayShape: const RoundSliderOverlayShape(overlayRadius: kSliderThumbRadius * 2),
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: kSliderThumbRadius),
+        activeTrackColor: sliderPalette.track,
+        inactiveTrackColor: sliderPalette.emptyTrack,
+        activeTickMarkColor: sliderPalette.tick,
+        inactiveTickMarkColor: sliderPalette.emptyTick,
+        thumbColor: sliderPalette.track,
+        overlayColor: sliderPalette.track.withValues(alpha: 0.12),
+        valueIndicatorColor: sliderPalette.badge,
+        valueIndicatorTextStyle: textTheme.labelMedium?.copyWith(
+          color: sliderPalette.badgeText,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       pageTransitionsTheme: appPageTransitionsTheme,
       appBarTheme: AppBarTheme(

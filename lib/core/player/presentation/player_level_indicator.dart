@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pure_live/core/theme/app_text.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 
 /// Which edge of the picture a level indicator stands at.
 enum PlayerLevelSide { left, right }
@@ -28,24 +29,17 @@ class PlayerLevelIndicator extends StatelessWidget {
   final double value;
   final IconData icon;
 
-  static const double _trackWidth = 4;
-  static const double _maxTrackHeight = 140;
-  static const double _edgeInset = 40;
-
-  /// Wide enough for "100": the column keeps one width, so the track does not
-  /// move when the number gains or loses a digit.
-  static const double _columnWidth = 32;
-  static const double _iconSize = 18;
-  static const double _iconGap = 10;
-
   @override
   Widget build(BuildContext context) {
     final level = value.isFinite ? value.clamp(0.0, 1.0).toDouble() : 0.0;
+    final m = PlatformUtils.isMobile ? _LevelMetrics.touch : _LevelMetrics.desktop;
+    final text = AppText.of(context);
+    final numberStyle = PlatformUtils.isMobile ? text.tag : text.secondary;
     return IgnorePointer(
       child: Align(
         alignment: side == PlayerLevelSide.left ? Alignment.centerLeft : Alignment.centerRight,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: _edgeInset),
+          padding: EdgeInsets.symmetric(horizontal: m.edgeInset),
           child: AnimatedOpacity(
             opacity: visible ? 1 : 0,
             duration: const Duration(milliseconds: 200),
@@ -53,33 +47,33 @@ class PlayerLevelIndicator extends StatelessWidget {
               builder: (context, constraints) {
                 // A phone's inline picture is barely 200 px tall: the track
                 // takes at most half of it so the number and the icon still fit.
-                final available = constraints.maxHeight.isFinite ? constraints.maxHeight / 2 : _maxTrackHeight;
-                final trackHeight = available.clamp(40.0, _maxTrackHeight).toDouble();
+                final available = constraints.maxHeight.isFinite ? constraints.maxHeight / 2 : m.maxTrackHeight;
+                final trackHeight = available.clamp(40.0, m.maxTrackHeight).toDouble();
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // No percent sign: the bar already says it is a share.
                     // Tabular figures keep the column from shifting as it counts.
                     SizedBox(
-                      width: _columnWidth,
+                      width: m.columnWidth,
                       child: Text(
                         '${(level * 100).round()}',
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.visible,
-                        style: AppText.of(context).tag.copyWith(
+                        style: numberStyle.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ),
-                    const SizedBox(height: _iconGap),
+                    SizedBox(height: m.gap),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(_trackWidth / 2),
+                      borderRadius: BorderRadius.circular(m.trackWidth / 2),
                       child: SizedBox(
-                        width: _trackWidth,
+                        width: m.trackWidth,
                         height: trackHeight,
                         child: Stack(
                           children: [
@@ -98,8 +92,8 @@ class PlayerLevelIndicator extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: _iconGap),
-                    Icon(icon, size: _iconSize, color: Colors.white),
+                    SizedBox(height: m.gap),
+                    Icon(icon, size: m.iconSize, color: Colors.white),
                   ],
                 );
               },
@@ -109,6 +103,51 @@ class PlayerLevelIndicator extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Sizes of [PlayerLevelIndicator]: a desktop's picture is read from further
+/// away than a phone's, so its readout is a step larger.
+class _LevelMetrics {
+  const _LevelMetrics({
+    required this.trackWidth,
+    required this.maxTrackHeight,
+    required this.edgeInset,
+    required this.columnWidth,
+    required this.iconSize,
+    required this.gap,
+  });
+
+  static const touch = _LevelMetrics(
+    trackWidth: 4,
+    maxTrackHeight: 140,
+    edgeInset: 40,
+    columnWidth: 32,
+    iconSize: 18,
+    gap: 10,
+  );
+
+  static const desktop = _LevelMetrics(
+    trackWidth: 5,
+    maxTrackHeight: 180,
+    edgeInset: 48,
+    columnWidth: 40,
+    iconSize: 22,
+    gap: 12,
+  );
+
+  final double trackWidth;
+  final double maxTrackHeight;
+
+  /// From the picture's edge to the readout column.
+  final double edgeInset;
+
+  /// Wide enough for "100": the column keeps one width, so the track does not
+  /// move when the number gains or loses a digit.
+  final double columnWidth;
+  final double iconSize;
+
+  /// Between the number, the track and the icon.
+  final double gap;
 }
 
 /// The volume icon for [value]: muted, low or high.

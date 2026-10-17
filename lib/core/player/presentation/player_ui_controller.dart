@@ -70,11 +70,12 @@ abstract interface class PlayerUiController {
   /// Applies a screen brightness in `0..1`.
   Future<void> uiSetBrightness(double value);
 
-  /// Whether a drag on the left half of the surface may change brightness.
+  /// Whether vertical drags on the surface change brightness (left half) and
+  /// volume (right half).
   ///
-  /// False on a desktop, where the left drag is not a brightness gesture: the
-  /// wheel and the keyboard own it there.
-  bool get uiSupportsBrightnessGesture;
+  /// False on a desktop: there the wheel and the keyboard change the volume,
+  /// and a drag (a trackpad's two-finger swipe included) changes nothing.
+  bool get uiSupportsDragGestures;
 
   /// The danmaku surface to overlay on the picture, or null when this player has
   /// none (a recording whose chat file is missing, a room with chat switched
@@ -133,11 +134,12 @@ bool startsInSystemTopGestureZone({required double globalDy, required double top
 
 /// The full-surface gesture layer every player shares.
 ///
-/// A vertical drag on the left half changes screen brightness, on the right half
-/// the volume, and both show the same card while they run. The layer owns only
-/// the gesture and the readout; the values themselves come from
-/// [PlayerUiController], so a live room keeps writing to the room's saved volume
-/// while a recording writes to the ordinary player volume.
+/// On a phone or tablet a vertical drag on the left half changes screen
+/// brightness, on the right half the volume; on a desktop only the wheel changes
+/// the volume. Both show the same card while they run. The layer owns only the
+/// gesture and the readout; the values themselves come from
+/// [PlayerUiController], so a live room writes to the room's volume while a
+/// recording writes to the ordinary player volume.
 ///
 /// Responsibilities:
 ///
@@ -213,9 +215,9 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   Future<void> _apply(Offset localPosition, Offset delta, Size size) async {
     if (delta.distance < 0.5 || size.height <= 0) return;
     final resolved = resolvePlayerDragSide(localPosition.dx, size.width);
-    // A desktop adjusts brightness with the wheel and the keyboard; the left
-    // drag would otherwise be a second, invisible way to change it.
-    if (resolved == PlayerDragSide.brightness && !widget.controller.uiSupportsBrightnessGesture) return;
+    // A desktop has no brightness to change: the wheel over the left half does
+    // nothing there.
+    if (resolved == PlayerDragSide.brightness && !widget.controller.uiSupportsDragGestures) return;
 
     if (_side != resolved || !_visible) {
       _side = resolved;
@@ -285,6 +287,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
 
   @override
   Widget build(BuildContext context) {
+    final drags = widget.controller.uiSupportsDragGestures;
     return Listener(
       onPointerSignal: (event) {
         if (event is PointerScrollEvent) {
@@ -300,10 +303,12 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
         // hit-test target blocks nothing: this still reports a miss, so a control
         // bar above keeps its taps and a picture below keeps its own gestures.
         behavior: HitTestBehavior.opaque,
-        onVerticalDragStart: _onVerticalDragStart,
-        onVerticalDragUpdate: _onVerticalDragUpdate,
-        onVerticalDragEnd: _onVerticalDragEnd,
-        onVerticalDragCancel: _resetDrag,
+        // No drag recognizer at all on a desktop, so the layer never enters
+        // the gesture arena against the surface's own drags.
+        onVerticalDragStart: drags ? _onVerticalDragStart : null,
+        onVerticalDragUpdate: drags ? _onVerticalDragUpdate : null,
+        onVerticalDragEnd: drags ? _onVerticalDragEnd : null,
+        onVerticalDragCancel: drags ? _resetDrag : null,
         child: Stack(
           fit: StackFit.expand,
           children: [

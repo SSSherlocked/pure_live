@@ -824,7 +824,7 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   }
 
   @override
-  bool get uiSupportsBrightnessGesture => platformSupportsBrightness;
+  bool get uiSupportsDragGestures => platformSupportsBrightness;
 
   /// The replayed chat of the recording, drawn by the same Core renderer the
   /// live room uses.

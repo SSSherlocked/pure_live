@@ -1734,7 +1734,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   Future<void> uiSetBrightness(double value) => setBrightness(value);
 
   @override
-  bool get uiSupportsBrightnessGesture => PlatformHelper.supportsBrightness;
+  bool get uiSupportsDragGestures => PlatformHelper.isMobile;
 
   /// The room's own danmaku surface: the pool this controller owns, drawn by the
   /// shared renderer with the room's overrides.

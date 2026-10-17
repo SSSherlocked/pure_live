@@ -124,9 +124,8 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 onTap: _resolutionDialogBusy
                     ? null
                     : () => _showPreferredResolutionSelectorDialog(_ResolutionPreferenceTarget.wifi),
-                trailing: Text(
+                trailing: context.buildTileValue(
                   _preferredResolutionLabel(SettingsService.to.player.resolvedPreferResolution),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
               ),
@@ -139,9 +138,8 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 onTap: _resolutionDialogBusy
                     ? null
                     : () => _showPreferredResolutionSelectorDialog(_ResolutionPreferenceTarget.cellular),
-                trailing: Text(
+                trailing: context.buildTileValue(
                   _preferredResolutionLabel(SettingsService.to.player.resolvedPreferResolutionCellular),
-                  style: AppText.of(context).body.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
               ),

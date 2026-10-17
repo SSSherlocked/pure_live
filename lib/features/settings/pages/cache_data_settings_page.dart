@@ -134,10 +134,7 @@ class _CacheDataSettingsPageState extends State<CacheDataSettingsPage> {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(
-                      "${size.toStringAsFixed(2)} MB",
-                      style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
-                    ),
+                    context.buildTileValue("${size.toStringAsFixed(2)} MB"),
                     if (SettingsService.to.cache.isScanning.value)
                       _progressIndicator(theme.colorScheme.primary)
                     else

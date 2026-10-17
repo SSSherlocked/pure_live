@@ -35,10 +35,7 @@ class PlatformSettingsPage extends GetView<SettingsService> {
                   runSpacing: 2,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(
-                      _platformLabel(FavoriteRoomController.to.preferPlatform.value),
-                      style: AppText.of(context).listPrimary.copyWith(color: Theme.of(context).hintColor.withValues(alpha: 0.75)),
-                    ),
+                    context.buildTileValue(_platformLabel(FavoriteRoomController.to.preferPlatform.value)),
                     Icon(
                       Icons.chevron_right_rounded,
                       color: Theme.of(context).hintColor.withValues(alpha: 0.4),

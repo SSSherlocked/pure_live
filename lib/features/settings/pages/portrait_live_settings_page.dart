@@ -13,7 +13,6 @@ class PortraitLiveSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = SettingsService.to.player;
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(i18n('portrait_live_settings'))),
       body: SettingsContentWidth(child: ListView(
@@ -40,9 +39,8 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.dashboard_customize_outlined,
                 title: i18n('portrait_layout_mode'),
                 subtitle: i18n('portrait_layout_mode_desc'),
-                trailing: Text(
+                trailing: context.buildTileValue(
                   _layoutModeLabel(settings.portraitLayoutMode),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
                 onTap: () => _selectEnum<PortraitLayoutMode>(
@@ -64,9 +62,8 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.fullscreen_rounded,
                 title: i18n('portrait_fullscreen_policy'),
                 subtitle: i18n('portrait_fullscreen_policy_desc'),
-                trailing: Text(
+                trailing: context.buildTileValue(
                   _fullscreenPolicyLabel(settings.portraitFullscreenPolicy),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
                 onTap: () => _selectEnum<PortraitFullscreenPolicy>(
@@ -87,9 +84,8 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.fit_screen_rounded,
                 title: i18n('portrait_fullscreen_display_mode'),
                 subtitle: i18n('portrait_fullscreen_display_mode_desc'),
-                trailing: Text(
+                trailing: context.buildTileValue(
                   portraitFullscreenDisplayModeLabel(settings.portraitFullscreenDisplayMode),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
                 onTap: () => _selectEnum<PortraitFullscreenDisplayMode>(
@@ -114,9 +110,8 @@ class PortraitLiveSettingsPage extends StatelessWidget {
                 icon: Icons.subtitles_outlined,
                 title: i18n('portrait_danmaku_mode'),
                 subtitle: i18n('portrait_danmaku_mode_desc'),
-                trailing: Text(
+                trailing: context.buildTileValue(
                   _danmakuModeLabel(settings.portraitDanmakuMode),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
                 onTap: () => _selectEnum<PortraitDanmakuMode>(

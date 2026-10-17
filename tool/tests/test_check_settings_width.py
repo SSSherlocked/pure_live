@@ -26,6 +26,18 @@ class CheckSettingsWidthTest(unittest.TestCase):
         self.assertEqual(len(found), 1)
         self.assertIn('lib/features/settings/pages/a.dart', found[0])
 
+    def test_flags_a_row_value_written_by_hand(self):
+        root = self._root({
+            'lib/features/settings/pages/a.dart': (
+                'return Scaffold(body: SettingsContentWidth(child: x));\n'
+                'buildTile(trailing: Text(label, style: s));\n'
+                'buildTile(trailing: context.buildTileValue(label));\n'
+            ),
+        })
+        found = check_settings_width.violations(root)
+        self.assertEqual(len(found), 1)
+        self.assertIn('a.dart:2', found[0])
+
     def test_widget_or_shared_width_passes(self):
         root = self._root({
             'lib/features/settings/pages/a.dart': 'return Scaffold(body: SettingsContentWidth(child: ListView()));\n',

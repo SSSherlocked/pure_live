@@ -6,6 +6,11 @@ it because nothing checked: this fails when a page in the settings tree
 builds a `Scaffold` without one. The tree is the settings directories plus
 the pages opened from them that live elsewhere; a page that is not a
 settings body (a full-screen image viewer) is listed with its reason.
+
+It also keeps a row's value on the right ('原画', '已启用') in one style:
+a `trailing: Text(...)` in the settings tree has to be
+`context.buildTileValue(...)`. Pages wrote their own, with three sizes
+between them.
 """
 
 from __future__ import annotations
@@ -41,6 +46,8 @@ SCAFFOLD = re.compile(r'\bScaffold\(')
 # The widget, or its width for a sliver layout that pads to the same width
 # itself (WebDAV keeps a full-width app bar above the content).
 WIDTH = re.compile(r'\bSettingsContentWidth(\(|\.width\b)')
+# A row value written by hand instead of with buildTileValue.
+OWN_VALUE = re.compile(r'\btrailing:\s*(?:Obx\(\s*\(\)\s*=>\s*)?(?:const\s+)?Text\(')
 
 
 def _in_scope(rel: str) -> bool:
@@ -56,6 +63,9 @@ def violations(root: Path = ROOT) -> list[str]:
         code = '\n'.join(line.split('//', 1)[0] for line in path.read_text(encoding='utf-8').splitlines())
         if SCAFFOLD.search(code) and not WIDTH.search(code):
             found.append(f'{rel}: builds a Scaffold without SettingsContentWidth')
+        for match in OWN_VALUE.finditer(code):
+            line = code.count('\n', 0, match.start()) + 1
+            found.append(f'{rel}:{line}: a row value as its own Text; use context.buildTileValue')
     for rel in SETTINGS_FILES:
         if not (root / rel).exists():
             found.append(f'{rel}: listed settings page no longer exists; update SETTINGS_FILES')
@@ -65,7 +75,7 @@ def violations(root: Path = ROOT) -> list[str]:
 def main() -> int:
     found = violations()
     if found:
-        print('Settings pages must hold their body in SettingsContentWidth:')
+        print('Settings pages must hold their body in SettingsContentWidth and show row values with buildTileValue:')
         for line in found:
             print(f'  {line}')
         return 1

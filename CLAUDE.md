@@ -58,7 +58,7 @@
 - 分层：`app -> core, shared, domains, features`；`core` 不依赖上层；`domains/X` 只依赖 `core`、`shared` 和自身。由 `tool/validate_architecture.py` 检查。
 - 文字：只用 `AppText` 的六个角色（pageTitle、sectionTitle、listPrimary、body、secondary、tag）或主题字号，不写死字号。密集区域（直播间信息页、全屏面板、播放器菜单）包在 `CompactText` 里，整体小一级。
 - 应用外壳：页面外面的所有包裹层都在 `lib/app/shell/app_shell.dart`。每一层在整个运行期间必须保持同一种结构，状态变化只能改画什么，不能增减或替换层，否则路由会被重建（曾导致全屏时多推一个直播间页面）。
-- 设置页：页面主体包在 `SettingsContentWidth` 里（固定内容宽度，两侧空白可滚动）。由 `tool/check_settings_width.py` 检查（CI 也跑）；设置目录以外、从设置进入的页面要加进脚本的 `SETTINGS_FILES`。
+- 设置页：页面主体包在 `SettingsContentWidth` 里（固定内容宽度，两侧空白可滚动）。由 `tool/check_settings_width.py` 检查（CI 也跑）；设置目录以外、从设置进入的页面要加进脚本的 `SETTINGS_FILES`。设置行右侧的取值（「原画」「已启用」）一律用 `context.buildTileValue`，不自己写 `Text`，同一脚本检查。
 - 新增的用户设置必须进入备份：在对应控制器的 `toJson`、`parseConfig`、`fromJson`、`extractConfig` 四处同时加上，默认值与 `hiveBool`/`hiveString` 等声明一致。只与本机有关的状态（路径、任务列表、缓存、设备 ID、迁移标记）不同步。
 - 文案：新键同时追加到 `assets/translations/zh.json` 和 `en.json` 末尾，两份的键集合必须一致（测试会检查）；删除功能时一并删除不再使用的键。
 - 删除功能时连同不再被调用的代码、资源和测试一起删掉，不留死代码。

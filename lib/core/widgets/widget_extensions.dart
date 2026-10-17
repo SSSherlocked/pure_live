@@ -291,6 +291,20 @@ extension AppLayoutFactory on BuildContext {
     );
   }
 
+  /// The value a settings row shows on its right ('原画', '已启用',
+  /// '12.30 MB'): one size, weight and colour on every page. [muted] is a
+  /// value that is off ('已关闭').
+  Widget buildTileValue(String text, {bool muted = false}) {
+    final theme = Theme.of(this);
+    return Text(
+      text,
+      style: AppText.of(this).listPrimary.copyWith(
+        fontWeight: FontWeight.w600,
+        color: muted ? theme.hintColor : theme.colorScheme.primary,
+      ),
+    );
+  }
+
   Widget buildMenuTile<T>({
     required String title,
     required T value,
@@ -318,13 +332,7 @@ extension AppLayoutFactory on BuildContext {
         runSpacing: 2,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Text(
-            displayValue,
-            style: AppText.of(this).listPrimary.copyWith(
-              color: theme.hintColor.withValues(alpha: 0.75),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          buildTileValue(displayValue),
           Icon(Icons.chevron_right_rounded, color: theme.hintColor.withValues(alpha: 0.4), size: 20),
         ],
       ),

@@ -42,13 +42,12 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                 title: i18n("kernel_switch"),
                 subtitle: i18n(canSwitchPlayer ? "kernel_switch_subtitle" : "kernel_fixed_subtitle"),
                 onTap: canSwitchPlayer ? () => showVideoSetDialog(context) : null,
-                trailing: Text(
+                trailing: context.buildTileValue(
                   i18n(PlayerConsts.names[activeKey] ?? PlayerConsts.names[PlayerConsts.defaultKey]!),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                 ),
                 stackTrailingOnNarrow: true,
               ),
-              if (engine != PlayerEngine.exo) _proxyTile(context, theme),
+              if (engine != PlayerEngine.exo) _proxyTile(context),
               context.buildSwitchTile(
                 icon: Remix.speed_up_line,
                 title: i18n('enable_codec'),
@@ -134,19 +133,16 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
 
   /// The proxy state is read inside its own Obx so toggling it does not rebuild
   /// the whole kernel card.
-  Widget _proxyTile(BuildContext context, ThemeData theme) {
+  Widget _proxyTile(BuildContext context) {
     return Obx(
       () => context.buildTile(
         icon: Remix.global_line,
         title: i18n("network_proxy"),
         subtitle: i18n("network_proxy_subtitle"),
         onTap: () => showProxySettingsDialog(context),
-        trailing: Text(
+        trailing: context.buildTileValue(
           SettingsService.to.proxy.enableProxy.v ? i18n("enabled") : i18n("disabled"),
-          style: AppText.of(context).body.copyWith(
-            color: SettingsService.to.proxy.enableProxy.v ? theme.colorScheme.primary : theme.hintColor,
-            fontWeight: FontWeight.w600,
-          ),
+          muted: !SettingsService.to.proxy.enableProxy.v,
         ),
         stackTrailingOnNarrow: true,
       ),
@@ -379,7 +375,7 @@ class PlayerKernelSettingsPage extends GetView<SettingsService> {
                     RadioListTile<String>(
                       value: option.key,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                      title: Text(option.label, style: AppText.of(dialogContext).listPrimary),
+                      title: Text(option.label, style: AppText.of(dialogContext).sectionTitle),
                     ),
                 ],
               ),

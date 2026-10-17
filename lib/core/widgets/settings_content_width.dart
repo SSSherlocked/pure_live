@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:pure_live/core/theme/app_text.dart';
 import 'package:pure_live/core/widgets/widget_extensions.dart';
 
 /// Holds a settings page body at a fixed content width.
@@ -117,8 +116,7 @@ class _SettingsContentWidthState extends State<SettingsContentWidth> {
         iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
         minLeadingWidth: kSettingsIconSlot,
         horizontalTitleGap: kSettingsIconGap,
-        // Settings text reads a size up (see LargerText).
-        child: LargerText(child: widget.child),
+        child: widget.child,
       ),
     );
     return LayoutBuilder(

@@ -14,8 +14,7 @@ import 'package:flutter/material.dart';
 ///
 /// Sizes come from 字体设置 through the theme (see `MyTheme`), so they follow
 /// the user's choices. Inside a [CompactText] area (the room's side panel,
-/// player menus) every role is one step smaller; on the settings pages
-/// ([LargerText]) every role is one pixel larger.
+/// player menus) every role is one step smaller.
 ///
 /// Text that has its own size setting is not a role: the danmaku over the
 /// video and the chat list.
@@ -101,68 +100,5 @@ TextTheme compactTextTheme(TextTheme theme) {
     labelLarge: resize(theme.labelLarge, size(theme.bodySmall)),
     labelMedium: resize(theme.labelMedium, size(theme.labelSmall)),
     labelSmall: resize(theme.labelSmall, smallestTag),
-  );
-}
-
-/// Makes every text role in [child] one pixel larger (see [AppText]): the
-/// settings pages, whose rows are roomy and read better a size up than the
-/// dense lists. Like [CompactText], list tiles inside follow too, and nesting
-/// has no further effect.
-class LargerText extends StatelessWidget {
-  const LargerText({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (context.dependOnInheritedWidgetOfExactType<_LargerTextMarker>() != null) return child;
-    final theme = Theme.of(context);
-    final larger = largerTextTheme(theme.textTheme);
-    final tiles = theme.listTileTheme;
-    return _LargerTextMarker(
-      child: Theme(
-        data: theme.copyWith(
-          textTheme: larger,
-          listTileTheme: tiles.copyWith(
-            titleTextStyle: tiles.titleTextStyle?.copyWith(fontSize: larger.titleMedium?.fontSize),
-            subtitleTextStyle: tiles.subtitleTextStyle?.copyWith(fontSize: larger.bodySmall?.fontSize),
-          ),
-        ),
-        child: DefaultTextStyle.merge(style: TextStyle(fontSize: larger.bodyMedium?.fontSize), child: child),
-      ),
-    );
-  }
-}
-
-class _LargerTextMarker extends InheritedWidget {
-  const _LargerTextMarker({required super.child});
-
-  @override
-  bool updateShouldNotify(_LargerTextMarker oldWidget) => false;
-}
-
-/// [theme] with every slot one pixel larger.
-TextTheme largerTextTheme(TextTheme theme) {
-  TextStyle? grow(TextStyle? style) {
-    final fontSize = style?.fontSize;
-    return style == null || fontSize == null ? style : style.copyWith(fontSize: fontSize + 1);
-  }
-
-  return theme.copyWith(
-    displayLarge: grow(theme.displayLarge),
-    displayMedium: grow(theme.displayMedium),
-    displaySmall: grow(theme.displaySmall),
-    headlineLarge: grow(theme.headlineLarge),
-    headlineMedium: grow(theme.headlineMedium),
-    headlineSmall: grow(theme.headlineSmall),
-    titleLarge: grow(theme.titleLarge),
-    titleMedium: grow(theme.titleMedium),
-    titleSmall: grow(theme.titleSmall),
-    bodyLarge: grow(theme.bodyLarge),
-    bodyMedium: grow(theme.bodyMedium),
-    bodySmall: grow(theme.bodySmall),
-    labelLarge: grow(theme.labelLarge),
-    labelMedium: grow(theme.labelMedium),
-    labelSmall: grow(theme.labelSmall),
   );
 }

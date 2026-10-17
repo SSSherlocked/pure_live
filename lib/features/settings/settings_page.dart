@@ -105,7 +105,7 @@ class _EntryList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTileTheme.merge(
       contentPadding: const EdgeInsets.symmetric(horizontal: kSettingsRowSidePadding),
-      minVerticalPadding: kSettingsRowVerticalPadding,
+      minVerticalPadding: settingsRowVerticalPadding,
       horizontalTitleGap: kSettingsIconGap,
       minLeadingWidth: kSettingsIconSlot,
       child: Column(

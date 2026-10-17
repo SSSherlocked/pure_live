@@ -2,6 +2,7 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/setting_value_format.dart';
 import 'package:pure_live/core/config/danmaku_settings_controller.dart';
 import 'package:pure_live/core/consts/app_consts.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
@@ -77,8 +78,13 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
   bool get isEmbedded => widget.embedded;
 
   /// Space between sections, and under a section title.
-  static const double _sectionGap = 14;
   static const double _titleGap = 6;
+
+  /// The settings page on desktop spaces its rows out, as the other
+  /// settings pages do there; the in-room panel stays dense everywhere.
+  bool get _roomy => PlatformUtils.isDesktop && !isEmbedded;
+
+  double get _sectionGap => _roomy ? 22 : 14;
 
   ThemeData get theme => Theme.of(context);
 
@@ -123,7 +129,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
           ?widget.header,
           // The first group title keeps the same space above it as every
           // later one (the list's own top padding plus the rest of a gap).
-          const SizedBox(height: _sectionGap - 8),
+          SizedBox(height: _sectionGap - 8),
           // The side panel chat list has its own text size and spacing,
           // separate from the danmaku scrolling over the video below.
           context.buildGroupTitle(i18n('chat_list_display')),
@@ -222,7 +228,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
             ],
           ),
-          const SizedBox(height: _sectionGap),
+          SizedBox(height: _sectionGap),
           context.buildGroupTitle(i18n("danmaku_display_group")),
           const SizedBox(height: _titleGap),
           reactiveCard(
@@ -415,7 +421,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 ),
             ],
           ),
-          const SizedBox(height: _sectionGap),
+          SizedBox(height: _sectionGap),
           // 留言: super chats get their own cards on a live room's picture,
           // independent of the scrolling barrage above.
           context.buildGroupTitle(i18n('super_chat_group')),
@@ -493,7 +499,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ],
             ],
           ),
-          const SizedBox(height: _sectionGap),
+          SizedBox(height: _sectionGap),
           // The side panel's footer brings the full 弹幕过滤 group (repeated,
           // similar and keyword filtering); elsewhere only the repeat filter.
           if (widget.footer != null)
@@ -525,7 +531,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                   ),
               ],
             ),
-            const SizedBox(height: _sectionGap),
+            SizedBox(height: _sectionGap),
           ],
           context.buildGroupTitle(i18n('danmaku_screen_interaction')),
           const SizedBox(height: _titleGap),
@@ -566,7 +572,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     double? stepSize,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: _roomy ? 12 : 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -596,7 +602,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: _roomy ? 6 : 2),
           SizedBox(
             width: double.infinity,
             child: ThumbOnlySlider(
@@ -627,7 +633,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
     // The stepper is neutral grey, as the slider value badges are.
     final palette = SliderPalette.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: _roomy ? 12 : 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -681,8 +687,9 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       child: SwitchListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: isEmbedded ? 14 : 16),
         dense: false,
-        // A little shorter than a standard row: the tab is a dense list.
-        visualDensity: const VisualDensity(vertical: -2),
+        // A little shorter than a standard row where the list is dense;
+        // standard height on the desktop settings page.
+        visualDensity: _roomy ? VisualDensity.standard : const VisualDensity(vertical: -2),
         title: Text(
           title,
           style: AppText.of(context).sectionTitle.copyWith(color: labelColor),

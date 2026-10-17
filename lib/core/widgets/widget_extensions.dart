@@ -3,6 +3,7 @@ import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/theme/app_text.dart';
 import 'package:pure_live/core/theme/theme.dart';
+import 'package:pure_live/core/platform/platform_utils.dart';
 
 /// The width every settings row gives its leading icon, and the gap from
 /// there to its text: switch, slider and plain rows alike, so the texts of a
@@ -19,7 +20,10 @@ const double kSettingsIconGap = 12;
 /// with an explanation. A single 56 px minimum for every row cut the
 /// two-line rows, most of them, from 72 to about 58 px.
 const double kSettingsRowSidePadding = 16;
-const double kSettingsRowVerticalPadding = 14;
+
+/// The space above and below a settings row's text: 14, and 20 on desktop,
+/// where a mouse needs no tight list and the extra air reads calmer.
+double get settingsRowVerticalPadding => PlatformUtils.isDesktop ? 20 : 14;
 
 /// A switch row's padding: the switch carries its own margin at the end.
 const EdgeInsetsDirectional kSettingsSwitchRowPadding = EdgeInsetsDirectional.only(
@@ -127,7 +131,7 @@ extension AppLayoutFactory on BuildContext {
       ),
       child: ListTileTheme.merge(
         contentPadding: const EdgeInsets.symmetric(horizontal: kSettingsRowSidePadding),
-        minVerticalPadding: kSettingsRowVerticalPadding,
+        minVerticalPadding: settingsRowVerticalPadding,
         horizontalTitleGap: kSettingsIconGap,
         minLeadingWidth: kSettingsIconSlot,
         child: Column(children: autoShapedChildren),
@@ -377,9 +381,9 @@ extension AppLayoutFactory on BuildContext {
   }) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: kSettingsRowSidePadding,
-        vertical: kSettingsRowVerticalPadding,
+        vertical: settingsRowVerticalPadding,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

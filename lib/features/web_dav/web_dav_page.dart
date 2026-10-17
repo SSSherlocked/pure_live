@@ -282,6 +282,7 @@ class _WebDavPageState extends State<WebDavPage> {
         // The app's floating-menu style (see the home menus).
         MenuAnchor(
           style: homeMenuStyle,
+          alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
           menuChildren: [
             homeMenuItem(context, icon: Icons.refresh, text: i18n("webdav_refresh"), onPressed: controller.loadFiles),
             homeMenuItem(
@@ -520,6 +521,7 @@ class _WebDavPageState extends State<WebDavPage> {
         final enabled = controller.canStartFileAction;
         return MenuAnchor(
           style: homeMenuStyle,
+          alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
           menuChildren: [
             if (file.isDir != true)
               homeMenuItem(

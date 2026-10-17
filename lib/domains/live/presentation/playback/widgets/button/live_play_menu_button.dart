@@ -35,7 +35,7 @@ class _LivePlayMenuButtonState extends State<LivePlayMenuButton> {
     // wide empty band on the right).
     return MenuAnchor(
       style: homeMenuStyle,
-      alignmentOffset: const Offset(0, 4),
+      alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
       onOpen: () => controller.updateUI(isMenuOpen: true),
       onClose: () => controller.updateUI(isMenuOpen: false),
       menuChildren: _buildItems(context),

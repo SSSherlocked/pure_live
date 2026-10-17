@@ -15,6 +15,10 @@ const double kFloatingMenuVerticalPadding = 6;
 /// Space on either side of a floating menu entry.
 const double kFloatingMenuItemHorizontalPadding = 16;
 
+/// Space between a floating menu and the button that opened it: every menu
+/// opens this far below its button's bottom edge.
+const double kFloatingMenuAnchorGap = 4;
+
 /// Corner radius of a floating menu panel: nearly square.
 const double kFloatingMenuCornerRadius = 4;
 

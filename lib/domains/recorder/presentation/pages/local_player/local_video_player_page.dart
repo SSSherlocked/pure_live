@@ -533,6 +533,7 @@ class _RecordingMoreMenu extends StatelessWidget {
     // A dense menu, like the player's: its entries use the compact roles.
     return CompactText(
       child: MenuAnchor(
+        alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
         menuChildren: [
           Obx(
             () => MenuItemButton(

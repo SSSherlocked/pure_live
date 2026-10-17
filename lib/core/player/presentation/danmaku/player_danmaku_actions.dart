@@ -380,7 +380,7 @@ class PlayerMoreMenuAnchor extends StatelessWidget {
           return MenuAnchor(
             controller: menu,
             style: const MenuStyle(alignment: AlignmentDirectional.bottomEnd),
-            alignmentOffset: Offset(-width, 0),
+            alignmentOffset: Offset(-width, kFloatingMenuAnchorGap),
             menuChildren: [for (final entry in entries) SizedBox(width: width, child: entry)],
             child: SizedBox.fromSize(size: size),
           );

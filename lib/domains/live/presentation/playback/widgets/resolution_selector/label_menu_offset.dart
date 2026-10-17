@@ -17,5 +17,5 @@ Offset labelMenuOffset(BuildContext context, TextStyle style, double maxHeight) 
   final minHeight = PlayerControlDensity.actionConstraints(context).minHeight;
   final target = maxHeight.isFinite && maxHeight < minHeight ? maxHeight : minHeight;
   final gap = ((target - lineHeight) / 2).clamp(0.0, target).toDouble();
-  return Offset(0, -gap);
+  return Offset(0, kFloatingMenuAnchorGap - gap);
 }

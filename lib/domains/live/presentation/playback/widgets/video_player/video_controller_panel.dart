@@ -394,15 +394,16 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                         context,
                         portraitFullscreen: portraitFullscreen,
                       );
+                      // Exactly over the ⋯ button, so the menu opens the same
+                      // gap below it as every other menu below its button:
+                      // the button is centred in the bar, which is lifted 4 px.
+                      final extent = compactControls ? compactPlayerActionExtent : kMinInteractiveDimension;
                       return Positioned(
-                        top: insets.top,
+                        top: insets.top + (topBarHeight - extent) / 2 - 4,
                         right: (compactControls ? 4 : 8) + insets.right,
                         child: PlayerMoreMenuAnchor(
                           menu: _moreMenu,
-                          size: Size(
-                            compactControls ? compactPlayerActionExtent : kMinInteractiveDimension,
-                            topBarHeight,
-                          ),
+                          size: Size(extent, extent),
                           isAudioOnly: () => controller.isAudioOnly,
                           onToggleAudioOnly: () {
                             controller.enableController();
@@ -1064,7 +1065,7 @@ class FullscreenStreamSelectorButton extends StatelessWidget {
     );
     return MenuAnchor(
       style: const MenuStyle(alignment: Alignment.bottomCenter),
-      alignmentOffset: Offset(-width / 2, 0),
+      alignmentOffset: Offset(-width / 2, kFloatingMenuAnchorGap),
       onOpen: () {
         controller.isMenuOpen.value = true;
         controller.stopHideController();

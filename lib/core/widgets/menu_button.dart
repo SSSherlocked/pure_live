@@ -95,7 +95,7 @@ class MenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuAnchor(
       style: homeMenuStyle,
-      alignmentOffset: const Offset(0, 4),
+      alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
       menuChildren: [
         if (SettingsService.to.app.enableMultiView.v)
           homeMenuItem(

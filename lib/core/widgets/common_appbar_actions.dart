@@ -46,7 +46,7 @@ class CommonAppBarActions extends StatelessWidget {
       children: [
         MenuAnchor(
           style: homeMenuStyle,
-          alignmentOffset: const Offset(0, 4),
+          alignmentOffset: const Offset(0, kFloatingMenuAnchorGap),
           menuChildren: [
             if (app.showsMenu(HomeMenu.search))
               homeMenuItem(

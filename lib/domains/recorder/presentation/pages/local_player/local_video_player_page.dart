@@ -14,6 +14,7 @@ import 'package:pure_live/core/player/presentation/player_back_scope.dart';
 import 'package:pure_live/core/player/presentation/windows_pip_driver.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
+import 'package:pure_live/core/player/presentation/player_volume_bar.dart';
 import 'package:pure_live/core/player/presentation/compact_playback_progress.dart';
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_actions.dart';
 import 'package:pure_live/core/player/presentation/fullscreen_window.dart' show fullscreenDriver;
@@ -966,6 +967,17 @@ class _RecordingControlBar extends StatelessWidget {
                         : const SizedBox.shrink(),
                   ),
                   if (fullControls) _MuteButton(controller: controller),
+                  if (fullControls)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Obx(
+                        () => PlayerVolumeBar(
+                          value: controller.volume.value,
+                          onInteract: controller.revealControls,
+                          onChanged: (value) => unawaited(controller.uiSetVolume(value)),
+                        ),
+                      ),
+                    ),
                   if (fullControls) _RateButton(controller: controller),
                   const Spacer(),
                   _FitButton(),
@@ -990,8 +1002,8 @@ class _RecordingControlBar extends StatelessWidget {
   }
 }
 
-/// The recording's mute toggle; volume itself follows the keyboard (and drags
-/// on touch devices).
+/// The recording's mute toggle; the volume bar beside it, the keyboard and (on
+/// touch devices) the surface drags change the level it shows.
 class _MuteButton extends StatefulWidget {
   const _MuteButton({required this.controller});
 
@@ -1002,48 +1014,36 @@ class _MuteButton extends StatefulWidget {
 }
 
 class _MuteButtonState extends State<_MuteButton> {
-  double? _volume;
   double _lastAudible = 1.0;
 
   LocalVideoPlayerController get controller => widget.controller;
 
   @override
-  void initState() {
-    super.initState();
-    controller.uiVolume().then((v) {
-      if (mounted && v != null) setState(() => _volume = v);
-    });
-  }
-
-  Future<void> _write(double v) async {
-    setState(() => _volume = v);
-    await controller.uiSetVolume(v);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final volume = _volume ?? 1.0;
-    final muted = volume <= 0.001;
-    return IconButton(
-      color: Colors.white,
-      iconSize: 24,
-      tooltip: muted ? i18n('local_player_unmute') : i18n('local_player_mute'),
-      icon: Icon(
-        muted
-            ? Icons.volume_off_rounded
-            : volume < 0.5
-            ? Icons.volume_down_rounded
-            : Icons.volume_up_rounded,
-      ),
-      onPressed: () {
-        if (muted) {
-          unawaited(_write(_lastAudible <= 0.001 ? 1.0 : _lastAudible));
-        } else {
-          _lastAudible = volume;
-          unawaited(_write(0.0));
-        }
-      },
-    );
+    return Obx(() {
+      final volume = controller.volume.value;
+      final muted = volume <= 0.001;
+      return IconButton(
+        color: Colors.white,
+        iconSize: 24,
+        tooltip: muted ? i18n('local_player_unmute') : i18n('local_player_mute'),
+        icon: Icon(
+          muted
+              ? Icons.volume_off_rounded
+              : volume < 0.5
+              ? Icons.volume_down_rounded
+              : Icons.volume_up_rounded,
+        ),
+        onPressed: () {
+          if (muted) {
+            unawaited(controller.uiSetVolume(_lastAudible <= 0.001 ? 1.0 : _lastAudible));
+          } else {
+            _lastAudible = volume;
+            unawaited(controller.uiSetVolume(0.0));
+          }
+        },
+      );
+    });
   }
 }
 

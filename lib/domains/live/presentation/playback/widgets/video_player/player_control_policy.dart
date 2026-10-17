@@ -101,6 +101,11 @@ class PlayerControlPolicy {
   /// The mute toggle and the window-fullscreen button are Windows window
   /// features; volume itself follows the keyboard (and drags on touch devices).
   bool get muteButton => windows;
+
+  /// The volume bar right of the one-tap mute: always on a desktop; on a phone
+  /// or tablet wherever the quality menu shows (the phone layout only in
+  /// fullscreen), as a readout the surface drags move.
+  bool get volumeBar => !mobilePlatform || streamSelector;
   bool get windowFullscreenButton => windows;
 
   // --- Panels ------------------------------------------------------------

@@ -127,6 +127,11 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   final position = Duration.zero.obs;
   final duration = Duration.zero.obs;
 
+  /// The level the viewer chose, which the mute button and the volume bar
+  /// show. It outlives a change of recording: the next file's player is set to
+  /// it as that file becomes current.
+  final volume = 1.0.obs;
+
   /// Whether the recording being played carries chat (a `<prefix>.xml` beside
   /// it), which is what the danmaku button is offered for.
   final hasDanmaku = false.obs;
@@ -369,7 +374,10 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
     _danmakuPlayer = RecordingDanmakuPlayer(controller: danmakuController);
     _stateSub = _feed!.onItemStateChanged.listen(_onItemState);
     _transportSub = _feed!.onPlaybackStateChanged.listen(_onTransport);
-    _indexSub = _feed!.onIndexChanged.listen((i) => currentIndex.value = i);
+    _indexSub = _feed!.onIndexChanged.listen((i) {
+      currentIndex.value = i;
+      if (volume.value != 1.0) unawaited(uiSetVolume(volume.value));
+    });
 
     final initialIndex = await _resumeIndex();
     await _feed!.load(sources, initialIndex: initialIndex);
@@ -791,12 +799,15 @@ final class LocalVideoPlayerController extends GetxController implements PlayerU
   }
 
   @override
-  Future<double?> uiVolume() async => _feed?.handle?.volume;
+  Future<double?> uiVolume() async => volume.value;
 
   @override
   Future<void> uiSetVolume(double value) async {
+    if (!value.isFinite) return;
+    final level = value.clamp(0.0, 1.0).toDouble();
+    volume.value = level;
     try {
-      await _feed?.handle?.setVolume(value.clamp(0.0, 1.0));
+      await _feed?.handle?.setVolume(level);
     } catch (_) {
       // 音量手势连续触发时，内核会把被新请求取代的旧写入以取消异常完成——
       // 这是"这条已过期"的正常信号，不是错误，不该打断手势或冒未处理异常。

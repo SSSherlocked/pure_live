@@ -9,6 +9,7 @@ import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
 import 'package:pure_live/core/player/presentation/player_control_density.dart';
+import 'package:pure_live/core/player/presentation/player_volume_bar.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/player_control_policy.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/live_room_status.dart';
@@ -1289,6 +1290,7 @@ class BottomActionBar extends StatelessWidget {
         // One-tap mute, then quality and line: both stay on the bar in every
         // mode, so entering or leaving fullscreen never shifts the controls.
         MuteToggleButton(controller: controller),
+        if (policy.volumeBar) RoomVolumeBar(controller: controller),
         if (policy.streamSelector) FullscreenStreamSelectorButton(controller: controller, compact: compact),
         if (policy.muteButton) RoomMuteButton(controller: controller),
         if (policy.windowFullscreenButton &&
@@ -1442,6 +1444,27 @@ class MuteToggleButton extends StatelessWidget {
         icon: Icon(muted ? Icons.volume_off_rounded : Icons.volume_up_rounded),
       );
     });
+  }
+}
+
+/// The room's level beside the mute button (see [PlayerVolumeBar]).
+class RoomVolumeBar extends StatelessWidget {
+  const RoomVolumeBar({super.key, required this.controller});
+
+  final VideoController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Obx(
+        () => PlayerVolumeBar(
+          value: controller.currentVolume.value,
+          onInteract: controller.enableController,
+          onChanged: (value) => unawaited(controller.setVolume(value)),
+        ),
+      ),
+    );
   }
 }
 

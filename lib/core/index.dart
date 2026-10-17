@@ -15,8 +15,6 @@ export 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 export 'package:uri_to_file/uri_to_file.dart';
 export 'package:easy_refresh/easy_refresh.dart';
 export 'package:path_provider/path_provider.dart';
-export 'package:dynamic_color/dynamic_color.dart';
-export 'theme/dynamic_color_adapter.dart';
 export 'package:share_handler/share_handler.dart';
 export 'package:window_manager/window_manager.dart';
 export 'package:pure_live/core/utils/i18n.dart';

@@ -13,7 +13,6 @@ import bonsoir_darwin
 import charset_converter
 import connectivity_plus
 import device_info_plus
-import dynamic_color
 import ffmpeg_kit_extended_flutter
 import file_picker_darwin
 import flutter_inappwebview_macos
@@ -39,7 +38,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   CharsetConverterPlugin.register(with: registry.registrar(forPlugin: "CharsetConverterPlugin"))
   ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
-  DynamicColorPlugin.register(with: registry.registrar(forPlugin: "DynamicColorPlugin"))
   FfmpegKitExtendedFlutterPlugin.register(with: registry.registrar(forPlugin: "FfmpegKitExtendedFlutterPlugin"))
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   InAppWebViewFlutterPlugin.register(with: registry.registrar(forPlugin: "InAppWebViewFlutterPlugin"))

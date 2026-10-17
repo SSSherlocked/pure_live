@@ -161,7 +161,7 @@
   "enable_cache_limit_desc": "Delete old recordings when over the limit",
   "enable_codec": "Enable hardcodec",
   "enable_dynamic_color": "Dynamic Color",
-  "enable_dynamic_color_subtitle": "Colours from the system wallpaper",
+  "enable_dynamic_color_subtitle": "Tint pages, cards and panels with the theme colour",
   "enable_fullscreen_default": "Fullscreen on entering a room",
   "enter_fullscreen": "Enter fullscreen",
   "exit_fullscreen": "Exit fullscreen",

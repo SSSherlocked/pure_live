@@ -68,8 +68,7 @@ dependencies:
   flutter_svg: ^2.2.1 # SVG图片渲染
   lottie: ^3.6.1 #动画
   cached_network_image: ^4.0.2 # 网络图片缓存
-  dynamic_color: ^2.1.0 # 动态主题色
-  material_ui: ^1.4.0 # dynamic_color 2.x 的独立 Material ColorScheme 桥接
+  material_ui: ^1.4.0 # flex_color_picker 4.x / cached_network_image 4.x 使用的独立 Material 库
   waterfall_flow: ^3.1.1 # 瀑布流布局
   easy_refresh: ^3.5.0 # 下拉刷新/上拉加载
   flutter_smart_dialog: ^5.1.0 # 自定义弹窗

@@ -172,63 +172,53 @@ class _MyAppState extends State<MyApp> with DesktopWindowMixin {
 
   @override
   Widget build(BuildContext context) {
-    return DynamicColorBuilder(
-      builder: (lightDynamic, darkDynamic) {
-        return Obx(() {
-          final themeColor = SettingsService.to.theme.themeColor;
-          final currentFactor = SettingsService.to.font.textScaleFactor.v;
+    return Obx(() {
+      final themeColor = SettingsService.to.theme.themeColor;
+      final currentFactor = SettingsService.to.font.textScaleFactor.v;
 
-          ThemeData lightTheme;
-          ThemeData darkTheme;
+      // MyTheme reads 动态取色 and 深色模式纯黑背景 inside this Obx, so
+      // toggling either rebuilds the themes.
+      final lightTheme = MyTheme(primaryColor: themeColor).lightThemeData;
+      final darkTheme = MyTheme(primaryColor: themeColor).darkThemeData;
+      _scheduleThemeChange(lightTheme, darkTheme);
 
-          if (SettingsService.to.theme.enableDynamicTheme.v && lightDynamic != null && darkDynamic != null) {
-            lightTheme = MyTheme(colorScheme: toFlutterColorScheme(lightDynamic)).lightThemeData;
-            darkTheme = MyTheme(colorScheme: toFlutterColorScheme(darkDynamic)).darkThemeData;
-          } else {
-            lightTheme = MyTheme(primaryColor: themeColor).lightThemeData;
-            darkTheme = MyTheme(primaryColor: themeColor).darkThemeData;
+      return GetMaterialApp(
+        // The localized title is rendered by CustomTitleBar. A stable
+        // application title avoids asking EasyLocalization for a key
+        // before its delegate has completed the first load.
+        title: i18n('app_name'),
+        navigatorKey: appNavigatorKey,
+        scrollBehavior: MyCustomScrollBehavior(),
+        debugShowCheckedModeBanner: false,
+        themeMode: SettingsService.to.theme.themeMode,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        locale: context.locale,
+        navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver()],
+        builder: FlutterSmartDialog.init(
+          // Toasts in the app's text sizes and scale (see AppToast).
+          toastBuilder: (message) => AppToast(message),
+          // Everything painted around the pages lives in [AppShell], which
+          // keeps one widget shape so the Router is never remounted.
+          builder: (context, child) => AppShell(textScaleFactor: currentFactor, child: child),
+        ),
+        supportedLocales: context.supportedLocales,
+        localizationsDelegates: [
+          ...context.localizationDelegates,
+          // flex_color_picker 4.x and cached_network_image 4.x use the
+          // decoupled Material library. Its localization type is distinct
+          // from flutter/material.dart and must be registered alongside it.
+          material.GlobalMaterialLocalizations.delegate,
+        ],
+        initialRoute: RoutePath.kInitial,
+        defaultTransition: Transition.native,
+        routingCallback: (routing) {
+          if (routing != null) {
+            RouteObserverController.to.updateRoute(routing.current);
           }
-          _scheduleThemeChange(lightTheme, darkTheme);
-
-          return GetMaterialApp(
-            // The localized title is rendered by CustomTitleBar. A stable
-            // application title avoids asking EasyLocalization for a key
-            // before its delegate has completed the first load.
-            title: i18n('app_name'),
-            navigatorKey: appNavigatorKey,
-            scrollBehavior: MyCustomScrollBehavior(),
-            debugShowCheckedModeBanner: false,
-            themeMode: SettingsService.to.theme.themeMode,
-            theme: lightTheme,
-            darkTheme: darkTheme,
-            locale: context.locale,
-            navigatorObservers: [FlutterSmartDialog.observer, LiveRouteObserver()],
-            builder: FlutterSmartDialog.init(
-              // Toasts in the app's text sizes and scale (see AppToast).
-              toastBuilder: (message) => AppToast(message),
-              // Everything painted around the pages lives in [AppShell], which
-              // keeps one widget shape so the Router is never remounted.
-              builder: (context, child) => AppShell(textScaleFactor: currentFactor, child: child),
-            ),
-            supportedLocales: context.supportedLocales,
-            localizationsDelegates: [
-              ...context.localizationDelegates,
-              // flex_color_picker 4.x and cached_network_image 4.x use the
-              // decoupled Material library. Its localization type is distinct
-              // from flutter/material.dart and must be registered alongside it.
-              material.GlobalMaterialLocalizations.delegate,
-            ],
-            initialRoute: RoutePath.kInitial,
-            defaultTransition: Transition.native,
-            routingCallback: (routing) {
-              if (routing != null) {
-                RouteObserverController.to.updateRoute(routing.current);
-              }
-            },
-            getPages: AppPages.routes,
-          );
-        });
-      },
-    );
+        },
+        getPages: AppPages.routes,
+      );
+    });
   }
 }

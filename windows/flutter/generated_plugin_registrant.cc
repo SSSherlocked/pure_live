@@ -12,7 +12,6 @@
 #include <bonsoir_windows/bonsoir_windows_plugin_c_api.h>
 #include <charset_converter/charset_converter_plugin.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
-#include <dynamic_color/dynamic_color_plugin_c_api.h>
 #include <ffmpeg_kit_extended_flutter/ffmpeg_kit_extended_flutter_plugin.h>
 #include <flutter_acrylic/flutter_acrylic_plugin.h>
 #include <flutter_inappwebview_windows/flutter_inappwebview_windows_plugin_c_api.h>
@@ -38,8 +37,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("CharsetConverterPlugin"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
-  DynamicColorPluginCApiRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("DynamicColorPluginCApi"));
   FfmpegKitExtendedFlutterPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FfmpegKitExtendedFlutterPlugin"));
   FlutterAcrylicPluginRegisterWithRegistrar(

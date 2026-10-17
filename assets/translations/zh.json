@@ -163,7 +163,7 @@
   "enable_cache_limit_desc": "超过限制后自动清理旧录制",
   "enable_codec": "开启硬解码",
   "enable_dynamic_color": "动态取色",
-  "enable_dynamic_color_subtitle": "按系统壁纸取色",
+  "enable_dynamic_color_subtitle": "按主题色为底色、卡片等表面着色",
   "enable_fullscreen_default": "进入直播间自动全屏",
   "enter_fullscreen": "进入全屏",
   "exit_fullscreen": "退出全屏",

@@ -9,7 +9,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   bonsoir_windows
   charset_converter
   connectivity_plus
-  dynamic_color
   ffmpeg_kit_extended_flutter
   flutter_acrylic
   flutter_inappwebview_windows

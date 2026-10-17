@@ -8,7 +8,6 @@
 
 #include <app_links_linux/app_links_plugin_linux.h>
 #include <charset_converter/charset_converter_plugin.h>
-#include <dynamic_color/dynamic_color_plugin.h>
 #include <ffmpeg_kit_extended_flutter/ffmpeg_kit_extended_flutter_plugin.h>
 #include <flutter_acrylic/flutter_acrylic_plugin.h>
 #include <media_kit_video/media_kit_video_plugin.h>
@@ -24,9 +23,6 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) charset_converter_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "CharsetConverterPlugin");
   charset_converter_plugin_register_with_registrar(charset_converter_registrar);
-  g_autoptr(FlPluginRegistrar) dynamic_color_registrar =
-      fl_plugin_registry_get_registrar_for_plugin(registry, "DynamicColorPlugin");
-  dynamic_color_plugin_register_with_registrar(dynamic_color_registrar);
   g_autoptr(FlPluginRegistrar) ffmpeg_kit_extended_flutter_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FfmpegKitExtendedFlutterPlugin");
   ffmpeg_kit_extended_flutter_plugin_register_with_registrar(ffmpeg_kit_extended_flutter_registrar);

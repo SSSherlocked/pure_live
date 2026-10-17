@@ -126,20 +126,20 @@ String? resolveAppFontFamily({
 /// picked. It is only lightened or darkened as far as it must be to stay
 /// readable on the page ([kMinPrimaryContrast]).
 ///
-/// Pages, cards, bars, sheets, dialogs, text and outlines take no colour
-/// from the seed: they are Material's neutral greys ([_neutralSurfaces]),
-/// and surfaceTint is transparent so elevation adds no tint either. The
-/// theme colour only marks accents (buttons, switches, sliders, selection).
-ColorScheme seededColorScheme(Color seed, Brightness brightness) {
+/// With [tinted] (动态取色 on) the surfaces, text and outlines are
+/// Material's own for the seed, so pages, cards, bars, sheets and dialogs
+/// carry the theme colour's hue, and elevation tints with it. Otherwise
+/// they take no colour from the seed: they are Material's neutral greys
+/// ([_neutralSurfaces]) and surfaceTint is transparent, so the theme
+/// colour only marks accents (buttons, switches, sliders, selection).
+ColorScheme seededColorScheme(Color seed, Brightness brightness, {bool tinted = false}) {
   final neutral = HSLColor.fromColor(seed).saturation < 0.12;
-  final base = _neutralSurfaces(
-    ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: brightness,
-      dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
-    ),
-    brightness,
+  final seeded = ColorScheme.fromSeed(
+    seedColor: seed,
+    brightness: brightness,
+    dynamicSchemeVariant: neutral ? DynamicSchemeVariant.monochrome : DynamicSchemeVariant.fidelity,
   );
+  final base = tinted ? seeded : _neutralSurfaces(seeded, brightness);
   final primary = readablePrimary(seed.withValues(alpha: 1), base.surface);
   final onPrimary = _contrast(Colors.white, primary) >= _contrast(Colors.black, primary) ? Colors.white : Colors.black;
   final container = Color.alphaBlend(primary.withValues(alpha: 0.3), base.surface);
@@ -149,7 +149,7 @@ ColorScheme seededColorScheme(Color seed, Brightness brightness) {
     primaryContainer: container,
     onPrimaryContainer: base.onSurface,
     inversePrimary: Color.alphaBlend(primary.withValues(alpha: 0.6), base.inverseSurface),
-    surfaceTint: Colors.transparent,
+    surfaceTint: tinted ? primary : Colors.transparent,
   );
 }
 
@@ -235,9 +235,8 @@ Color dividerLineColor(ColorScheme colors) => colors.onSurface.withValues(alpha:
 
 class MyTheme {
   final Color? primaryColor;
-  final ColorScheme? colorScheme;
 
-  MyTheme({this.primaryColor, this.colorScheme}) : assert(colorScheme == null || primaryColor == null);
+  MyTheme({this.primaryColor});
 
   static const FontWeight regular = FontWeight.w400;
   static const FontWeight medium = FontWeight.w500;
@@ -295,17 +294,11 @@ class MyTheme {
     final customFonts = SettingsService.to.font.fontList.map((e) => e.id).toList();
     final fontFamily = _resolveFontFamily(SettingsService.to.font.fontFamilyName.v, customFonts);
 
-    ColorScheme? scheme = colorScheme;
-    if (isDark && scheme != null) {
-      scheme = scheme.copyWith(error: const Color(0xFFFF6347));
-    }
-
-    final resolvedScheme =
-        scheme ??
-        (primaryColor == null
-            // ThemeData's own Material 3 default when no colour is given.
-            ? ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4), brightness: brightness)
-            : seededColorScheme(primaryColor!, brightness));
+    final resolvedScheme = primaryColor == null
+        // ThemeData's own Material 3 default when no colour is given.
+        ? ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4), brightness: brightness)
+        // 动态取色 tints the surfaces with the theme colour.
+        : seededColorScheme(primaryColor!, brightness, tinted: SettingsService.to.theme.enableDynamicTheme.v);
     // Text takes the scheme's own onSurface. ThemeData.dark()/light() carry
     // the default (purple-tinted, dimmer) text colours, and a text theme
     // passed in explicitly is not recoloured by the scheme, so text sat a

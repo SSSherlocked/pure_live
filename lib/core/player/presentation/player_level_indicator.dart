@@ -131,10 +131,12 @@ class _LevelMetrics {
     gap: 10,
   );
 
+  // The track's centre 38 px from the edge, where the first version (28 px
+  // inset, no fixed column) put it on a phone's inline picture.
   static const touchPortrait = _LevelMetrics(
     trackWidth: 4,
     maxTrackHeight: 140,
-    edgeInset: 12,
+    edgeInset: 22,
     columnWidth: 32,
     iconSize: 18,
     gap: 10,

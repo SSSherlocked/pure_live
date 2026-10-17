@@ -598,6 +598,7 @@ class RoomCard extends StatelessWidget {
       // Each layout has its own look; without an override, 主页关注's.
       final config = override == null ? cards.resolve() : cards.appearanceFor(override);
       final radius = config.cornerRadius;
+      final coverBorderOpacity = cards.coverBorderOpacity.v;
 
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -617,6 +618,8 @@ class RoomCard extends StatelessWidget {
                   ? BorderSide(color: colors.primary, width: 1.5)
                   : compact
                   ? BorderSide(color: colors.outlineVariant.withValues(alpha: .55))
+                  : coverBorderOpacity > 0
+                  ? BorderSide(color: colors.outlineVariant.withValues(alpha: coverBorderOpacity))
                   : BorderSide.none,
             ),
             color: highlighted

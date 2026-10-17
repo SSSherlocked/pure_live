@@ -148,6 +148,20 @@ class _RoomCardSettingsPageState extends State<RoomCardSettingsPage> {
                 displayValue: formatPixels(config.cornerRadius.round()),
                 onChanged: (value) => controller.updateConfig(config.copyWith(cornerRadius: value)),
               ),
+              // The cover cards' outline; the compact rows keep their own.
+              if (!compact)
+                context.buildSliderTile(
+                  context,
+                  icon: Remix.contrast_drop_2_line,
+                  title: i18n('room_card_cover_border_opacity'),
+                  subtitle: i18n('room_card_cover_border_opacity_subtitle'),
+                  value: controller.coverBorderOpacity.v,
+                  min: 0,
+                  max: 1,
+                  displayValue: formatPercent(controller.coverBorderOpacity.v),
+                  onChanged: (value) =>
+                      controller.coverBorderOpacity.v = RoomCardSettingsController.normalizeCoverBorderOpacity(value),
+                ),
               // Gaps between cards in the grids: the same two sliders edit the
               // compact rows' pair or the cover cards' pair, whichever layout
               // is chosen above; each layout keeps its own.

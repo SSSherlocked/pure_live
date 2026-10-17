@@ -1855,5 +1855,7 @@
   "landscape_fullscreen_desc": "Needs system auto-rotate; turning back to portrait exits",
   "block_twitch_ads": "Block Twitch ads",
   "block_twitch_ads_subtitle": "Wait out ad breaks instead of playing them",
-  "twitch_ad_break": "Twitch ad break; the stream resumes shortly"
+  "twitch_ad_break": "Twitch ad break; the stream resumes shortly",
+  "room_card_cover_border_opacity": "Cover card border",
+  "room_card_cover_border_opacity_subtitle": "0% draws no border"
 }

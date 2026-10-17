@@ -1855,5 +1855,7 @@
   "landscape_fullscreen_desc": "需开启系统自动旋转；转回竖屏退出",
   "block_twitch_ads": "屏蔽 Twitch 广告",
   "block_twitch_ads_subtitle": "广告时段不播广告，等直播回来",
-  "twitch_ad_break": "Twitch 广告时段，直播稍后继续"
+  "twitch_ad_break": "Twitch 广告时段，直播稍后继续",
+  "room_card_cover_border_opacity": "封面卡片边框",
+  "room_card_cover_border_opacity_subtitle": "0% 不画边框"
 }

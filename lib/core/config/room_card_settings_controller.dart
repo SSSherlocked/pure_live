@@ -474,6 +474,21 @@ class RoomCardSettingsController extends GetxController {
 
   FavoriteSortMode get favoriteSortMode => FavoriteSortMode.fromName(favoriteSortModeName.v);
 
+  /// Opacity (0-1) of the cover cards' outline. 0, the default, draws none,
+  /// as the cover cards had before the setting.
+  final RxDouble coverBorderOpacity = hiveDouble('room_card_cover_border_opacity', defaultCoverBorderOpacity);
+
+  static const double defaultCoverBorderOpacity = 0;
+  static const double coverBorderOpacityStep = 0.05;
+
+  /// [value] kept in 0-1 and on a 5% step.
+  static double normalizeCoverBorderOpacity(num value) {
+    final converted = value.toDouble();
+    if (!converted.isFinite) return defaultCoverBorderOpacity;
+    final stepped = (converted / coverBorderOpacityStep).round() * coverBorderOpacityStep;
+    return double.parse(stepped.clamp(0.0, 1.0).toStringAsFixed(2));
+  }
+
   static RoomCardPreset normalizePreset(String? value) {
     final key = value?.trim().toLowerCase();
     return RoomCardPreset.values.firstWhere(
@@ -599,6 +614,7 @@ class RoomCardSettingsController extends GetxController {
       'desktopColumns': desktop[_favoriteKey(desktop, 'Columns')],
       'showFavoritePlatformTabs': showFavoritePlatformTabs.v,
       'favoriteSortMode': favoriteSortMode.name,
+      'coverBorderOpacity': normalizeCoverBorderOpacity(coverBorderOpacity.v),
       profilesKey: profiles.export(),
     };
   }
@@ -632,6 +648,9 @@ class RoomCardSettingsController extends GetxController {
           ? source['showFavoritePlatformTabs'] as bool
           : true,
       'favoriteSortMode': FavoriteSortMode.fromName(source['favoriteSortMode']).name,
+      'coverBorderOpacity': source['coverBorderOpacity'] is num
+          ? normalizeCoverBorderOpacity(source['coverBorderOpacity'] as num)
+          : defaultCoverBorderOpacity,
     };
     // A backup from before the profiles keeps a narrow (mobile) and a wide
     // (desktop) set: the phone profile takes the first, tablet and desktop
@@ -691,6 +710,7 @@ class RoomCardSettingsController extends GetxController {
     final parsed = parseConfig(json);
     showFavoritePlatformTabs.v = parsed['showFavoritePlatformTabs'] as bool;
     favoriteSortModeName.v = parsed['favoriteSortMode'] as String;
+    coverBorderOpacity.v = parsed['coverBorderOpacity'] as double;
     profiles.restore(parsed[profilesKey] as Map<String, dynamic>);
   }
 
@@ -707,6 +727,7 @@ class RoomCardSettingsController extends GetxController {
       'desktopColumns': parsed['desktopColumns'],
       'showFavoritePlatformTabs': parsed['showFavoritePlatformTabs'],
       'favoriteSortMode': parsed['favoriteSortMode'],
+      'coverBorderOpacity': parsed['coverBorderOpacity'],
       profilesKey: parsed[profilesKey],
     };
   }

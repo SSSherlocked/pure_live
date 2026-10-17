@@ -307,6 +307,16 @@ void main() {
       expect(_profileOf(extracted, key, DisplayProfile.desktop)['coverCardWidth'], RoomCardSettingsController.minCardWidth);
     });
 
+    test('封面卡片边框透明度进出备份，按 5% 取整，缺省为 0', () {
+      expect(RoomCardSettingsController.parseConfig({})['coverBorderOpacity'], 0.0);
+      final extracted = RoomCardSettingsController.extractConfig({
+        'roomCard': {'coverBorderOpacity': 0.37},
+      });
+      expect(extracted['coverBorderOpacity'], 0.35);
+      expect(RoomCardSettingsController.normalizeCoverBorderOpacity(3), 1.0);
+      expect(RoomCardSettingsController.normalizeCoverBorderOpacity(double.nan), 0.0);
+    });
+
     test('首次运行从旧的窄屏/宽屏设置播种；编辑只改当前档位', () async {
       await HivePrefUtil.setString('room_card_desktop_config', jsonEncode(RoomCardAppearance.detailed.toJson()));
       await HivePrefUtil.setInt('room_card_desktop_columns', 3);

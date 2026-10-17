@@ -15,6 +15,8 @@ abstract final class OpenVolume {
 
   /// The level for the next open that carries no metadata declaration — the
   /// live-room facade path, where the level belongs to the room being opened.
+  /// The facade keeps it at the room's current level (every volume change
+  /// writes it), so a reopen mid-room starts where the viewer left the volume.
   static double? pending;
 
   /// The level [source] must start at, falling back to [pending] when the

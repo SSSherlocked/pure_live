@@ -505,7 +505,16 @@ final class LivePlayerFacade {
     _cancelIdleRelease();
     return _controller.resume();
   }
-  Future<void> setVolume(double volume) => _controller.setVolume(volume.clamp(0.0, 1.0));
+  /// The level also becomes the room's open level: every reopen the kernel
+  /// makes on its own (line sweep, watchdog recovery, engine switch) runs
+  /// `beforeOpen` again, and with the entry level still declared there each
+  /// reopen put the volume back to where the room started. A level the handle
+  /// dropped because a reopen was under way lands with that reopen.
+  Future<void> setVolume(double volume) {
+    final level = volume.clamp(0.0, 1.0).toDouble();
+    OpenVolume.pending = level;
+    return _controller.setVolume(level);
+  }
 
   /// 系统音量滑杆平台(Android/iOS)上,房间内滑杆控制的是系统音量;
   /// 播放器内部增益必须恒定 1.0 —— 开屏若应用房间记忆音量(默认 0.5),

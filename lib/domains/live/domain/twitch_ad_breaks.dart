@@ -2,13 +2,16 @@ import 'dart:async';
 
 /// Twitch ad breaks the HLS relay took out of the stream.
 ///
-/// The relay reports each playlist that had ad segments: `true` while the
+/// The relay reports each playlist that had ad segments: `ongoing` while the
 /// break is still running (the player waits on purpose, see
-/// LivePlayerFacade), `false` once the live stream is back in it.
+/// LivePlayerFacade), not once the live stream is back in it. `marker` says
+/// what marked the first ad segment, for the log.
+typedef TwitchAdReport = ({bool ongoing, String? marker});
+
 abstract final class TwitchAdBreaks {
-  static final StreamController<bool> _reports = StreamController<bool>.broadcast(sync: true);
+  static final StreamController<TwitchAdReport> _reports = StreamController<TwitchAdReport>.broadcast(sync: true);
 
-  static Stream<bool> get reports => _reports.stream;
+  static Stream<TwitchAdReport> get reports => _reports.stream;
 
-  static void report({required bool ongoing}) => _reports.add(ongoing);
+  static void report({required bool ongoing, String? marker}) => _reports.add((ongoing: ongoing, marker: marker));
 }

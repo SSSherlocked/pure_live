@@ -85,16 +85,17 @@ final class LivePlayerFacade {
   /// How long an ad break holds after its last report: the relay reports
   /// one with every playlist reload (about every 2 s) while it runs.
   static const Duration adBreakHold = Duration(seconds: 10);
-  StreamSubscription<bool>? _adBreakSub;
+  StreamSubscription<TwitchAdReport>? _adBreakSub;
   Timer? _adBreakTimer;
   bool _inAdBreak = false;
+  bool _adBreakNoticeShown = false;
 
   /// A Twitch ad break taken out of the stream: the player waits on the
   /// live stream, so its stall watchdogs (the kernel's and [onLongStall])
   /// hold instead of reopening the line, which would start into the ad.
-  void _onTwitchAdReport(bool ongoing) {
+  void _onTwitchAdReport(TwitchAdReport report) {
     if (_disposed || !_servingRoom) return;
-    if (!ongoing) {
+    if (!report.ongoing) {
       _endAdBreak();
       return;
     }
@@ -102,8 +103,21 @@ final class LivePlayerFacade {
     _adBreakTimer = Timer(adBreakHold, _endAdBreak);
     if (_inAdBreak) return;
     _inAdBreak = true;
+    _adBreakNoticeShown = false;
     _controller.watchdogs.stallsHeld = true;
-    Log.i('twitch: ad break taken out of the stream; waiting for the broadcast');
+    Log.i('twitch: ad break taken out of the stream (${report.marker}); waiting for the broadcast');
+    _noticeAdBreakIfWaiting();
+  }
+
+  /// The viewer hears about a break only once the picture waits on it: the
+  /// player has the segments before the break buffered and plays them out
+  /// first, and a break that ends before they run out is never seen.
+  void _noticeAdBreakIfWaiting() {
+    if (!_inAdBreak || _adBreakNoticeShown) return;
+    final waiting = _stallPlayback == PlayerPlaybackState.buffering || isStalled.value;
+    if (!waiting) return;
+    _adBreakNoticeShown = true;
+    Log.i('twitch: the picture waits on the ad break');
     ToastUtil.show(i18n('twitch_ad_break'));
   }
 
@@ -112,6 +126,7 @@ final class LivePlayerFacade {
     _adBreakTimer = null;
     if (!_inAdBreak) return;
     _inAdBreak = false;
+    _adBreakNoticeShown = false;
     _controller.watchdogs.stallsHeld = false;
     _longStallReported = false;
     _sinceAdvance
@@ -591,6 +606,7 @@ final class LivePlayerFacade {
       return;
     }
     if (playback != PlayerPlaybackState.playing) _setStalled(false);
+    _noticeAdBreakIfWaiting();
     if (_stallTimer != null) return;
     _stallLastPosition = _controller.handle?.position;
     _positionAdvanced = false;
@@ -782,6 +798,7 @@ final class LivePlayerFacade {
     if (isStalled.value == stalled) return;
     isStalled.value = stalled;
     Log.i(stalled ? 'player: stalled at ${_stallLastPosition?.inMilliseconds} ms' : 'player: stall over');
+    if (stalled) _noticeAdBreakIfWaiting();
   }
 
   bool get isAudioOnlyMode => _audioOnlyMode.value;

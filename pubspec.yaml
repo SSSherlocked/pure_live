@@ -121,87 +121,87 @@ dependencies:
   media_core:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core
   media_core_media_kit:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_media_kit
   media_core_ui:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_ui
   media_core_pip:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_pip
   media_core_fullscreen:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_fullscreen
   media_core_multiview:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_multiview
   media_core_ingest:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_ingest
   media_core_presentation:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_presentation
   media_core_floating:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_floating
   media_core_list_playback:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_list_playback
   media_core_feed:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_feed
   media_core_ijk_player:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_ijk_player
   media_core_better_player:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_better_player
   media_core_danmaku:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_danmaku
   media_core_mediasession:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_mediasession
   media_core_live:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_live
   media_core_logging:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_logging
 
   # -------------------------- 数据存储/数据库 --------------------------
@@ -294,12 +294,12 @@ dependency_overrides:
   media_core_memory:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_memory
   media_core_win32:
     git:
       url: https://github.com/SSSherlocked/media_core
-      ref: b4920402f6304275efcfe4166ed01c8363013c11
+      ref: 3e9bf4c19cb1f389eca1ff286756d0f665c77f00
       path: packages/media_core_win32
 
 

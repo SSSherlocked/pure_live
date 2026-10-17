@@ -132,7 +132,7 @@ class PlaybackSourceTransport {
   }
 
   static void _reportTwitchAds(TwitchAdFilterResult result) =>
-      TwitchAdBreaks.report(ongoing: result.adOngoing);
+      TwitchAdBreaks.report(ongoing: result.adOngoing, marker: result.marker);
 
   /// Whether [source] is a Twitch HLS line (its playlists and segments are
   /// all served from ttvnw.net).

@@ -51,12 +51,29 @@ abstract final class MediaKitLiveProperties {
   static Map<String, String> build() {
     final properties = <String, String>{
       'protocol_whitelist': 'httpproxy,udp,rtp,tcp,tls,data,file,http,https,crypto,rtmp,rtmps,rtsp,srt',
-      // 1 MiB / 1 s (from 2 MiB / 2 s). Bilibili's CDN sends 1-2 s of cache
-      // and then real time, so a 2 s analysis waited for the live edge: its
-      // first frame went 1802 -> 708 ms on a phone (wzgrx/pure_live G03.1);
-      // CDNs that burst several seconds up front are unaffected.
-      'demuxer-lavf-probesize': '1048576',
-      'demuxer-lavf-analyzeduration': '1',
+      // Stream probing stays at the FFmpeg defaults (probesize 5 MB,
+      // analyzeduration 5 s). From 2026-10-11 to 10-17 they were 1 MiB / 1 s
+      // (before that 2 MiB / 2 s) to get Bilibili's first frame from 1802 to
+      // 708 ms on a phone - but that gain never came from the shorter
+      // analysis window itself. FLV carries an unreliable time base, so
+      // avformat_find_stream_info keeps probing until it has seen
+      // `fpsprobesize` (default 20) video frames for frame-rate analysis;
+      // the 1 s cap merely truncated that wait. The cost: some Bilibili edge
+      // nodes send audio first and the video track only at the next keyframe,
+      // and a track that appears after probing ended is never selected by
+      // mpv (player/loadfile.c registers it without selecting it) - sound
+      // without picture, deterministically, on every open of that node.
+      //
+      // fpsprobesize=0 removes the frame-rate wait instead: probing ends as
+      // soon as both declared tracks have their parameters, so a normal
+      // stream still starts on its first keyframe, and the 5 s window covers
+      // one GOP, so an audio-first node waits for its video at most until
+      // the next keyframe. Written as a string on purpose: this is a mpv
+      // key=value list, which mpv parses from the string form itself
+      // (`stream-lavf-o` below travels the same way); the adapter's
+      // `change-list` path is for List values and is not needed for one
+      // entry.
+      'demuxer-lavf-o': 'fpsprobesize=0',
       // A connection that hangs fails over to the next line within the
       // 10 s source-ready window (see LivePlayerFacade), not after 15 s.
       'network-timeout': '8',

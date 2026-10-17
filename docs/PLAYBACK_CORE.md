@@ -65,7 +65,8 @@
    位置前进即通过；验证期间任一 adapter 错误事件让这条线失败；所有线失败后换引擎（Android：mpv → ijkplayer → ExoPlayer）。
 5. **适配层错误门** `MpvErrorGate`（非终结错误观察 1.2 s）：media_kit 把 `file`/`vd`/`ad`/`cplayer`/`stream` 前缀的 mpv 错误日志行都当错误抛出；
    门把它们分成「立即终结」和「观察 1.2 s，有进度就丢弃」。`Cannot seek` 在 adapter 里单独忽略。
-6. **mpv 属性表** `MediaKitLiveProperties`（约 25 项偏离默认值）：`demuxer-lavf-analyzeduration=1`、`demuxer-lavf-probesize=1 MiB`、
+6. **mpv 属性表** `MediaKitLiveProperties`（约 25 项偏离默认值）：探测用 FFmpeg 默认的 `probesize` 5 MB / `analyzeduration` 5 s，
+   只加 `demuxer-lavf-o=fpsprobesize=0`（不攒 20 帧做帧率分析，两轨参数齐全即结束探测；10-17 之前是 1 MiB / 1 s）、
    `network-timeout=8`、`cache-pause=yes`/`cache-pause-wait=1`、`demuxer-readahead-secs=8`、`cache-secs=30`、`framedrop=decoder+vo`、
    `hwdec-software-fallback=1`、Android `initial-audio-sync=no`、低端机 `lowres=1`/2 线程；按源设置 `force-seekable`（FLV yes、HLS no）
    和 ffmpeg 的 `reconnect*` 选项。
@@ -88,12 +89,15 @@
 - 10-17 的修复（中转里把头的视频标志置 1，并在无画面时经中转重开）只堵住 `missing_streams` 这条路：视频若在 1 s 之后才到，探测仍被 `analyzeduration` 截断，
   重开后依旧无画，而 `_noPictureReopened` 只允许重开一次。它是补丁，不是根治。
 
-### 一步到位的方向（待单独立项验证）
+### 一步到位的方向
 
-1. `demuxer-lavf-analyzeduration` 和 `demuxer-lavf-probesize` 回到 mpv/FFmpeg 默认值（5 s / 5 MB），
+1. **已做（10-17 第二次提交）**：`demuxer-lavf-analyzeduration` 和 `demuxer-lavf-probesize` 回到 mpv/FFmpeg 默认值（5 s / 5 MB），
    改用 `demuxer-lavf-o=fpsprobesize=0` 砍掉 20 帧的帧率分析：两轨参数齐全即结束探测，正常流首帧不变慢，音频先到的流最多等到下一个关键帧。
-   需要用 `playback-timing firstFrame` 日志在 Android 上对比确认。
-2. 验证通过后撤掉 `withVideoDeclared` 和「无画面经中转重开」这两层补丁，以及对应测试；保留 Dart 中转只为 IPv6 黑洞和 HEVC 标签重写。
+   `demuxer-lavf-o` 是 mpv 的键值列表，按字符串写入（与 `stream-lavf-o` 同一写法）；适配层的 `change-list` 路径只处理 List 值。
+   **待确认**：用 `playback-timing firstFrame` 日志在 Android 上对比首帧没有明显变慢，并在 B 站房间（如 886540）确认首开有画面。
+2. 上一条确认后撤掉 `withVideoDeclared` 和「无画面经中转重开」这两层补丁，以及对应测试；保留 Dart 中转只为 IPv6 黑洞和 HEVC 标签重写。
+   注意 `withVideoDeclared` 还覆盖「FLV 头真的只声明音频」这种情况：那时 FFmpeg 在建出音轨后立刻结束探测，与 `analyzeduration` 无关；
+   撤之前要确认 10-17 的日志（23 627 字节、约 1.4 s 的 AAC 后结束）确实是窗口截断而不是这条路。
 3. 不再新增独立的「重开」决策者。需要新的恢复行为时，加到内核 sweep/watchdogs 这一层，由它统一执行。
 
 ## 冷启动 40 s 黑屏：根因（已修，记录以免回退）
@@ -115,6 +119,7 @@
 | 10-16 | 659d9b657 | 第 7 层：无画面重开要等位置过 1 s | 修 10-16 自己引入的误重开 |
 | 10-16 | 5aa540f81 | 第 2 层：死 FLV 线让位给活 FLV 线而非 HLS | 虎牙 HLS 卡顿 |
 | 10-17 | f70fb00aa | 第 3、7 层：中转改 FLV 头标志；无画面经中转重开 | 1 s 内到视频的流恢复画面；1 s 后到的仍无画 |
+| 10-17 | （本次） | 第 6 层：探测回到默认 5 MB/5 s，加 `fpsprobesize=0` | 探测不再截掉晚到的视频轨；首帧仍在第一个关键帧；与第 4 层 10 s 窗口的关系：最坏等一个 GOP（B 站约 2–4 s）仍在窗口内 |
 
 ## 改动规则
 

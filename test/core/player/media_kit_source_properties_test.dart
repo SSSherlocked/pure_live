@@ -9,6 +9,18 @@ Map<String, String> _properties(String url, {String? declared}) =>
     MediaKitLiveProperties.sourceProperties(uri: Uri.parse(url), declaredFormat: declared, proxy: _proxy);
 
 void main() {
+  group('全局引擎属性', () {
+    test('探测参数回到 FFmpeg 默认值，只砍掉帧率分析', () {
+      // 1 MiB / 1 s 的探测窗口会把晚到的视频轨一起截掉（B 站有声无画，
+      // 见 docs/PLAYBACK_CORE.md）；首帧快的真正来源是不再攒 20 帧做帧率分析。
+      final properties = MediaKitLiveProperties.build();
+      expect(properties.containsKey('demuxer-lavf-probesize'), isFalse);
+      expect(properties.containsKey('demuxer-lavf-analyzeduration'), isFalse);
+      // 单条键值以字符串写入，与 stream-lavf-o 同一写法（见 build 的注释）。
+      expect(properties['demuxer-lavf-o'], 'fpsprobesize=0');
+    });
+  });
+
   group('按源决定的引擎属性', () {
     test('上游 HLS 指死解复用器，不可拖动', () {
       expect(_properties('https://cdn.example.com/live/index.m3u8'), {

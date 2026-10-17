@@ -28,9 +28,6 @@ bool isDanmakuUserScrollStart(
           notification.direction != ScrollDirection.idle);
 }
 
-@visibleForTesting
-bool useEdgeToEdgeDanmakuList(double width) => width <= 680;
-
 /// Invalidates tail-follow work that was queued before a user gesture.
 ///
 /// `ScrollController.jumpTo` cancels an active drag. Message delivery used to
@@ -327,113 +324,96 @@ class DanmakuListViewState extends State<DanmakuListView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final edgeToEdge = useEdgeToEdgeDanmakuList(constraints.maxWidth);
-        final radius = edgeToEdge ? BorderRadius.zero : BorderRadius.circular(10);
-        return Container(
-          key: const ValueKey('danmaku-list-surface'),
-          margin: edgeToEdge ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: radius,
-            border: edgeToEdge
-                ? null
-                : Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35), width: 0.5),
-            boxShadow: edgeToEdge
-                ? null
-                : [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
-          ),
-          child: ClipRRect(
-            borderRadius: radius,
-            child: Column(
+    // Edge to edge at every width, as the 关注 list: the list's own margin
+    // is the only one.
+    return ColoredBox(
+      key: const ValueKey('danmaku-list-surface'),
+      color: theme.colorScheme.surface,
+      child: Column(
+        children: [
+          _nameHintBar(context),
+          Expanded(
+            child: Stack(
               children: [
-                _nameHintBar(context),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Listener(
-                        onPointerDown: (_) {
-                          _activeScrollPointers++;
-                          // Cancel a queued live-tail jump at pointer-down, before
-                          // touch slop delays the first ScrollStartNotification.
-                          _tailFollowGuard.invalidate();
-                        },
-                        onPointerUp: (_) => _removeActiveScrollPointer(),
-                        onPointerCancel: (_) => _removeActiveScrollPointer(),
-                        child: NotificationListener<ScrollNotification>(
-                          onNotification: (notification) {
-                            onScrollNotification(notification);
-                            return false;
-                          },
-                          child: ListView.separated(
-                            key: const ValueKey('danmaku-message-list'),
-                            addAutomaticKeepAlives: false,
-                            // DanmakuItem already owns a boundary. Avoid nesting a
-                            // second automatic layer around every visible row.
-                            addRepaintBoundaries: false,
-                            controller: _scrollController,
-                            dragStartBehavior: DragStartBehavior.down,
-                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                            physics: const PureLiveScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                            // Oldest first, from the top, at the 关注 list's
-                            // margin on every side, the top included.
-                            padding: const EdgeInsets.all(LivePanelTab.listPadding),
-                            scrollCacheExtent: const ScrollCacheExtent.pixels(360),
-                            itemCount: _visibleMessages.length,
-                            itemBuilder: (_, index) {
-                              final msg = _visibleMessages[index];
-                              // Returning the identical widget instance lets
-                              // Element.updateChild skip rebuilding emoji spans,
-                              // HSL colors and decorations for every existing row
-                              // on each 80 ms live-tail update.
-                              return _itemFor(msg);
-                            },
-                            // Only between messages, so the first and the last
-                            // keep the list's margin exactly.
-                            separatorBuilder: (context, index) => const _ChatListGap(),
-                          ),
-                        ),
-                      ),
-                      if (userScrolling)
-                        Positioned(
-                          left: 12,
-                          right: 12,
-                          bottom: 12,
-                          // Bound long localized labels without stretching a
-                          // short desktop action or reducing the user's font.
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: FilledButton.icon(
-                              key: const ValueKey('danmaku-resume-live'),
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.92),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              ),
-                              icon: const Icon(Icons.arrow_downward_rounded, size: 18),
-                              label: ValueListenableBuilder<int>(
-                                valueListenable: _pendingMessageCount,
-                                builder: (context, count, _) => Text(
-                                  count > 0
-                                      ? i18n('danmaku_new_messages', args: {'count': '$count'})
-                                      : i18n('scroll_to_bottom'),
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                              onPressed: _resumeAutoScroll,
-                            ),
-                          ),
-                        ),
-                    ],
+                Listener(
+                  onPointerDown: (_) {
+                    _activeScrollPointers++;
+                    // Cancel a queued live-tail jump at pointer-down, before
+                    // touch slop delays the first ScrollStartNotification.
+                    _tailFollowGuard.invalidate();
+                  },
+                  onPointerUp: (_) => _removeActiveScrollPointer(),
+                  onPointerCancel: (_) => _removeActiveScrollPointer(),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      onScrollNotification(notification);
+                      return false;
+                    },
+                    child: ListView.separated(
+                      key: const ValueKey('danmaku-message-list'),
+                      addAutomaticKeepAlives: false,
+                      // DanmakuItem already owns a boundary. Avoid nesting a
+                      // second automatic layer around every visible row.
+                      addRepaintBoundaries: false,
+                      controller: _scrollController,
+                      dragStartBehavior: DragStartBehavior.down,
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      physics: const PureLiveScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      // Oldest first, from the top, at the 关注 list's
+                      // margin on every side, the top included.
+                      padding: const EdgeInsets.all(LivePanelTab.listPadding),
+                      scrollCacheExtent: const ScrollCacheExtent.pixels(360),
+                      itemCount: _visibleMessages.length,
+                      itemBuilder: (_, index) {
+                        final msg = _visibleMessages[index];
+                        // Returning the identical widget instance lets
+                        // Element.updateChild skip rebuilding emoji spans,
+                        // HSL colors and decorations for every existing row
+                        // on each 80 ms live-tail update.
+                        return _itemFor(msg);
+                      },
+                      // Only between messages, so the first and the last
+                      // keep the list's margin exactly.
+                      separatorBuilder: (context, index) => const _ChatListGap(),
+                    ),
                   ),
                 ),
+                if (userScrolling)
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    bottom: 12,
+                    // Bound long localized labels without stretching a
+                    // short desktop action or reducing the user's font.
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton.icon(
+                        key: const ValueKey('danmaku-resume-live'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.92),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        icon: const Icon(Icons.arrow_downward_rounded, size: 18),
+                        label: ValueListenableBuilder<int>(
+                          valueListenable: _pendingMessageCount,
+                          builder: (context, count, _) => Text(
+                            count > 0
+                                ? i18n('danmaku_new_messages', args: {'count': '$count'})
+                                : i18n('scroll_to_bottom'),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        onPressed: _resumeAutoScroll,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

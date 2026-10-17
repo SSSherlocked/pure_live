@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io';
 
-import 'package:flutter/gestures.dart';
 import 'package:pure_live/core/index.dart';
 
 /// What the shared player surface needs from whoever owns playback.
@@ -73,8 +72,8 @@ abstract interface class PlayerUiController {
   /// Whether vertical drags on the surface change brightness (left half) and
   /// volume (right half).
   ///
-  /// False on a desktop: there the wheel and the keyboard change the volume,
-  /// and a drag (a trackpad's two-finger swipe included) changes nothing.
+  /// False on a desktop: there only the keyboard changes the volume, and a
+  /// drag (a trackpad's two-finger swipe included) changes nothing.
   bool get uiSupportsDragGestures;
 
   /// The danmaku surface to overlay on the picture, or null when this player has
@@ -135,15 +134,15 @@ bool startsInSystemTopGestureZone({required double globalDy, required double top
 /// The full-surface gesture layer every player shares.
 ///
 /// On a phone or tablet a vertical drag on the left half changes screen
-/// brightness, on the right half the volume; on a desktop only the wheel changes
-/// the volume. Both show the same card while they run. The layer owns only the
+/// brightness, on the right half the volume, and both show the same card while
+/// they run; on a desktop the layer changes nothing (the keyboard owns volume). The layer owns only the
 /// gesture and the readout; the values themselves come from
 /// [PlayerUiController], so a live room writes to the room's volume while a
 /// recording writes to the ordinary player volume.
 ///
 /// Responsibilities:
 ///
-/// - recognise the brightness/volume drags and the wheel
+/// - recognise the brightness/volume drags
 /// - show the value card for the duration of the gesture
 /// - ignore drags that would race the system's own home gesture
 ///
@@ -215,9 +214,6 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   Future<void> _apply(Offset localPosition, Offset delta, Size size) async {
     if (delta.distance < 0.5 || size.height <= 0) return;
     final resolved = resolvePlayerDragSide(localPosition.dx, size.width);
-    // A desktop has no brightness to change: the wheel over the left half does
-    // nothing there.
-    if (resolved == PlayerDragSide.brightness && !widget.controller.uiSupportsDragGestures) return;
 
     if (_side != resolved || !_visible) {
       _side = resolved;
@@ -288,72 +284,65 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   @override
   Widget build(BuildContext context) {
     final drags = widget.controller.uiSupportsDragGestures;
-    return Listener(
-      onPointerSignal: (event) {
-        if (event is PointerScrollEvent) {
-          unawaited(_apply(event.localPosition, event.scrollDelta, _surfaceSize));
-        }
-      },
-      child: GestureDetector(
-        // Opaque on purpose: this layer paints nothing and its only child is an
-        // empty expanding `Stack`, so `deferToChild` left the whole gesture
-        // surface out of hit testing — a drag did nothing, and in the room panel
-        // the tap layer stacked above it stopped receiving taps as well, which is
-        // what made tapping the video unable to show the controls. Being a
-        // hit-test target blocks nothing: this still reports a miss, so a control
-        // bar above keeps its taps and a picture below keeps its own gestures.
-        behavior: HitTestBehavior.opaque,
-        // No drag recognizer at all on a desktop, so the layer never enters
-        // the gesture arena against the surface's own drags.
-        onVerticalDragStart: drags ? _onVerticalDragStart : null,
-        onVerticalDragUpdate: drags ? _onVerticalDragUpdate : null,
-        onVerticalDragEnd: drags ? _onVerticalDragEnd : null,
-        onVerticalDragCancel: drags ? _resetDrag : null,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (widget.child != null) widget.child!,
-            IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: _visible ? 0.8 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: Center(
-                  child: Card(
-                    color: Colors.black,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_icon, color: Colors.white),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: SizedBox(
-                                width: 100,
-                                height: 20,
-                                child: LinearProgressIndicator(
-                                  value: _value,
-                                  backgroundColor: Colors.white38,
-                                  valueColor: const AlwaysStoppedAnimation(Colors.white),
-                                ),
+    return GestureDetector(
+      // Opaque on purpose: this layer paints nothing and its only child is an
+      // empty expanding `Stack`, so `deferToChild` left the whole gesture
+      // surface out of hit testing — a drag did nothing, and in the room panel
+      // the tap layer stacked above it stopped receiving taps as well, which is
+      // what made tapping the video unable to show the controls. Being a
+      // hit-test target blocks nothing: this still reports a miss, so a control
+      // bar above keeps its taps and a picture below keeps its own gestures.
+      behavior: HitTestBehavior.opaque,
+      // No drag recognizer at all on a desktop, so the layer never enters
+      // the gesture arena against the surface's own drags.
+      onVerticalDragStart: drags ? _onVerticalDragStart : null,
+      onVerticalDragUpdate: drags ? _onVerticalDragUpdate : null,
+      onVerticalDragEnd: drags ? _onVerticalDragEnd : null,
+      onVerticalDragCancel: drags ? _resetDrag : null,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (widget.child != null) widget.child!,
+          IgnorePointer(
+            child: AnimatedOpacity(
+              opacity: _visible ? 0.8 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: Center(
+                child: Card(
+                  color: Colors.black,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_icon, color: Colors.white),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              width: 100,
+                              height: 20,
+                              child: LinearProgressIndicator(
+                                value: _value,
+                                backgroundColor: Colors.white38,
+                                valueColor: const AlwaysStoppedAnimation(Colors.white),
                               ),
                             ),
                           ),
-                          Text(
-                            '${(_value * 100).round()}%',
-                            style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                        ),
+                        Text(
+                          '${(_value * 100).round()}%',
+                          style: AppText.of(context).body.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

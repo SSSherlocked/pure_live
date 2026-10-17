@@ -7,8 +7,8 @@ import 'package:pure_live/core/storage/hive_rx.dart';
 import 'package:pure_live/core/config/settings_service.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/video_controller.dart';
 
-/// The room's mute toggle; it follows the room's volume as the wheel, the
-/// keyboard, gestures and the global mute change it.
+/// The room's mute toggle; it follows the room's volume as the keyboard and
+/// the global mute change it.
 class RoomMuteButton extends StatefulWidget {
   final VideoController controller;
   const RoomMuteButton({super.key, required this.controller});

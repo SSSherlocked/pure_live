@@ -990,8 +990,8 @@ class _RecordingControlBar extends StatelessWidget {
   }
 }
 
-/// The recording's mute toggle; volume itself follows the wheel, the keyboard
-/// and gestures.
+/// The recording's mute toggle; volume itself follows the keyboard (and drags
+/// on touch devices).
 class _MuteButton extends StatefulWidget {
   const _MuteButton({required this.controller});
 

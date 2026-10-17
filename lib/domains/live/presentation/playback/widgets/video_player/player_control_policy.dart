@@ -99,7 +99,7 @@ class PlayerControlPolicy {
   bool get orientationControls => mobilePlatform;
 
   /// The mute toggle and the window-fullscreen button are Windows window
-  /// features; volume itself follows the wheel, the keyboard and gestures.
+  /// features; volume itself follows the keyboard (and drags on touch devices).
   bool get muteButton => windows;
   bool get windowFullscreenButton => windows;
 

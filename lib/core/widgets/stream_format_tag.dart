@@ -14,11 +14,19 @@ String? streamFormatTagOfUrl(String url) {
 /// Gap between a line's name and its format tag.
 const double _tagGap = 6;
 
-/// Side padding inside the tag, as the platform tag of the 关注 lists.
-const double _tagPadding = 6;
+/// Side padding inside the tag.
+const double _tagPadding = 4;
 
 /// Border width of the tag.
-const double _tagBorder = 1;
+const double _tagBorder = 0.8;
+
+/// Corner radius of the tag: a small rounded rectangle, not a pill.
+const double _tagRadius = 3;
+
+/// The tag's text: the tag role one step smaller (down to 9, see
+/// [compactTextTheme]), so it reads as a quiet note after the line's name.
+TextStyle _tagTextStyle(TextStyle role) =>
+    compactTextTheme(TextTheme(labelSmall: role)).labelSmall!.copyWith(fontWeight: FontWeight.w600);
 
 /// The room a menu entry keeps after its label for the widest of [tags]:
 /// the gap, the tag's text, padding and border. Zero when no line has one.
@@ -27,12 +35,12 @@ const double _tagBorder = 1;
 double streamFormatTagSlot(BuildContext context, Iterable<String?> tags, {TextStyle? style}) {
   final labels = tags.whereType<String>().toList();
   if (labels.isEmpty) return 0;
-  final text = (style ?? AppText.of(context).tag).copyWith(fontWeight: FontWeight.w600);
+  final text = _tagTextStyle(style ?? AppText.of(context).tag);
   return _tagGap + menuLabelWidth(context, labels, text) + (_tagPadding + _tagBorder) * 2;
 }
 
-/// A line's stream format after its name in a line menu (线路1 FLV): the
-/// platform tag's pill with no fill, only a thin outline, text and outline in
+/// A line's stream format after its name in a line menu (线路1 FLV): a small
+/// rounded rectangle with no fill, only a thin outline, text and outline in
 /// the entry's own colour so the current line's tag takes the primary colour
 /// with it.
 class StreamFormatTag extends StatelessWidget {
@@ -45,19 +53,19 @@ class StreamFormatTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = AppText.of(context).tag;
+    final style = _tagTextStyle(AppText.of(context).tag);
     final resolved = color ?? DefaultTextStyle.of(context).style.color ?? style.color ?? Colors.white;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: _tagPadding, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: _tagPadding),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(_tagRadius),
         border: Border.all(color: resolved, width: _tagBorder),
       ),
       child: Text(
         label,
         maxLines: 1,
         softWrap: false,
-        style: style.copyWith(color: resolved, fontWeight: FontWeight.w600),
+        style: style.copyWith(color: resolved),
       ),
     );
   }

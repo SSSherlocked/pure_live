@@ -12,6 +12,7 @@ import 'package:pure_live/shared/platforms/live_site.dart';
 import 'package:pure_live/shared/platforms/twitch/twitch_danmaku.dart';
 import 'package:pure_live/shared/platforms/live_danmaku.dart';
 import 'package:pure_live/shared/platforms/twitch/twitch_models.dart';
+import 'package:pure_live/shared/platforms/twitch/twitch_stream_status.dart';
 import 'package:pure_live/shared/platforms/twitch/twitch_web_integrity.dart';
 import 'package:pure_live/core/utils/live_quality_label.dart';
 import 'package:pure_live/core/config/cookie_settings_controller.dart';
@@ -745,10 +746,9 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
       throw StateError('Twitch stream metadata is missing');
     }
 
-    final online = switch (user.stream) {
-      Stream stream when stream.streamType == 'live' => true,
-      _ => false,
-    };
+    // A rerun plays like a live stream and is 录播 (see twitchStreamStatus).
+    final liveStatus = twitchStreamStatus(hasStream: user.stream != null, type: user.stream?.streamType);
+    final online = liveStatus != LiveStatus.offline;
     // StreamMetadata stopped returning viewersCount (it parses as 0); the
     // ChannelShell stream in the same batch still carries the live count.
     final shellViewers = userOrError.stream?.viewersCount ?? 0;
@@ -765,7 +765,7 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
       audienceMetricType: AudienceMetricType.onlineViewers,
       area: user.stream?.game?.name ?? user.stream?.game?.displayName,
       status: online,
-      liveStatus: online ? LiveStatus.live : LiveStatus.offline,
+      liveStatus: liveStatus,
       platform: PlatformIds.twitch,
       link: "$baseUrl/$roomId",
       danmakuData: roomId,
@@ -886,7 +886,7 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
           notice: "",
           danmakuData: broadcaster["id"]?.toString() ?? login,
           platform: id,
-          liveStatus: LiveStatus.live,
+          liveStatus: twitchStreamStatus(hasStream: true, type: node['type']?.toString(), fallback: LiveStatus.live),
           area: game?["displayName"]?.toString() ?? game?["name"]?.toString() ?? '',
           data: null,
         );
@@ -947,7 +947,11 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
         notice: "",
         danmakuData: node["login"],
         platform: id,
-        liveStatus: status ? LiveStatus.live : LiveStatus.offline,
+        liveStatus: twitchStreamStatus(
+          hasStream: status,
+          type: stream?['type']?.toString(),
+          fallback: LiveStatus.live,
+        ),
         area: node["stream"]?["game"]?["displayName"] ?? "",
         data: null,
       );
@@ -1017,10 +1021,8 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
         var streamMetaData = responses[1];
         final userOrError = channelShell.data.userOrError;
         var user = streamMetaData.data.user;
-        bool online = switch (user?.stream) {
-          Stream stream when stream.streamType == 'live' => true,
-          _ => false,
-        };
+        final liveStatus = twitchStreamStatus(hasStream: user?.stream != null, type: user?.stream?.streamType);
+        final online = liveStatus != LiveStatus.offline;
         var title = user?.lastBroadcast?.title ?? "";
         final previewCover = user?.stream?.previewImageUrl ?? '';
         var liveRoom = LiveRoom(
@@ -1034,7 +1036,7 @@ class TwitchSite implements LiveSite, LiveSiteRoomRefresher, LiveSiteRecordRoomR
           audienceMetricType: AudienceMetricType.onlineViewers,
           area: user?.stream?.game?.displayName ?? "",
           status: online,
-          liveStatus: online ? LiveStatus.live : LiveStatus.offline,
+          liveStatus: liveStatus,
           startedAt: online ? _startedAt(user?.stream?.createdAt) : null,
           platform: PlatformIds.twitch,
           link: "$baseUrl/${list[index].roomId}",

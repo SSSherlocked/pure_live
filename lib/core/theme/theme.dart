@@ -35,9 +35,6 @@ const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
 /// former 5.6 px); its drag halo is twice as wide.
 const double kSliderThumbRadius = 7.28;
 
-/// The knob of a switch that is on, in dark mode.
-const Color kDarkSwitchThumbColor = Color(0xFF3A3D42);
-
 /// The neutral greys of every slider and its value badge, one set per
 /// brightness, whatever the theme colour: the thumb shares the filled
 /// track's grey, the empty track sits one step above the page, and the tick
@@ -344,6 +341,10 @@ class MyTheme {
         : floatingMenuColor(baseTheme.colorScheme);
 
     final sliderPalette = isDark ? SliderPalette.dark : SliderPalette.light;
+    final darkSwitchThumbColor = Color.alphaBlend(
+      baseTheme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
+      baseTheme.scaffoldBackgroundColor,
+    );
 
     return baseTheme.copyWith(
       splashFactory: NoSplash.splashFactory,
@@ -365,13 +366,13 @@ class MyTheme {
         ),
       ),
       // A switch's track is the theme colour in both modes; when on, its knob
-      // is white in light mode (the default) and dark grey in dark mode,
-      // pure black included: the page's near-black read as a hole in the
-      // track.
+      // is white in light mode (the default) and, in dark mode, the settings
+      // card's own colour (buildModernCard's wash over the page, pure black
+      // included), so the knob reads as the card showing through the track.
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith<Color?>(
           (states) => isDark && states.contains(WidgetState.selected) && !states.contains(WidgetState.disabled)
-              ? kDarkSwitchThumbColor
+              ? darkSwitchThumbColor
               : null,
         ),
       ),

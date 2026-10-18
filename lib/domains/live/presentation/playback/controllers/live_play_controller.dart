@@ -994,11 +994,20 @@ class LivePlayController extends GetxController
     final msg = LiveMessage(
       type: LiveMessageType.chat,
       userName: '',
-      message: text,
+      message: _withoutTrailingFullStop(text),
       color: LiveMessageColor.white,
       isSystem: true,
     );
     addDanmakuMessage(msg);
+  }
+
+  /// A notice in the chat list reads as a label: no full stop at its end
+  /// (an ellipsis stays).
+  static String _withoutTrailingFullStop(String text) {
+    final trimmed = text.trimRight();
+    if (trimmed.endsWith('。')) return trimmed.substring(0, trimmed.length - 1);
+    if (trimmed.endsWith('.') && !trimmed.endsWith('..')) return trimmed.substring(0, trimmed.length - 1);
+    return trimmed;
   }
 
   void clearDanmakuMessages() {

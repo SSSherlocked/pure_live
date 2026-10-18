@@ -331,13 +331,10 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
                             : controller.toggleFullScreenForSource();
                       }
                     },
-                    child: PlayerGestureLayer(
-                      controller: controller,
-                      // The portrait-panel restore swipe owns the vertical drag
-                      // while that transition is available; one drag must not
-                      // mean both "restore the panel" and "change brightness".
-                      enabled: screenMode != VideoMode.portraitFullscreen,
-                    ),
+                    // A portrait fullscreen keeps the drags too: its restore
+                    // swipe lives on the bottom bar, which stands above this
+                    // layer and takes the pointers that start on it.
+                    child: PlayerGestureLayer(controller: controller),
                   ),
                   LockButton(controller: controller),
                   const PortraitStreamDiagnosticsBadge(),

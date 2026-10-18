@@ -159,20 +159,13 @@ bool startsInSystemTopGestureZone({required double globalDy, required double top
 /// - draw the picture or the control bars
 /// - handle taps (the page places its own tap target)
 class PlayerGestureLayer extends StatefulWidget {
-  const PlayerGestureLayer({super.key, required this.controller, this.child, this.enabled = true});
+  const PlayerGestureLayer({super.key, required this.controller, this.child});
 
   final PlayerUiController controller;
 
   /// The surface the gesture sits on; null makes the layer a transparent
   /// overlay, which is how a page stacks it over its own picture.
   final Widget? child;
-
-  /// Whether the layer takes brightness/volume drags at all.
-  ///
-  /// A host that owns the vertical drag for its own transition — the room's
-  /// portrait-panel restore swipe, for example — turns this off while that
-  /// transition is available, so one drag never means two things.
-  final bool enabled;
 
   @override
   State<PlayerGestureLayer> createState() => PlayerGestureLayerState();
@@ -259,7 +252,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   }
 
   void _onVerticalDragUpdate(DragUpdateDetails details) {
-    if (!widget.enabled || _systemGesture) return;
+    if (_systemGesture) return;
     var delta = details.delta;
     if (!_activated) {
       _pendingTravel += delta.dy;

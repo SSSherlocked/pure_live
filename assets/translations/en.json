@@ -1121,7 +1121,7 @@
   "search_coverage_acfun": "Search AcFun authors, including live and offline authors. Live status is refreshed on entry; followers are not concurrent viewers.",
   "search_coverage_kilakila": "Kilakila supports exact anchor UIDs, official profile links and paged website user search. Profile results with no current-broadcast status stay unknown until detail refresh.",
   "audience_acfun_detail": "Live directory and room details use onlineCount. Likes and followers remain separate; author search has no concurrent count.",
-  "remote_danmaku_not_integrated": "Remote chat is not integrated for this platform. You can enable local interaction in settings; its messages appear only on this device.",
+  "remote_danmaku_not_integrated": "Remote chat is not integrated for this platform.",
   "soop_cookie_hint": "Paste the SOOP Live Cookie",
   "soop_cookie_tip": "Sign in to SOOP Live on the web and open a channel, then copy the full Cookie from a network request in developer tools; stored on this device only",
   "audience_soop_detail": "Recommendation and search prefer total_view_cnt (PC + mobile); categories use view_cnt, explicit platform counts are summed only as a fallback, and missing player-detail counts are not written as zero",

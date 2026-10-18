@@ -1123,7 +1123,7 @@
   "search_coverage_acfun": "搜索 AcFun 作者，包含直播中和未开播作者；进入房间时重新确认开播状态，粉丝数不代表在线人数。",
   "search_coverage_kilakila": "克拉克拉支持精确主播 UID/官方主页及官网用户关键词分页；搜索资料未给当前直播状态时保持未知，进入详情再查询当前场次。",
   "audience_acfun_detail": "直播目录和房间详情使用 onlineCount；点赞和粉丝数单独保留，作者搜索不含在线人数",
-  "remote_danmaku_not_integrated": "此平台的远端弹幕尚未接入；可在设置中开启本地互动，仅在本机显示。",
+  "remote_danmaku_not_integrated": "此平台的远端弹幕尚未接入。",
   "audience_soop_detail": "推荐和搜索优先使用 total_view_cnt（PC + 移动端）；分类使用 view_cnt，缺少总数时才合并 PC/移动端字段，播放器详情缺值不写成 0",
   "audience_yy_detail": "公开 users 字段按平台热度显示；当前网页接口未提供独立的并发在线人数",
   "windows_pip_always_on_top": "小窗始终置顶",

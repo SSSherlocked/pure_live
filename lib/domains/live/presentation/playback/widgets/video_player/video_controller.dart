@@ -1487,8 +1487,23 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   bool _fullscreenTransitioning = false;
 
+  /// One line per fullscreen decision: a fullscreen that leaves the page
+  /// half-switched (rotated, no controls) is otherwise invisible in the log,
+  /// which records the window transition but not the room's own state.
+  void _logFullscreen(String event) {
+    Log.i(
+      'fullscreen: $event (mode ${_livePlayController.state.value.ui.screenMode.name}, '
+      'system ${GlobalPlayerService.instance.player.isSystemFullscreen.value}, '
+      'status ${_status.name}, transitioning $_fullscreenTransitioning, disposed $_isDisposed)',
+    );
+  }
+
   Future<void> toggleFullScreen() async {
-    if (_fullscreenTransitioning) return;
+    if (_fullscreenTransitioning) {
+      _logFullscreen('toggle ignored');
+      return;
+    }
+    _logFullscreen('toggle');
     _fullscreenTransitioning = true;
     showLocked.value = false;
     stopHideController();
@@ -1507,6 +1522,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
       enableController();
     } finally {
       _fullscreenTransitioning = false;
+      _logFullscreen('toggle done');
     }
   }
 
@@ -1515,6 +1531,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   /// leaves) that mode; entering the regular fullscreen squeezed the landscape
   /// control row into the portrait width (upstream #886).
   Future<void> toggleFullScreenForSource() async {
+    _logFullscreen('requested (portrait source ${_playerManager.isVerticalVideo.value})');
     if (_livePlayController.state.value.ui.screenMode == VideoMode.portraitFullscreen) {
       return exitPortraitFullScreen();
     }

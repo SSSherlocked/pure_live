@@ -881,6 +881,10 @@ class LivePlayController extends GetxController
   }
 
   void updateUI({VideoMode? screenMode, int? refreshKey, bool? isMenuOpen, int? closeTimes, bool? closeTimeFlag}) {
+    final previousMode = state.value.ui.screenMode;
+    if (screenMode != null && screenMode != previousMode) {
+      Log.i('room: screen mode ${previousMode.name} -> ${screenMode.name}');
+    }
     state.value = state.value.copyWith(
       ui: state.value.ui.copyWith(
         screenMode: screenMode,

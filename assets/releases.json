@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.5.3",
+    "title": "v3.5.3",
+    "date": "2026-10-18",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.5.3",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎨 外观\n\n- **字号按 0.1 px 显示**：「字体设置」里五项字号的滑条本来就能拖到小数，右侧却只显示整数，看不出 13.4 和 13 的区别。现在按 0.1 px 调节，数值也显示到 0.1 px（如 13.4 px）。\n- **竖屏全屏也能调亮度和音量**：手机竖着全屏看竖屏直播时，在画面上下拖动不会调亮度和音量，两侧的竖条也不出现。现在和其他模式一样，左半边调亮度、右半边调音量，竖条离边缘的距离与手机竖屏非全屏时相同，在画面中竖直居中；在底栏上往上滑仍是退出全屏、回到直播间面板。\n- **深色模式开关圆点改回深灰**：3.5.1 把打开的开关圆点改成了页面背景色，深色模式下就成了近黑，看起来像轨道上的一个洞。现在深色模式（包括纯黑背景）下圆点改回深灰，轨道仍是主题色；浅色模式仍是白色圆点。",
+    "files": [
+      {
+        "name": "PureLive-3.5.3-Android-arm64-v8a",
+        "size": "119.34mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.5.3-iOS-TrollStore.ipa",
+        "size": "44.81mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.5.3-iOS-Unsigned.zip",
+        "size": "44.54mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.5.3-Linux-x64.deb",
+        "size": "41.87mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.5.3-Linux-x64.tar.gz",
+        "size": "50.2mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.5.3-Linux-x64.zip",
+        "size": "50.23mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.5.3-MacOS-AppleSilicon.zip",
+        "size": "42.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.5.3-MacOS-Intel.zip",
+        "size": "44.92mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.5.3-Windows-x64.zip",
+        "size": "60.63mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.5.2",
     "title": "v3.5.2",
     "date": "2026-10-17",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.5.2-Android-arm64-v8a",
         "size": "119.34mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.2/PureLive-3.5.2-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +118,7 @@
       {
         "name": "PureLive-3.5.2-MacOS-AppleSilicon.zip",
         "size": "42.19mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.2/PureLive-3.5.2-MacOS-AppleSilicon.zip"
       },
       {

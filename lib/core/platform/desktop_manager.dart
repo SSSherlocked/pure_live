@@ -646,6 +646,7 @@ mixin DesktopWindowMixin<T extends StatefulWidget> on State<T> implements Window
   final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'Pure Live navigator');
   bool _isDialogOpen = false;
   Timer? _windowGeometryTimer;
+  bool _windowFullscreen = false;
   Timer? _shareCommandResumeTimer;
   final _sizeController = SettingsService.to.window;
   @override
@@ -779,11 +780,18 @@ mixin DesktopWindowMixin<T extends StatefulWidget> on State<T> implements Window
 
   @override
   void onWindowEnterFullScreen() {
+    // A capture scheduled by the transition's resizes would read the
+    // fullscreen frame; the remembered size stays the one from before.
+    _windowFullscreen = true;
+    _windowGeometryTimer?.cancel();
     _sizeController.setTracking(false);
   }
 
   @override
-  void onWindowLeaveFullScreen() {}
+  void onWindowLeaveFullScreen() {
+    _windowFullscreen = false;
+    _scheduleWindowSizeUpdate();
+  }
 
   @override
   void onWindowDocked() {}
@@ -863,11 +871,8 @@ mixin DesktopWindowMixin<T extends StatefulWidget> on State<T> implements Window
   }
 
   Future<void> _captureWindowGeometry() async {
-    if (Platform.isWindows) {
-      await captureWindowsWindowGeometry(_sizeController.updateSize);
-      return;
-    }
-    _sizeController.updateSize(await windowManager.getSize());
+    if (_windowFullscreen) return;
+    await captureDesktopWindowGeometry(_sizeController.updateSize);
   }
 
   void _scheduleWindowSizeUpdate() {

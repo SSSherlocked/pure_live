@@ -175,15 +175,43 @@ Future<void> setWindowsPipAlwaysOnTop(bool value) {
   return windowsPipWindow.setAlwaysOnTop(value);
 }
 
-Future<void> captureWindowsWindowGeometry(void Function(Size size) writeNormal) async {
-  if (windowsPipWindow.isCompact) {
-    await windowsPipWindow.captureGeometry();
-    return;
+/// Which memory a window geometry capture belongs to.
+enum WindowGeometryTarget { pip, normal, none }
+
+/// Decides where the window's current geometry is remembered.
+///
+/// Only a plain window is the size the next launch opens at. A fullscreen,
+/// maximized (zoomed on macOS) or minimized window is a transient state of
+/// that window, and remembering it made the next launch open screen-sized
+/// after quitting from fullscreen. The compact window has a memory of its own.
+WindowGeometryTarget windowGeometryTarget({
+  required bool compact,
+  required bool minimized,
+  required bool maximized,
+  required bool fullscreen,
+}) {
+  if (compact) return WindowGeometryTarget.pip;
+  if (minimized || maximized || fullscreen) return WindowGeometryTarget.none;
+  return WindowGeometryTarget.normal;
+}
+
+/// Records the window's geometry into the memory it belongs to, on every
+/// desktop platform.
+Future<void> captureDesktopWindowGeometry(void Function(Size size) writeNormal) async {
+  final target = windowGeometryTarget(
+    compact: windowsPipWindow.isCompact,
+    minimized: await windowManager.isMinimized(),
+    maximized: await windowManager.isMaximized(),
+    fullscreen: await windowManager.isFullScreen(),
+  );
+  switch (target) {
+    case WindowGeometryTarget.pip:
+      await windowsPipWindow.captureGeometry();
+    case WindowGeometryTarget.normal:
+      writeNormal(await windowManager.getSize());
+    case WindowGeometryTarget.none:
+      return;
   }
-  if (await windowManager.isMinimized() || await windowManager.isMaximized() || await windowManager.isFullScreen()) {
-    return;
-  }
-  writeNormal(await windowManager.getSize());
 }
 
 /// Whether the window is right now the compact picture-in-picture window.

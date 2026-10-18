@@ -35,6 +35,9 @@ const OutlinedBorder kFloatingMenuShape = RoundedRectangleBorder(
 /// former 5.6 px); its drag halo is twice as wide.
 const double kSliderThumbRadius = 7.28;
 
+/// The knob of a switch that is on, in dark mode.
+const Color kDarkSwitchThumbColor = Color(0xFF3A3D42);
+
 /// The neutral greys of every slider and its value badge, one set per
 /// brightness, whatever the theme colour: the thumb shares the filled
 /// track's grey, the empty track sits one step above the page, and the tick
@@ -362,12 +365,13 @@ class MyTheme {
         ),
       ),
       // A switch's track is the theme colour in both modes; when on, its knob
-      // is the page's own background (black under 深色模式纯黑背景), so it
-      // reads as a cut-out in the track.
+      // is white in light mode (the default) and dark grey in dark mode,
+      // pure black included: the page's near-black read as a hole in the
+      // track.
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith<Color?>(
-          (states) => states.contains(WidgetState.selected) && !states.contains(WidgetState.disabled)
-              ? baseTheme.scaffoldBackgroundColor
+          (states) => isDark && states.contains(WidgetState.selected) && !states.contains(WidgetState.disabled)
+              ? kDarkSwitchThumbColor
               : null,
         ),
       ),

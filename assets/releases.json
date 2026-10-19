@@ -14,7 +14,7 @@
       {
         "name": "PureLive-3.5.3-Android-arm64-v8a",
         "size": "119.34mb",
-        "downloads": 0,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +50,7 @@
       {
         "name": "PureLive-3.5.3-MacOS-AppleSilicon.zip",
         "size": "42.19mb",
-        "downloads": 0,
+        "downloads": 1,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.3/PureLive-3.5.3-MacOS-AppleSilicon.zip"
       },
       {
@@ -82,7 +82,7 @@
       {
         "name": "PureLive-3.5.2-Android-arm64-v8a",
         "size": "119.34mb",
-        "downloads": 1,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.2/PureLive-3.5.2-Android-arm64-v8a.apk"
       },
       {

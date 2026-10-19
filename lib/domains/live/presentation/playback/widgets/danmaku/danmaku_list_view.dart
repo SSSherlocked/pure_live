@@ -78,6 +78,11 @@ class DanmakuListViewState extends State<DanmakuListView> {
   StreamSubscription? messagesSub;
   StreamSubscription? removalsSub;
 
+  /// The panel pager's position, to tell when this page comes back on
+  /// screen; it stays mounted (kept alive) while another section shows.
+  Animation<double>? _tabAnimation;
+  bool _onScreen = true;
+
   LivePlayController get controller => widget.controller;
 
   @override
@@ -118,6 +123,27 @@ class DanmakuListViewState extends State<DanmakuListView> {
     // lays the portrait list out again.
     presentationWorker = ever<int>(controller.danmakuPresentationRevision, (_) => _scheduleLiveTailRestore());
     _scheduleLiveTailRestore();
+
+    _tabAnimation = controller.tabController.animation;
+    _onScreen = _isOnScreen();
+    _tabAnimation?.addListener(_onTabMoved);
+  }
+
+  /// Whether any part of this section is in the panel pager's view.
+  bool _isOnScreen() {
+    final index = controller.panelTabs.indexOf(LivePanelTab.danmakuList);
+    final page = _tabAnimation?.value ?? controller.tabController.index.toDouble();
+    return index >= 0 && (page - index).abs() < 1;
+  }
+
+  /// The page used to be built again whenever a swipe brought it back, and
+  /// so came back following the live tail. Kept alive now, it does the
+  /// same as soon as it starts to come into view.
+  void _onTabMoved() {
+    final onScreen = _isOnScreen();
+    if (onScreen == _onScreen) return;
+    _onScreen = onScreen;
+    if (onScreen && mounted) _scheduleLiveTailRestore();
   }
 
   void _onMessagesChanged() {
@@ -152,6 +178,7 @@ class DanmakuListViewState extends State<DanmakuListView> {
   @override
   void dispose() {
     _tailFollowGuard.invalidate();
+    _tabAnimation?.removeListener(_onTabMoved);
     messagesSub?.cancel();
     removalsSub?.cancel();
     fullscreenWorker?.dispose();

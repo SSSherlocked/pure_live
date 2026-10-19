@@ -1,5 +1,6 @@
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/widgets/calm_tab_bar_view.dart';
+import 'package:pure_live/core/widgets/keep_alive_wrapper.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/super_chat_page.dart';
@@ -49,7 +50,14 @@ class DanmakuTabView extends GetView<LivePlayController> {
                                 )
                               : detail == null
                               ? loading()
-                              : DanmakuListView(room: detail, controller: controller),
+                              // Kept alive: TabBarView drops an off-screen
+                              // page, and a new chat list has to build and
+                              // lay out every message above the restored or
+                              // live-tail offset to reach it (row heights are
+                              // unknown until laid out). In the frame a swipe
+                              // from 付费留言 first showed it, that hitched
+                              // the swipe, the longer the more messages.
+                              : KeepAliveWrapper(child: DanmakuListView(room: detail, controller: controller)),
                         // RxList mutations do not invalidate this outer Obx unless
                         // its value is read while building. Snapshot it here so new
                         // SC entries appear immediately without switching tabs.

@@ -327,11 +327,17 @@ class _SuperChatCardState extends State<SuperChatCard> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 9),
       decoration: BoxDecoration(color: backgroundColor),
+      // Plain text, copied whole by a double tap or a long press. A
+      // SelectableText here took every sideways swipe that started on the
+      // message: its horizontal drag-to-select wins at the platform slop,
+      // before the room panel's pager (CalmTabBarView needs 2.5 times that),
+      // so the 付费留言 tab could not be swiped away.
       child: GestureDetector(
         onDoubleTap: () => clipboard(superChatDisplayText(message.message)),
+        onLongPress: () => clipboard(superChatDisplayText(message.message)),
         // 留言字体粗细 applies at once, while the card is on screen.
         child: Obx(
-          () => SelectableText(
+          () => Text(
             superChatDisplayText(message.message),
             style: AppText.of(context).listPrimary.copyWith(
               color: textColor,

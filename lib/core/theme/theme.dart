@@ -341,7 +341,7 @@ class MyTheme {
         : floatingMenuColor(baseTheme.colorScheme);
 
     final sliderPalette = isDark ? SliderPalette.dark : SliderPalette.light;
-    final darkSwitchThumbColor = Color.alphaBlend(
+    final switchThumbColor = Color.alphaBlend(
       baseTheme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
       baseTheme.scaffoldBackgroundColor,
     );
@@ -365,14 +365,14 @@ class MyTheme {
           fontWeight: FontWeight.bold,
         ),
       ),
-      // A switch's track is the theme colour in both modes; when on, its knob
-      // is white in light mode (the default) and, in dark mode, the settings
-      // card's own colour (buildModernCard's wash over the page, pure black
-      // included), so the knob reads as the card showing through the track.
+      // A switch's track is the theme colour; when on, its knob is the
+      // settings card's own colour (buildModernCard's wash over the page) in
+      // light, dark and pure-black mode alike, so the knob reads as the card
+      // showing through the track.
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith<Color?>(
-          (states) => isDark && states.contains(WidgetState.selected) && !states.contains(WidgetState.disabled)
-              ? darkSwitchThumbColor
+          (states) => states.contains(WidgetState.selected) && !states.contains(WidgetState.disabled)
+              ? switchThumbColor
               : null,
         ),
       ),

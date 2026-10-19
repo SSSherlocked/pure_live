@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.5.5
+
+## 🎨 外观
+
+- **浅色模式开关圆点也与设置卡片同色**：3.5.4 只把深色模式下打开的开关圆点改成了设置卡片（文字后面那块）的底色，浅色模式仍是白色圆点。现在浅色、深色、纯黑三种模式下，圆点都跟随设置卡片的底色；轨道仍是主题色。
+
+---
+
 # Pure Live v3.5.4
 
 ## 🎬 直播间

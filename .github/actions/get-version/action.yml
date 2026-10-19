@@ -7,7 +7,9 @@ description: >
   release of a published version fails before anything is built. Notes are
   not required: the publish job generates a missing section.
   Only the build jobs pass unreleased: publishing and the write-back run
-  after the tag exists.
+  after the tag exists. With republish the version must be the pubspec's
+  (the release being rebuilt) and the build number rises by one, so devices
+  with the earlier build are offered the rebuilt one.
 inputs:
   version:
     description: Version to build (a leading v is accepted).
@@ -15,6 +17,10 @@ inputs:
     default: ""
   unreleased:
     description: Fail when the version's tag already exists.
+    required: false
+    default: "false"
+  republish:
+    description: Rebuild the published version with the next build number.
     required: false
     default: "false"
 outputs:
@@ -35,13 +41,18 @@ runs:
       env:
         VERSION_INPUT: ${{ inputs.version }}
         UNRELEASED: ${{ inputs.unreleased }}
+        REPUBLISH: ${{ inputs.republish }}
         # The notes are Chinese; Windows consoles are not UTF-8 by default.
         PYTHONIOENCODING: utf-8
       run: |
         set -euo pipefail
         # Windows runners name it python; elsewhere python3 is the safe name.
         if [[ "${RUNNER_OS:-}" == "Windows" ]]; then py=python; else py=python3; fi
-        "$py" tool/release_version.py stamp --version "$VERSION_INPUT"
+        # A plain word, not an array: macOS runners' bash 3.2 treats an empty
+        # array as unset under set -u.
+        republish=""
+        if [[ "$REPUBLISH" == "true" ]]; then republish="--republish"; fi
+        "$py" tool/release_version.py stamp --version "$VERSION_INPUT" $republish
         version=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//')
         # A published version is never built again: a second run would
         # silently replace its assets.

@@ -7,7 +7,8 @@ The release workflow's `version` input (e.g. 3.2.2) is the single source:
           all read the same value. The build number rises by one whenever the
           version changes and stays for a rebuild of the same version, so
           every job of one run arrives at the same number. Without an input
-          the pubspec version is used as it is.
+          the pubspec version is used as it is. --republish rebuilds the
+          published version (it must be the pubspec's) one build higher.
   notes   Prints the `# Pure Live v<version>` section of RELEASE_NOTES.md,
           the release body and the update dialog's text. With --generate a
           missing section is written from the commits since the previous
@@ -71,9 +72,13 @@ def read_pubspec(root: Path = ROOT) -> tuple[str, int]:
     return name, int(build or 0)
 
 
-def stamped(current: tuple[str, int], requested: str | None) -> tuple[str, int]:
+def stamped(current: tuple[str, int], requested: str | None, republish: bool = False) -> tuple[str, int]:
     """The version and build a run builds."""
     name, build = current
+    if republish:
+        if requested != name:
+            raise ValueError(f'republishing {requested or "no version"} but {PUBSPEC} is {name}')
+        return name, build + 1
     if requested is None or requested == name:
         return name, build
     if parse_version(requested) < parse_version(name):
@@ -235,6 +240,7 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest='command', required=True)
     stamp = commands.add_parser('stamp')
     stamp.add_argument('--version', default='')
+    stamp.add_argument('--republish', action='store_true', help='rebuild the published version one build higher')
     notes = commands.add_parser('notes')
     notes.add_argument('--version', required=True)
     notes.add_argument('--out')
@@ -252,7 +258,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command == 'stamp':
-            name, build = stamped(read_pubspec(root), normalize_input(args.version))
+            name, build = stamped(read_pubspec(root), normalize_input(args.version), args.republish)
             write_pubspec(root, name, build)
             _output(version=name, build_number=build, tag=f'v{name}')
         elif args.command == 'notes':

@@ -43,6 +43,38 @@ on:
         required: false
         type: string
         default: ""
+  # republish_latest_release.yml rebuilds the latest release through here.
+  # republish keeps the version, raises the build number, replaces the
+  # release's assets and moves its tag to the built commit.
+  workflow_call:
+    inputs:
+      build_android:
+        type: boolean
+        default: false
+      build_windows:
+        type: boolean
+        default: false
+      build_linux:
+        type: boolean
+        default: false
+      build_macos:
+        type: boolean
+        default: false
+      build_ios:
+        type: boolean
+        default: false
+      run_quality:
+        type: boolean
+        default: false
+      create_release:
+        type: boolean
+        default: false
+      version:
+        type: string
+        default: ""
+      republish:
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -131,7 +163,8 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          unreleased: ${{ inputs.create_release }}
+          republish: ${{ inputs.republish }}
+          unreleased: ${{ inputs.create_release && !inputs.republish }}
       - name: Configure Android signing
         shell: bash
         env:
@@ -217,7 +250,8 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          unreleased: ${{ inputs.create_release }}
+          republish: ${{ inputs.republish }}
+          unreleased: ${{ inputs.create_release && !inputs.republish }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -353,7 +387,8 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          unreleased: ${{ inputs.create_release }}
+          republish: ${{ inputs.republish }}
+          unreleased: ${{ inputs.create_release && !inputs.republish }}
       - name: Verify Flutter SDK
         run: flutter --version
       - name: Resolve packages
@@ -446,7 +481,8 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          unreleased: ${{ inputs.create_release }}
+          republish: ${{ inputs.republish }}
+          unreleased: ${{ inputs.create_release && !inputs.republish }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -564,7 +600,8 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
-          unreleased: ${{ inputs.create_release }}
+          republish: ${{ inputs.republish }}
+          unreleased: ${{ inputs.create_release && !inputs.republish }}
       - name: Resolve packages
         run: flutter pub get --enforce-lockfile
       - name: Generate production AppConfig
@@ -702,6 +739,7 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
+          republish: ${{ inputs.republish }}
       - name: Download all build artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -751,6 +789,17 @@ jobs:
           fail_on_unmatched_files: false
           files: |
             artifacts/**/*
+      # An existing release keeps its tag; once the rebuilt assets are up,
+      # the tag follows them to the commit they were built from.
+      - name: Move the tag to the rebuilt commit
+        if: ${{ inputs.republish }}
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$TAG"
   update-json:
     timeout-minutes: 15
     name: 写回版本记录
@@ -772,6 +821,7 @@ jobs:
         id: version
         with:
           version: ${{ inputs.version }}
+          republish: ${{ inputs.republish }}
       # The same notes the release got: the section in RELEASE_NOTES.md, or
       # one generated from the released commits, kept in the file from now on.
       - name: Release notes

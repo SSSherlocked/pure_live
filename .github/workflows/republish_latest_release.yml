@@ -1,0 +1,81 @@
+# Rebuilds the latest GitHub release from master and replaces it: the same
+# version one build higher (devices with the earlier build are offered the
+# rebuilt one), the same platforms as its current assets, the notes from its
+# RELEASE_NOTES.md section, and its tag moved to the built commit. The build,
+# upload and write-back are build_pure_live_release.yml's own jobs.
+name: 重新发布最新版本
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: republish-latest-release
+  cancel-in-progress: false
+jobs:
+  latest:
+    name: 查找最新版本
+    if: ${{ github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      android: ${{ steps.release.outputs.android }}
+      windows: ${{ steps.release.outputs.windows }}
+      linux: ${{ steps.release.outputs.linux }}
+      macos: ${{ steps.release.outputs.macos }}
+      ios: ${{ steps.release.outputs.ios }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read the latest release
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/releases/latest" > latest.json
+          tag=$(jq -r .tag_name latest.json)
+          version="${tag#v}"
+          pubspec=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//')
+          # master must still be on the released version: a newer pubspec
+          # version is the next release, not a rebuild of this one.
+          if [[ "$version" != "$pubspec" ]]; then
+            echo "::error::The latest release is $tag but pubspec.yaml is $pubspec."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # The platforms the release has packages for, by the file names
+          # build_pure_live_release.yml gives them.
+          built=()
+          for pair in android:Android windows:Windows linux:Linux macos:MacOS ios:iOS; do
+            platform="${pair%%:*}"
+            label="${pair##*:}"
+            if jq -e --arg label "-$label-" 'any(.assets[]; .name | contains($label))' latest.json > /dev/null; then
+              echo "$platform=true" >> "$GITHUB_OUTPUT"
+              built+=("$label")
+            else
+              echo "$platform=false" >> "$GITHUB_OUTPUT"
+            fi
+          done
+          if [[ ${#built[@]} -eq 0 ]]; then
+            echo "::error::$tag has no packages to rebuild."
+            exit 1
+          fi
+          echo "### 重新发布 $tag：${built[*]}" >> "$GITHUB_STEP_SUMMARY"
+  republish:
+    name: 重新发布
+    needs: latest
+    uses: ./.github/workflows/build_pure_live_release.yml
+    permissions:
+      contents: write
+    secrets: inherit
+    with:
+      version: ${{ needs.latest.outputs.version }}
+      build_android: ${{ needs.latest.outputs.android == 'true' }}
+      build_windows: ${{ needs.latest.outputs.windows == 'true' }}
+      build_linux: ${{ needs.latest.outputs.linux == 'true' }}
+      build_macos: ${{ needs.latest.outputs.macos == 'true' }}
+      build_ios: ${{ needs.latest.outputs.ios == 'true' }}
+      run_quality: false
+      create_release: true
+      republish: true

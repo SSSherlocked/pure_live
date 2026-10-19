@@ -43,6 +43,12 @@ class ReleaseVersionTest(unittest.TestCase):
         self.assertEqual(rv.stamped(('3.2.1', 4110), '3.2.1'), ('3.2.1', 4110))
         self.assertEqual(rv.stamped(('3.2.1', 4110), None), ('3.2.1', 4110))
 
+    def test_a_republish_keeps_the_version_and_raises_the_build(self):
+        self.assertEqual(rv.stamped(('3.2.1', 4110), '3.2.1', republish=True), ('3.2.1', 4111))
+        for requested in ('3.2.2', None):
+            with self.subTest(requested=requested), self.assertRaises(ValueError):
+                rv.stamped(('3.2.1', 4110), requested, republish=True)
+
     def test_an_older_or_malformed_version_is_refused(self):
         with self.assertRaises(ValueError):
             rv.stamped(('3.2.1', 4110), '3.1.9')

@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.5.4",
+    "title": "v3.5.4",
+    "date": "2026-10-19",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.5.4",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎬 直播间\n\n- **Twitch 的重播显示为录播**：Twitch 主播播放过去的直播（重播）时，之前进直播间会显示「未开播」，在热门、分区、搜索和关注列表里又显示成直播中。现在这类直播和其他平台的录播一样，统一标「录播」，可以照常播放，各处显示一致。\n- **从付费留言滑回弹幕列表不再顿一下**：在直播间面板从「付费留言」滑回弹幕列表时，滑动开头会卡一下再继续，弹幕越多越卡。现在弹幕列表切到其他标签后仍保持加载，滑回来时直接回到最新一条，不再重新加载整张列表。\n\n#### 🎨 外观\n\n- **深色模式开关圆点与设置卡片同色**：3.5.3 把深色模式下打开的开关圆点改回了深灰。现在改用设置卡片（文字后面那块）的底色，纯黑背景下跟着卡片变暗，像从轨道上露出后面的卡片；轨道仍是主题色，浅色模式仍是白色圆点。\n- **弹幕列表的系统提示去掉末尾句号**：弹幕列表里的系统提示（连接状态、平台通知等）不再以句号结尾，省略号保留。\n\n#### 🖥️ 电脑\n\n- **全屏时退出不再让下次启动变成全屏大小**：在 Mac 上全屏看直播（播放器全屏或系统全屏）时直接按 Cmd+Q 退出，下次打开主窗口会变成整个屏幕那么大。现在全屏、最大化和最小化时的窗口大小都不会被记住，下次启动用的是最近一次普通窗口的大小；Mac 上调整小窗时，小窗的尺寸也不再被当成主窗口的大小，开了「记住小窗位置」时，拖动或缩放后的小窗位置和大小会和 Windows 上一样被记住。",
+    "files": [
+      {
+        "name": "PureLive-3.5.4-Android-arm64-v8a",
+        "size": "119.34mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.5.4-iOS-TrollStore.ipa",
+        "size": "44.82mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.5.4-iOS-Unsigned.zip",
+        "size": "44.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.5.4-Linux-x64.deb",
+        "size": "41.88mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.5.4-Linux-x64.tar.gz",
+        "size": "50.21mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.5.4-Linux-x64.zip",
+        "size": "50.24mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.5.4-MacOS-AppleSilicon.zip",
+        "size": "42.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.5.4-MacOS-Intel.zip",
+        "size": "44.92mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.5.4-Windows-x64.zip",
+        "size": "60.64mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.5.3",
     "title": "v3.5.3",
     "date": "2026-10-18",

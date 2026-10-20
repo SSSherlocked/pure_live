@@ -1,5 +1,73 @@
 [
   {
+    "version": "3.5.5",
+    "title": "v3.5.5",
+    "date": "2026-10-20",
+    "github": "https://github.com/SSSherlocked/pure_live/releases/tag/v3.5.5",
+    "author": {
+      "name": "github-actions[bot]",
+      "avatar": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "profile": "https://github.com/apps/github-actions"
+    },
+    "changelog": "#### 🎨 外观\n\n- **浅色模式开关圆点也与设置卡片同色**：3.5.4 只把深色模式下打开的开关圆点改成了设置卡片（文字后面那块）的底色，浅色模式仍是白色圆点。现在浅色、深色、纯黑三种模式下，圆点都跟随设置卡片的底色；轨道仍是主题色。",
+    "files": [
+      {
+        "name": "PureLive-3.5.5-Android-arm64-v8a",
+        "size": "119.34mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-Android-arm64-v8a.apk"
+      },
+      {
+        "name": "PureLive-3.5.5-iOS-TrollStore.ipa",
+        "size": "44.82mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-iOS-TrollStore.ipa"
+      },
+      {
+        "name": "PureLive-3.5.5-iOS-Unsigned.zip",
+        "size": "44.55mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-iOS-Unsigned.zip"
+      },
+      {
+        "name": "PureLive-3.5.5-Linux-x64.deb",
+        "size": "41.88mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-Linux-x64.deb"
+      },
+      {
+        "name": "PureLive-3.5.5-Linux-x64.tar.gz",
+        "size": "50.22mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-Linux-x64.tar.gz"
+      },
+      {
+        "name": "PureLive-3.5.5-Linux-x64.zip",
+        "size": "50.24mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-Linux-x64.zip"
+      },
+      {
+        "name": "PureLive-3.5.5-MacOS-AppleSilicon.zip",
+        "size": "42.19mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-MacOS-AppleSilicon.zip"
+      },
+      {
+        "name": "PureLive-3.5.5-MacOS-Intel.zip",
+        "size": "44.92mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-MacOS-Intel.zip"
+      },
+      {
+        "name": "PureLive-3.5.5-Windows-x64.zip",
+        "size": "60.64mb",
+        "downloads": 0,
+        "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.5/PureLive-3.5.5-Windows-x64.zip"
+      }
+    ]
+  },
+  {
     "version": "3.5.4",
     "title": "v3.5.4",
     "date": "2026-10-19",
@@ -14,7 +82,7 @@
       {
         "name": "PureLive-3.5.4-Android-arm64-v8a",
         "size": "119.34mb",
-        "downloads": 0,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-Android-arm64-v8a.apk"
       },
       {
@@ -50,7 +118,7 @@
       {
         "name": "PureLive-3.5.4-MacOS-AppleSilicon.zip",
         "size": "42.19mb",
-        "downloads": 0,
+        "downloads": 2,
         "url": "https://github.com/SSSherlocked/pure_live/releases/download/v3.5.4/PureLive-3.5.4-MacOS-AppleSilicon.zip"
       },
       {

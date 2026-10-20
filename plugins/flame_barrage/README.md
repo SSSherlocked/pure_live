@@ -10,3 +10,5 @@ Changes from upstream:
 - `lib/src/scheduler/track_allocator.dart`: lanes fill from the top - a new
   message takes the topmost lane its predecessor has cleared, instead of the
   first empty lane, so a quiet room keeps its danmaku near the top.
+- `lib/src/layout/mixed_layout.dart`: a stroke width of 0 draws no outline
+  (Skia paints a zero-width stroke as a 1 px hairline).

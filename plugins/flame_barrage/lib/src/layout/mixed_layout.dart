@@ -111,7 +111,9 @@ class MixedLayout {
     final effectiveShadowColor = config.shadowColor.withValues(alpha: config.shadowColor.a * opacity);
     final int colorValue = effectiveTextColor.toARGB32();
     final double fontSize = config.fontSize;
-    final bool showStroke = config.showStroke;
+    // Skia draws a zero-width stroke as a 1 px hairline, so a width of 0 kept
+    // an outline that looked like the default one; 0 means no outline.
+    final bool showStroke = config.showStroke && config.strokeWidth > 0;
     final List<BarrageEffectInterceptor> interceptors = config.effectInterceptors;
     final int intceptorLen = interceptors.length;
 
@@ -129,7 +131,7 @@ class MixedLayout {
             '${config.fontWeight}|${config.fontStyle}|${config.fontFamily}|${config.letterSpacing}';
 
         final paragraph = _buildParagraph(fragment.text, config, textCacheKey, isStroke: false);
-        final strokeParagraph = config.showStroke
+        final strokeParagraph = showStroke
             ? _buildParagraph(fragment.text, config, strokeCacheKey, isStroke: true)
             : null;
 

@@ -74,6 +74,9 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
   /// Accumulator for throttling logic steps when the display refreshes
   /// faster than [BarrageConfig.fps].
   double _logicAccum = 0.0;
+
+  /// Real time since the last logic step, which that step advances the clock by.
+  double _logicElapsed = 0.0;
   int _frameStepCount = 0;
 
   // Step-cost watchdog.
@@ -274,6 +277,7 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
     _dataSystem.pause();
     _ctx.clock.pause();
     _logicAccum = 0.0;
+    _logicElapsed = 0.0;
     pauseEngine();
   }
 
@@ -309,9 +313,18 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
     // left by a suspend/resume.
     final frameInterval = 1.0 / _ctx.config.fps.clamp(1, 240);
     _logicAccum += dt;
-    if (_logicAccum < frameInterval) return;
-    final elapsed = _logicAccum.clamp(0.0, 0.15).toDouble();
-    _logicAccum = 0.0;
+    _logicElapsed += dt;
+    // Step when this frame lands closer to the next step's time than the
+    // following frame would. Display frame times jitter around the refresh
+    // interval, and a strict `accum >= interval` skipped every frame that came
+    // in a hair short: a 60 fps cap on a 60 Hz screen stepped in uneven pairs.
+    if (_logicAccum < frameInterval - dt * 0.5) return;
+    // The remainder carries over so a cap below the refresh rate holds on
+    // average; a remainder past one interval (a long frame) is dropped.
+    _logicAccum -= frameInterval;
+    if (_logicAccum > frameInterval) _logicAccum = 0.0;
+    final elapsed = _logicElapsed.clamp(0.0, 0.15).toDouble();
+    _logicElapsed = 0.0;
     _frameStepCount++;
 
     // Advance the logic clock before the systems run so their reads of
@@ -386,6 +399,7 @@ class BarrageEngine extends FlameGame with TapCallbacks implements BarrageEngine
   void clear() {
     pauseEngine();
     _logicAccum = 0.0;
+    _logicElapsed = 0.0;
     _dataSystem.clear();
     _metricsSystem.clear();
     _ctx.parser.clearCache();

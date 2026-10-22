@@ -19,7 +19,7 @@ import 'package:pure_live/domains/live/presentation/playback/states/player_state
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_actions.dart';
 import 'package:pure_live/core/player/presentation/danmaku/player_danmaku_surface.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
-import 'package:pure_live/domains/live/presentation/playback/pages/danmaku_settings_page.dart';
+import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/known_room_link_dialog.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/video_player/volume_control.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/control_hover_region.dart';
@@ -1227,6 +1227,10 @@ class BottomActionBar extends StatelessWidget {
           PlayerDanmakuSettingsButton(
             controller: controller,
             dockedInLandscape: policy.dockedDanmakuPanel,
+            // The same settings as the room's panel tab: the full 弹幕过滤
+            // group and 小窗弹幕比例.
+            includePipSettings: true,
+            filterGroup: const KeywordBlockPage(),
             openInPlace: policy.danmakuSettingsInPanel
                 ? () => controller.livePlayController.showPanelTab(LivePanelTab.danmakuSettings)
                 : null,
@@ -1428,104 +1432,6 @@ class RoomVolumeBar extends StatelessWidget {
   }
 }
 
-class SettingsPanel extends StatelessWidget {
-  const SettingsPanel({super.key, required this.controller});
-
-  final DanmakuSettingsSource controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final size = MediaQuery.sizeOf(context);
-    final isLandscape = size.width > size.height;
-    final compactLandscape = isLandscape && size.height < 620;
-    final targetWidth = isLandscape
-        ? (size.width * (compactLandscape ? 0.44 : 0.38)).clamp(340.0, compactLandscape ? 460.0 : 540.0).toDouble()
-        : (size.width * 0.92).clamp(300.0, 560.0).toDouble();
-    final targetHeight = isLandscape ? size.height - (compactLandscape ? 12 : 24) : size.height * 0.84;
-    final panelColor = colorScheme.surface;
-
-    return Dialog(
-      alignment: isLandscape ? Alignment.centerRight : Alignment.center,
-      backgroundColor: Colors.transparent,
-      shadowColor: theme.shadowColor.withValues(alpha: 0.45),
-      elevation: 24,
-      insetPadding: EdgeInsets.symmetric(horizontal: isLandscape ? 6 : 12, vertical: isLandscape ? 6 : 12),
-      child: Container(
-        key: const ValueKey('fullscreen-danmaku-settings-panel'),
-        width: targetWidth,
-        height: targetHeight,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: panelColor,
-          borderRadius: isLandscape
-              ? const BorderRadius.horizontal(left: Radius.circular(18), right: Radius.circular(8))
-              : BorderRadius.circular(16),
-          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.7), width: 0.8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, compactLandscape ? 6 : 10, 6, compactLandscape ? 6 : 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 3.5,
-                    height: 18,
-                    decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(2)),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          i18n('settings_danmaku_title'),
-                          style: AppText.of(context).sectionTitle.copyWith(fontWeight: FontWeight.w700).copyWith(color: colorScheme.onSurface),
-                        ),
-                        Text(
-                          i18n('danmaku_realtime_hint'),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppText.of(context).secondary.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    key: const ValueKey('fullscreen-danmaku-settings-close'),
-                    tooltip: i18n('close'),
-                    visualDensity: VisualDensity.standard,
-                    constraints: const BoxConstraints(
-                      minWidth: kMinInteractiveDimension,
-                      minHeight: kMinInteractiveDimension,
-                    ),
-                    color: colorScheme.onSurfaceVariant,
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-            ),
-            Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.7), height: 1, thickness: 0.8),
-            Expanded(
-              // PiP has a dedicated settings/preview page. Keeping those
-              // controls out of the short landscape sheet leaves the live
-              // picture visible and avoids a confusing nested long form.
-              child: CompactText(
-                child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: false),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The quality/line chips' place on the bar while a room loads.
 class _StreamChoiceLoading extends StatelessWidget {
   const _StreamChoiceLoading();
 

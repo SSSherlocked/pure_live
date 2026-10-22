@@ -76,6 +76,7 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
     this.includePipSettings = false,
     this.dockedInLandscape = false,
     this.openInPlace,
+    this.filterGroup,
   });
 
   /// Shows the settings where the host already has them (a room's side panel
@@ -100,6 +101,11 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
   /// it out so the live picture stays visible.
   final bool includePipSettings;
 
+  /// The full 弹幕过滤 group in place of the built-in one (see
+  /// [DanmakuSettingsContent.footer]): a room passes the one its panel tab
+  /// shows, so both read the same.
+  final Widget? filterGroup;
+
   Future<void> _open(BuildContext context) async {
     if (openInPlace?.call() ?? false) return;
     onOpenChanged?.call(true);
@@ -108,6 +114,7 @@ class PlayerDanmakuSettingsButton extends StatelessWidget {
         controller: controller,
         includePipSettings: includePipSettings,
         dockedInLandscape: dockedInLandscape,
+        filterGroup: filterGroup,
       );
       final size = MediaQuery.sizeOf(context);
       // Docked in landscape it is a [PlayerSidePanel], which slides in; on
@@ -157,12 +164,16 @@ class DanmakuSettingsDialog extends StatelessWidget {
     required this.controller,
     this.includePipSettings = false,
     this.dockedInLandscape = false,
+    this.filterGroup,
   });
 
   final DanmakuSettingsSource controller;
 
   /// See [PlayerDanmakuSettingsButton.dockedInLandscape].
   final bool dockedInLandscape;
+
+  /// See [PlayerDanmakuSettingsButton.filterGroup].
+  final Widget? filterGroup;
 
   /// Picture-in-picture has its own settings page; keeping it out of the short
   /// landscape sheet leaves the picture visible.
@@ -181,7 +192,12 @@ class DanmakuSettingsDialog extends StatelessWidget {
         title: i18n('settings_danmaku_title'),
         closeKey: const ValueKey('fullscreen-danmaku-settings-close'),
         child: CompactText(
-          child: DanmakuSettingsContent(controller: controller, embedded: true, includePipSettings: includePipSettings),
+          child: DanmakuSettingsContent(
+            controller: controller,
+            embedded: true,
+            includePipSettings: includePipSettings,
+            footer: filterGroup,
+          ),
         ),
       );
     }
@@ -261,6 +277,7 @@ class DanmakuSettingsDialog extends StatelessWidget {
                   controller: controller,
                   embedded: true,
                   includePipSettings: includePipSettings,
+                  footer: filterGroup,
                 ),
               ),
             ),

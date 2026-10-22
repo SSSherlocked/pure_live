@@ -99,4 +99,47 @@ void main() {
     );
     expect(received, isEmpty);
   });
+
+  // A 高能弹幕 as Douyu sent it (captured 2026-10-22, names made ASCII): a
+  // voice_trlt queue entry, escaped twice, and the same message again as a
+  // comm_chatmsg. realPrice is 0; price is the price.
+  const voiceEntry =
+      'danmuShowSwitch@=1/mtype@=2/totalNum@=0/type@=voice_trlt/list@=vrId@AA=2113275878346604545@ASvocUrl@AA=@AS'
+      'uat@AA=https:@AAS@AASapic.douyucdn.cn@AASupload@AASavatar_v3@AAS202602@AASabc_big.jpg@ASstime@AA=30@AS'
+      'etimeV2@AA=1792679274@AScontent@AA=go go@ASvocNickUrl@AA=@ASuid@AA=546530475@ASprice@AA=1000@AS'
+      'etime@AA=1792679274@ASacptime@AA=1792679244@ASun@AA=payer@ASmf@AA=0@ASisVoc@AA=0@ASrealPrice@AA=0@AS@S/isShow@=1/';
+  const voiceChat =
+      'vrid@=2113275878346604545/btype@=voiceDanmu/chatmsg@=nn@A=payer@Srid@A=9999@Suid@A=546530475@Stxt@A=go go@S'
+      'ic@A=avatar_v3@AS202602@ASabc@S/range@=2/cprice@=1000/cmgType@=1/type@=comm_chatmsg/rid@=9999/gbtemp@=2/'
+      'uid@=546530475/crealPrice@=0/cet@=30/now@=1792679244096/csuperScreen@=0/danmucr@=1/';
+
+  test('a 高能弹幕 queue entry is a super chat at its list price, under its id', () {
+    final danmaku = engine();
+    danmaku.decodeMessage(frame(danmaku, [voiceEntry]));
+    final data = received.single.data as LiveSuperChatMessage;
+    expect(received.single.type, LiveMessageType.superChat);
+    expect(data.price, 10);
+    expect(data.message, 'go go');
+    expect(data.userName, 'payer');
+    expect(data.face, 'https://apic.douyucdn.cn/upload/avatar_v3/202602/abc_big.jpg');
+    expect(data.endTime.difference(data.startTime), const Duration(seconds: 30));
+    expect(data.messageId, 'douyu:vr:2113275878346604545');
+  });
+
+  test('both packets of one 高能弹幕 are the same message', () {
+    final danmaku = engine();
+    danmaku.decodeMessage(frame(danmaku, [voiceEntry, voiceChat]));
+    expect(received, hasLength(2));
+    final first = received[0].data as LiveSuperChatMessage;
+    final second = received[1].data as LiveSuperChatMessage;
+    expect(second.price, 10);
+    expect(first, second);
+    expect({first, second}, hasLength(1));
+  });
+
+  test('a 高能弹幕 leaving the queue is not a new super chat', () {
+    final danmaku = engine();
+    danmaku.decodeMessage(frame(danmaku, [voiceEntry.replaceFirst('mtype@=2', 'mtype@=3')]));
+    expect(received, isEmpty);
+  });
 }

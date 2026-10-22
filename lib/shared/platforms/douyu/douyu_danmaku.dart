@@ -158,7 +158,9 @@ class DouyuDanmaku implements LiveDanmaku {
         } else if (type == "comm_chatmsg") {
           liveMsg = _parseCommonSuperChat(jsonData);
         } else if (type == "voice_trlt") {
-          liveMsg = _parseVoiceSuperChat(jsonData);
+          for (final message in _parseVoiceSuperChats(jsonData)) {
+            onMessage?.call(message);
+          }
         }
         if (liveMsg != null) onMessage?.call(liveMsg);
       } catch (e) {
@@ -173,7 +175,9 @@ class DouyuDanmaku implements LiveDanmaku {
     final chat = jsonData["chatmsg"];
     final now = int.tryParse(jsonData["now"]?.toString() ?? '');
     final duration = int.tryParse(jsonData["cet"]?.toString() ?? '');
-    final rawPrice = int.tryParse(jsonData["cprice"]?.toString() ?? '');
+    final listPrice = int.tryParse(jsonData["cprice"]?.toString() ?? '');
+    final paidPrice = int.tryParse(jsonData["crealPrice"]?.toString() ?? '');
+    final rawPrice = (paidPrice ?? 0) > 0 ? paidPrice : listPrice;
     if (chat is! Map || now == null || duration == null || rawPrice == null) return null;
     // comm_chatmsg also carries notices that are not paid messages: those
     // have no price, time or text and would show as an empty ¥0 card.
@@ -182,6 +186,7 @@ class DouyuDanmaku implements LiveDanmaku {
     final face = chat["ic"]?.toString() ?? '';
     final startTime = DateTime.fromMillisecondsSinceEpoch(now);
     final superChat = LiveSuperChatMessage(
+      messageId: _highEnergyId(jsonData["vrid"]),
       backgroundBottomColor: "#292a60",
       backgroundColor: "#c1c1ff",
       endTime: startTime.add(Duration(seconds: duration)),
@@ -195,30 +200,56 @@ class DouyuDanmaku implements LiveDanmaku {
     return _superChatMessage(superChat);
   }
 
-  LiveMessage? _parseVoiceSuperChat(Map jsonData) {
+  /// 高能弹幕 (paid in 鱼翅) as Douyu's web player reads them: voice_trlt
+  /// carries the room's queue, every entry once (mtype 1 is the queue on
+  /// joining, 2 new entries, 3 entries leaving it, which are skipped). Each
+  /// one also comes as a comm_chatmsg (btype voiceDanmu); both carry its id,
+  /// so the second is the same message and the list keeps one.
+  ///
+  /// realPrice is 0 on most entries; price is the price, in 分 like
+  /// comm_chatmsg's cprice. etimeV2 is the end the web player counts down to.
+  List<LiveMessage> _parseVoiceSuperChats(Map jsonData) {
+    if (jsonData["mtype"]?.toString() == "3") return const [];
     final list = jsonData["list"];
-    if (list is! List || list.isEmpty || list.first is! Map) return null;
-    final scData = list.first as Map;
-    final endSeconds = int.tryParse(scData["etime"]?.toString() ?? '');
-    final startSeconds = int.tryParse(scData["acptime"]?.toString() ?? '');
-    final rawPrice = int.tryParse(scData["realPrice"]?.toString() ?? '');
-    if (endSeconds == null || startSeconds == null || rawPrice == null) return null;
-    final text = scData["content"]?.toString() ?? '';
-    if (rawPrice <= 0 || endSeconds <= startSeconds || text.trim().isEmpty) return null;
-    final avatars = scData["uat"];
-    final avatar = avatars is List && avatars.length > 1 ? avatars[1].toString() : '';
-    final superChat = LiveSuperChatMessage(
-      backgroundBottomColor: "#246488",
-      backgroundColor: "#ffffff",
-      endTime: DateTime.fromMillisecondsSinceEpoch(endSeconds * 1000),
-      face: avatar.isEmpty ? '' : "https://$avatar",
-      message: text,
-      // In 分: kept to the cent rather than cut to whole 元.
-      price: rawPrice / 100,
-      startTime: DateTime.fromMillisecondsSinceEpoch(startSeconds * 1000),
-      userName: scData["un"]?.toString() ?? '',
-    );
-    return _superChatMessage(superChat);
+    final entries = list is List ? list : (list is Map ? [list] : const []);
+    final messages = <LiveMessage>[];
+    for (final entry in entries) {
+      if (entry is! Map) continue;
+      final endSeconds = int.tryParse((entry["etimeV2"] ?? entry["etime"])?.toString() ?? '');
+      final startSeconds = int.tryParse(entry["acptime"]?.toString() ?? '');
+      final paidPrice = int.tryParse(entry["realPrice"]?.toString() ?? '');
+      final listPrice = int.tryParse(entry["price"]?.toString() ?? '');
+      final rawPrice = (paidPrice ?? 0) > 0 ? paidPrice : listPrice;
+      if (endSeconds == null || startSeconds == null || rawPrice == null) continue;
+      final text = entry["content"]?.toString() ?? '';
+      if (rawPrice <= 0 || endSeconds <= startSeconds || text.trim().isEmpty) continue;
+      // uat is a URL whose '//' the STT decoder split into a list.
+      final avatars = entry["uat"];
+      final avatar = avatars is List
+          ? avatars.map((part) => part.toString()).join('//')
+          : (avatars?.toString() ?? '');
+      final superChat = LiveSuperChatMessage(
+        messageId: _highEnergyId(entry["vrId"]),
+        backgroundBottomColor: "#246488",
+        backgroundColor: "#ffffff",
+        endTime: DateTime.fromMillisecondsSinceEpoch(endSeconds * 1000),
+        face: avatar.isEmpty || avatar.startsWith('http') ? avatar : "https://$avatar",
+        message: text,
+        // In 分: kept to the cent rather than cut to whole 元.
+        price: rawPrice / 100,
+        startTime: DateTime.fromMillisecondsSinceEpoch(startSeconds * 1000),
+        userName: entry["un"]?.toString() ?? '',
+      );
+      messages.add(_superChatMessage(superChat));
+    }
+    return messages;
+  }
+
+  /// The id one 高能弹幕 has in both of its packets, or '' for a paid
+  /// message without one.
+  static String _highEnergyId(Object? value) {
+    final id = value?.toString().trim() ?? '';
+    return id.isEmpty ? '' : 'douyu:vr:$id';
   }
 
   LiveMessage _superChatMessage(LiveSuperChatMessage data) {

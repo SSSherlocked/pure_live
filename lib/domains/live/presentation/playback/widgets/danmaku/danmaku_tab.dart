@@ -69,7 +69,7 @@ class DanmakuTabView extends GetView<LivePlayController> {
                         // settings directly, so the tab always has content.
                         LivePanelTab.danmakuSettings => DanmakuSettingsPage(
                           controller: playerSettings ?? const SettingsDanmakuSource(),
-                          footer: const KeywordBlockPage(asSection: true),
+                          footer: const KeywordBlockPage(),
                         ),
                         LivePanelTab.follow => FollowRoomsPage(
                           key: const ValueKey('live-panel-follow'),

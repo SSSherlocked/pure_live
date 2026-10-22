@@ -7,6 +7,8 @@ import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_settings_content.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/features/settings/widgets/font_family_list.dart';
+import 'package:pure_live/core/widgets/collapsible_settings_group.dart';
+import 'package:pure_live/core/config/font_settings_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/pages/keyword_block_page.dart';
 import 'package:pure_live/features/settings/pages/refresh_settings_page.dart';
 import 'package:pure_live/features/settings/pages/theme_settings_page.dart';
@@ -591,7 +593,7 @@ class AnimatedTimerIcon extends StatelessWidget {
 /// 通用 › 弹幕设置: the room panel's own 弹幕设置 tab (chat list, floating
 /// danmaku, filters and keyword blocking), bound to the global settings,
 /// plus what only the settings page offers: the global show switch and the
-/// danmaku font.
+/// danmaku font. Each section is a folded row; the show switch stays open.
 class _DanmakuSettingsSubpage extends StatelessWidget {
   const _DanmakuSettingsSubpage();
 
@@ -621,15 +623,25 @@ class _DanmakuSettingsSubpage extends StatelessWidget {
               const SizedBox(height: 14),
             ],
           ),
-          // The room panel ends its tab with the same 屏蔽管理 section.
-          footer: const KeywordBlockPage(asSection: true),
-          trailing: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 14),
-              context.buildGroupTitle(i18n("change_danmaku_font_family")),
-              const FontFamilyList(isDanmakuSettings: true),
-              const SizedBox(height: 20),
+          groupIcons: true,
+          // The room panel's tab has the same full 弹幕过滤 group.
+          footer: const KeywordBlockPage(icon: Remix.forbid_line),
+          trailing: CollapsibleSettingsGroup(
+            title: i18n("change_danmaku_font_family"),
+            icon: Remix.font_size,
+            summary: () {
+              final id = SettingsService.to.danmaku.danmakuFontFamilyName.v;
+              // The built-in font is listed as MI Sans.
+              if (id == FontSettingsController.defaultFontFamilyName) return 'MI Sans';
+              return SettingsService.to.font.fontList.where((font) => font.id == id).firstOrNull?.name ?? id;
+            },
+            // The font list watches its own state.
+            reactive: false,
+            children: () => [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: FontFamilyList(isDanmakuSettings: true),
+              ),
             ],
           ),
         ),

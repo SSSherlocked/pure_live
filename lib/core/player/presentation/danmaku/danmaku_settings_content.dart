@@ -5,6 +5,8 @@ import 'package:pure_live/core/consts/app_consts.dart';
 import 'package:pure_live/core/platform/platform_utils.dart';
 import 'package:pure_live/core/widgets/thumb_only_slider.dart';
 import 'package:pure_live/core/widgets/count_button.dart';
+import 'package:pure_live/core/widgets/collapsible_settings_group.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:pure_live/core/player/presentation/danmaku/danmaku_surface_settings.dart';
 import 'package:pure_live/core/player/presentation/danmaku/chat_list_color_mode_tile.dart';
 
@@ -34,6 +36,7 @@ class DanmakuSettingsContent extends StatefulWidget {
     required this.controller,
     this.embedded = false,
     this.includePipSettings = true,
+    this.groupIcons = false,
     this.header,
     this.footer,
     this.trailing,
@@ -41,17 +44,25 @@ class DanmakuSettingsContent extends StatefulWidget {
 
   final DanmakuSettingsSource controller;
   final bool embedded;
+
+  /// False hides 小窗弹幕比例: the short landscape sheets leave PiP to its
+  /// own settings page.
   final bool includePipSettings;
 
-  /// Extra section placed before the settings (the settings page's global
-  /// show switch and frame-rate cap).
+  /// Whether each folded group's row leads with an icon, as the rows of the
+  /// settings page do; the in-room panels save the width.
+  final bool groupIcons;
+
+  /// Extra section placed before the folded groups, in its own card (the
+  /// settings page's global show switch).
   final Widget? header;
 
-  /// Extra section appended after the settings.
+  /// A [CollapsibleSettingsGroup] that takes the place of the built-in
+  /// 弹幕过滤 group (the full one, with keyword and user blocking).
   final Widget? footer;
 
-  /// Extra section placed after everything else (the settings page's danmaku
-  /// font list).
+  /// A last [CollapsibleSettingsGroup] in the same card (the settings
+  /// page's danmaku font).
   final Widget? trailing;
 
   @override
@@ -77,47 +88,37 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
 
   bool get isEmbedded => widget.embedded;
 
-  /// Space between sections, and under a section title.
-  static const double _titleGap = 6;
-
   /// The settings page on desktop spaces its rows out, as the other
   /// settings pages do there; the in-room panel stays dense everywhere.
   bool get _roomy => PlatformUtils.isDesktop && !isEmbedded;
 
   double get _sectionGap => _roomy ? 22 : 14;
 
-  ThemeData get theme => Theme.of(context);
-
-  Color get labelColor => isEmbedded ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
-
-  Color get primaryColor => theme.colorScheme.primary;
-
-  Color get cardColor =>
-      isEmbedded ? theme.colorScheme.surfaceContainerLowest : theme.colorScheme.surfaceContainerHighest;
-  Widget reactiveCard(List<Widget> Function() builder) {
-    return Obx(() {
-      final children = builder();
-
-      if (isEmbedded) {
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Column(children: children),
-        );
-      }
-
-      return context.buildModernCard(children);
-    });
+  /// One former section, folded into a row of the shared card: its name, a
+  /// summary of its values and, once opened, its settings.
+  Widget _group({
+    required String title,
+    required IconData icon,
+    required String? Function() summary,
+    required List<Widget> Function() children,
+  }) {
+    return CollapsibleSettingsGroup(
+      title: title,
+      icon: widget.groupIcons ? icon : null,
+      dense: isEmbedded,
+      summary: summary,
+      children: children,
+    );
   }
+
+  String _weightLabel(int weight, String fallback) => i18n(AppConsts.fontWeightLabels[weight] ?? fallback);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final Color labelColor = theme.colorScheme.onSurface;
     final Color digitColor = theme.colorScheme.primary;
+    final danmaku = SettingsService.to.danmaku;
     return SingleChildScrollView(
       key: ValueKey(widget.embedded ? 'danmaku-settings-content-embedded' : 'danmaku-settings-content-page'),
       controller: _scrollController,
@@ -127,434 +128,463 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ?widget.header,
-          // The first group title keeps the same space above it as every
-          // later one (the list's own top padding plus the rest of a gap).
+          // The card keeps the same space above it as the header's card
+          // (the list's own top padding plus the rest of a gap).
           SizedBox(height: _sectionGap - 8),
-          // The side panel chat list has its own text size and spacing,
-          // separate from the danmaku scrolling over the video below.
-          context.buildGroupTitle(i18n('chat_list_display')),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
-              _slider(
-                title: i18n('chat_list_font_size'),
-                value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
-                min: 10,
-                max: 28,
-                // Continuous, kept to 0.1 px.
-                display: formatPixels(SettingsService.to.danmaku.chatListFontSize.v),
-                semanticValueBuilder: (value) => formatPixels((value * 10).round() / 10),
-                onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = (v * 10).round() / 10,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n('chat_list_font_weight'),
-                value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                stepSize: 100,
-                display: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListFontWeight.v] ?? 'font_weight_normal',
-                ),
-                semanticValueBuilder: (value) =>
-                    i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
-                onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n('chat_list_name_font_weight'),
-                value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                stepSize: 100,
-                display: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
-                      'font_weight_normal',
-                ),
-                semanticValueBuilder: (value) =>
-                    i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
-                onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n('chat_list_item_spacing'),
-                value: SettingsService.to.danmaku.chatListItemGap.v
-                    .clamp(0.0, DanmakuSettingsController.maxChatListItemGap)
-                    .toDouble(),
-                min: 0,
-                max: DanmakuSettingsController.maxChatListItemGap,
-                stepSize: 0.05,
-                // In text lines, as the bubble height; 0 shares one edge.
-                display: formatTimes(SettingsService.to.danmaku.chatListItemGap.v),
-                semanticValueBuilder: (value) => formatTimes(value),
-                onChanged: (v) => SettingsService.to.danmaku.chatListItemGap.v = (v * 20).round() / 20,
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n('chat_list_bubble'),
-                subtitle: i18n('chat_list_bubble_subtitle'),
-                value: SettingsService.to.danmaku.chatListBubble.v,
-                onChanged: (v) => SettingsService.to.danmaku.chatListBubble.v = v,
-                labelColor: labelColor,
-              ),
-              if (SettingsService.to.danmaku.chatListBubble.v) ...[
-                _slider(
-                  title: i18n('chat_list_bubble_height'),
-                  value: SettingsService.to.danmaku.chatListBubbleHeight.v
-                      .clamp(
-                        DanmakuSettingsController.minChatListBubbleHeight,
-                        DanmakuSettingsController.maxChatListBubbleHeight,
-                      )
-                      .toDouble(),
-                  min: DanmakuSettingsController.minChatListBubbleHeight,
-                  max: DanmakuSettingsController.maxChatListBubbleHeight,
-                  display: formatTimes(SettingsService.to.danmaku.chatListBubbleHeight.v, digits: 1),
-                  semanticValueBuilder: (value) => formatTimes(value, digits: 1),
-                  onChanged: (v) => SettingsService.to.danmaku.chatListBubbleHeight.v = (v * 10).round() / 10,
-                  labelColor: labelColor,
-                ),
-                _slider(
-                  title: i18n('chat_list_bubble_fill_opacity'),
-                  value: SettingsService.to.danmaku.chatListBubbleFillOpacity.v,
-                  min: 0,
-                  max: 1,
-                  display: formatPercent(SettingsService.to.danmaku.chatListBubbleFillOpacity.v),
-                  semanticValueBuilder: (value) => formatPercent(value),
-                  onChanged: (v) => SettingsService.to.danmaku.chatListBubbleFillOpacity.v = (v * 20).round() / 20,
-                  labelColor: labelColor,
-                ),
-              ],
-              ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
-            ],
-          ),
-          SizedBox(height: _sectionGap),
-          context.buildGroupTitle(i18n("danmaku_display_group")),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
-              _slider(
-                title: i18n("opacity"),
-                value: controller.danmakuOpacity.value,
-                min: 0,
-                max: 1,
-                display: formatPercent(controller.danmakuOpacity.value),
-                semanticValueBuilder: (value) => formatPercent(value),
-                onChanged: (v) => controller.danmakuOpacity.value = v,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n("font_size"),
-                value: controller.danmakuFontSize.value.toDouble(),
-                min: 10,
-                max: 30,
-                display: formatPixels(double.parse(controller.danmakuFontSize.value.toStringAsFixed(1))),
-                semanticValueBuilder: (value) => formatPixels(double.parse(value.toStringAsFixed(1))),
-                onChanged: (v) => controller.danmakuFontSize.value = v,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n('font_weight'),
-                value: controller.danmakuFontWeight.value.toDouble(),
-                min: 100,
-                max: 900,
-                stepSize: 100,
-                display: i18n(AppConsts.fontWeightLabels[controller.danmakuFontWeight.value] ?? 'font_weight_medium'),
-                semanticValueBuilder: (value) =>
-                    i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_medium'),
-                onChanged: (v) => controller.danmakuFontWeight.value = (v / 100).round() * 100,
-                labelColor: labelColor,
-              ),
-              // 弹幕间距: the gap between two tracks, as a share of the font
-              // size. Kept per profile with the rest of the floating style.
-              _slider(
-                title: i18n('danmaku_line_spacing'),
-                value: DanmakuSettingsController.normalizeLineSpacing(
-                  SettingsService.to.danmaku.danmakuLineSpacing.value,
-                ),
-                min: DanmakuSettingsController.minDanmakuLineSpacing,
-                max: DanmakuSettingsController.maxDanmakuLineSpacing,
-                stepSize: 0.05,
-                // A multiple of the font size, as the list's gap is of its line.
-                display: formatTimes(SettingsService.to.danmaku.danmakuLineSpacing.value),
-                semanticValueBuilder: (value) => formatTimes(value),
-                onChanged: (v) =>
-                    SettingsService.to.danmaku.danmakuLineSpacing.value = DanmakuSettingsController.normalizeLineSpacing(v),
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n("danmaku_stroke"),
-                value: controller.enableDanmakuStroke.value,
-                onChanged: (v) => controller.enableDanmakuStroke.value = v,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n("stroke"),
-                value: controller.danmakuFontBorder.value.toDouble(),
-                min: 0,
-                max: 4,
-                display: formatPixels(double.parse(controller.danmakuFontBorder.value.toStringAsFixed(1))),
-                semanticValueBuilder: (value) => formatPixels(double.parse(value.toStringAsFixed(1))),
-                onChanged: (v) => controller.danmakuFontBorder.value = v,
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n('max_visible_count_auto'),
-                subtitle: i18n('max_visible_count_auto_subtitle'),
-                value: controller.danmakuAutoMaxVisible.value,
-                onChanged: (v) => controller.danmakuAutoMaxVisible.value = v,
-                labelColor: labelColor,
-              ),
-              if (!controller.danmakuAutoMaxVisible.value)
-                _slider(
-                  title: i18n("max_visible_count"),
-                  value: controller.danmakuMaxVisibleCount.value.toDouble(),
-                  min: DanmakuSettingsController.minDanmakuMaxVisibleCount.toDouble(),
-                  max: DanmakuSettingsController.maxDanmakuMaxVisibleCount.toDouble(),
-                  display: controller.danmakuMaxVisibleCount.value.toString(),
-                  semanticValueBuilder: (value) => value.toInt().toString(),
-                  onChanged: (v) => controller.danmakuMaxVisibleCount.v = v.toInt(),
-                  labelColor: labelColor,
-                ),
-              _switch(
-                theme,
-                title: i18n("danmaku_mass_mode"),
-                subtitle: i18n("danmaku_mass_mode_subtitle"),
-                value: controller.danmakuMassMode.value,
-                onChanged: (v) => controller.danmakuMassMode.value = v,
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n('danmaku_no_emoji'),
-                value: controller.noEmojiMode.value,
-                onChanged: (value) => controller.noEmojiMode.value = value,
-                labelColor: labelColor,
-              ),
-              _slider(
-                title: i18n("speed"),
-                value: controller.danmakuSpeed.value.toDouble(),
-                min: 20,
-                max: 400,
-                display: '${controller.danmakuSpeed.value.toInt()} px/s',
-                semanticValueBuilder: (value) => '${value.toInt()} px/s',
-                onChanged: (v) => controller.danmakuSpeed.value = v,
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: '${i18n("danmaku_fps")} · ${i18n("dynamic_follow_display")}',
-                subtitle: i18n('danmaku_fps_policy_desc'),
-                value: SettingsService.to.danmaku.danmakuAutoFps.v,
-                onChanged: (v) => SettingsService.to.danmaku.danmakuAutoFps.v = v,
-                labelColor: labelColor,
-                subtitleColor: labelColor,
-              ),
-              if (!SettingsService.to.danmaku.danmakuAutoFps.v)
-                _slider(
-                  title: i18n("danmaku_fps"),
-                  value: controller.danmakuFps.value.toDouble(),
-                  min: 30,
-                  max: 240,
-                  display: "${controller.danmakuFps.value.toInt()} FPS",
-                  semanticValueBuilder: (value) => '${value.toInt()} FPS',
-                  onChanged: (v) => controller.danmakuFps.value = v.toInt(),
-                  labelColor: labelColor,
-                )
-              else
-                Padding(
-                  padding: EdgeInsets.fromLTRB(isEmbedded ? 14 : 16, 0, isEmbedded ? 14 : 16, isEmbedded ? 10 : 12),
-                  child: Text(
-                    '${SettingsService.to.danmaku.resolvedDanmakuFps()} FPS',
-                    style: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              _slider(
-                title: i18n("danmaku_display_area"),
-                value: DanmakuSettingsController.normalizeDanmakuArea(controller.danmakuArea.value),
-                min: DanmakuSettingsController.minDanmakuArea,
-                max: 1,
-                stepSize: DanmakuSettingsController.danmakuAreaStep,
-                display: formatPercent(controller.danmakuArea.value),
-                semanticValueBuilder: (value) => formatPercent(value),
-                onChanged: (v) => controller.danmakuArea.value = DanmakuSettingsController.normalizeDanmakuArea(v),
-                labelColor: labelColor,
-              ),
-              _counter(
-                theme,
-                title: i18n("margin_top"),
-                value: controller.danmakuTopArea.value.toInt(),
-                max: 300,
-                unit: 'px',
-                onChanged: (v) => controller.danmakuTopArea.value = v.toDouble(),
-                labelColor: labelColor,
-              ),
-              _counter(
-                theme,
-                title: i18n("margin_bottom"),
-                value: controller.danmakuBottomArea.value.toInt(),
-                max: 300,
-                unit: 'px',
-                onChanged: (v) => controller.danmakuBottomArea.value = v.toDouble(),
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n("pip_danmaku_scale_auto"),
-                subtitle: i18n("pip_danmaku_scale_auto_subtitle"),
-                value: controller.pipDanmakuScaleAuto.value,
-                onChanged: (v) => controller.pipDanmakuScaleAuto.value = v,
-                labelColor: labelColor,
-              ),
-              if (!controller.pipDanmakuScaleAuto.value)
-                _slider(
-                  title: i18n("pip_danmaku_scale"),
-                  value: controller.pipDanmakuScaleValue.value,
-                  min: DanmakuSettingsController.pipDanmakuScaleMin,
-                  max: DanmakuSettingsController.pipDanmakuScaleMax,
-                  display: formatTimes(controller.pipDanmakuScaleValue.value),
-                  semanticValueBuilder: (value) => formatTimes(value),
-                  onChanged: (v) => controller.pipDanmakuScaleValue.value = v,
-                  labelColor: labelColor,
-                ),
-            ],
-          ),
-          SizedBox(height: _sectionGap),
-          // 留言: super chats get their own cards on a live room's picture,
-          // independent of the scrolling barrage above.
-          context.buildGroupTitle(i18n('super_chat_group')),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
-              // One setting shown as its two states, after Simple Live: the
-              // 留言 list keeps every super chat, or each leaves when its
-              // countdown ends. Turning either on turns the other off.
-              _switch(
-                theme,
-                title: i18n('super_chat_pinned'),
-                subtitle: i18n('super_chat_pinned_subtitle'),
-                value: SettingsService.to.danmaku.superChatPinned.value,
-                onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = v,
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n('super_chat_countdown'),
-                subtitle: i18n('super_chat_countdown_subtitle'),
-                value: !SettingsService.to.danmaku.superChatPinned.value,
-                onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = !v,
-                labelColor: labelColor,
-              ),
-              // The message text's weight, in the 留言 list and on the picture;
-              // one shared setting, so every open card follows it at once.
-              _slider(
-                title: i18n('super_chat_font_weight'),
-                value: SettingsService.to.danmaku.superChatFontWeight.value.clamp(100, 900).toDouble(),
-                min: 100,
-                max: 900,
-                stepSize: 100,
-                display: i18n(
-                  AppConsts.fontWeightLabels[SettingsService.to.danmaku.superChatFontWeight.value] ??
-                      'font_weight_normal',
-                ),
-                semanticValueBuilder: (value) => i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
-                onChanged: (v) => SettingsService.to.danmaku.superChatFontWeight.value = (v / 100).round() * 100,
-                labelColor: labelColor,
-              ),
-              _switch(
-                theme,
-                title: i18n('show_super_chat_on_player'),
-                subtitle: i18n('show_super_chat_on_player_subtitle'),
-                value: controller.showSuperChatOnPlayer.value,
-                onChanged: (v) => controller.showSuperChatOnPlayer.value = v,
-                labelColor: labelColor,
-              ),
-              if (controller.showSuperChatOnPlayer.value) ...[
-                _slider(
-                  title: i18n('super_chat_opacity'),
-                  value: DanmakuSettingsController.normalizeSuperChatOpacity(controller.superChatOpacity.value),
-                  min: DanmakuSettingsController.minSuperChatOpacity,
-                  max: 1,
-                  stepSize: 0.05,
-                  display: formatPercent(controller.superChatOpacity.value),
-                  semanticValueBuilder: (value) => formatPercent(value),
-                  onChanged: (v) =>
-                      controller.superChatOpacity.value = DanmakuSettingsController.normalizeSuperChatOpacity(v),
-                  labelColor: labelColor,
-                ),
-                _slider(
-                  title: i18n('super_chat_font_scale'),
-                  value: DanmakuSettingsController.normalizeSuperChatFontScale(controller.superChatFontScale.value),
-                  min: DanmakuSettingsController.minSuperChatFontScale,
-                  max: DanmakuSettingsController.maxSuperChatFontScale,
-                  stepSize: 0.1,
-                  display: formatTimes(controller.superChatFontScale.value, digits: 1),
-                  semanticValueBuilder: (value) => formatTimes(value, digits: 1),
-                  onChanged: (v) =>
-                      controller.superChatFontScale.value = DanmakuSettingsController.normalizeSuperChatFontScale(v),
-                  labelColor: labelColor,
-                ),
-              ],
-            ],
-          ),
-          SizedBox(height: _sectionGap),
-          // The side panel's footer brings the full 弹幕过滤 group (repeated,
-          // similar and keyword filtering); elsewhere only the repeat filter.
-          if (widget.footer != null)
-            widget.footer!
-          else ...[
-            context.buildGroupTitle(i18n('danmaku_filter_group')),
-            const SizedBox(height: _titleGap),
-            reactiveCard(
-              () => [
-                _switch(
-                  theme,
-                  title: i18n('collapse_repeated_danmaku'),
-                  subtitle: i18n('collapse_repeated_danmaku_desc'),
-                  value: SettingsService.to.danmaku.collapseRepeatedDanmaku.v,
-                  onChanged: (v) => SettingsService.to.danmaku.collapseRepeatedDanmaku.v = v,
-                  labelColor: labelColor,
-                  subtitleColor: labelColor,
-                ),
-                if (SettingsService.to.danmaku.collapseRepeatedDanmaku.v)
-                  _counter(
-                    theme,
-                    title: i18n('repeated_danmaku_window'),
-                    value: SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v,
-                    min: 1,
-                    max: 30,
-                    unit: i18n('value_seconds', args: {'n': ''}).trim(),
-                    onChanged: (v) => SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v = v,
+          // Every section is one folded row of this card, all folded each
+          // time the page opens.
+          CollapsibleSettingsCard(
+            embedded: isEmbedded,
+            groups: [
+              // The side panel chat list has its own text size and spacing,
+              // separate from the danmaku scrolling over the video below.
+              _group(
+                title: i18n('chat_list_display'),
+                icon: Remix.chat_3_line,
+                summary: () {
+                  final colorMode = danmaku.resolvedChatListColorMode;
+                  return joinSettingsSummary([
+                    formatPixels(danmaku.chatListFontSize.v),
+                    _weightLabel(danmaku.chatListFontWeight.v, 'font_weight_normal'),
+                    if (danmaku.chatListBubble.v) i18n('summary_bubble'),
+                    if (colorMode != ChatListColorMode.none) i18n('chat_list_color_${colorMode.name}'),
+                  ]);
+                },
+                children: () => [
+                  _slider(
+                    title: i18n('chat_list_font_size'),
+                    value: SettingsService.to.danmaku.chatListFontSize.v.clamp(10.0, 28.0).toDouble(),
+                    min: 10,
+                    max: 28,
+                    // Continuous, kept to 0.1 px.
+                    display: formatPixels(SettingsService.to.danmaku.chatListFontSize.v),
+                    semanticValueBuilder: (value) => formatPixels((value * 10).round() / 10),
+                    onChanged: (v) => SettingsService.to.danmaku.chatListFontSize.v = (v * 10).round() / 10,
                     labelColor: labelColor,
                   ),
-              ],
-            ),
-            SizedBox(height: _sectionGap),
-          ],
-          context.buildGroupTitle(i18n('danmaku_screen_interaction')),
-          const SizedBox(height: _titleGap),
-          reactiveCard(
-            () => [
-              _switch(
-                theme,
-                title: i18n('danmaku_tap_action'),
-                value: SettingsService.to.danmaku.enableDanmakuTapInteraction.v,
-                onChanged: (v) => SettingsService.to.danmaku.enableDanmakuTapInteraction.v = v,
-                labelColor: labelColor,
+                  _slider(
+                    title: i18n('chat_list_font_weight'),
+                    value: SettingsService.to.danmaku.chatListFontWeight.v.clamp(100, 900).toDouble(),
+                    min: 100,
+                    max: 900,
+                    stepSize: 100,
+                    display: i18n(
+                      AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListFontWeight.v] ?? 'font_weight_normal',
+                    ),
+                    semanticValueBuilder: (value) =>
+                        i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
+                    onChanged: (v) => SettingsService.to.danmaku.chatListFontWeight.v = (v / 100).round() * 100,
+                    labelColor: labelColor,
+                  ),
+                  _slider(
+                    title: i18n('chat_list_name_font_weight'),
+                    value: SettingsService.to.danmaku.chatListNameFontWeight.v.clamp(100, 900).toDouble(),
+                    min: 100,
+                    max: 900,
+                    stepSize: 100,
+                    display: i18n(
+                      AppConsts.fontWeightLabels[SettingsService.to.danmaku.chatListNameFontWeight.v] ??
+                          'font_weight_normal',
+                    ),
+                    semanticValueBuilder: (value) =>
+                        i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
+                    onChanged: (v) => SettingsService.to.danmaku.chatListNameFontWeight.v = (v / 100).round() * 100,
+                    labelColor: labelColor,
+                  ),
+                  _slider(
+                    title: i18n('chat_list_item_spacing'),
+                    value: SettingsService.to.danmaku.chatListItemGap.v
+                        .clamp(0.0, DanmakuSettingsController.maxChatListItemGap)
+                        .toDouble(),
+                    min: 0,
+                    max: DanmakuSettingsController.maxChatListItemGap,
+                    stepSize: 0.05,
+                    // In text lines, as the bubble height; 0 shares one edge.
+                    display: formatTimes(SettingsService.to.danmaku.chatListItemGap.v),
+                    semanticValueBuilder: (value) => formatTimes(value),
+                    onChanged: (v) => SettingsService.to.danmaku.chatListItemGap.v = (v * 20).round() / 20,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n('chat_list_bubble'),
+                    subtitle: i18n('chat_list_bubble_subtitle'),
+                    value: SettingsService.to.danmaku.chatListBubble.v,
+                    onChanged: (v) => SettingsService.to.danmaku.chatListBubble.v = v,
+                    labelColor: labelColor,
+                  ),
+                  if (SettingsService.to.danmaku.chatListBubble.v) ...[
+                    _slider(
+                      title: i18n('chat_list_bubble_height'),
+                      value: SettingsService.to.danmaku.chatListBubbleHeight.v
+                          .clamp(
+                            DanmakuSettingsController.minChatListBubbleHeight,
+                            DanmakuSettingsController.maxChatListBubbleHeight,
+                          )
+                          .toDouble(),
+                      min: DanmakuSettingsController.minChatListBubbleHeight,
+                      max: DanmakuSettingsController.maxChatListBubbleHeight,
+                      display: formatTimes(SettingsService.to.danmaku.chatListBubbleHeight.v, digits: 1),
+                      semanticValueBuilder: (value) => formatTimes(value, digits: 1),
+                      onChanged: (v) => SettingsService.to.danmaku.chatListBubbleHeight.v = (v * 10).round() / 10,
+                      labelColor: labelColor,
+                    ),
+                    _slider(
+                      title: i18n('chat_list_bubble_fill_opacity'),
+                      value: SettingsService.to.danmaku.chatListBubbleFillOpacity.v,
+                      min: 0,
+                      max: 1,
+                      display: formatPercent(SettingsService.to.danmaku.chatListBubbleFillOpacity.v),
+                      semanticValueBuilder: (value) => formatPercent(value),
+                      onChanged: (v) => SettingsService.to.danmaku.chatListBubbleFillOpacity.v = (v * 20).round() / 20,
+                      labelColor: labelColor,
+                    ),
+                  ],
+                  ChatListColorModeTile(horizontalPadding: isEmbedded ? 14 : 16, labelColor: labelColor),
+                ],
               ),
-              _switch(
-                theme,
-                title: i18n('danmaku_long_press_action'),
-                value: SettingsService.to.danmaku.enableDanmakuLongPressInteraction.v,
-                onChanged: (v) => SettingsService.to.danmaku.enableDanmakuLongPressInteraction.v = v,
-                labelColor: labelColor,
+              _group(
+                title: i18n('danmaku_display_group'),
+                icon: Remix.text,
+                summary: () => joinSettingsSummary([
+                  '${i18n('opacity')} ${formatPercent(controller.danmakuOpacity.value)}',
+                  formatPixels(double.parse(controller.danmakuFontSize.value.toStringAsFixed(1))),
+                  '${controller.danmakuSpeed.value.toInt()} px/s',
+                  i18n('summary_area', args: {'n': formatPercent(controller.danmakuArea.value)}),
+                ]),
+                children: () => [
+                  _slider(
+                    title: i18n("opacity"),
+                    value: controller.danmakuOpacity.value,
+                    min: 0,
+                    max: 1,
+                    display: formatPercent(controller.danmakuOpacity.value),
+                    semanticValueBuilder: (value) => formatPercent(value),
+                    onChanged: (v) => controller.danmakuOpacity.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _slider(
+                    title: i18n("font_size"),
+                    value: controller.danmakuFontSize.value.toDouble(),
+                    min: 10,
+                    max: 30,
+                    display: formatPixels(double.parse(controller.danmakuFontSize.value.toStringAsFixed(1))),
+                    semanticValueBuilder: (value) => formatPixels(double.parse(value.toStringAsFixed(1))),
+                    onChanged: (v) => controller.danmakuFontSize.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _slider(
+                    title: i18n('font_weight'),
+                    value: controller.danmakuFontWeight.value.toDouble(),
+                    min: 100,
+                    max: 900,
+                    stepSize: 100,
+                    display: i18n(AppConsts.fontWeightLabels[controller.danmakuFontWeight.value] ?? 'font_weight_medium'),
+                    semanticValueBuilder: (value) =>
+                        i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_medium'),
+                    onChanged: (v) => controller.danmakuFontWeight.value = (v / 100).round() * 100,
+                    labelColor: labelColor,
+                  ),
+                  // 弹幕间距: the gap between two tracks, as a share of the font
+                  // size. Kept per profile with the rest of the floating style.
+                  _slider(
+                    title: i18n('danmaku_line_spacing'),
+                    value: DanmakuSettingsController.normalizeLineSpacing(
+                      SettingsService.to.danmaku.danmakuLineSpacing.value,
+                    ),
+                    min: DanmakuSettingsController.minDanmakuLineSpacing,
+                    max: DanmakuSettingsController.maxDanmakuLineSpacing,
+                    stepSize: 0.05,
+                    // A multiple of the font size, as the list's gap is of its line.
+                    display: formatTimes(SettingsService.to.danmaku.danmakuLineSpacing.value),
+                    semanticValueBuilder: (value) => formatTimes(value),
+                    onChanged: (v) =>
+                        SettingsService.to.danmaku.danmakuLineSpacing.value = DanmakuSettingsController.normalizeLineSpacing(v),
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n("danmaku_stroke"),
+                    value: controller.enableDanmakuStroke.value,
+                    onChanged: (v) => controller.enableDanmakuStroke.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _slider(
+                    title: i18n("stroke"),
+                    value: controller.danmakuFontBorder.value.toDouble(),
+                    min: 0,
+                    max: 4,
+                    display: formatPixels(double.parse(controller.danmakuFontBorder.value.toStringAsFixed(1))),
+                    semanticValueBuilder: (value) => formatPixels(double.parse(value.toStringAsFixed(1))),
+                    onChanged: (v) => controller.danmakuFontBorder.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n('max_visible_count_auto'),
+                    subtitle: i18n('max_visible_count_auto_subtitle'),
+                    value: controller.danmakuAutoMaxVisible.value,
+                    onChanged: (v) => controller.danmakuAutoMaxVisible.value = v,
+                    labelColor: labelColor,
+                  ),
+                  if (!controller.danmakuAutoMaxVisible.value)
+                    _slider(
+                      title: i18n("max_visible_count"),
+                      value: controller.danmakuMaxVisibleCount.value.toDouble(),
+                      min: DanmakuSettingsController.minDanmakuMaxVisibleCount.toDouble(),
+                      max: DanmakuSettingsController.maxDanmakuMaxVisibleCount.toDouble(),
+                      display: controller.danmakuMaxVisibleCount.value.toString(),
+                      semanticValueBuilder: (value) => value.toInt().toString(),
+                      onChanged: (v) => controller.danmakuMaxVisibleCount.v = v.toInt(),
+                      labelColor: labelColor,
+                    ),
+                  _switch(
+                    theme,
+                    title: i18n("danmaku_mass_mode"),
+                    subtitle: i18n("danmaku_mass_mode_subtitle"),
+                    value: controller.danmakuMassMode.value,
+                    onChanged: (v) => controller.danmakuMassMode.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n('danmaku_no_emoji'),
+                    value: controller.noEmojiMode.value,
+                    onChanged: (value) => controller.noEmojiMode.value = value,
+                    labelColor: labelColor,
+                  ),
+                  _slider(
+                    title: i18n("speed"),
+                    value: controller.danmakuSpeed.value.toDouble(),
+                    min: 20,
+                    max: 400,
+                    display: '${controller.danmakuSpeed.value.toInt()} px/s',
+                    semanticValueBuilder: (value) => '${value.toInt()} px/s',
+                    onChanged: (v) => controller.danmakuSpeed.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: '${i18n("danmaku_fps")} · ${i18n("dynamic_follow_display")}',
+                    subtitle: i18n('danmaku_fps_policy_desc'),
+                    value: SettingsService.to.danmaku.danmakuAutoFps.v,
+                    onChanged: (v) => SettingsService.to.danmaku.danmakuAutoFps.v = v,
+                    labelColor: labelColor,
+                    subtitleColor: labelColor,
+                  ),
+                  if (!SettingsService.to.danmaku.danmakuAutoFps.v)
+                    _slider(
+                      title: i18n("danmaku_fps"),
+                      value: controller.danmakuFps.value.toDouble(),
+                      min: 30,
+                      max: 240,
+                      display: "${controller.danmakuFps.value.toInt()} FPS",
+                      semanticValueBuilder: (value) => '${value.toInt()} FPS',
+                      onChanged: (v) => controller.danmakuFps.value = v.toInt(),
+                      labelColor: labelColor,
+                    )
+                  else
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(isEmbedded ? 14 : 16, 0, isEmbedded ? 14 : 16, isEmbedded ? 10 : 12),
+                      child: Text(
+                        '${SettingsService.to.danmaku.resolvedDanmakuFps()} FPS',
+                        style: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  _slider(
+                    title: i18n("danmaku_display_area"),
+                    value: DanmakuSettingsController.normalizeDanmakuArea(controller.danmakuArea.value),
+                    min: DanmakuSettingsController.minDanmakuArea,
+                    max: 1,
+                    stepSize: DanmakuSettingsController.danmakuAreaStep,
+                    display: formatPercent(controller.danmakuArea.value),
+                    semanticValueBuilder: (value) => formatPercent(value),
+                    onChanged: (v) => controller.danmakuArea.value = DanmakuSettingsController.normalizeDanmakuArea(v),
+                    labelColor: labelColor,
+                  ),
+                  _counter(
+                    theme,
+                    title: i18n("margin_top"),
+                    value: controller.danmakuTopArea.value.toInt(),
+                    max: 300,
+                    unit: 'px',
+                    onChanged: (v) => controller.danmakuTopArea.value = v.toDouble(),
+                    labelColor: labelColor,
+                  ),
+                  _counter(
+                    theme,
+                    title: i18n("margin_bottom"),
+                    value: controller.danmakuBottomArea.value.toInt(),
+                    max: 300,
+                    unit: 'px',
+                    onChanged: (v) => controller.danmakuBottomArea.value = v.toDouble(),
+                    labelColor: labelColor,
+                  ),
+                  if (widget.includePipSettings)
+                    _switch(
+                      theme,
+                      title: i18n("pip_danmaku_scale_auto"),
+                      subtitle: i18n("pip_danmaku_scale_auto_subtitle"),
+                      value: controller.pipDanmakuScaleAuto.value,
+                      onChanged: (v) => controller.pipDanmakuScaleAuto.value = v,
+                      labelColor: labelColor,
+                    ),
+                  if (widget.includePipSettings && !controller.pipDanmakuScaleAuto.value)
+                    _slider(
+                      title: i18n("pip_danmaku_scale"),
+                      value: controller.pipDanmakuScaleValue.value,
+                      min: DanmakuSettingsController.pipDanmakuScaleMin,
+                      max: DanmakuSettingsController.pipDanmakuScaleMax,
+                      display: formatTimes(controller.pipDanmakuScaleValue.value),
+                      semanticValueBuilder: (value) => formatTimes(value),
+                      onChanged: (v) => controller.pipDanmakuScaleValue.value = v,
+                      labelColor: labelColor,
+                    ),
+                ],
               ),
+              // 留言: super chats get their own cards on a live room's picture,
+              // independent of the scrolling barrage above.
+              _group(
+                title: i18n('super_chat_group'),
+                icon: Remix.money_cny_circle_line,
+                summary: () => joinSettingsSummary([
+                  i18n(danmaku.superChatPinned.value ? 'super_chat_pinned' : 'super_chat_countdown'),
+                  if (controller.showSuperChatOnPlayer.value) i18n('summary_super_chat_on_player'),
+                ]),
+                children: () => [
+                  // One setting shown as its two states, after Simple Live: the
+                  // 留言 list keeps every super chat, or each leaves when its
+                  // countdown ends. Turning either on turns the other off.
+                  _switch(
+                    theme,
+                    title: i18n('super_chat_pinned'),
+                    subtitle: i18n('super_chat_pinned_subtitle'),
+                    value: SettingsService.to.danmaku.superChatPinned.value,
+                    onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = v,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n('super_chat_countdown'),
+                    subtitle: i18n('super_chat_countdown_subtitle'),
+                    value: !SettingsService.to.danmaku.superChatPinned.value,
+                    onChanged: (v) => SettingsService.to.danmaku.superChatPinned.value = !v,
+                    labelColor: labelColor,
+                  ),
+                  // The message text's weight, in the 留言 list and on the picture;
+                  // one shared setting, so every open card follows it at once.
+                  _slider(
+                    title: i18n('super_chat_font_weight'),
+                    value: SettingsService.to.danmaku.superChatFontWeight.value.clamp(100, 900).toDouble(),
+                    min: 100,
+                    max: 900,
+                    stepSize: 100,
+                    display: i18n(
+                      AppConsts.fontWeightLabels[SettingsService.to.danmaku.superChatFontWeight.value] ??
+                          'font_weight_normal',
+                    ),
+                    semanticValueBuilder: (value) => i18n(AppConsts.fontWeightLabels[value.round()] ?? 'font_weight_normal'),
+                    onChanged: (v) => SettingsService.to.danmaku.superChatFontWeight.value = (v / 100).round() * 100,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n('show_super_chat_on_player'),
+                    subtitle: i18n('show_super_chat_on_player_subtitle'),
+                    value: controller.showSuperChatOnPlayer.value,
+                    onChanged: (v) => controller.showSuperChatOnPlayer.value = v,
+                    labelColor: labelColor,
+                  ),
+                  if (controller.showSuperChatOnPlayer.value) ...[
+                    _slider(
+                      title: i18n('super_chat_opacity'),
+                      value: DanmakuSettingsController.normalizeSuperChatOpacity(controller.superChatOpacity.value),
+                      min: DanmakuSettingsController.minSuperChatOpacity,
+                      max: 1,
+                      stepSize: 0.05,
+                      display: formatPercent(controller.superChatOpacity.value),
+                      semanticValueBuilder: (value) => formatPercent(value),
+                      onChanged: (v) =>
+                          controller.superChatOpacity.value = DanmakuSettingsController.normalizeSuperChatOpacity(v),
+                      labelColor: labelColor,
+                    ),
+                    _slider(
+                      title: i18n('super_chat_font_scale'),
+                      value: DanmakuSettingsController.normalizeSuperChatFontScale(controller.superChatFontScale.value),
+                      min: DanmakuSettingsController.minSuperChatFontScale,
+                      max: DanmakuSettingsController.maxSuperChatFontScale,
+                      stepSize: 0.1,
+                      display: formatTimes(controller.superChatFontScale.value, digits: 1),
+                      semanticValueBuilder: (value) => formatTimes(value, digits: 1),
+                      onChanged: (v) =>
+                          controller.superChatFontScale.value = DanmakuSettingsController.normalizeSuperChatFontScale(v),
+                      labelColor: labelColor,
+                    ),
+                  ],
+                ],
+              ),
+              // The room tab and the settings page bring the full 弹幕过滤 group
+              // (repeated, similar, keyword, user and platform filtering);
+              // elsewhere only the repeat filter.
+              widget.footer ??
+                _group(
+                  title: i18n('danmaku_filter_group'),
+                  icon: Remix.forbid_line,
+                  summary: () => joinSettingsSummary([
+                    if (danmaku.collapseRepeatedDanmaku.v)
+                      i18n('summary_merge_seconds', args: {'n': '${danmaku.repeatedDanmakuWindowSeconds.v}'}),
+                  ]),
+                  children: () => [
+                    _switch(
+                      theme,
+                      title: i18n('collapse_repeated_danmaku'),
+                      subtitle: i18n('collapse_repeated_danmaku_desc'),
+                      value: SettingsService.to.danmaku.collapseRepeatedDanmaku.v,
+                      onChanged: (v) => SettingsService.to.danmaku.collapseRepeatedDanmaku.v = v,
+                      labelColor: labelColor,
+                      subtitleColor: labelColor,
+                    ),
+                    if (SettingsService.to.danmaku.collapseRepeatedDanmaku.v)
+                      _counter(
+                        theme,
+                        title: i18n('repeated_danmaku_window'),
+                        value: SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v,
+                        min: 1,
+                        max: 30,
+                        unit: i18n('value_seconds', args: {'n': ''}).trim(),
+                        onChanged: (v) => SettingsService.to.danmaku.repeatedDanmakuWindowSeconds.v = v,
+                        labelColor: labelColor,
+                      ),
+                  ],
+                ),
+              _group(
+                title: i18n('danmaku_screen_interaction'),
+                icon: Remix.focus_3_line,
+                summary: () => joinSettingsSummary([
+                  if (danmaku.enableDanmakuTapInteraction.v) i18n('summary_tap'),
+                  if (danmaku.enableDanmakuLongPressInteraction.v) i18n('summary_long_press'),
+                ]),
+                children: () => [
+                  _switch(
+                    theme,
+                    title: i18n('danmaku_tap_action'),
+                    value: SettingsService.to.danmaku.enableDanmakuTapInteraction.v,
+                    onChanged: (v) => SettingsService.to.danmaku.enableDanmakuTapInteraction.v = v,
+                    labelColor: labelColor,
+                  ),
+                  _switch(
+                    theme,
+                    title: i18n('danmaku_long_press_action'),
+                    value: SettingsService.to.danmaku.enableDanmakuLongPressInteraction.v,
+                    onChanged: (v) => SettingsService.to.danmaku.enableDanmakuLongPressInteraction.v = v,
+                    labelColor: labelColor,
+                  ),
+                ],
+              ),
+              ?widget.trailing,
             ],
           ),
           const SizedBox(height: 12),
-          ?widget.trailing,
         ],
       ),
     );

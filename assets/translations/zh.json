@@ -108,7 +108,6 @@
   "danmaku_list": "弹幕列表",
   "danmaku_settings": "弹幕设置",
   "danmaku_display_disabled_hint": "全局弹幕显示已关闭；仍可切换到“弹幕设置”调整主播放器和小窗弹幕。",
-  "platform_danmaku_filter": "平台弹幕过滤",
   "douyu_suspected_automated_filter": "过滤斗鱼疑似自动弹幕",
   "douyu_suspected_automated_filter_desc": "可能误伤普通聊天",
   "danmaku_similarity_filter_enable": "启用相似弹幕过滤",
@@ -1853,5 +1852,15 @@
   "font_body_medium_preview": "示例：一段普通的说明文字",
   "font_body_small_preview": "示例：3 分钟前 · 1.2 万热度",
   "font_tag_preview": "平台标签",
-  "font_typography_note": "每项只调它说明的那类文字。直播间侧栏、播放器菜单等紧凑区域整体小一级，设置页整体大 1 号。"
+  "font_typography_note": "每项只调它说明的那类文字。直播间侧栏、播放器菜单等紧凑区域整体小一级，设置页整体大 1 号。",
+  "summary_bubble": "气泡",
+  "summary_area": "区域 {n}",
+  "summary_super_chat_on_player": "播放器内显示",
+  "summary_merge_seconds": "合并 {n} 秒",
+  "summary_similar_filter": "相似过滤",
+  "summary_keywords": "{n} 个关键词",
+  "summary_blocked_users": "{n} 个用户",
+  "summary_douyu_automated": "斗鱼自动弹幕",
+  "summary_tap": "点击",
+  "summary_long_press": "长按"
 }

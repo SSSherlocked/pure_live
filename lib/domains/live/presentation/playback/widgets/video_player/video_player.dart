@@ -13,10 +13,18 @@ class VideoPlayer extends StatefulWidget {
   final Color surfaceColor;
   final double? videoViewportAspectRatio;
   final PortraitFullscreenDisplayMode? portraitFullscreenDisplayMode;
+
+  /// Sizes the video to the picture when it is fitted whole (适应), so the
+  /// area around it shows what lies behind the player. The engine's surface
+  /// paints its own letterbox in black whatever [surfaceColor] says; only
+  /// leaving that area out of the surface keeps the page colour there. The
+  /// controls still cover the whole area.
+  final bool boxToPicture;
   const VideoPlayer({
     super.key,
     required this.controller,
     this.surfaceColor = Colors.black,
+    this.boxToPicture = false,
     this.videoViewportAspectRatio,
     this.portraitFullscreenDisplayMode,
   });
@@ -31,6 +39,20 @@ class _VideoPlayerState extends State<VideoPlayer> {
     return Obx(() {
       final player = GlobalPlayerService.instance.player;
       final hasError = controller.hasPlaybackError;
+      final fitIndex = SettingsService.to.player.videoFitIndex.v;
+      final fitList = SettingsService.to.player.videoFitArray;
+      final pictureCover = pictureCoverFor(
+        audioOnly: controller.audioOnlyState.value,
+        dummyVideo: player.isDummyVideo.value,
+        room: controller.room,
+        onExitAudioOnly: _exitAudioOnly,
+      );
+      // Rebuild when the stream's picture size is known or changes.
+      player.videoPresentationRevision.value;
+      final fit = fitList.isEmpty ? BoxFit.contain : fitList[fitIndex.clamp(0, fitList.length - 1)];
+      final pictureRatio = widget.boxToPicture && pictureCover == null && fit == BoxFit.contain
+          ? player.currentPresentationAspectRatio
+          : null;
 
       return PlaybackFailureOverlay(
         hasError: hasError,
@@ -38,20 +60,23 @@ class _VideoPlayerState extends State<VideoPlayer> {
         // LivePlayController's reconnect ladder).
         offline: !controller.livePlayController.state.value.room.isLiving,
         onRetry: controller.refresh,
-        child: player.getVideoWidgetCompat(
-          SettingsService.to.player.videoFitIndex.v,
-          fitList: SettingsService.to.player.videoFitArray,
-          trackPipSource: true,
-          pictureCover: pictureCoverFor(
-            audioOnly: controller.audioOnlyState.value,
-            dummyVideo: player.isDummyVideo.value,
-            room: controller.room,
-            onExitAudioOnly: _exitAudioOnly,
-          ),
-          controls: _withAudioOnlyForeground(VideoControllerPanel(controller: controller)),
-          surfaceColor: widget.surfaceColor,
-          videoViewportAspectRatio: widget.videoViewportAspectRatio,
-          portraitFullscreenDisplayMode: widget.portraitFullscreenDisplayMode,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _PictureBox(
+              aspectRatio: pictureRatio,
+              child: player.getVideoWidgetCompat(
+                fitIndex,
+                fitList: fitList,
+                trackPipSource: true,
+                pictureCover: pictureCover,
+                surfaceColor: widget.surfaceColor,
+                videoViewportAspectRatio: widget.videoViewportAspectRatio,
+                portraitFullscreenDisplayMode: widget.portraitFullscreenDisplayMode,
+              ),
+            ),
+            _withAudioOnlyForeground(VideoControllerPanel(controller: controller)),
+          ],
         ),
       );
     });
@@ -77,5 +102,36 @@ class _VideoPlayerState extends State<VideoPlayer> {
   @override
   Widget build(BuildContext context) {
     return _buildVideo();
+  }
+}
+
+/// Centres [child] at the largest size of [aspectRatio] that fits, or lets it
+/// fill the area when [aspectRatio] is null. The widget tree is the same
+/// either way, so switching never remounts the video.
+class _PictureBox extends StatelessWidget {
+  const _PictureBox({required this.aspectRatio, required this.child});
+
+  final double? aspectRatio;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double? width = constraints.hasBoundedWidth ? constraints.maxWidth : null;
+        double? height = constraints.hasBoundedHeight ? constraints.maxHeight : null;
+        final ratio = aspectRatio;
+        if (ratio != null && ratio > 0 && width != null && height != null && width > 0 && height > 0) {
+          if (width / height > ratio) {
+            width = height * ratio;
+          } else {
+            height = width / ratio;
+          }
+        }
+        return Center(
+          child: SizedBox(width: width, height: height, child: child),
+        );
+      },
+    );
   }
 }

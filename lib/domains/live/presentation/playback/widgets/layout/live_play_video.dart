@@ -78,6 +78,7 @@ class LivePlayVideo extends StatelessWidget {
                 child: VideoPlayer(
                   controller: videoController,
                   surfaceColor: transparentSurface || pageSurface ? Colors.transparent : Colors.black,
+                  boxToPicture: pageSurface,
                   videoViewportAspectRatio: videoViewportAspectRatio,
                   portraitFullscreenDisplayMode: portraitFullscreenDisplayMode,
                 ),

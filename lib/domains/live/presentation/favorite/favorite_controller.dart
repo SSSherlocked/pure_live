@@ -35,6 +35,10 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   int _refreshEpoch = 0;
   final Lock _refreshLock = Lock();
   DateTime? _lastFullRefreshAt;
+
+  /// When the last pass over every followed room finished (startup, resume,
+  /// the auto refresh timer, a favourite change, the room's 关注 list).
+  DateTime? get lastFullRefreshAt => _lastFullRefreshAt;
   final isVerifyingFavorites = false.obs;
   Future<void>? _startupRefresh;
   FavoriteVerificationPreview? _verificationPreview;

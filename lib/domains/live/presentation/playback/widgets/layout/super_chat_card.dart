@@ -137,7 +137,6 @@ class _SuperChatCardState extends State<SuperChatCard> {
     // which left a hard, plain-circle edge.
     const radius = BorderRadius.all(Radius.circular(12));
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         shape: const RoundedSuperellipseBorder(borderRadius: radius),

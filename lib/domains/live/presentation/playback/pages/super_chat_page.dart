@@ -1,8 +1,11 @@
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/layout/super_chat_card.dart';
 
 class SuperChatPage extends StatelessWidget {
   final List<LiveSuperChatMessage> messages;
+
+  static const double _listPadding = 15;
 
   const SuperChatPage({super.key, required this.messages});
 
@@ -38,13 +41,15 @@ class SuperChatPage extends StatelessWidget {
     return ListView.builder(
       primary: false,
       physics: const ClampingScrollPhysics(),
-      padding: const EdgeInsets.all(8),
+      // One margin on every side, the first card's top included; the cards
+      // keep the panel lists' gap between them.
+      padding: const EdgeInsets.all(_listPadding),
       itemCount: list.length,
       itemBuilder: (context, index) {
         final message = list[index];
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
+          padding: EdgeInsets.only(bottom: index == list.length - 1 ? 0 : LivePanelTab.listPadding),
           child: SuperChatCard(message, key: ValueKey<LiveSuperChatMessage>(message)),
         );
       },

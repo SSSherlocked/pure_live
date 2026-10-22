@@ -94,31 +94,26 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
 
   double get _sectionGap => _roomy ? 22 : 14;
 
-  /// One former section, folded into a row of the shared card: its name, a
-  /// summary of its values and, once opened, its settings.
+  /// One former section, folded into a row of the shared card: its name
+  /// and, once opened, its settings.
   Widget _group({
     required String title,
     required IconData icon,
-    required String? Function() summary,
     required List<Widget> Function() children,
   }) {
     return CollapsibleSettingsGroup(
       title: title,
       icon: widget.groupIcons ? icon : null,
       dense: isEmbedded,
-      summary: summary,
       children: children,
     );
   }
-
-  String _weightLabel(int weight, String fallback) => i18n(AppConsts.fontWeightLabels[weight] ?? fallback);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final Color labelColor = theme.colorScheme.onSurface;
     final Color digitColor = theme.colorScheme.primary;
-    final danmaku = SettingsService.to.danmaku;
     return SingleChildScrollView(
       key: ValueKey(widget.embedded ? 'danmaku-settings-content-embedded' : 'danmaku-settings-content-page'),
       controller: _scrollController,
@@ -141,15 +136,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               _group(
                 title: i18n('chat_list_display'),
                 icon: Remix.chat_3_line,
-                summary: () {
-                  final colorMode = danmaku.resolvedChatListColorMode;
-                  return joinSettingsSummary([
-                    formatPixels(danmaku.chatListFontSize.v),
-                    _weightLabel(danmaku.chatListFontWeight.v, 'font_weight_normal'),
-                    if (danmaku.chatListBubble.v) i18n('summary_bubble'),
-                    if (colorMode != ChatListColorMode.none) i18n('chat_list_color_${colorMode.name}'),
-                  ]);
-                },
                 children: () => [
                   _slider(
                     title: i18n('chat_list_font_size'),
@@ -246,12 +232,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               _group(
                 title: i18n('danmaku_display_group'),
                 icon: Remix.text,
-                summary: () => joinSettingsSummary([
-                  '${i18n('opacity')} ${formatPercent(controller.danmakuOpacity.value)}',
-                  formatPixels(double.parse(controller.danmakuFontSize.value.toStringAsFixed(1))),
-                  '${controller.danmakuSpeed.value.toInt()} px/s',
-                  i18n('summary_area', args: {'n': formatPercent(controller.danmakuArea.value)}),
-                ]),
                 children: () => [
                   _slider(
                     title: i18n("opacity"),
@@ -447,10 +427,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               _group(
                 title: i18n('super_chat_group'),
                 icon: Remix.money_cny_circle_line,
-                summary: () => joinSettingsSummary([
-                  i18n(danmaku.superChatPinned.value ? 'super_chat_pinned' : 'super_chat_countdown'),
-                  if (controller.showSuperChatOnPlayer.value) i18n('summary_super_chat_on_player'),
-                ]),
                 children: () => [
                   // One setting shown as its two states, after Simple Live: the
                   // 留言 list keeps every super chat, or each leaves when its
@@ -530,10 +506,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 _group(
                   title: i18n('danmaku_filter_group'),
                   icon: Remix.forbid_line,
-                  summary: () => joinSettingsSummary([
-                    if (danmaku.collapseRepeatedDanmaku.v)
-                      i18n('summary_merge_seconds', args: {'n': '${danmaku.repeatedDanmakuWindowSeconds.v}'}),
-                  ]),
                   children: () => [
                     _switch(
                       theme,
@@ -560,10 +532,6 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
               _group(
                 title: i18n('danmaku_screen_interaction'),
                 icon: Remix.focus_3_line,
-                summary: () => joinSettingsSummary([
-                  if (danmaku.enableDanmakuTapInteraction.v) i18n('summary_tap'),
-                  if (danmaku.enableDanmakuLongPressInteraction.v) i18n('summary_long_press'),
-                ]),
                 children: () => [
                   _switch(
                     theme,

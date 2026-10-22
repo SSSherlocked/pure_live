@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import 'package:pure_live/get/get.dart';
 import 'package:pure_live/core/theme/app_text.dart';
-import 'package:pure_live/core/utils/i18n.dart';
 import 'package:pure_live/core/widgets/widget_extensions.dart';
 
-/// A settings group folded into one row: the group's name, a one-line
-/// summary of its current values and a chevron. Tapping the row opens the
-/// group's own settings under it, in the same card.
+/// A settings group folded into one row: the group's name and a chevron.
+/// Tapping the row opens the group's own settings under it, in the same
+/// card.
 ///
 /// Every group starts folded and its open state lives only as long as the
 /// page: nothing is stored, so there is nothing to back up. Several groups
@@ -18,7 +17,6 @@ class CollapsibleSettingsGroup extends StatefulWidget {
   const CollapsibleSettingsGroup({
     super.key,
     required this.title,
-    required this.summary,
     required this.children,
     this.icon,
     this.dense = false,
@@ -26,11 +24,6 @@ class CollapsibleSettingsGroup extends StatefulWidget {
   });
 
   final String title;
-
-  /// The summary under the title, read inside an [Obx] so it follows the
-  /// settings. Null when everything in the group is off: the row then shows
-  /// a muted 未开启.
-  final String? Function() summary;
 
   /// The group's settings, built only while it is open: inside an [Obx]
   /// when [reactive], so they follow the settings they read.
@@ -90,17 +83,6 @@ class _CollapsibleSettingsGroupState extends State<CollapsibleSettingsGroup> {
         visualDensity: widget.dense ? const VisualDensity(vertical: -2) : null,
         leading: widget.icon == null ? null : SettingsRowIcon(widget.icon!),
         title: Text(widget.title, style: AppText.of(context).sectionTitle),
-        subtitle: Obx(() {
-          final summary = widget.summary();
-          return Text(
-            summary ?? i18n('disabled'),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppText.of(context).secondary.copyWith(
-              color: summary == null ? theme.hintColor : theme.colorScheme.onSurfaceVariant,
-            ),
-          );
-        }),
         trailing: AnimatedRotation(
           turns: _open ? 0.5 : 0,
           duration: _duration,
@@ -178,7 +160,3 @@ class CollapsibleSettingsCard extends StatelessWidget {
     );
   }
 }
-
-/// A folded group's summary from the parts that apply, joined with ' · ';
-/// null (shown as a muted 未开启) when none does.
-String? joinSettingsSummary(List<String> parts) => parts.isEmpty ? null : parts.join(' · ');

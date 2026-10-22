@@ -1852,15 +1852,5 @@
   "font_body_medium_preview": "Sample: an ordinary line of description",
   "font_body_small_preview": "Sample: 3 min ago · 12K heat",
   "font_tag_preview": "Platform tag",
-  "font_typography_note": "Each size sets only the text it describes. Dense areas such as the room's side panel and player menus are one step smaller; settings pages are 1 px larger.",
-  "summary_bubble": "Bubbles",
-  "summary_area": "Area {n}",
-  "summary_super_chat_on_player": "On the player",
-  "summary_merge_seconds": "Merge {n}s",
-  "summary_similar_filter": "Similar",
-  "summary_keywords": "{n} keywords",
-  "summary_blocked_users": "{n} users",
-  "summary_douyu_automated": "Douyu bots",
-  "summary_tap": "Tap",
-  "summary_long_press": "Long press"
+  "font_typography_note": "Each size sets only the text it describes. Dense areas such as the room's side panel and player menus are one step smaller; settings pages are 1 px larger."
 }

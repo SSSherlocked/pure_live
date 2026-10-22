@@ -629,12 +629,6 @@ class _DanmakuSettingsSubpage extends StatelessWidget {
           trailing: CollapsibleSettingsGroup(
             title: i18n("change_danmaku_font_family"),
             icon: Remix.font_size,
-            summary: () {
-              final id = SettingsService.to.danmaku.danmakuFontFamilyName.v;
-              // The built-in font is listed as MI Sans.
-              if (id == FontSettingsController.defaultFontFamilyName) return 'MI Sans';
-              return SettingsService.to.font.fontList.where((font) => font.id == id).firstOrNull?.name ?? id;
-            },
             // The font list watches its own state.
             reactive: false,
             children: () => [

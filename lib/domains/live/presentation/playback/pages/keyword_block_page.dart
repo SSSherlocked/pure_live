@@ -75,20 +75,10 @@ class _KeywordBlockPageState extends State<KeywordBlockPage> {
     final theme = Theme.of(context);
     final labelColor = theme.colorScheme.onSurface;
     final dm = settingsService.danmaku;
-    final favorites = FavoriteRoomController.to;
 
     return CollapsibleSettingsGroup(
       title: i18n('danmaku_filter_group'),
       icon: widget.icon,
-      summary: () => joinSettingsSummary([
-        if (dm.collapseRepeatedDanmaku.v)
-          i18n('summary_merge_seconds', args: {'n': '${dm.repeatedDanmakuWindowSeconds.v}'}),
-        if (dm.enableDanmakuSimilarityFilter.v) i18n('summary_similar_filter'),
-        if (favorites.shieldList.isNotEmpty) i18n('summary_keywords', args: {'n': '${favorites.shieldList.length}'}),
-        if (favorites.blockedDanmakuUsers.isNotEmpty)
-          i18n('summary_blocked_users', args: {'n': '${favorites.blockedDanmakuUsers.length}'}),
-        if (dm.filterDouyuSuspectedAutomatedMessages.v) i18n('summary_douyu_automated'),
-      ]),
       children: () => [
         _switch(
           theme,

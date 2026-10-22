@@ -7,7 +7,6 @@ import 'package:pure_live/core/layout/app_layout.dart';
 import 'package:pure_live/core/storage/hive_pref_util.dart';
 import 'package:pure_live/core/config/profiled_settings.dart';
 import 'package:pure_live/core/config/display_mode_service.dart';
-import 'package:pure_live/core/models/app_refresh_rate_mode.dart';
 
 class DanmakuSettingsController extends GetxController {
   static const double defaultDanmakuTopArea = 0.0;
@@ -559,34 +558,23 @@ class DanmakuSettingsController extends GetxController {
     super.onClose();
   }
 
-  int resolvedDanmakuFps({bool pip = false, AppRefreshRateMode refreshRateMode = AppRefreshRateMode.powerSaving}) {
+  int resolvedDanmakuFps({bool pip = false}) {
     // The compact surface shares the main danmaku FPS policy.
     final auto = danmakuAutoFps.v;
     final configured = danmakuFps.v;
     if (!auto) return configured.clamp(30, 240).toInt();
-    return resolveAdaptiveDanmakuFps(DisplayModeService.info.value, pip: pip, refreshRateMode: refreshRateMode);
+    return resolveAdaptiveDanmakuFps(DisplayModeService.info.value, pip: pip);
   }
 
-  /// Resolves both room and PiP renderers from the single interface policy.
-  ///
-  /// Power saving keeps the existing 60/30 caps, balanced gives both surfaces
-  /// a stable 60 FPS budget while touch-driven UI can temporarily use the
-  /// display maximum, and Highest follows the detected device maximum for all
-  /// UI/danmaku surfaces. A local manual value remains an explicit override.
-  static int resolveAdaptiveDanmakuFps(
-    DisplayModeInfo? display, {
-    bool pip = false,
-    AppRefreshRateMode refreshRateMode = AppRefreshRateMode.powerSaving,
-  }) {
+  /// 跟随显示: the room and PiP renderers step at the display's highest
+  /// refresh rate, which the app requests on Android while in the foreground.
+  /// Before the display has been read, 60. A manual value remains an explicit
+  /// override.
+  static int resolveAdaptiveDanmakuFps(DisplayModeInfo? display, {bool pip = false}) {
     final current = display?.currentRefreshRate ?? 0;
     final maximum = display?.maxRefreshRate ?? 0;
     final detected = maximum > 0 ? maximum : (current > 0 ? current : 60);
-    final deviceMaximum = detected.round().clamp(pip ? 15 : 30, 240).toInt();
-    return switch (refreshRateMode) {
-      AppRefreshRateMode.powerSaving => deviceMaximum.clamp(pip ? 15 : 30, pip ? 30 : 60).toInt(),
-      AppRefreshRateMode.balanced => deviceMaximum.clamp(pip ? 15 : 30, 60).toInt(),
-      AppRefreshRateMode.performance => deviceMaximum,
-    };
+    return detected.round().clamp(pip ? 15 : 30, 240).toInt();
   }
 
   Map<String, dynamic> toJson() {

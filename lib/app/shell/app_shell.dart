@@ -32,7 +32,7 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget content = child ?? const SizedBox.shrink();
     if (Platform.isAndroid) {
-      content = AdaptiveRefreshRateScope(mode: SettingsService.to.app.refreshRateMode, child: content);
+      content = HighRefreshRateScope(child: content);
     }
     content = MaterialUiThemeBridge(child: content);
     if (PlatformUtils.isDesktopNotMac) {

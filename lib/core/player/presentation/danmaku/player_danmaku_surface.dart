@@ -87,7 +87,7 @@ class PlayerDanmakuSurface extends StatelessWidget {
           // every frame.
           rasterizeItems: true,
           fps: danmaku.danmakuAutoFps.value
-              ? danmaku.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode)
+              ? danmaku.resolvedDanmakuFps()
               : settings.danmakuFps.value.clamp(30, 240).toInt(),
           maxVisibleCount: danmaku.effectiveMaxVisibleCount,
           maxPendingCount: 120,

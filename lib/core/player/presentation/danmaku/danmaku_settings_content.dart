@@ -367,7 +367,7 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
                 Padding(
                   padding: EdgeInsets.fromLTRB(isEmbedded ? 14 : 16, 0, isEmbedded ? 14 : 16, isEmbedded ? 10 : 12),
                   child: Text(
-                    '${SettingsService.to.danmaku.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode)} FPS',
+                    '${SettingsService.to.danmaku.resolvedDanmakuFps()} FPS',
                     style: AppText.of(context).body.copyWith(color: digitColor, fontWeight: FontWeight.w600),
                   ),
                 ),

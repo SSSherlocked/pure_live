@@ -203,97 +203,6 @@ class GeneralSettingsPage extends GetView<SettingsService> {
     );
   }
 
-  String _refreshRateModeLabel(AppRefreshRateMode mode) {
-    return switch (mode) {
-      AppRefreshRateMode.powerSaving => i18n('refresh_rate_power_saving'),
-      AppRefreshRateMode.balanced => i18n('refresh_rate_balanced'),
-      AppRefreshRateMode.performance => i18n('refresh_rate_performance'),
-    };
-  }
-
-  String _refreshRateModeDescription(AppRefreshRateMode mode) {
-    return switch (mode) {
-      AppRefreshRateMode.powerSaving => i18n('refresh_rate_power_saving_desc'),
-      AppRefreshRateMode.balanced => i18n('refresh_rate_balanced_desc'),
-      AppRefreshRateMode.performance => i18n('refresh_rate_performance_desc'),
-    };
-  }
-
-  String _refreshRateEnergyLabel(AppRefreshRateMode mode) {
-    return switch (mode) {
-      AppRefreshRateMode.powerSaving => i18n('refresh_rate_energy_low'),
-      AppRefreshRateMode.balanced => i18n('refresh_rate_energy_medium'),
-      AppRefreshRateMode.performance => i18n('refresh_rate_energy_high'),
-    };
-  }
-
-  void _showRefreshRateModeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        scrollable: true,
-        title: Text(i18n('danmaku_max_refresh_rate')),
-        contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
-        content: SizedBox(
-          width: 360,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
-                child: Text(i18n('refresh_rate_mode_hint'), style: Theme.of(dialogContext).textTheme.bodySmall),
-              ),
-              Obx(
-                () => RadioGroup<AppRefreshRateMode>(
-                  groupValue: SettingsService.to.app.refreshRateMode,
-                  onChanged: (mode) {
-                    if (mode == null) return;
-                    SettingsService.to.app.setRefreshRateMode(mode);
-                    Navigator.pop(dialogContext);
-                  },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: AppRefreshRateMode.values
-                        .map(
-                          (mode) => RadioListTile<AppRefreshRateMode>(
-                            value: mode,
-                            title: Wrap(
-                              alignment: WrapAlignment.spaceBetween,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: [
-                                Text(_refreshRateModeLabel(mode)),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(dialogContext).colorScheme.secondaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    _refreshRateEnergyLabel(mode),
-                                    style: Theme.of(dialogContext).textTheme.labelSmall,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 3),
-                              child: Text(_refreshRateModeDescription(mode)),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showWindowSizeDialog(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -681,13 +590,10 @@ class AnimatedTimerIcon extends StatelessWidget {
 
 /// 通用 › 弹幕设置: the room panel's own 弹幕设置 tab (chat list, floating
 /// danmaku, filters and keyword blocking), bound to the global settings,
-/// plus what only the settings page offers: the global show switch, the
-/// danmaku frame-rate cap and the danmaku font.
+/// plus what only the settings page offers: the global show switch and the
+/// danmaku font.
 class _DanmakuSettingsSubpage extends StatelessWidget {
   const _DanmakuSettingsSubpage();
-
-  // The danmaku frame-rate cap shares the refresh-rate labels and dialog.
-  static const _general = GeneralSettingsPage();
 
   @override
   Widget build(BuildContext context) {
@@ -711,24 +617,6 @@ class _DanmakuSettingsSubpage extends StatelessWidget {
                     onChanged: (show) => SettingsService.to.danmaku.hideDanmaku.v = !show,
                   ),
                 ),
-                // Caps the room and PiP danmaku frame rate (see
-                // DanmakuSettingsController.resolveAdaptiveDanmakuFps).
-                Obx(() {
-                  final info = DisplayModeService.info.value;
-                  final mode = SettingsService.to.app.refreshRateMode;
-                  final suffix = info == null
-                      ? ''
-                      : ' · ${i18n('display_mode_max')} ${info.maxRefreshRate.toStringAsFixed(0)} Hz';
-                  return context.buildTile(
-                    title: i18n('danmaku_max_refresh_rate'),
-                    subtitle:
-                        '${_general._refreshRateModeLabel(mode)} · '
-                        '${_general._refreshRateModeDescription(mode)}$suffix',
-                    icon: Remix.speed_up_line,
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => _general._showRefreshRateModeDialog(context),
-                  );
-                }),
               ]),
               const SizedBox(height: 14),
             ],

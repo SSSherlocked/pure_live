@@ -140,10 +140,10 @@ class DanmakuManager {
     // unchanged instead of copying this one over. The chat list and the super
     // chats read the global fields directly and follow on their own.
     workers.add(ever<DisplayProfile>(dm.profile, (_) => _loadProfileStyle()));
-    var resolvedAutoFps = dm.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode);
+    var resolvedAutoFps = dm.resolvedDanmakuFps();
     workers.add(
-      everAll([dm.danmakuAutoFps, DisplayModeService.info, SettingsService.to.app.refreshRateModeName], (_) {
-        final nextFps = dm.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode);
+      everAll([dm.danmakuAutoFps, DisplayModeService.info], (_) {
+        final nextFps = dm.resolvedDanmakuFps();
         if (nextFps == resolvedAutoFps) return;
         resolvedAutoFps = nextFps;
         _scheduleConfigUpdate();
@@ -1073,7 +1073,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   void updateDanmaku() {
     final settings = SettingsService.to.danmaku;
     final resolvedFps = settings.danmakuAutoFps.v
-        ? settings.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode)
+        ? settings.resolvedDanmakuFps()
         : danmakuFps.value.clamp(30, 240).toInt();
     danmakuController.updateConfig(
       BarrageConfig(

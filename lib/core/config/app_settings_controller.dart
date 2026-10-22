@@ -20,25 +20,7 @@ class AppSettingsController extends GetxController {
     PlatformIds.twitcasting,
   ];
 
-  Worker? _refreshRateModeWorker;
   Worker? _realOnlinePlatformsWorker;
-
-  static AppRefreshRateMode _legacyRefreshRateMode(Object? enabled) {
-    return enabled == true ? AppRefreshRateMode.balanced : AppRefreshRateMode.powerSaving;
-  }
-
-  static AppRefreshRateMode refreshRateModeFromConfig(Map<String, dynamic> json) {
-    if (json.containsKey('refreshRateMode')) {
-      return AppRefreshRateMode.parse(json['refreshRateMode']);
-    }
-    return _legacyRefreshRateMode(json['enableHighRefreshRate']);
-  }
-
-  static String _initialRefreshRateMode() {
-    final stored = HivePrefUtil.getString('refreshRateMode');
-    if (stored != null) return AppRefreshRateMode.parse(stored).storageValue;
-    return _legacyRefreshRateMode(HivePrefUtil.getBool('enableHighRefreshRate')).storageValue;
-  }
 
   final RxBool enableDenseFavorites = hiveBool('enableDenseFavorites', true);
   final RxBool enableBackgroundPlay = hiveBool('enableBackgroundPlay', false);
@@ -52,7 +34,6 @@ class AppSettingsController extends GetxController {
   final RxBool enableLandscapeFullscreen = hiveBool('enableLandscapeFullscreen', false);
   final RxBool enableScreenKeepOn = hiveBool('enableScreenKeepOn', true);
   final RxBool enableFullScreenDefault = hiveBool('enableFullScreenDefault', false);
-  late final RxString refreshRateModeName = hiveString('refreshRateMode', _initialRefreshRateMode());
   final RxBool preferRealOnlineCounts = hiveBool('preferRealOnlineCounts', false);
   late final RxList<String> realOnlinePlatforms = hiveStringList('realOnlinePlatforms', defaultRealOnlinePlatforms);
   final RxInt audienceMetricMigration = hiveInt('audienceMetricMigration', 0);
@@ -61,12 +42,6 @@ class AppSettingsController extends GetxController {
   // still allowing users to hide either entry explicitly.
   final RxBool enableMultiView = hiveBool('enableMultiView', true);
   final RxBool enableNewWindowPlay = hiveBool('enableNewWindowPlay', true);
-
-  AppRefreshRateMode get refreshRateMode => AppRefreshRateMode.parse(refreshRateModeName.v);
-
-  void setRefreshRateMode(AppRefreshRateMode mode) {
-    refreshRateModeName.v = mode.storageValue;
-  }
 
   /// The [HomeMenu] pages the top-right menu shows (搜索 / 分区 / 热门).
   late final RxList<String> savedMenuIds = hiveStringList('savedMenuIds', HomeMenu.values.map((e) => e.id).toList());
@@ -121,21 +96,7 @@ class AppSettingsController extends GetxController {
     }
     _repairRealOnlinePlatforms();
     _realOnlinePlatformsWorker = ever<List<String>>(realOnlinePlatforms, (_) => _repairRealOnlinePlatforms());
-    if (Platform.isAndroid || Platform.isWindows) {
-      // Persist the migrated value once so later upgrades no longer depend on
-      // the legacy boolean. Existing `true` maps to balanced; a fresh install
-      // starts in power-saving mode.
-      if (!HivePrefUtil.containsKey('refreshRateMode')) {
-        unawaited(HivePrefUtil.setString('refreshRateMode', refreshRateMode.storageValue));
-      }
-    }
-    if (Platform.isAndroid) {
-      AdaptiveRefreshRateController.setMode(refreshRateMode);
-      _refreshRateModeWorker = ever<String>(
-        refreshRateModeName,
-        (value) => AdaptiveRefreshRateController.setMode(AppRefreshRateMode.parse(value)),
-      );
-    } else if (Platform.isWindows) {
+    if (Platform.isWindows) {
       // Flutter follows the active Windows monitor's vsync. The native runner
       // reports that monitor's current/supported modes and pushes updates when
       // the window moves between displays or Windows changes display mode.
@@ -172,8 +133,6 @@ class AppSettingsController extends GetxController {
 
   @override
   void onClose() {
-    _refreshRateModeWorker?.dispose();
-    _refreshRateModeWorker = null;
     _realOnlinePlatformsWorker?.dispose();
     _realOnlinePlatformsWorker = null;
     super.onClose();
@@ -213,8 +172,6 @@ class AppSettingsController extends GetxController {
       'enableLandscapeFullscreen': enableLandscapeFullscreen.v,
       'enableScreenKeepOn': enableScreenKeepOn.v,
       'enableFullScreenDefault': enableFullScreenDefault.v,
-      'refreshRateMode': refreshRateMode.storageValue,
-      'enableHighRefreshRate': refreshRateMode != AppRefreshRateMode.powerSaving,
       'preferRealOnlineCounts': preferRealOnlineCounts.v,
       'realOnlinePlatforms': resolvedRealOnlinePlatforms,
       'savedMenuIds': savedMenuIds.v,
@@ -228,7 +185,6 @@ class AppSettingsController extends GetxController {
   static Map<String, dynamic> parseConfig(Map<String, dynamic> json) {
     T typed<T>(dynamic value) => value as T;
     return {
-      'refreshRateMode': refreshRateModeFromConfig(json),
       'enableDenseFavorites': typed<bool>(json['enableDenseFavorites'] ?? true),
       'enableBackgroundPlay': typed<bool>(json['enableBackgroundPlay'] ?? false),
       'backgroundAudioOnly': typed<bool>(json['backgroundAudioOnly'] ?? false),
@@ -257,7 +213,6 @@ class AppSettingsController extends GetxController {
     enableLandscapeFullscreen.v = parsed['enableLandscapeFullscreen'];
     enableScreenKeepOn.v = parsed['enableScreenKeepOn'];
     enableFullScreenDefault.v = parsed['enableFullScreenDefault'];
-    setRefreshRateMode(parsed['refreshRateMode']);
     preferRealOnlineCounts.v = parsed['preferRealOnlineCounts'];
     realOnlinePlatforms.v = parsed['realOnlinePlatforms'];
     _repairRealOnlinePlatforms();
@@ -277,8 +232,6 @@ class AppSettingsController extends GetxController {
       'enableLandscapeFullscreen': app['enableLandscapeFullscreen'] ?? false,
       'enableScreenKeepOn': app['enableScreenKeepOn'] ?? true,
       'enableFullScreenDefault': app['enableFullScreenDefault'] ?? false,
-      'refreshRateMode': refreshRateModeFromConfig(app).storageValue,
-      'enableHighRefreshRate': refreshRateModeFromConfig(app) != AppRefreshRateMode.powerSaving,
       'preferRealOnlineCounts': app['preferRealOnlineCounts'] ?? false,
       'realOnlinePlatforms': normalizeRealOnlinePlatforms(
         List<String>.from(app['realOnlinePlatforms'] ?? defaultRealOnlinePlatforms),

@@ -1211,7 +1211,6 @@ class _MultiviewDanmakuLayer extends StatelessWidget {
 
   Widget _buildLayer(int? width, int? height) {
     return Obx(() {
-      SettingsService.to.app.refreshRateModeName.v;
       final isVerticalVideo = width != null && height != null && width > 0 && height > 0 && height > width;
       final mode = SettingsService.to.player.portraitDanmakuMode;
       if (PortraitDanmakuPolicy.hidesDanmaku(isVerticalVideo: isVerticalVideo, mode: mode)) {
@@ -1247,7 +1246,7 @@ BarrageConfig _buildBarrageConfig({required bool isVerticalVideo}) {
     noEmojiMode: settings.noEmojiMode.v,
     realtimeMode: settings.danmakuMassMode.v,
     fps: settings.danmakuAutoFps.v
-        ? settings.resolvedDanmakuFps(refreshRateMode: SettingsService.to.app.refreshRateMode)
+        ? settings.resolvedDanmakuFps()
         : settings.danmakuFps.v.clamp(30, 240).toInt(),
     maxVisibleCount: settings.effectiveMaxVisibleCount,
     maxPendingCount: 120,

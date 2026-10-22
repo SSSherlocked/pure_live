@@ -1812,7 +1812,7 @@
   "portrait_orientation_menu": "Picture orientation",
   "super_chat_font_weight": "Super chat text weight",
   "live_panel_follow_refresh": "Follow refresh interval",
-  "live_panel_follow_refresh_subtitle": "Follow tab refresh interval; 0 turns it off",
+  "live_panel_follow_refresh_subtitle": "Refreshes followed rooms in the background, home included; 0 turns it off",
   "live_panel_follow_refresh_off": "Off",
   "danmaku_display_group": "Danmaku display",
   "update_check": "Check for updates",

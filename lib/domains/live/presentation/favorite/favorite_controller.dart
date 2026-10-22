@@ -7,6 +7,8 @@ import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/shared/platforms/live_site.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_startup_policy.dart';
 import 'package:pure_live/core/config/refresh_config_controller.dart';
+import 'package:pure_live/core/config/theme_settings_controller.dart';
+import 'package:pure_live/domains/live/presentation/favorite/favorite_auto_refresh.dart';
 import 'package:pure_live/domains/live/data/platforms/sites.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
@@ -35,10 +37,6 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
   int _refreshEpoch = 0;
   final Lock _refreshLock = Lock();
   DateTime? _lastFullRefreshAt;
-
-  /// When the last pass over every followed room finished (startup, resume,
-  /// the auto refresh timer, a favourite change, the room's 关注 list).
-  DateTime? get lastFullRefreshAt => _lastFullRefreshAt;
   final isVerifyingFavorites = false.obs;
   Future<void>? _startupRefresh;
   FavoriteVerificationPreview? _verificationPreview;
@@ -107,6 +105,7 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     _workers.add(ever(SettingsService.to.roomCard.favoriteSortModeName, (_) => applyLocalFilter()));
     _workers.add(ever(FavoriteRoomController.to.hotAreasList, (_) => applyLocalFilter()));
     _workers.add(ever(SettingsService.to.app.realOnlinePlatforms, (_) => applyLocalFilter()));
+    _workers.add(ever(SettingsService.to.theme.livePanelFollowRefreshMinutes, (_) => _setupRefreshStrategy()));
 
     // Begin verification during controller startup instead of waiting for the
     // first rendered frame. Persisted metadata remains useful, but its old
@@ -134,17 +133,40 @@ class FavoriteController extends LocalReactivePageController<LiveRoom>
     selectStatusIndex(tabController.index);
   }
 
+  Duration? get _autoRefreshInterval => favoriteAutoRefreshInterval(
+    homeEnabled: refreshConfigController.autoRefreshFavorite.value,
+    homeMinutes: refreshConfigController.autoRefreshInterval.value,
+    roomPanelMinutes: ThemeSettingsController.normalizeLivePanelFollowRefreshMinutes(
+      SettingsService.to.theme.livePanelFollowRefreshMinutes.v,
+    ),
+  );
+
+  /// Refreshes every followed room at [favoriteAutoRefreshInterval], whether
+  /// or not a 关注 list is on screen: this permanent controller outlives the
+  /// home page and any room, so the timer keeps running in the background.
+  /// The wait counts from the last full refresh, so a changed interval takes
+  /// effect at once and a resume or refresh just before is not repeated.
   void _setupRefreshStrategy() {
     if (isClosed) return;
     _autoRefreshTimer?.cancel();
-    final bool isEnabled = refreshConfigController.autoRefreshFavorite.value;
-    final int interval = refreshConfigController.autoRefreshInterval.value;
-    if (isEnabled && interval > 0) {
-      _autoRefreshTimer = Timer.periodic(
-        Duration(minutes: interval),
-        (_) => unawaited(_fullRefreshRooms(showLoading: false)),
-      );
+    _autoRefreshTimer = null;
+    final interval = _autoRefreshInterval;
+    if (interval == null) return;
+    final delay = favoriteAutoRefreshDelay(interval: interval, lastRefreshAt: _lastFullRefreshAt, now: _now());
+    _autoRefreshTimer = Timer(delay, _autoRefreshDue);
+  }
+
+  void _autoRefreshDue() {
+    _autoRefreshTimer = null;
+    if (isClosed) return;
+    final interval = _autoRefreshInterval;
+    if (interval == null) return;
+    // Another full refresh may have run since this was scheduled.
+    if (favoriteAutoRefreshDelay(interval: interval, lastRefreshAt: _lastFullRefreshAt, now: _now()) > Duration.zero) {
+      _setupRefreshStrategy();
+      return;
     }
+    unawaited(_fullRefreshRooms(showLoading: false).whenComplete(_setupRefreshStrategy));
   }
 
   void debounceRefresh() {

@@ -5,12 +5,10 @@ import 'dart:async';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/utils/event_bus.dart';
 import 'package:pure_live/core/config/room_card_settings_controller.dart';
-import 'package:pure_live/core/config/theme_settings_controller.dart';
 import 'package:pure_live/core/config/live_panel_layout.dart';
 import 'package:pure_live/core/player/presentation/player_side_panel.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
-import 'package:pure_live/domains/live/presentation/favorite/favorite_controller.dart';
 import 'package:pure_live/domains/live/presentation/favorite/favorite_sort.dart';
 import 'package:pure_live/domains/live/presentation/playback/controllers/live_play_controller.dart';
 import 'package:pure_live/domains/live/presentation/playback/widgets/content_first_panel_layout.dart';
@@ -69,16 +67,6 @@ class PlayOther extends StatelessWidget {
   }
 }
 
-/// How long the room's 关注 list waits before refreshing by itself: [minutes]
-/// (信息页 › 关注刷新间隔) counted from [lastRefreshAt], zero when that has
-/// passed or there was none, null when the setting is off.
-Duration? followRefreshDelay({required int minutes, required DateTime? lastRefreshAt, required DateTime now}) {
-  if (minutes <= 0) return null;
-  if (lastRefreshAt == null) return Duration.zero;
-  final remaining = Duration(minutes: minutes) - now.difference(lastRefreshAt);
-  return remaining > Duration.zero ? remaining : Duration.zero;
-}
-
 /// The followed rooms that are live, one tap away from replacing the room
 /// being watched. Used by the room panel's 关注 tab and by the fullscreen
 /// [PlayOther] panel.
@@ -115,8 +103,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
   StreamSubscription<dynamic>? subscription;
   Worker? _favoritesWorker;
   Worker? _sortWorker;
-  Worker? _autoRefreshWorker;
-  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
@@ -125,68 +111,13 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
     _updateRooms();
 
     subscription = EventBus.instance.listen('refresh_favorite_finish', (_) => _updateRooms());
-    // Follow list edits and refreshes run elsewhere (the home 关注 page, its
-    // timer) must show up while the list is on screen.
+    // Follow list edits and refreshes run elsewhere (the home 关注 page's
+    // timer, which also keeps this list fresh) show up while it is on screen.
     _favoritesWorker = ever(FavoriteRoomController.to.favoriteRooms, (_) => _updateRooms());
     _sortWorker = everAll([
       SettingsService.to.roomCard.favoriteSortModeName,
       FavoriteRoomController.to.hotAreasList,
     ], (_) => _updateRooms());
-    _scheduleAutoRefresh();
-    _autoRefreshWorker = ever(SettingsService.to.theme.livePanelFollowRefreshMinutes, (_) => _scheduleAutoRefresh());
-  }
-
-  /// When this list last asked for a refresh; shared by every 关注 list, so
-  /// a new one (the tab shown again, the fullscreen panel) counts from it.
-  static DateTime? _lastRequestedAt;
-
-  /// The last refresh of the followed rooms: this list's, or a full pass the
-  /// home 关注 page ran (its timer, a resume, startup).
-  DateTime? _lastRefreshAt() {
-    final home = Get.isRegistered<FavoriteController>() ? Get.find<FavoriteController>().lastFullRefreshAt : null;
-    final requested = _lastRequestedAt;
-    if (home == null) return requested;
-    if (requested == null) return home;
-    return home.isAfter(requested) ? home : requested;
-  }
-
-  Duration? _autoRefreshDelay() => followRefreshDelay(
-    minutes: ThemeSettingsController.normalizeLivePanelFollowRefreshMinutes(
-      SettingsService.to.theme.livePanelFollowRefreshMinutes.v,
-    ),
-    lastRefreshAt: _lastRefreshAt(),
-    now: DateTime.now(),
-  );
-
-  /// Refreshes the followed rooms every 信息页 › 关注刷新间隔 minutes, if set,
-  /// while the list is shown.
-  ///
-  /// The room panel builds only the tab on screen, so this list is disposed
-  /// whenever another tab is picked; a timer started from zero on every
-  /// visit never reached a long interval. The interval counts from the last
-  /// refresh instead: a list shown after it has passed refreshes at once,
-  /// and nothing is requested while no list is shown.
-  void _scheduleAutoRefresh() {
-    _autoRefreshTimer?.cancel();
-    _autoRefreshTimer = null;
-    if (!mounted) return;
-    final delay = _autoRefreshDelay();
-    if (delay == null) return;
-    _autoRefreshTimer = Timer(delay, _autoRefreshDue);
-  }
-
-  void _autoRefreshDue() {
-    _autoRefreshTimer = null;
-    if (!mounted) return;
-    // Another refresh (a pull, the home page's timer) may have run since
-    // this was scheduled: wait out the interval from that one.
-    final delay = _autoRefreshDelay();
-    if (delay == null) return;
-    if (delay > Duration.zero) {
-      _scheduleAutoRefresh();
-      return;
-    }
-    unawaited(_refresh().whenComplete(_scheduleAutoRefresh));
   }
 
   /// Asks the 关注 controller to refresh and completes when it reports back.
@@ -195,7 +126,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
     if (running != null) return running.future;
     final completer = Completer<void>();
     _refreshing = completer;
-    _lastRequestedAt = DateTime.now();
     _refreshesStarted++;
     EventBus.instance.emit('refresh_favorite_rooms', true);
     return completer.future.timeout(_refreshTimeout, onTimeout: _finishRefresh);
@@ -236,8 +166,6 @@ class _FollowRoomSwitcherState extends State<FollowRoomSwitcher> {
     subscription?.cancel();
     _favoritesWorker?.dispose();
     _sortWorker?.dispose();
-    _autoRefreshWorker?.dispose();
-    _autoRefreshTimer?.cancel();
     _finishRefresh();
     _refreshController.dispose();
     super.dispose();

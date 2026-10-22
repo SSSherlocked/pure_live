@@ -49,8 +49,9 @@ class ThemeSettingsController extends GetxController {
   /// dragging their edge; separate from the room's own side panel.
   final RxDouble fullscreenPanelWidth = hiveDouble('fullscreenPanelWidth', LivePanelWidth.defaultValue);
 
-  /// Minutes between automatic refreshes of the room's 关注 tab while it is
-  /// shown; 0 refreshes only on demand.
+  /// Minutes between automatic refreshes of the followed rooms, in the
+  /// background as well (the room's 关注 tab and the home 关注 page show the
+  /// same rooms); 0 leaves it to 刷新设置. See favoriteAutoRefreshInterval.
   final RxInt livePanelFollowRefreshMinutes = hiveInt('livePanelFollowRefreshMinutes', 0);
 
   static const int maxLivePanelFollowRefreshMinutes = 30;

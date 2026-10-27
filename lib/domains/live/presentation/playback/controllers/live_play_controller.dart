@@ -761,16 +761,30 @@ class LivePlayController extends GetxController
 
   void addSingleSuperChat(LiveSuperChatMessage item) {
     if (isClosed || _ownerClosed) return;
-    final next = <LiveSuperChatMessage>{...superChats, item}.toList(growable: false);
-    superChats.assignAll(next);
+    superChats.assignAll(superChatsNewestFirst([...superChats, item]));
     _scheduleSuperChatExpiry();
   }
 
   void addBatchSuperChat(List<LiveSuperChatMessage> sc) {
     if (sc.isEmpty || isClosed || _ownerClosed) return;
-    final next = <LiveSuperChatMessage>{...superChats, ...sc}.toList(growable: false);
-    superChats.assignAll(next);
+    superChats.assignAll(superChatsNewestFirst([...superChats, ...sc]));
     _scheduleSuperChatExpiry();
+  }
+
+  /// [messages] once each (the first copy kept), the latest payment first:
+  /// the 付费留言 list reads top down. Arrival order mixed them up, since a
+  /// message shows for as long as its price buys (Douyu: 30 s for 10 鱼翅,
+  /// 300 s for 100 元). Messages paid at the same moment keep the later
+  /// arrival on top.
+  @visibleForTesting
+  static List<LiveSuperChatMessage> superChatsNewestFirst(Iterable<LiveSuperChatMessage> messages) {
+    final unique = <LiveSuperChatMessage>{...messages}.toList();
+    final arrival = <LiveSuperChatMessage, int>{for (var i = 0; i < unique.length; i++) unique[i]: i};
+    unique.sort((a, b) {
+      final byPayment = b.startTime.compareTo(a.startTime);
+      return byPayment != 0 ? byPayment : arrival[b]!.compareTo(arrival[a]!);
+    });
+    return unique;
   }
 
   void clearSuperChats() {

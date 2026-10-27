@@ -4,6 +4,14 @@
 
 本仓库 Fork 之前的版本历史属于原项目，见 [liuchuancong/pure_live Releases](https://github.com/liuchuancong/pure_live/releases)。
 
+# Pure Live v3.5.7
+
+## 🎬 直播间
+
+- **付费留言按付款时间排列**：付费留言之前按收到的先后排，而每条显示多久取决于金额（斗鱼 10 鱼翅的高能弹幕 30 秒，100 元的 300 秒），列表里的倒计时于是长短交错，看起来很乱。现在最新付款的在最上面，往下依次更早。
+
+---
+
 # Pure Live v3.5.6
 
 ## 💬 弹幕

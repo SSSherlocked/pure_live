@@ -92,7 +92,8 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
   /// settings pages do there; the in-room panel stays dense everywhere.
   bool get _roomy => PlatformUtils.isDesktop && !isEmbedded;
 
-  double get _sectionGap => _roomy ? 22 : 14;
+  /// The space around the card: the same above it as at its sides.
+  double get _edge => isEmbedded ? 12 : 16;
 
   /// One former section, folded into a row of the shared card: its name
   /// and, once opened, its settings.
@@ -118,14 +119,12 @@ class _DanmakuSettingsContentState extends State<DanmakuSettingsContent> {
       key: ValueKey(widget.embedded ? 'danmaku-settings-content-embedded' : 'danmaku-settings-content-page'),
       controller: _scrollController,
       physics: const PureLiveScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: widget.embedded ? 12 : 16, vertical: 8),
+      padding: EdgeInsets.fromLTRB(_edge, _edge, _edge, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // The header brings its own gap to the card below it.
           ?widget.header,
-          // The card keeps the same space above it as the header's card
-          // (the list's own top padding plus the rest of a gap).
-          SizedBox(height: _sectionGap - 8),
           // Every section is one folded row of this card, all folded each
           // time the page opens.
           CollapsibleSettingsCard(
